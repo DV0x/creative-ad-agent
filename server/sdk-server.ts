@@ -69,24 +69,28 @@ app.post('/test', async (req, res) => {
         if (Array.isArray(content)) {
           for (const block of content) {
             if (block.type === 'text') {
-              const textPreview = block.text.substring(0, 100);
-              console.log('🤖 Assistant:', textPreview + (block.text.length > 100 ? '...' : ''));
+              // Show FULL text without truncation
+              console.log('🤖 Assistant:');
+              console.log(block.text);
+              console.log('─'.repeat(80));
             } else if (block.type === 'tool_use') {
               // This is where tool calls appear!
               const timestamp = new Date().toISOString();
               console.log(`\n🔧 [${timestamp}] TOOL CALLED: ${block.name}`);
               console.log(`   Tool ID: ${block.id}`);
 
-              // Log tool-specific details
+              // Log tool-specific details - FULL content
               if (block.name === 'Task') {
                 console.log(`   🤖 Agent: ${block.input?.subagent_type || 'unknown'}`);
-                console.log(`   📝 Prompt: ${block.input?.prompt?.substring(0, 80)}...`);
+                console.log(`   📝 Prompt (full):`);
+                console.log(block.input?.prompt);
               } else if (block.name === 'WebFetch') {
                 console.log(`   🌐 URL: ${block.input?.url}`);
+                console.log(`   📋 Full Input:`, JSON.stringify(block.input, null, 2));
               } else if (block.name === 'Bash') {
                 console.log(`   💻 Command: ${block.input?.command}`);
               } else {
-                console.log(`   📋 Input:`, JSON.stringify(block.input).substring(0, 100) + '...');
+                console.log(`   📋 Full Input:`, JSON.stringify(block.input, null, 2));
               }
             }
           }
@@ -128,7 +132,7 @@ app.post('/test', async (req, res) => {
       sessionStats,
       duration: `${duration}ms`,
       messageCount: messages.length,
-      messages: messages.slice(-5), // Return last 5 messages for debugging
+      messages: messages, // Return ALL messages without truncation
       summary: extractSummary(messages)
     });
 
@@ -322,27 +326,28 @@ app.get('/sessions/:id/family', (req, res) => {
 });
 
 /**
- * Main creative generation endpoint - Orchestrates all subagents in parallel
- * Implements the PRD workflow: Research → Strategy → Copy → Visuals
+ * Main creative generation endpoint - Natural language prompt interface
+ * The orchestrator agent (via systemPrompt) handles workflow execution
  */
 app.post('/generate', async (req, res) => {
   const {
-    url,
-    platform = 'instagram',
-    objective = 'conversion',
-    targetAudience,
-    sessionId,
-    customInstructions
+    prompt,      // User's natural language prompt
+    sessionId    // Optional: resume existing session
   } = req.body;
 
-  if (!url) {
+  // Validate prompt
+  if (!prompt || prompt.trim().length === 0) {
     return res.status(400).json({
       success: false,
-      error: 'URL is required'
+      error: 'Prompt is required',
+      example: {
+        prompt: "Create Instagram ads for https://theratefinder.com targeting first-time homebuyers who are confused about mortgages"
+      }
     });
   }
 
-  console.log('🎨 Starting creative generation for:', url);
+  console.log('🎨 Starting campaign generation');
+  console.log('📝 User prompt:', prompt.substring(0, 100) + '...');
 
   try {
     const messages = [];
@@ -351,131 +356,21 @@ app.post('/generate', async (req, res) => {
     // Create or use existing session for this campaign
     const campaignSessionId = sessionId || `campaign-${Date.now()}`;
 
+    // Initialize session
+    await sessionManager.getOrCreateSession(campaignSessionId, {
+      status: 'active',
+      context: { userPrompt: prompt }
+    });
+
     // Initialize instrumentation for this campaign
-    const instrumentor = new SDKInstrumentor(campaignSessionId, url, platform);
+    const instrumentor = new SDKInstrumentor(campaignSessionId, prompt, 'user-prompt');
 
-    // Directive orchestration: Explicit Task tool instructions for each agent
-    const orchestrationPrompt = `
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-CAMPAIGN ORCHESTRATION TASK
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    console.log('🆔 Session:', campaignSessionId);
+    console.log('🚀 Executing workflow...\n');
 
-Campaign URL: ${url}
-Platform: ${platform}
-Objective: ${objective}
-${targetAudience ? `Target Audience: ${targetAudience}` : ''}
-Session ID: ${campaignSessionId}
-
-${customInstructions ? `CREATIVE DIRECTION:\n${customInstructions}\n\n` : ''}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-SEQUENTIAL WORKFLOW - USE TASK TOOL FOR EACH PHASE
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-═══ PHASE 1: RESEARCH ═══
-
-Use Task tool to launch campaign-researcher agent:
-
-Agent: campaign-researcher
-Description: Deep brand and customer research
-Prompt: "Conduct comprehensive brand analysis for ${url}
-
-Extract complete intelligence:
-1. ALL product/service offerings with pricing (complete catalog)
-2. Brand identity (colors, voice, positioning, visual style)
-3. Customer psychology (pain points, desires, emotional triggers)
-4. Psychological triggers (social proof, urgency, authority)
-5. Competitive differentiation opportunities
-
-${customInstructions ? `FOCUS: ${customInstructions}\n` : ''}Output: Structured markdown research report with all findings."
-
-⏸️  WAIT for campaign-researcher to complete before Phase 2
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-═══ PHASE 2: COPYWRITING ═══
-
-Use Task tool to launch copy-creator agent:
-
-Agent: copy-creator
-Description: Generate ad copy variations
-Prompt: "Create 5 ${platform} ad copy variations for ${objective} objective.
-
-Use the research findings from Phase 1 above.
-
-Requirements:
-- Use proven copywriting frameworks (PAS, AIDA, Before-After-Bridge, FAB, 4 Ps)
-- Feature specific offerings identified in research
-- Target customer pain points from research
-- Match brand voice and tone from research
-- Platform: ${platform} (optimize for feed/stories)
-- Each copy includes: headline, body, CTA
-
-Output: 5 complete, platform-ready ad copy variations."
-
-⏸️  WAIT for copy-creator to complete before Phase 3
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-═══ PHASE 3: VISUAL CREATION ═══
-
-Use Task tool to launch visual-director agent:
-
-Agent: visual-director
-Description: Generate ad images with text overlays
-Prompt: "Generate 5 complete ${platform} ad images with integrated text overlays.
-
-Use research from Phase 1 and copy from Phase 2.
-
-Requirements:
-- Create 5 distinct images matching the 5 copy variations
-- Each image includes copy text overlaid (headline + CTA visible)
-- Brand-aligned colors from research
-- Emotionally compelling scenes matching customer psychology
-- Platform: ${platform} format (1080x1350px vertical)
-- Session ID for image storage: ${campaignSessionId}
-
-Output: 5 production-ready ad images with text overlays."
-
-⏸️  WAIT for visual-director to complete
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-═══ COMPLETION ═══
-
-After all 3 phases complete, provide a comprehensive summary:
-
-## 📊 Campaign Execution Summary
-
-**Research Phase:**
-- [Key findings from campaign-researcher]
-- [Offerings identified]
-- [Target audience insights]
-
-**Copy Phase:**
-- [Creative angles used]
-- [Frameworks applied]
-- [Summary of 5 variations]
-
-**Visual Phase:**
-- [Image generation status]
-- [Visual strategy overview]
-- [File locations]
-
-**Campaign Assets:**
-- 1 complete research report
-- 5 ad copy variations
-- 5 ad images (1080x1350px)
-- Session ID: ${campaignSessionId}
-
-**Next Steps:**
-[Recommendations for deployment/testing]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-BEGIN EXECUTION - Launch Phase 1 now.
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-`;
-
-    // Execute orchestration with session management and instrumentation
-    for await (const result of aiClient.queryWithSession(orchestrationPrompt, campaignSessionId)) {
+    // ✨ THE MAGIC: Pass user's prompt directly to SDK
+    // The systemPrompt in ai-client.ts handles orchestration automatically
+    for await (const result of aiClient.queryWithSession(prompt, campaignSessionId)) {
       const { message } = result;
       messages.push(message);
 
@@ -556,23 +451,18 @@ BEGIN EXECUTION - Launch Phase 1 now.
 
     res.json({
       success: true,
-      campaign: {
-        url,
-        platform,
-        objective,
-        targetAudience,
-        customInstructions: customInstructions || null,
-        generatedAt: new Date().toISOString(),
+      sessionId: campaignSessionId,
+      prompt: prompt,
+      generatedAt: new Date().toISOString(),
+      response: {
         summary: finalResponse,
         fullResponse: fullResponse,
         structuredData: structuredData
       },
-      sessionId: campaignSessionId,
       sessionStats,
       performance: {
         duration: `${duration}ms`,
-        messageCount: messages.length,
-        phases: ['Research', 'Strategy', 'Copy Generation', 'Image Generation']
+        messageCount: messages.length
       },
       instrumentation: {
         campaignMetrics: campaignReport,
@@ -586,16 +476,12 @@ BEGIN EXECUTION - Launch Phase 1 now.
           toolsUsed: campaignReport.summary.totalTools
         }
       },
-      imageGeneration: {
-        status: 'enabled',
-        note: 'Images are generated automatically via visual-director agent in PHASE 4',
-        agent: 'visual-director',
-        mcpTool: 'mcp__nano-banana__generate_ad_images',
-        expectedImages: 5,
-        format: '1080x1080 (Instagram)',
+      images: {
         storageLocation: `generated-images/${campaignSessionId}/`,
-        viewUrl: `http://localhost:${PORT}/images/${campaignSessionId}`
-      }
+        viewUrl: `http://localhost:${PORT}/images/${campaignSessionId}`,
+        listUrl: `http://localhost:${PORT}/images`
+      },
+      note: 'The orchestrator agent executed the workflow based on systemPrompt guidance. Check response.fullResponse for complete output.'
     });
 
   } catch (error: any) {
@@ -603,7 +489,7 @@ BEGIN EXECUTION - Launch Phase 1 now.
     res.status(500).json({
       success: false,
       error: error.message || 'Failed to generate campaign',
-      url,
+      prompt: prompt,
       note: 'Check server logs for details'
     });
   }
@@ -729,10 +615,16 @@ function extractSummary(messages: any[]): string {
   const assistantMessages = messages.filter(m => m.type === 'assistant');
   if (assistantMessages.length === 0) return 'No assistant messages';
 
+  // Return FULL content without truncation
   const lastMessage = assistantMessages[assistantMessages.length - 1];
-  const content = lastMessage.content || '';
+  const content = lastMessage.message?.content;
 
-  return content.length > 200 ? content.substring(0, 200) + '...' : content;
+  if (Array.isArray(content)) {
+    const textBlocks = content.filter((c: any) => c.type === 'text').map((c: any) => c.text);
+    return textBlocks.join('\n\n');
+  }
+
+  return content || 'No content';
 }
 
 // Start server
@@ -745,7 +637,7 @@ app.listen(PORT, () => {
 ║                                              ║
 ║  Core Endpoints:                             ║
 ║  📝 POST /test - Test query with sessions    ║
-║  🎨 POST /generate - Generate ad campaigns   ║
+║  🎨 POST /generate - Natural language prompt ║
 ║  💚 GET /health - Health check               ║
 ║                                              ║
 ║  Session Management:                         ║
@@ -760,17 +652,24 @@ app.listen(PORT, () => {
 ║  📸 GET /images/:session/:file - Serve image ║
 ╠══════════════════════════════════════════════╣
 ║  Features Enabled:                           ║
+║  ✅ Natural Language Prompt Interface        ║
+║  ✅ Automatic Workflow Orchestration         ║
 ║  ✅ Session Management & Forking             ║
-║  ✅ MCP Tools (nano_banana v3.0 - simple)    ║
-║  ✅ Synchronous Generation (up to 3 images)  ║
-║  ✅ Subagent MCP Access (validated)          ║
-║  ✅ Custom System Prompt (ad specialist)     ║
+║  ✅ MCP Tools (nano_banana for images)       ║
+║  ✅ Multi-Agent System (3 specialists)       ║
+║  ✅ Real-time Cost Tracking                  ║
 ╠══════════════════════════════════════════════╣
 ║  Environment:                                ║
 ║  - Anthropic API: ${process.env.ANTHROPIC_API_KEY ? '✅ Configured' : '❌ Missing'}         ║
 ║  - Gemini API: ${process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing'}            ║
 ║  - Session Storage: ./sessions               ║
 ║  - Image Storage: ../generated-images        ║
+╠══════════════════════════════════════════════╣
+║  Usage Example:                              ║
+║  POST /generate                              ║
+║  { "prompt": "Create Instagram ads for      ║
+║     https://example.com targeting           ║
+║     millennials" }                           ║
 ╚══════════════════════════════════════════════╝
   `);
 });
