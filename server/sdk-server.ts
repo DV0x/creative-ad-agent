@@ -496,6 +496,252 @@ app.post('/generate', async (req, res) => {
 });
 
 /**
+ * DEBUG: Test if MAIN AGENT (orchestrator) can use Skill tool
+ * This tests Skill at the top level, NOT in a subagent
+ */
+app.post('/debug/orchestrator-skill', async (req, res) => {
+  console.log('\n🔍 DEBUG: Testing ORCHESTRATOR skill access (main agent, not subagent)...\n');
+
+  try {
+    const messages: any[] = [];
+    const debugSessionId = `debug-orch-skill-${Date.now()}`;
+
+    // Ask the orchestrator directly to use the Skill tool
+    // DO NOT spawn a subagent - test at the main agent level
+    const debugPrompt = `
+IMPORTANT: This is a diagnostic test. Do NOT spawn any subagents. Do NOT use Task tool.
+
+YOU (the orchestrator) should directly:
+
+1. List YOUR available tools (not a subagent's tools).
+
+2. Try to use the Skill tool directly with skill name 'viral-meme'.
+   Report exactly what happens - success, error, or if the tool doesn't exist.
+
+3. Report: Do YOU have access to the Skill tool? What skills can you see?
+
+DO NOT delegate this to any agent. Answer directly.
+`;
+
+    for await (const result of aiClient.queryWithSession(debugPrompt, debugSessionId)) {
+      const { message } = result;
+      messages.push(message);
+
+      if (message.type === 'assistant') {
+        const content = message.message?.content;
+        if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'text') {
+              console.log('\n📝 Orchestrator:', block.text.substring(0, 800));
+            } else if (block.type === 'tool_use') {
+              console.log(`\n🔧 Tool Used: ${block.name}`);
+              if (block.name === 'Skill') {
+                console.log('   ✅ SKILL TOOL WAS CALLED!');
+              }
+              console.log(`   Input:`, JSON.stringify(block.input, null, 2).substring(0, 300));
+            }
+          }
+        }
+      } else if (message.type === 'user') {
+        const content = message.message?.content;
+        if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'tool_result') {
+              const resultText = typeof block.content === 'string'
+                ? block.content
+                : JSON.stringify(block.content);
+              console.log(`\n✅ Tool Result:`);
+              console.log(`   ${resultText.substring(0, 500)}`);
+            }
+          }
+        }
+      }
+    }
+
+    // Check if Skill tool was used
+    const skillToolCalls = messages.filter((m: any) => {
+      if (m.type === 'assistant' && Array.isArray(m.message?.content)) {
+        return m.message.content.some((c: any) => c.type === 'tool_use' && c.name === 'Skill');
+      }
+      return false;
+    });
+
+    const taskToolCalls = messages.filter((m: any) => {
+      if (m.type === 'assistant' && Array.isArray(m.message?.content)) {
+        return m.message.content.some((c: any) => c.type === 'tool_use' && c.name === 'Task');
+      }
+      return false;
+    });
+
+    const assistantResponses = messages
+      .filter((m: any) => m.type === 'assistant')
+      .map((m: any) => {
+        const content = m.message?.content;
+        if (Array.isArray(content)) {
+          return content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n');
+        }
+        return '';
+      })
+      .filter((t: string) => t.length > 0);
+
+    res.json({
+      success: true,
+      sessionId: debugSessionId,
+      diagnostics: {
+        skillToolCalls: skillToolCalls.length,
+        taskToolCalls: taskToolCalls.length,
+        note: taskToolCalls.length > 0 ? 'WARNING: Orchestrator delegated to subagent instead of testing directly' : 'Good - no delegation'
+      },
+      findings: {
+        orchestratorUsedSkillTool: skillToolCalls.length > 0,
+        conclusion: skillToolCalls.length > 0
+          ? 'Orchestrator CAN use Skill tool - issue is subagent-specific'
+          : 'Orchestrator CANNOT use Skill tool - configuration issue at top level'
+      },
+      fullResponse: assistantResponses.join('\n\n---\n\n')
+    });
+
+  } catch (error: any) {
+    console.error('❌ Debug endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
+ * DEBUG: Test subagent skill access
+ * This endpoint spawns the creator agent and asks it to introspect its capabilities
+ */
+app.post('/debug/skill-access', async (req, res) => {
+  console.log('\n🔍 DEBUG: Testing subagent skill access...\n');
+
+  try {
+    const messages: any[] = [];
+    const debugSessionId = `debug-skill-${Date.now()}`;
+
+    // Create a prompt that forces the orchestrator to spawn creator
+    // and have creator introspect its skill access
+    const debugPrompt = `
+IMPORTANT: This is a diagnostic test. Do NOT create any actual ads.
+
+1. First, spawn the creator agent with this exact prompt:
+   "DIAGNOSTIC TEST ONLY - Do not create ads.
+    Instead, please do the following:
+
+    Step 1: List all tools available to you by name.
+
+    Step 2: Try to use the Skill tool with skill name 'viral-meme'.
+    Report exactly what happens - success, error, or no response.
+
+    Step 3: Try to Read the file at agent/.claude/skills/viral-meme/SKILL.md
+    Report if you can access it.
+
+    Step 4: Answer: Do you have access to Skill tool? Do you know what skills exist?
+
+    Return your findings as a structured report."
+
+2. After creator responds, summarize what you learned about skill access.
+`;
+
+    for await (const result of aiClient.queryWithSession(debugPrompt, debugSessionId)) {
+      const { message } = result;
+      messages.push(message);
+
+      // Log ALL messages for debugging
+      if (message.type === 'assistant') {
+        const content = message.message?.content;
+        if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'text') {
+              console.log('\n📝 Assistant:', block.text.substring(0, 500));
+            } else if (block.type === 'tool_use') {
+              console.log(`\n🔧 Tool: ${block.name}`);
+              console.log(`   Input:`, JSON.stringify(block.input, null, 2).substring(0, 500));
+            }
+          }
+        }
+      } else if (message.type === 'user') {
+        const content = message.message?.content;
+        if (Array.isArray(content)) {
+          for (const block of content) {
+            if (block.type === 'tool_result') {
+              const resultText = typeof block.content === 'string'
+                ? block.content
+                : JSON.stringify(block.content);
+              console.log(`\n✅ Tool Result (${block.tool_use_id}):`);
+              console.log(`   ${resultText.substring(0, 1000)}`);
+            }
+          }
+        }
+      }
+    }
+
+    // Extract the diagnostic results
+    const assistantResponses = messages
+      .filter((m: any) => m.type === 'assistant')
+      .map((m: any) => {
+        const content = m.message?.content;
+        if (Array.isArray(content)) {
+          return content.filter((c: any) => c.type === 'text').map((c: any) => c.text).join('\n');
+        }
+        return '';
+      })
+      .filter((t: string) => t.length > 0);
+
+    // Look for Skill tool usage
+    const skillToolCalls = messages.filter((m: any) => {
+      if (m.type === 'assistant' && Array.isArray(m.message?.content)) {
+        return m.message.content.some((c: any) => c.type === 'tool_use' && c.name === 'Skill');
+      }
+      return false;
+    });
+
+    // Look for Read tool usage on skill files
+    const readSkillCalls = messages.filter((m: any) => {
+      if (m.type === 'assistant' && Array.isArray(m.message?.content)) {
+        return m.message.content.some((c: any) =>
+          c.type === 'tool_use' &&
+          c.name === 'Read' &&
+          c.input?.file_path?.includes('skill')
+        );
+      }
+      return false;
+    });
+
+    res.json({
+      success: true,
+      sessionId: debugSessionId,
+      diagnostics: {
+        skillToolCalls: skillToolCalls.length,
+        readSkillFileCalls: readSkillCalls.length,
+        totalMessages: messages.length,
+        assistantMessages: assistantResponses.length
+      },
+      findings: {
+        usedSkillTool: skillToolCalls.length > 0,
+        usedReadForSkill: readSkillCalls.length > 0,
+        conclusion: skillToolCalls.length > 0
+          ? 'Skill tool WAS used - check if it succeeded'
+          : readSkillCalls.length > 0
+            ? 'Creator used Read instead of Skill - confirms skill metadata not available in subagent'
+            : 'Neither Skill nor Read was used for skill file'
+      },
+      fullResponse: assistantResponses.join('\n\n---\n\n'),
+      allMessages: messages
+    });
+
+  } catch (error: any) {
+    console.error('❌ Debug endpoint error:', error);
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+});
+
+/**
  * Instrumentation endpoint - Get metrics for a campaign
  */
 app.get('/campaigns/:id/metrics', (req, res) => {

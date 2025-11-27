@@ -4,6 +4,7 @@ import { SessionManager } from './session-manager.js';
 import { nanoBananaMcpServer } from './nano-banana-mcp.js';
 import { ORCHESTRATOR_SYSTEM_PROMPT } from './orchestrator-prompt.js';
 import { resolve } from 'path';
+import { existsSync, readdirSync, readFileSync } from 'fs';
 
 /**
  * AIClient - Wrapper for Claude SDK
@@ -27,7 +28,7 @@ export class AIClient {
       maxTurns: 30, // CRITICAL for tool usage!
       // Note: Output token limit is controlled by CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable
       // Set to 16384 in .env for large campaign responses (SDK default: 8192)
-      settingSources: ['project'], // Load agents from .claude/agents/ directory
+      settingSources: ['user', 'project'], // Load agents from .claude/agents/ and skills from .claude/skills/
       // REMOVED: strictMcpConfig, permissionMode - these were interfering with MCP tool execution
 
       // CRITICAL: Tool permissions for orchestration and subagents
@@ -36,26 +37,30 @@ export class AIClient {
       allowedTools: [
         // === ORCHESTRATOR TOOLS (Main agent uses these) ===
         "Task",       // Launch specialized subagents - CORE ORCHESTRATION TOOL
+        "Skill",      // Enable skills - agents can consult specialized skills for guidance
         "TodoWrite",  // Track workflow progress (optional but helpful for visibility)
 
         // === SUBAGENT TOOLS (Only subagents use these via Task tool) ===
-        // campaign-researcher uses:
-        "WebFetch",   // Web content fetching
+        // brand-researcher uses:
+        "WebFetch",   // Web content fetching (2-3 targeted searches)
         "Read",       // File reading
-        "Grep",       // Content search
 
-        // copy-creator uses:
-        // (none - pure text generation)
+        // culture-researcher uses:
+        "WebSearch",  // Web searching (12-15 cultural intelligence searches)
+        "Read",       // File reading
+        "Write",      // Save cultural intelligence report
 
-        // visual-director uses:
+        // creative-director uses:
+        "Read",       // Read research files
+        "Write",      // Save campaign brief
+        "Glob",       // File pattern matching
         "mcp__nano-banana__generate_ad_images",  // Gemini 2.5 Flash Image generation
+        // + Can consult skills: viral-meme-creation, nanobanana-meme-prompting
 
         // === UTILITY TOOLS (Available if needed) ===
         "Bash",       // Command execution (for subagents if needed)
-        "Write",      // File writing (for saving outputs)
         "Edit",       // File editing (for refinements)
-        "Glob",       // File pattern matching
-        "WebSearch"   // Web searching (for market research)
+        "Grep"        // Content search
       ],
 
       // Custom system prompt - PURE ORCHESTRATION ROLE
@@ -69,6 +74,117 @@ export class AIClient {
 
     // Use provided session manager or create new one
     this.sessionManager = sessionManager || new SessionManager();
+
+    // Log discovered agents and skills at initialization
+    this.logDiscoveredAgents(projectRoot);
+    this.logDiscoveredSkills(projectRoot);
+  }
+
+  /**
+   * Log discovered agents from the project's .claude/agents directory
+   */
+  private logDiscoveredAgents(projectRoot: string) {
+    const agentsDir = resolve(projectRoot, '.claude', 'agents');
+
+    console.log('\n🤖 Checking for Agents...');
+    console.log(`   Agents directory: ${agentsDir}`);
+
+    if (!existsSync(agentsDir)) {
+      console.log('   ⚠️  Agents directory not found');
+      return;
+    }
+
+    try {
+      const agentFiles = readdirSync(agentsDir)
+        .filter(file => file.endsWith('.md'));
+
+      if (agentFiles.length === 0) {
+        console.log('   ⚠️  No agent files found');
+        return;
+      }
+
+      console.log(`   ✅ Found ${agentFiles.length} agent(s):\n`);
+
+      for (const file of agentFiles) {
+        const agentPath = resolve(agentsDir, file);
+        const content = readFileSync(agentPath, 'utf-8');
+        const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+
+        if (frontmatterMatch) {
+          const frontmatter = frontmatterMatch[1];
+          const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
+          const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
+          const toolsMatch = frontmatter.match(/^tools:\s*(.+)$/m);
+
+          const name = nameMatch ? nameMatch[1].trim() : file.replace('.md', '');
+          const desc = descMatch ? descMatch[1].trim().substring(0, 60) + '...' : 'No description';
+          const tools = toolsMatch ? toolsMatch[1].trim() : 'No tools specified';
+
+          console.log(`   🤖 ${name}`);
+          console.log(`      Tools: ${tools}`);
+          console.log(`      Desc: ${desc}\n`);
+        }
+      }
+    } catch (error) {
+      console.error('   ❌ Error reading agents directory:', error);
+    }
+  }
+
+  /**
+   * Log discovered skills from the project's .claude/skills directory
+   */
+  private logDiscoveredSkills(projectRoot: string) {
+    const skillsDir = resolve(projectRoot, '.claude', 'skills');
+
+    console.log('\n📚 Checking for Skills...');
+    console.log(`   Skills directory: ${skillsDir}`);
+
+    if (!existsSync(skillsDir)) {
+      console.log('   ⚠️  Skills directory not found');
+      return;
+    }
+
+    try {
+      const skillFolders = readdirSync(skillsDir, { withFileTypes: true })
+        .filter(dirent => dirent.isDirectory())
+        .map(dirent => dirent.name);
+
+      if (skillFolders.length === 0) {
+        console.log('   ⚠️  No skill folders found');
+        return;
+      }
+
+      console.log(`   ✅ Found ${skillFolders.length} skill(s):\n`);
+
+      for (const folder of skillFolders) {
+        const skillPath = resolve(skillsDir, folder, 'SKILL.md');
+
+        if (existsSync(skillPath)) {
+          // Read frontmatter to get skill name and description
+          const content = readFileSync(skillPath, 'utf-8');
+          const frontmatterMatch = content.match(/^---\n([\s\S]*?)\n---/);
+
+          if (frontmatterMatch) {
+            const frontmatter = frontmatterMatch[1];
+            const nameMatch = frontmatter.match(/^name:\s*(.+)$/m);
+            const descMatch = frontmatter.match(/^description:\s*(.+)$/m);
+
+            const name = nameMatch ? nameMatch[1].trim() : folder;
+            const desc = descMatch ? descMatch[1].trim().substring(0, 80) + '...' : 'No description';
+
+            console.log(`   📘 ${name}`);
+            console.log(`      Path: ${skillPath}`);
+            console.log(`      Desc: ${desc}\n`);
+          } else {
+            console.log(`   ⚠️  ${folder}: Missing frontmatter in SKILL.md`);
+          }
+        } else {
+          console.log(`   ⚠️  ${folder}: Missing SKILL.md file`);
+        }
+      }
+    } catch (error) {
+      console.error('   ❌ Error reading skills directory:', error);
+    }
   }
 
   /**
@@ -143,7 +259,9 @@ export class AIClient {
       cwd: queryOptions.cwd,
       model: queryOptions.model,
       maxTurns: queryOptions.maxTurns,
-      mcpServers: Object.keys(queryOptions.mcpServers || {})
+      settingSources: queryOptions.settingSources,
+      mcpServers: Object.keys(queryOptions.mcpServers || {}),
+      skillsEnabled: queryOptions.allowedTools?.includes('Skill')
     });
 
     try {

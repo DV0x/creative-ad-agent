@@ -1,8 +1,8 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 1.1
-**Last Updated:** January 2025
-**Status:** Production (with MCP Image Generation)
+**Version:** 3.0
+**Last Updated:** November 2025
+**Status:** Production (Dual-Mode Ad Generator with MCP Image Generation)
 
 ---
 
@@ -11,92 +11,124 @@
 1. [System Overview](#system-overview)
 2. [High-Level Architecture](#high-level-architecture)
 3. [Component Details](#component-details)
-4. [Data Flow](#data-flow)
-5. [Session Management](#session-management)
-6. [API Endpoints](#api-endpoints)
-7. [Agent System](#agent-system)
-8. [Instrumentation & Observability](#instrumentation--observability)
-9. [Technology Stack](#technology-stack)
-10. [Deployment](#deployment)
+4. [Agent System](#agent-system)
+5. [Skills System](#skills-system)
+6. [Data Flow](#data-flow)
+7. [File Structure](#file-structure)
+8. [API Endpoints](#api-endpoints)
+9. [Session Management](#session-management)
+10. [Instrumentation & Observability](#instrumentation--observability)
+11. [Technology Stack](#technology-stack)
+12. [Deployment](#deployment)
+13. [Design Decisions](#design-decisions)
 
 ---
 
 ## System Overview
 
 ### Purpose
-An AI-powered creative advertising agent that generates 10 high-quality, strategically-aligned ad creatives for Meta and Instagram by analyzing brand websites, identifying customer pain points, and researching competitor strategies.
+An AI-powered creative advertising agent that generates professional conversion ads or viral meme ads for brands. The system analyzes brand websites, extracts customer language, and creates ready-to-post ad images using Gemini AI image generation.
 
 ### Key Features
-- **Multi-Agent Orchestration**: Coordinates 5 specialized AI agents in parallel workflows
+- **Dual-Mode Ad Generation**: Conversion ads (default) or meme ads (on request)
+- **2-Agent Orchestration**: Coordinates researcher and creator agents sequentially
+- **Adaptive Research**: Standard mode (4 searches) or Extended mode (7 searches) based on ad type
+- **Skills System**: On-demand viral-meme skill for entertainment-first content
+- **MCP Image Generation**: Nano-banana MCP server generates images using Gemini 2.5 Flash
 - **Session Management**: Stateful conversation handling with forking capabilities
 - **Real-time Instrumentation**: Complete observability of SDK operations, costs, and performance
-- **Platform Optimization**: Native optimization for Meta/Instagram specifications
 
 ### Performance Targets
-- **Total Generation Time**: < 5 minutes
-- **Parallel Research**: 3 concurrent agents
-- **Session Persistence**: 24-hour active sessions
-- **Cost Tracking**: Real-time USD cost tracking per campaign
+- **Total Generation Time**: 2-5 minutes (depends on research depth)
+- **Sequential Workflow**: 2 agents executed in order (researcher → creator)
+- **Image Generation**: Up to 3 images per MCP call (~10 seconds each)
+- **Output**: 5 ready-to-post ad images + comprehensive campaign brief
 
 ---
 
 ## High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                           CLIENT LAYER                                  │
-│                     (HTTP REST API Consumers)                           │
-└────────────────────────────┬────────────────────────────────────────────┘
-                             │
-                             ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│                        EXPRESS SERVER                                   │
-│                      (sdk-server.ts)                                    │
-│  ┌─────────────┬──────────────────┬──────────────┬──────────────────┐  │
-│  │ /generate   │ /test            │ /sessions    │ /health          │  │
-│  │ (campaign)  │ (sdk query test) │ (mgmt)       │ (health check)   │  │
-│  └─────────────┴──────────────────┴──────────────┴──────────────────┘  │
-└────────────────────────────┬────────────────────────────────────────────┘
-                             │
-                             ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      CORE LIBRARIES                                     │
-│  ┌──────────────────┬──────────────────┬──────────────────────────┐    │
-│  │   AIClient       │ SessionManager   │  SDKInstrumentor         │    │
-│  │ (ai-client.ts)   │(session-mgr.ts)  │ (instrumentor.ts)        │    │
-│  └────────┬─────────┴────────┬─────────┴─────────┬────────────────┘    │
-│           │                  │                   │                      │
-└───────────┼──────────────────┼───────────────────┼──────────────────────┘
-            │                  │                   │
-            ↓                  ↓                   ↓
-    ┌───────────────┐  ┌────────────────┐  ┌──────────────┐
-    │ Claude SDK    │  │ File Storage   │  │ Event Stream │
-    │ @anthropic-ai │  │ ./sessions/    │  │ Processing   │
-    └───────┬───────┘  └────────────────┘  └──────────────┘
-            │
-            ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│                      AGENT ECOSYSTEM                                    │
-│                      (.claude/agents/)                                  │
-│  ┌──────────────────────────────────────────────────────────────────┐  │
-│  │                   MAIN CREATIVE DIRECTOR                         │  │
-│  │            (Orchestrates entire campaign workflow)               │  │
-│  └────────────────────────┬─────────────────────────────────────────┘  │
-│                           │                                             │
-│         ┌─────────────────┼─────────────────┐                          │
-│         │                 │                 │                          │
-│         ↓                 ↓                 ↓                          │
-│  ┌──────────────┐  ┌─────────────┐  ┌───────────────────┐             │
-│  │ Brand Intel  │  │ Customer    │  │ Competitive       │             │
-│  │ Analyst      │  │ Psychology  │  │ Intelligence      │             │
-│  └──────────────┘  └─────────────┘  └───────────────────┘             │
-│         │                 │                 │                          │
-│         └─────────────────┼─────────────────┘                          │
-│                           ↓                                             │
-│                  ┌─────────────────┐                                    │
-│                  │  Copy Creator   │                                    │
-│                  └─────────────────┘                                    │
-└─────────────────────────────────────────────────────────────────────────┘
++--------------------------------------------------------------------------------+
+|                              CLIENT LAYER                                       |
+|                         (HTTP REST API Consumers)                               |
++---------------------------------------+----------------------------------------+
+                                        |
+                                        v
++--------------------------------------------------------------------------------+
+|                            EXPRESS SERVER                                       |
+|                          (server/sdk-server.ts)                                 |
+|  +-------------+------------------+----------------+------------------+         |
+|  | POST        | POST             | GET            | GET              |         |
+|  | /generate   | /test            | /sessions      | /images          |         |
+|  | (campaign)  | (SDK test)       | (management)   | (serve images)   |         |
+|  +-------------+------------------+----------------+------------------+         |
++---------------------------------------+----------------------------------------+
+                                        |
+                                        v
++--------------------------------------------------------------------------------+
+|                           CORE LIBRARIES                                        |
+|  +------------------+------------------+---------------------+                  |
+|  |   AIClient       | SessionManager   |  SDKInstrumentor    |                  |
+|  | (ai-client.ts)   | (session-mgr.ts) | (instrumentor.ts)   |                  |
+|  +--------+---------+--------+---------+---------+-----------+                  |
+|           |                  |                   |                              |
+|           v                  v                   v                              |
+|  +------------------+  +------------------+  +------------------+               |
+|  | Claude SDK       |  | File Storage     |  | Event Stream     |               |
+|  | @anthropic-ai    |  | ./sessions/      |  | Processing       |               |
+|  +--------+---------+  +------------------+  +------------------+               |
+|           |                                                                     |
++-----------|---------------------------------------------------------------------+
+            |
+            v
++--------------------------------------------------------------------------------+
+|                        AGENT ECOSYSTEM                                          |
+|                   (agent/.claude/agents/)                                       |
+|                                                                                 |
+|  +------------------------------------------------------------------------+    |
+|  |                   ORCHESTRATOR (Main Agent)                             |    |
+|  |            (Coordinates SEQUENTIAL workflow via Task tool)              |    |
+|  |                   System Prompt: orchestrator-prompt.ts                 |    |
+|  +-----------------------------------+------------------------------------+    |
+|                                      |                                          |
+|            STEP 1                    |         STEP 2                          |
+|            +----------+              |         +----------+                    |
+|            v                         |         v                               |
+|  +---------------------------+       |  +---------------------------+          |
+|  | researcher                |       |  | creator                   |          |
+|  |                           |       |  |                           |          |
+|  | MODE DETECTION:           |       |  | MODE DETECTION:           |          |
+|  | - STANDARD: 4 searches    |       |  | - CONVERSION: Embedded    |          |
+|  |   (for conversion ads)    |       |  |   framework (default)     |          |
+|  | - EXTENDED: 7 searches    |       |  | - MEME: Loads viral-meme  |          |
+|  |   (for meme/viral ads)    |       |  |   skill via Skill tool    |          |
+|  |                           |       |  |                           |          |
+|  | Tools: WebSearch,         |       |  | Tools: Read, Write, Skill,|          |
+|  |        WebFetch,          |       |  |   mcp__nano-banana__      |          |
+|  |        Read, Write        |       |  |   generate_ad_images      |          |
+|  +-------------+-------------+       |  +-------------+-------------+          |
+|                |                     |                |                         |
+|                v                     |                v                         |
+|  +---------------------------+       |  +---------------------------+          |
+|  | files/research/           |       |  | files/final_output/       |          |
+|  | {brand}_brand_profile.txt |------>|  | {brand}_campaign_brief.txt|          |
+|  |                           |       |  | + PNG images              |          |
+|  +---------------------------+       |  +---------------------------+          |
++--------------------------------------------------------------------------------+
+                                        |
+                                        v
++--------------------------------------------------------------------------------+
+|                         MCP SERVER                                              |
+|                    (nano-banana-mcp.ts)                                         |
+|  +------------------------------------------------------------------------+    |
+|  | mcp__nano-banana__generate_ad_images                                    |    |
+|  |   - Uses Gemini 2.5 Flash Image API                                    |    |
+|  |   - Generates up to 3 images per call                                  |    |
+|  |   - Saves PNG files to generated-images/{sessionId}/                   |    |
+|  |   - Returns image URLs for inclusion in campaign brief                 |    |
+|  +------------------------------------------------------------------------+    |
++--------------------------------------------------------------------------------+
 ```
 
 ---
@@ -110,26 +142,21 @@ An AI-powered creative advertising agent that generates 10 high-quality, strateg
 - Request validation and routing
 - Response formatting and error handling
 - CORS and middleware configuration
+- Image serving for generated ads
 
 **Key Endpoints**:
-- `POST /generate` - Main campaign generation
-- `POST /test` - SDK query testing with session management
-- `GET /sessions` - List all active sessions
-- `GET /sessions/:id` - Get specific session stats
-- `POST /sessions/:id/continue` - Resume existing session
-- `POST /sessions/:id/fork` - Create session variant
-- `GET /sessions/:id/family` - Get session family tree
-- `GET /images` - List all generated images by session
-- `GET /images/:sessionId/:filename` - Serve specific generated image
-- `GET /health` - Health check with config status
-
-**Dependencies**:
-- Express.js for HTTP server
-- CORS for cross-origin requests
-- dotenv for environment configuration
-- AIClient for SDK interaction
-- SessionManager for state management
-- SDKInstrumentor for metrics tracking
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/generate` | POST | Main campaign generation - accepts natural language prompt |
+| `/test` | POST | SDK query testing with session management |
+| `/sessions` | GET | List all active sessions |
+| `/sessions/:id` | GET | Get specific session stats |
+| `/sessions/:id/continue` | POST | Resume existing session |
+| `/sessions/:id/fork` | POST | Create session variant |
+| `/sessions/:id/family` | GET | Get session family tree |
+| `/images` | GET | List all generated images by session |
+| `/images/:sessionId/:filename` | GET | Serve specific generated image |
+| `/health` | GET | Health check with config status |
 
 ---
 
@@ -137,79 +164,105 @@ An AI-powered creative advertising agent that generates 10 high-quality, strateg
 
 **Purpose**: Wrapper around Claude SDK with session-aware query capabilities
 
-**Key Methods**:
-
-```typescript
-// Stream query to Claude SDK
-async *queryStream(
-  prompt: string,
-  options?: Partial<Options>,
-  attachments?: Array<{type: string; source: any}>
-): AsyncGenerator<Message>
-
-// Session-aware query with automatic management
-async *queryWithSession(
-  prompt: string,
-  sessionId?: string,
-  metadata?: any,
-  attachments?: Array<{type: string; source: any}>
-): AsyncGenerator<{message: Message, sessionId: string}>
-
-// Fork session for A/B testing
-async *queryWithSessionFork(
-  prompt: string,
-  baseSessionId: string,
-  metadata?: any,
-  attachments?: Array<{type: string; source: any}>
-): AsyncGenerator<{message: Message, sessionId: string, baseSessionId: string, isFork: boolean}>
-```
-
 **Configuration**:
 ```typescript
 {
-  cwd: projectRoot,                    // Points to .claude/agents
-  model: 'claude-sonnet-4-5-20250929', // Sonnet 4.5
+  cwd: projectRoot,                    // Points to agent/ directory
+  model: 'claude-haiku-4-5-20251001',  // Fast model for orchestration
   maxTurns: 30,                        // CRITICAL for tool usage
-  settingSources: ['project'],         // Load project agents
-  allowedTools: [                      // Explicit tool permissions (includes MCP)
-    "Task", "Bash", "Read", "Write", "Edit", "Glob", "Grep",
-    "WebFetch", "WebSearch", "TodoWrite",
-    "mcp__nano-banana__generate_ad_images"  // ✅ MCP tool (accessible to all agents)
+  settingSources: ['user', 'project'], // Load agents + skills from .claude/
+  allowedTools: [
+    // Orchestrator tools
+    "Task", "Skill", "TodoWrite",
+    // Subagent tools
+    "WebFetch", "WebSearch", "Read", "Write", "Glob", "Grep", "Bash", "Edit",
+    // MCP tool
+    "mcp__nano-banana__generate_ad_images"
   ],
-  systemPrompt: "...",                 // Custom creative agent prompt
+  systemPrompt: ORCHESTRATOR_SYSTEM_PROMPT,
   mcpServers: {
-    "nano-banana": nanoBananaMcpServer  // ✅ Production: Gemini 2.5 Flash Image
+    "nano-banana": nanoBananaMcpServer
   }
 }
 ```
 
-**Features**:
-- **Persistent async generator pattern** with AbortController (REQUIRED for MCP servers)
-- Generator lifecycle management for long-running tools (10+ seconds)
-- Automatic SDK session ID capture from `system.init` messages
-- Session resumption via `resume` option
-- Session forking with `forkSession` flag
-- Custom system prompt for creative specialization
+**Key Methods**:
+- `queryStream()` - Stream query to Claude SDK
+- `queryWithSession()` - Session-aware query with automatic management
+- `queryWithSessionFork()` - Fork session for A/B testing
 
-**Generator Lifecycle Pattern**:
+**Generator Lifecycle Pattern** (Critical for MCP):
 ```typescript
-// Each query uses AbortController for proper cleanup
-const controller = new AbortController();
-try {
-  for await (const message of query({
-    prompt: createPromptGenerator(text, attachments, controller.signal),
-    options
-  })) {
-    // Process messages
-  }
-} finally {
-  controller.abort();  // Clean shutdown
+// Generator must stay alive during tool execution
+// Uses AbortController for proper cleanup
+const abortController = new AbortController();
+
+// Generator waits on abort signal to stay alive
+if (signal) {
+  await new Promise<void>((resolve) => {
+    signal.addEventListener('abort', () => resolve());
+  });
 }
+
+// Abort when query completes
+abortController.abort();
+```
+
+**Agent & Skill Discovery**:
+At initialization, AIClient:
+1. Scans `agent/.claude/agents/` for agent definitions
+2. Scans `agent/.claude/skills/` for skill definitions
+3. Logs discovered agents and skills with their tools and descriptions
+
+---
+
+### 3. Orchestrator Prompt (`server/lib/orchestrator-prompt.ts`)
+
+**Purpose**: Defines the main agent's behavior as an intelligent coordinator
+
+**Capabilities**:
+1. Spawn researcher agent to analyze brand URLs
+2. Spawn creator agent to generate ad creatives
+3. Understand natural language requests and extract intent
+4. Communicate with insight about what it's doing
+
+**Mode Detection**:
+- **MEME MODE keywords**: "meme", "memes", "viral", "funny", "humor", "humorous", "entertainment"
+- **CONVERSION MODE**: Default when no meme keywords found
+
+**Workflow**:
+1. Parse request (extract URL, detect format, note context)
+2. Spawn researcher (with meme hint if applicable)
+3. Read research file (for orchestrator's own context)
+4. Spawn creator (pass format decision in prompt)
+5. Summarize results
+
+**Agent Prompts** (from orchestrator):
+```typescript
+// researcher
+Task({
+  subagent_type: "researcher",
+  description: "Brand research for {domain}",
+  prompt: "Research {URL}. Extract brand overview, visual identity, target audience,
+          pain points, and customer language. Save to files/research/{brand}_brand_profile.txt"
+})
+// For meme mode, add: "This is for viral meme content - go deep on audience culture and humor patterns."
+
+// creator
+Task({
+  subagent_type: "creator",
+  description: "Create {format} ads for {brand}",
+  prompt: "Create {FORMAT} ads for {BRAND_NAME}.
+          Read files/research/{brand}_brand_profile.txt for full research.
+          {MEME: 'Load the viral-meme skill and create entertainment-first content.'}
+          {CONVERSION: 'Use the embedded conversion framework for professional ads with clear CTAs.'}
+          Generate 5 concepts with images. Save to files/final_output/"
+})
 ```
 
 ---
 
-### 3. SessionManager (`server/lib/session-manager.ts`)
+### 4. SessionManager (`server/lib/session-manager.ts`)
 
 **Purpose**: Manages SDK session lifecycle and persistence
 
@@ -221,96 +274,221 @@ interface SessionInfo {
   createdAt: Date;
   lastAccessedAt: Date;
   metadata: {
-    url?: string;
-    campaignName?: string;
     status: 'active' | 'completed' | 'error';
     messageCount: number;
-    context?: any;
-    // Fork-related
-    forkedFrom?: string;         // Base session if this is a fork
-    forkTimestamp?: string;
-    forkPurpose?: string;        // Why this fork was created
+    forkedFrom?: string;         // Base session if fork
+    forkPurpose?: string;
   };
   messages: any[];               // Full message history
-  turnCount: number;             // Number of assistant turns
+  turnCount: number;
 }
 ```
 
-**Key Methods**:
-```typescript
-createSession(metadata?)          // Create new session
-getOrCreateSession(sessionId?)    // Get or create session
-updateSdkSessionId(id, sdkId)    // Link SDK session ID
-addMessage(sessionId, message)    // Add message to history
-getResumeOptions(sessionId)       // Get resume config for SDK
-saveSession(sessionId)            // Persist to disk
-loadSession(sessionId)            // Load from disk
-getSessionForks(baseSessionId)    // Get all forks
-getSessionFamily(sessionId)       // Get base + all forks
-```
-
-**Persistence**:
-- **Storage**: `./sessions/*.json` files
+**Key Features**:
+- **Persistence**: `./sessions/*.json` files
 - **Auto-save**: Every 10 messages
 - **Cleanup**: 24-hour max age, 1-hour inactivity for completed sessions
-- **Format**: JSON with ISO date strings
-
-**Session Forking**:
-```
-Base Session (session_abc123)
-    ├── Fork 1 (session_xyz456) - Emotional angle variant
-    ├── Fork 2 (session_def789) - Social proof variant
-    └── Fork 3 (session_ghi012) - Problem-solution variant
-```
+- **Forking**: Create session variants for A/B testing
 
 ---
 
-### 4. SDKInstrumentor (`server/lib/instrumentor.ts`)
+### 5. SDKInstrumentor (`server/lib/instrumentor.ts`)
 
 **Purpose**: Real-time instrumentation and metrics tracking
 
 **Tracked Metrics**:
-- **Events**: All SDK message types (system, assistant, user, result)
-- **Tool Calls**: Every tool invocation with parameters
-- **Agent Calls**: Subagent launches via Task tool
-- **Costs**: SDK-provided USD costs (authoritative)
-- **Timing**: Event timestamps and durations
-- **Usage**: Token counts (input, output, cache read/write)
+- Events: All SDK message types
+- Tool Calls: Every tool invocation
+- Agent Calls: Subagent launches via Task tool
+- Costs: SDK-provided USD costs (authoritative from `result.success`)
+- Timing: Event timestamps and durations
+- Usage: Token counts (input, output, cache read, cache write)
 
-**Message Processing**:
-```typescript
-processMessage(message) {
-  switch (message.type) {
-    case 'system':
-      // Track init, tool calls
-    case 'assistant':
-      // Track usage tokens from each turn
-    case 'user':
-      // Track tool results
-    case 'result':
-      // Capture final cost and duration
-  }
-}
+---
+
+### 6. Nano Banana MCP Server (`server/lib/nano-banana-mcp.ts`)
+
+**Purpose**: AI-powered image generation using Gemini 2.5 Flash
+
+**Tool**: `generate_ad_images`
+
+**Parameters**:
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| prompts | string[] | Array of 1-3 image generation prompts |
+| style | string? | Visual style (e.g., "modern minimal", "photorealistic") |
+| dimensions | string? | Target dimensions (e.g., "1080x1080", "1080x1350") |
+| sessionId | string? | Session ID for organizing images into folders |
+
+**Output**:
+- PNG files saved to `generated-images/{sessionId}/`
+- URLs returned for inclusion in campaign brief
+- Filename format: `{timestamp}_{index}_{sanitized_prompt}.png`
+
+**Architecture**: Simple synchronous pattern (v3.0.0)
+- Generates up to 3 images per call
+- Returns complete results through MCP stream
+- 1-second rate limit between requests
+- Graceful error handling (continues with remaining images if one fails)
+
+---
+
+## Agent System
+
+### Agent Hierarchy & Dual-Mode Workflow
+
+```
+ORCHESTRATOR (Main Agent)
+    |
+    +-- Parses request, detects mode (CONVERSION or MEME)
+    |
+    +-- STEP 1: Research
+    |   |
+    |   +-- researcher
+    |       Tools: WebSearch, WebFetch, Read, Write
+    |
+    |       MODE DETECTION (from task context):
+    |       - STANDARD MODE (default): 4 WebSearches
+    |         → Customer voice, pain points, category context, competition
+    |       - EXTENDED MODE (meme keywords): 7 WebSearches
+    |         → Standard + meme culture, viral patterns, emotional triggers
+    |
+    |       Output: files/research/{brand}_brand_profile.txt
+    |       (~150 lines standard, ~220 lines extended)
+    |
+    +-- STEP 2: Creation (after Step 1 completes)
+        |
+        +-- creator
+            Tools: Read, Write, Skill, mcp__nano-banana__generate_ad_images
+
+            MODE DETECTION (from task context):
+            - CONVERSION MODE (default): Uses embedded framework
+              → Professional ads with clear value props and CTAs
+            - MEME MODE (keywords detected): Loads viral-meme skill
+              → Entertainment-first, 70/30 rule, 11pm test
+
+            Output:
+            - files/final_output/{brand}_campaign_brief.txt
+            - 5 PNG ad images
 ```
 
-**Output Reports**:
-```typescript
-{
-  campaignId: string,
-  totalCost_usd: number,           // From SDK result message
-  totalDuration_ms: number,
-  summary: {
-    totalEvents: number,
-    totalTools: number,
-    totalAgents: number,
-    totalTokens: number,
-    avgResponseTime_ms: number
-  },
-  timeline: Event[]                // Chronological event log
-}
-```
+### Agent Definitions
 
-**Key Insight**: SDK provides authoritative cost data in `result.success` messages - no manual calculation needed!
+#### 1. researcher (`agent/.claude/agents/researcher.md`)
+
+**Purpose**: Adaptive brand intelligence researcher that extracts brand identity, customer voice, and cultural context
+
+**Tools**: WebSearch, WebFetch, Read, Write
+
+**Mode Detection**:
+- Checks task context for meme/viral/humor keywords
+- STANDARD: 4 searches, ~150 lines output
+- EXTENDED: 7 searches, ~220 lines output (includes cultural landscape, psychology, humor patterns)
+
+**Research Workflow**:
+1. Extract brand name from URL for file naming
+2. WebFetch homepage with brand intelligence prompt
+3. WebFetch additional pages if needed (About, Products)
+4. WebSearches (STANDARD MODE - 4 searches):
+   - Customer voice (Reddit, reviews)
+   - Audience pain points
+   - Category context
+   - Competitive landscape
+5. Extended WebSearches (EXTENDED MODE ONLY - 3 more):
+   - Audience meme culture
+   - Viral content patterns
+   - Emotional triggers
+6. Synthesize and write to `files/research/{brand}_brand_profile.txt`
+
+**Output Sections**:
+1. Business Overview (offerings, value prop, differentiator)
+2. Visual Identity (colors, typography, aesthetic)
+3. Target Audience (demographics, psychographics, emotional state)
+4. Pain Points & Customer Language (with exact phrases)
+5. Competitive Context
+6. Brand Voice & Tone (including humor tolerance)
+7. Cultural Landscape (EXTENDED only)
+8. Psychological Triggers (EXTENDED only)
+9. Humor Patterns (EXTENDED only)
+10. White Space & Opportunities (EXTENDED only)
+11. Anti-Patterns (EXTENDED only)
+
+#### 2. creator (`agent/.claude/agents/creator.md`)
+
+**Purpose**: Ad creative generator that transforms brand research into conversion ads (default) or meme ads (when requested)
+
+**Tools**: Read, Write, Skill, mcp__nano-banana__generate_ad_images
+
+**Workflow**:
+1. Read research file (`files/research/{brand}_brand_profile.txt`)
+2. Determine ad type from task keywords
+3. **If meme keywords found**: Load `viral-meme` skill using Skill tool
+4. **If no meme keywords**: Use embedded conversion framework
+5. Create 5 ad concepts with copy and visual direction
+6. Generate images using `mcp__nano-banana__generate_ad_images`
+7. Write campaign brief to `files/final_output/{brand}_campaign_brief.txt`
+
+**Embedded Conversion Framework**:
+- Headline templates (Pain Point, Benefit, Question, Social Proof)
+- Body copy guidelines (1-2 sentences, customer language, no jargon)
+- CTAs matched to funnel stage
+- Emotional targets (Relief, Aspiration, FOMO, Simplicity)
+
+**Image Prompting Techniques** (embedded):
+- Golden rule: "white text with thick black outline"
+- Platform dimensions (1:1, 4:5, 9:16, 16:9)
+- Visual styles (professional, lifestyle, minimal, meme)
+- Text placement (top/bottom/center/split)
+- Brand integration (colors, subtle logo watermark)
+
+---
+
+## Skills System
+
+Skills provide specialized guidance that agents consult during their workflow. Defined in `agent/.claude/skills/` and invoked using the `Skill` tool.
+
+### viral-meme (`agent/.claude/skills/viral-meme/SKILL.md`)
+
+**Purpose**: Transform brand research into viral meme concepts for entertainment-first content
+
+**When to Use**: User requests memes, viral content, funny ads, or humor-based marketing
+
+**Key Frameworks**:
+
+**The Golden Rule**: 70% entertainment, 30% brand (at most)
+
+**Hard Constraints**:
+| Never Do | Why |
+|----------|-----|
+| Copy existing meme formats | Templates scream "marketing team" |
+| Use marketing language | Only words customers actually say |
+| Make brand the hero | Customer's struggle is the hero |
+| Explain the joke | If it needs explanation, it's dead |
+
+**Emotional Targets** (pick ONE per concept):
+| Target | Feeling | Signs Working |
+|--------|---------|---------------|
+| Catharsis | "Finally someone said it" | Tagging friends, "THIS" |
+| Validation | "This is SO me" | Screenshots, identity expression |
+| Surprise | "Wait, what?" | Comments, debates |
+| Belonging | "My people get this" | Niche community spread |
+| Hope | "Maybe there's a way" | Saves, encouragement shares |
+
+**Humor Patterns**:
+| Pattern | Energy | Best For |
+|---------|--------|----------|
+| Self-deprecating | "I'm a mess but funny" | Shared struggles |
+| Observational | "Why is this SO true?" | Universal moments |
+| Absurdist | "Makes no sense but YES" | Breaking patterns |
+| Wholesome | "I needed this today" | Genuine support |
+| Dark/Gallows | "At least we can laugh" | Heavy topics, solidarity |
+
+**The 11pm Test**: "Would I send this to a friend at 11pm with no context?"
+
+**Visual Philosophy**:
+- Cognitive load: One focal point, one joke
+- Authenticity: Intentional lo-fi > corporate polish
+- Lo-Fi Spectrum: Screenshots → iPhone photo → Designed → Studio
 
 ---
 
@@ -319,200 +497,150 @@ processMessage(message) {
 ### Complete Campaign Generation Flow
 
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 1: HTTP REQUEST                                                    │
-└─────────────────────────────────────────────────────────────────────────┘
-    POST /generate
-    {
-      url: "https://example.com",
-      platform: "instagram",
-      objective: "conversion",
-      targetAudience: "..."
-    }
-              ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 2: SESSION INITIALIZATION                                          │
-└─────────────────────────────────────────────────────────────────────────┘
-    sessionManager.getOrCreateSession(campaignSessionId)
-    instrumentor = new SDKInstrumentor(campaignId, url, platform)
-              ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 3: ORCHESTRATION PROMPT CONSTRUCTION                               │
-└─────────────────────────────────────────────────────────────────────────┘
-    Build multi-phase prompt:
-    - PHASE 1: Run 3 research agents IN PARALLEL
-    - PHASE 2: Synthesize into 5 strategic angles
-    - PHASE 3: Copy Creator generates 10 variations
-    - PHASE 4: Return structured JSON
-              ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 4: SDK EXECUTION (STREAMING)                                       │
-└─────────────────────────────────────────────────────────────────────────┘
-    for await (const result of aiClient.queryWithSession(prompt, sessionId)) {
-      const { message } = result;
+1. USER REQUEST
+   POST /generate { "prompt": "Create memes for https://brand.com targeting millennials" }
+                                        |
+                                        v
+2. SESSION INITIALIZATION
+   - sessionManager.getOrCreateSession(campaignSessionId)
+   - instrumentor = new SDKInstrumentor(campaignId)
+                                        |
+                                        v
+3. ORCHESTRATOR RECEIVES PROMPT
+   - Parses request: extracts URL, detects mode (MEME detected)
+   - Notes context: "targeting millennials"
+                                        |
+                                        v
+4. STEP 1: RESEARCH (EXTENDED MODE)
+   researcher
+   |
+   +-- WebFetch homepage
+   +-- WebFetch about/products (if needed)
+   +-- WebSearch: customer voice (Reddit, reviews)
+   +-- WebSearch: audience pain points
+   +-- WebSearch: category context
+   +-- WebSearch: competitive landscape
+   +-- WebSearch: audience meme culture (EXTENDED)
+   +-- WebSearch: viral content patterns (EXTENDED)
+   +-- WebSearch: emotional triggers (EXTENDED)
+   +-- Write brand_brand_profile.txt (~220 lines)
+   |
+   v (orchestrator waits for completion)
+                                        |
+                                        v
+5. ORCHESTRATOR READS RESEARCH
+   - Reads brand_profile.txt for own context
+   - Extracts brand name and business type
+   - Prepares to spawn creator with mode info
+                                        |
+                                        v
+6. STEP 2: CREATIVE EXECUTION (MEME MODE)
+   creator
+   |
+   +-- Skill: viral-meme (load framework FIRST)
+   +-- Read brand_brand_profile.txt
+   +-- Apply 70/30 rule, emotional targets, humor patterns
+   +-- Create 5 meme concepts using 11pm test
+   +-- MCP: nano-banana generate_ad_images (1-2 calls for 5 images)
+   +-- Write campaign_brief.txt
+                                        |
+                                        v
+7. RESPONSE ASSEMBLY
+   {
+     success: true,
+     sessionId: "campaign-123",
+     response: { summary, fullResponse, structuredData },
+     sessionStats: { turnCount, messageCount },
+     performance: { duration, messageCount },
+     instrumentation: { totalCost, totalTokens, timeline },
+     images: { storageLocation, viewUrl, listUrl }
+   }
+```
 
-      // Process message through instrumentor
-      instrumentor.processMessage(message);
+### File-Based Agent Communication
 
-      // Add to session history
-      sessionManager.addMessage(sessionId, message);
-
-      // Log progress
-      if (message.type === 'assistant') {
-        console.log('Progress:', message.content);
-      }
-    }
-              ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 5: PARALLEL AGENT EXECUTION (Inside SDK)                           │
-└─────────────────────────────────────────────────────────────────────────┘
-    Main Agent receives prompt
-         ↓
-    Launches 3 agents in parallel:
-         ├─→ brand-intelligence-analyst (WebFetch brand site)
-         ├─→ customer-psychology-specialist (WebFetch + analysis)
-         └─→ competitive-intelligence-specialist (WebSearch competitors)
-         ↓
-    Each returns structured JSON
-         ↓
-    Main Agent synthesizes research
-         ↓
-    Main Agent generates 5 strategic angles
-         ↓
-    Main Agent launches copy-creator agent
-         ↓
-    Copy Creator generates 10 copy variations using frameworks:
-         - Problem-Solution → PAS
-         - Social Proof → 4 Ps
-         - Transformation → Before-After-Bridge
-         - Product Hero → FAB
-         - Emotional → AIDA
-         ↓
-    Main Agent structures final output as JSON
-              ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 6: RESPONSE ASSEMBLY                                               │
-└─────────────────────────────────────────────────────────────────────────┘
-    Extract assistant messages
-    Parse JSON structured data
-    Get instrumentation report
-    Get session stats
-              ↓
-┌─────────────────────────────────────────────────────────────────────────┐
-│ STEP 7: HTTP RESPONSE                                                   │
-└─────────────────────────────────────────────────────────────────────────┘
-    {
-      success: true,
-      campaign: {
-        url, platform, objective,
-        summary: "...",
-        structuredData: { /* 10 creatives */ }
-      },
-      sessionId: "campaign-...",
-      sessionStats: { turnCount, messageCount, ... },
-      performance: { duration, messageCount, phases },
-      instrumentation: {
-        campaignMetrics: { totalCost_usd, ... },
-        costBreakdown: { ... },
-        timeline: [ /* events */ ],
-        summary: { totalCost, totalTokens, avgResponseTime, ... }
-      }
-    }
+```
++-------------------+     saves      +---------------------------+
+| researcher        | ------------> | {brand}_brand_profile.txt |
+|                   |                | - Business Overview       |
+| (4-7 searches     |                | - Visual Identity         |
+|  based on mode)   |                | - Target Audience         |
++-------------------+                | - Pain Points             |
+                                     | - Brand Voice             |
+                                     | (Extended: +5 sections)   |
+                                     +-------------+-------------+
+                                                   |
+                                                   | reads
+                                                   v
++-------------------+                +---------------------------+
+| creator           | <------------- | (applies mode framework)  |
+|                   |                +---------------------------+
+| CONVERSION:       |
+| Uses embedded     |     saves
+| framework         | ------------> +---------------------------+
+|                   |               | files/final_output/       |
+| MEME:             |               | - {brand}_campaign_brief  |
+| Loads viral-meme  |               | - 5 PNG ad images         |
+| skill first       |               +---------------------------+
++-------------------+
 ```
 
 ---
 
-## Session Management
-
-### Session Lifecycle
+## File Structure
 
 ```
-┌──────────────────────────────────────────────────────────────────────────┐
-│                       SESSION LIFECYCLE                                  │
-└──────────────────────────────────────────────────────────────────────────┘
-
-1. CREATION
-   ├─ POST /generate OR POST /test (no sessionId)
-   ├─ sessionManager.getOrCreateSession() → new session_abc123
-   └─ Status: 'active', messages: [], turnCount: 0
-
-2. SDK INITIALIZATION
-   ├─ aiClient.queryWithSession(prompt, session_abc123)
-   ├─ SDK returns: {type: 'system', subtype: 'init', session_id: 'sdk-xyz789'}
-   └─ sessionManager.updateSdkSessionId('session_abc123', 'sdk-xyz789')
-
-3. MESSAGE ACCUMULATION
-   ├─ Each SDK message → sessionManager.addMessage()
-   ├─ Auto-save every 10 messages to ./sessions/session_abc123.json
-   └─ Update turnCount, lastAccessedAt
-
-4. SESSION RESUMPTION
-   ├─ POST /sessions/session_abc123/continue
-   ├─ sessionManager.getResumeOptions() → {resume: 'sdk-xyz789'}
-   └─ SDK continues conversation with full context
-
-5. SESSION FORKING
-   ├─ POST /sessions/session_abc123/fork
-   ├─ Create new session_def456 with metadata.forkedFrom = 'session_abc123'
-   ├─ aiClient.queryWithSessionFork(prompt, 'session_abc123')
-   └─ SDK creates branch from sdk-xyz789 → new sdk-qrs345
-
-6. COMPLETION
-   ├─ sessionManager.completeSession()
-   └─ Status: 'completed', final save to disk
-
-7. CLEANUP
-   ├─ Auto-cleanup every 1 hour
-   ├─ Delete sessions older than 24 hours
-   └─ Delete inactive completed sessions > 1 hour
+creative_agent/
+|
++-- agent/                               # Agent ecosystem
+|   +-- .claude/
+|   |   +-- agents/                      # Agent definitions
+|   |   |   +-- researcher.md            # Adaptive brand researcher
+|   |   |   +-- creator.md               # Dual-mode ad creator
+|   |   |
+|   |   +-- skills/                      # Skill definitions
+|   |       +-- viral-meme/
+|   |           +-- SKILL.md             # Meme creation methodology
+|   |
+|   +-- files/                           # Agent working directory
+|       +-- research/
+|       |   +-- {brand}_brand_profile.txt  # Research output
+|       +-- final_output/
+|           +-- {brand}_campaign_brief.txt # Campaign document
+|           +-- *.png                      # Generated ad images
+|
++-- server/                              # Express server
+|   +-- sdk-server.ts                    # Main server file
+|   +-- lib/
+|   |   +-- ai-client.ts                 # Claude SDK wrapper
+|   |   +-- orchestrator-prompt.ts       # System prompt for main agent
+|   |   +-- session-manager.ts           # Session lifecycle management
+|   |   +-- instrumentor.ts              # Metrics tracking
+|   |   +-- nano-banana-mcp.ts           # Gemini image generation MCP
+|   +-- sessions/                        # Session persistence (auto-generated)
+|   +-- package.json
+|   +-- tsconfig.json
+|
++-- generated-images/                    # Image output (auto-generated, git-ignored)
+|   +-- {sessionId}/
+|       +-- {timestamp}_{index}_{prompt}.png
+|
++-- .env                                 # Environment variables
++-- ARCHITECTURE.md                      # This file
 ```
-
-### Session Fork Use Case
-
-**Scenario**: A/B test different creative angles from same research
-
-```
-Base Campaign Session
-├─ Research Phase (60s)
-│  ├─ Brand Intelligence
-│  ├─ Customer Psychology
-│  └─ Competitive Analysis
-│
-└─ [FORK POINT] - Research complete, try 3 creative variants
-    │
-    ├─ Fork 1: "Emotional Angle"
-    │  └─ Copy Creator → emotional framework
-    │
-    ├─ Fork 2: "Social Proof Angle"
-    │  └─ Copy Creator → testimonial framework
-    │
-    └─ Fork 3: "Problem-Solution Angle"
-       └─ Copy Creator → PAS framework
-```
-
-**Benefits**:
-- Don't repeat expensive research phase
-- Test multiple creative strategies in parallel
-- Compare results across forks
-- Original session unchanged (safe experimentation)
 
 ---
 
 ## API Endpoints
 
-### Core Endpoints
+### POST /generate - Main Campaign Generation
 
-#### `POST /generate` - Campaign Generation
-
-**Purpose**: Generate complete ad campaign with 10 creatives
+**Purpose**: Generate complete ad campaign from natural language prompt
 
 **Request**:
 ```json
 {
-  "url": "https://example.com",
-  "platform": "instagram",
-  "objective": "conversion",
-  "targetAudience": "Small business owners",
+  "prompt": "Create memes for https://brand.com targeting millennials",
   "sessionId": "optional-resume-session"
 }
 ```
@@ -521,170 +649,37 @@ Base Campaign Session
 ```json
 {
   "success": true,
-  "campaign": {
-    "url": "https://example.com",
-    "platform": "instagram",
-    "generatedAt": "2025-10-01T...",
-    "summary": "Generated 10 creatives across 5 strategic angles",
-    "structuredData": {
-      "brandInsights": {},
-      "customerInsights": {},
-      "competitiveInsights": {},
-      "creativeAngles": [],
-      "copyVariations": []
-    }
-  },
   "sessionId": "campaign-1234567890",
+  "prompt": "...",
+  "generatedAt": "2025-11-26T...",
+  "response": {
+    "summary": "Final assistant message",
+    "fullResponse": "All assistant messages joined",
+    "structuredData": null
+  },
+  "sessionStats": {
+    "messageCount": 45,
+    "turnCount": 8
+  },
   "performance": {
-    "duration": "287432ms",
+    "duration": "180000ms",
     "messageCount": 45
   },
   "instrumentation": {
-    "campaignMetrics": {
-      "totalCost_usd": 0.2847,
-      "totalDuration_ms": 287432
-    },
-    "summary": {
-      "totalCost": "$0.2847",
-      "totalTokens": 124567,
-      "agentsUsed": 4,
-      "toolsUsed": 12
-    }
-  }
-}
-```
-
-#### `POST /test` - SDK Query Test
-
-**Purpose**: Test SDK functionality with session management
-
-**Request**:
-```json
-{
-  "prompt": "List available agents",
-  "sessionId": "optional-session-id",
-  "createNew": false
-}
-```
-
-**Response**:
-```json
-{
-  "success": true,
-  "sessionId": "session_...",
-  "sessionStats": {
-    "messageCount": 15,
-    "turnCount": 3,
-    "duration": 45231
+    "campaignMetrics": { "totalCost_usd": 0.2847, ... },
+    "costBreakdown": { ... },
+    "timeline": [ ... ],
+    "summary": { "totalCost": "$0.2847", "totalTokens": 124567, ... }
   },
-  "summary": "Available agents: brand-intelligence-analyst, ..."
-}
-```
-
-#### `GET /sessions` - List Active Sessions
-
-**Response**:
-```json
-{
-  "success": true,
-  "count": 5,
-  "sessions": [
-    {
-      "id": "session_abc123",
-      "sdkSessionId": "sdk-xyz789",
-      "createdAt": "2025-10-01T10:00:00Z",
-      "lastAccessedAt": "2025-10-01T10:15:00Z",
-      "turnCount": 5,
-      "metadata": {
-        "campaignName": "Example Campaign",
-        "status": "active"
-      }
-    }
-  ]
-}
-```
-
-#### `POST /sessions/:id/continue` - Resume Session
-
-**Request**:
-```json
-{
-  "prompt": "Generate 5 more variations with urgency focus"
-}
-```
-
-**Response**: Similar to `/test` endpoint
-
-#### `POST /sessions/:id/fork` - Fork Session
-
-**Request**:
-```json
-{
-  "prompt": "Try emotional angle instead",
-  "purpose": "Emotional variant A/B test"
-}
-```
-
-**Response**:
-```json
-{
-  "success": true,
-  "fork": {
-    "sessionId": "session_new456",
-    "baseSessionId": "session_abc123",
-    "purpose": "Emotional variant A/B test"
-  },
-  "note": "Fork created successfully. Original session unchanged."
-}
-```
-
-#### `GET /sessions/:id/family` - Session Family Tree
-
-**Response**:
-```json
-{
-  "success": true,
-  "family": {
-    "base": {
-      "id": "session_abc123",
-      "createdAt": "...",
-      "turnCount": 8
-    },
-    "forks": [
-      {
-        "id": "session_def456",
-        "forkedFrom": "session_abc123",
-        "forkPurpose": "Emotional variant"
-      },
-      {
-        "id": "session_ghi789",
-        "forkedFrom": "session_abc123",
-        "forkPurpose": "Social proof variant"
-      }
-    ],
-    "totalVariants": 3
+  "images": {
+    "storageLocation": "generated-images/campaign-1234567890/",
+    "viewUrl": "http://localhost:3001/images/campaign-1234567890",
+    "listUrl": "http://localhost:3001/images"
   }
 }
 ```
 
-#### `GET /health` - Health Check
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-10-01T10:00:00Z",
-  "config": {
-    "hasAnthropicKey": true,
-    "hasGeminiKey": true,
-    "port": 3001
-  }
-}
-```
-
-#### `GET /images` - List Generated Images
-
-**Purpose**: List all AI-generated images organized by session
+### GET /images - List Generated Images
 
 **Response**:
 ```json
@@ -694,375 +689,103 @@ Base Campaign Session
   "totalSessions": 3,
   "imagesBySession": {
     "campaign-abc123": [
-      "http://localhost:3001/images/campaign-abc123/1760327650986_1_professional_office.png",
-      "http://localhost:3001/images/campaign-abc123/1760327660123_2_happy_customer.png"
-    ],
-    "test-session-001": [
-      "http://localhost:3001/images/test-session-001/1760347745646_1_mountain_landscape.png"
+      "http://localhost:3001/images/campaign-abc123/1760327650986_1_meme_text.png"
     ]
   }
 }
 ```
 
-#### `GET /images/:sessionId/:filename` - Serve Image
+### GET /health - Health Check
 
-**Purpose**: Serve a specific generated PNG image file
-
-**Example**:
-```
-GET /images/campaign-abc123/1760327650986_1_professional_office.png
-```
-
-**Response**: PNG image file (Content-Type: image/png)
-
-**File Naming Convention**:
-```
-{timestamp}_{index}_{sanitized_prompt}.png
-
-Example:
-1760327650986_1_professional_office_workspace_with_natural.png
-  └─ timestamp  └─ index  └─ first 50 chars of prompt (sanitized)
+**Response**:
+```json
+{
+  "status": "healthy",
+  "timestamp": "2025-11-26T10:00:00Z",
+  "config": {
+    "hasAnthropicKey": true,
+    "hasGeminiKey": true,
+    "port": 3001
+  }
+}
 ```
 
 ---
 
-## Agent System
+## Session Management
 
-### Agent Hierarchy
-
-```
-┌────────────────────────────────────────────────────────────────┐
-│                    AGENT ECOSYSTEM                             │
-│                  (.claude/agents/*.md)                         │
-└────────────────────────────────────────────────────────────────┘
-
-Level 0: SDK Query (Has MCP Access ✅)
-    │
-    └─→ Main Creative Director Agent (Orchestrator)
-         │
-         ├─→ Level 1: Research Agents (Parallel)
-         │   ├─→ brand-intelligence-analyst
-         │   │   Tools: WebFetch, Read, Grep
-         │   │
-         │   ├─→ customer-psychology-specialist
-         │   │   Tools: WebFetch, WebSearch, Read
-         │   │
-         │   └─→ competitive-intelligence-specialist
-         │       Tools: WebSearch, WebFetch, Read
-         │
-         └─→ Level 1: Copy Generation
-             └─→ copy-creator
-                 Tools: Read, Write
-```
-
-### Agent Definitions
-
-#### 1. **Main Creative Director** (Implicit in system prompt)
-
-**Role**: Orchestrates entire workflow, makes strategic decisions
-
-**Capabilities**:
-- Coordinate parallel agent execution
-- Synthesize multi-source research
-- Generate strategic creative angles
-- Structure final output
-- Direct MCP tool access (future: nano_banana)
-
-**System Prompt** (from ai-client.ts):
-```
-You are an expert creative advertising agent that specializes in
-generating high-converting ad campaigns.
-
-Core capabilities:
-- Coordinating multiple specialized agents
-- Analyzing brands, audiences, and market opportunities
-- Generating compelling ad copy using proven frameworks
-- Orchestrating parallel workflows
-- Producing structured, platform-optimized content
-
-When generating campaigns:
-1. Extract comprehensive brand insights
-2. Identify customer pain points and triggers
-3. Analyze competitive landscape
-4. Develop multiple strategic creative angles
-5. Create copy variations optimized for platform
-6. Structure outputs as actionable assets
-```
-
-#### 2. **brand-intelligence-analyst**
-
-**File**: `.claude/agents/brand-intelligence-analyst.md`
-
-**Purpose**: Extract brand identity, visual elements, positioning
-
-**Tools**: WebFetch, Read, Grep
-
-**Output**:
-```json
-{
-  "brandName": "Example Co",
-  "visualIdentity": {
-    "primaryColors": ["#FF5733", "#3498DB"],
-    "designLanguage": "modern minimal"
-  },
-  "brandVoice": {
-    "tone": ["professional", "friendly"],
-    "personality": "Innovative but approachable"
-  },
-  "valueProps": {
-    "primary": "Simplify complex workflows",
-    "uspList": ["AI-powered", "5-minute setup", "No coding"]
-  }
-}
-```
-
-#### 3. **customer-psychology-specialist**
-
-**File**: `.claude/agents/customer-psychology-specialist.md`
-
-**Purpose**: Identify pain points, desires, psychological triggers
-
-**Tools**: WebFetch, WebSearch, Read
-
-**Output**:
-```json
-{
-  "painPoints": [
-    {
-      "pain": "Ads take too long to create",
-      "severity": "high",
-      "emotionalImpact": "frustration",
-      "currentSolution": "Manual design work"
-    }
-  ],
-  "desires": [
-    {
-      "desire": "Generate campaigns in minutes",
-      "type": "functional",
-      "intensity": "high"
-    }
-  ],
-  "psychologicalTriggers": {
-    "urgency": ["Limited-time offer", "Competition moving faster"],
-    "socialProof": ["Case studies", "Testimonials"],
-    "authority": ["AI expertise", "Industry recognition"]
-  }
-}
-```
-
-#### 4. **competitive-intelligence-specialist**
-
-**File**: `.claude/agents/competitive-intelligence-specialist.md`
-
-**Purpose**: Research competitor strategies, identify market gaps
-
-**Tools**: WebSearch, WebFetch, Read
-
-**Output**:
-```json
-{
-  "competitors": [
-    {
-      "name": "Competitor A",
-      "positioning": "Enterprise automation",
-      "strengths": ["Brand recognition", "Feature-rich"],
-      "weaknesses": ["Complex setup", "Expensive"]
-    }
-  ],
-  "opportunities": {
-    "marketGaps": [
-      {
-        "gap": "No simple solution for small teams",
-        "opportunity": "Position as fast, simple alternative",
-        "priority": "high"
-      }
-    ]
-  }
-}
-```
-
-#### 5. **copy-creator**
-
-**File**: `.claude/agents/copy-creator.md`
-
-**Purpose**: Generate compelling ad copy using proven frameworks
-
-**Tools**: Read, Write
-
-**Frameworks by Angle**:
-- **Problem-Solution** → PAS (Problem, Agitate, Solution)
-- **Social Proof** → 4 Ps (Promise, Picture, Proof, Push)
-- **Transformation** → Before-After-Bridge
-- **Product Hero** → FAB (Features, Advantages, Benefits)
-- **Emotional** → AIDA (Attention, Interest, Desire, Action)
-
-**Output**:
-```json
-{
-  "creatives": [
-    {
-      "angleType": "problem-solution",
-      "framework": "PAS",
-      "variant": "A",
-      "copy": {
-        "primaryHeadline": "Stop Wasting Hours on Ads",
-        "supportingHeadline": "AI Creates 10 in 5 Minutes",
-        "bodyCopy": "Transform URLs into creatives instantly.",
-        "ctaButton": "Start Free Trial"
-      },
-      "emotionalTone": "urgency-relief"
-    }
-  ]
-}
-```
-
-### Agent Communication Pattern
+### Session Lifecycle
 
 ```
-Main Agent: "I need brand analysis for https://example.com"
-     ↓
-Task Tool Call: {
-  subagent_type: "brand-intelligence-analyst",
-  description: "Extract brand identity",
-  prompt: "Analyze https://example.com for brand colors, voice, USPs..."
-}
-     ↓
-[SDK spawns subagent]
-     ↓
-Brand Agent: [Uses WebFetch on example.com]
-     ↓
-Brand Agent: [Returns structured JSON]
-     ↓
-Main Agent: [Receives JSON in tool_result]
-     ↓
-Main Agent: "Brand uses blue/orange, friendly tone, focuses on speed"
+1. CREATION
+   POST /generate (no sessionId)
+   -> sessionManager.getOrCreateSession() -> new session_abc123
+   -> Status: 'active', messages: [], turnCount: 0
+
+2. SDK INITIALIZATION
+   -> SDK returns: {type: 'system', subtype: 'init', session_id: 'sdk-xyz789'}
+   -> sessionManager.updateSdkSessionId('session_abc123', 'sdk-xyz789')
+
+3. MESSAGE ACCUMULATION
+   -> Each SDK message -> sessionManager.addMessage()
+   -> Auto-save every 10 messages to ./sessions/session_abc123.json
+
+4. SESSION RESUMPTION (Optional)
+   POST /sessions/session_abc123/continue
+   -> sessionManager.getResumeOptions() -> {resume: 'sdk-xyz789'}
+   -> SDK continues conversation with full context
+
+5. SESSION FORKING (Optional)
+   POST /sessions/session_abc123/fork
+   -> Create new session with metadata.forkedFrom = 'session_abc123'
+   -> SDK creates branch from sdk-xyz789
+
+6. COMPLETION
+   -> sessionManager.completeSession()
+   -> Status: 'completed', final save to disk
+
+7. CLEANUP (Automatic)
+   -> Every 1 hour: delete sessions older than 24 hours
 ```
 
 ---
 
 ## Instrumentation & Observability
 
-### Real-time Message Processing
+### Message Processing
+
+The instrumentor tracks every SDK message:
 
 ```typescript
-// In sdk-server.ts /generate endpoint
-for await (const result of aiClient.queryWithSession(prompt, sessionId)) {
-  const { message } = result;
-
-  // Process through instrumentor
-  instrumentor.processMessage(message);
-
-  // Message types handled:
-  switch (message.type) {
-    case 'system':
-      if (message.subtype === 'init') {
-        console.log('SDK Session:', message.session_id);
-      }
-      break;
-
-    case 'assistant':
-      // Extract text content
-      const content = message.message?.content;
-      if (Array.isArray(content)) {
-        for (const block of content) {
-          if (block.type === 'text') {
-            console.log('Assistant:', block.text.substring(0, 100));
-          }
-          if (block.type === 'tool_use') {
-            console.log('Tool Called:', block.name);
-            if (block.name === 'Task') {
-              console.log('Agent:', block.input?.subagent_type);
-            }
-          }
-        }
-      }
-      break;
-
-    case 'user':
-      // Tool results
-      const userContent = message.message?.content;
-      if (Array.isArray(userContent)) {
-        for (const block of userContent) {
-          if (block.type === 'tool_result') {
-            console.log('Tool Completed:', block.tool_use_id);
-          }
-        }
-      }
-      break;
-
-    case 'result':
-      if (message.subtype === 'success') {
-        console.log('Complete! Cost:', message.total_cost_usd);
-        console.log('Duration:', message.duration_ms, 'ms');
-        console.log('Turns:', message.num_turns);
-      }
-      break;
-  }
-}
-```
-
-### Cost Tracking
-
-**SDK Provides Authoritative Costs**:
-```json
-{
-  "type": "result",
-  "subtype": "success",
-  "total_cost_usd": 0.2847,
-  "duration_ms": 287432,
-  "num_turns": 8,
-  "usage": {
-    "input_tokens": 45231,
-    "output_tokens": 12456,
-    "cache_read_input_tokens": 23400,
-    "cache_creation_input_tokens": 8900
-  }
-}
-```
-
-**No Manual Calculation Needed**: SDK computes exact cost based on:
-- Model pricing (Sonnet 4.5)
-- Cache read tokens (90% discount)
-- Cache write tokens
-- Input/output tokens
-
-### Event Timeline
-
-```json
-{
-  "timeline": [
-    {
-      "timestamp": 1696176234567,
-      "type": "INIT",
-      "data": { "sessionId": "sdk-xyz789" }
-    },
-    {
-      "timestamp": 1696176235123,
-      "type": "TOOL",
-      "data": "Task"
-    },
-    {
-      "timestamp": 1696176236890,
-      "type": "USAGE",
-      "data": {
-        "tokens": {
-          "input": 2341,
-          "output": 456,
-          "cache_read": 1200,
-          "cache_write": 890
-        }
-      }
-    },
-    {
-      "timestamp": 1696176237456,
-      "type": "COMPLETE",
-      "data": {
-        "duration": "287432ms",
-        "cost": "$0.2847",
-        "turns": 8
-      }
+switch (message.type) {
+  case 'system':
+    // Track init, tool calls
+    if (message.subtype === 'init') {
+      this.logEvent('INIT', { sessionId: message.session_id });
     }
-  ]
+    if (message.tool_name) {
+      this.toolCalls.push({ tool: message.tool_name, timestamp: Date.now() });
+    }
+    break;
+  case 'assistant':
+    // Track usage tokens from each turn
+    if (message.usage) {
+      this.logEvent('USAGE', {
+        tokens: {
+          input: message.usage.input_tokens,
+          output: message.usage.output_tokens,
+          cache_read: message.usage.cache_read_input_tokens,
+          cache_write: message.usage.cache_creation_input_tokens
+        }
+      });
+    }
+    break;
+  case 'result':
+    // Capture final cost (authoritative from SDK)
+    if (message.subtype === 'success') {
+      this.totalCost = message.total_cost_usd || 0;
+    }
+    break;
 }
 ```
 
@@ -1070,75 +793,20 @@ for await (const result of aiClient.queryWithSession(prompt, sessionId)) {
 
 ## Technology Stack
 
-### Backend Runtime
+### Runtime
 - **Node.js**: v20+
 - **TypeScript**: v5.3+
 - **tsx**: v4.7+ (TypeScript execution)
 
-### Core Framework
-- **@anthropic-ai/claude-agent-sdk**: v0.1.1
-  - Main SDK for Claude Code integration
-  - Provides `query()` function with streaming
-  - Agent orchestration via Task tool
-  - Session management with `resume` and `forkSession`
-
-### Web Framework
-- **Express**: v4.18+
-  - HTTP server
-  - REST API endpoints
-  - Middleware support
-
-### Utilities
-- **cors**: Cross-origin resource sharing
-- **dotenv**: Environment variable management
-- **zod**: Runtime type validation
-
-### MCP Integrations (Production)
-- **@google/genai**: v1.24+ (Gemini 2.5 Flash Image API)
-  - Used by nano_banana MCP server for AI image generation
-  - Synchronous generation: 10.5s average per image
-  - Model: `gemini-2.5-flash-image-preview`
-- **@anthropic-ai/claude-agent-sdk MCP**: Built-in MCP server support
-  - Tool registration via `createSdkMcpServer()`
-  - Accessible to all agents via `allowedTools` configuration
-
-### Development Tools
-- **@types/node**: TypeScript definitions
-- **@types/express**: Express type definitions
-- **@types/cors**: CORS type definitions
-
-### File Structure
-```
-creative_agent/
-├── .claude/
-│   ├── agents/
-│   │   ├── brand-intelligence-analyst.md
-│   │   ├── customer-psychology-specialist.md
-│   │   ├── competitive-intelligence-specialist.md
-│   │   ├── copy-creator.md
-│   │   ├── visual-director.md          # ✅ MCP image generation
-│   │   └── image-tester.md             # ✅ MCP testing agent
-│   └── settings.local.json
-├── server/
-│   ├── lib/
-│   │   ├── ai-client.ts                # Generator lifecycle with AbortController
-│   │   ├── session-manager.ts
-│   │   ├── instrumentor.ts
-│   │   └── nano-banana-mcp.ts          # ✅ MCP server for image generation
-│   ├── sdk-server.ts
-│   ├── package.json
-│   └── tsconfig.json
-├── sessions/                            # Auto-generated
-│   └── session_*.json
-├── generated-images/                    # ✅ Auto-generated (git-ignored)
-│   ├── campaign-abc123/
-│   │   └── {timestamp}_{index}_{prompt}.png
-│   └── test-session-001/
-│       └── {timestamp}_{index}_{prompt}.png
-├── .env
-├── .gitignore                           # Excludes generated-images/
-└── *.md (documentation)
-```
+### Core Dependencies
+| Package | Version | Purpose |
+|---------|---------|---------|
+| @anthropic-ai/claude-agent-sdk | ^0.1.1 | Claude SDK for agent orchestration |
+| @google/genai | ^1.24.0 | Gemini 2.5 Flash Image API |
+| express | ^4.18.2 | HTTP server |
+| cors | ^2.8.5 | Cross-origin requests |
+| dotenv | ^16.3.1 | Environment variables |
+| zod | ^3.22.4 | Runtime type validation |
 
 ---
 
@@ -1153,32 +821,21 @@ ANTHROPIC_API_KEY=sk-ant-...
 # Required for Image Generation (MCP)
 GEMINI_API_KEY=AIzaSy...
 
-# Server Config
+# Optional
 PORT=3001
-NODE_ENV=development
+CLAUDE_CODE_MAX_OUTPUT_TOKENS=16384  # For large campaign responses
 ```
 
 ### Starting the Server
 
-**Development Mode** (with hot reload):
 ```bash
+# Development (with hot reload)
 cd server
 npm run dev
-# Uses: tsx watch --env-file=../.env sdk-server.ts
-```
 
-**Production Mode**:
-```bash
+# Production
 cd server
 npm start
-# Uses: tsx --env-file=../.env sdk-server.ts
-```
-
-**Testing**:
-```bash
-cd server
-npm test
-# Uses: tsx --env-file=../.env test-agent.ts
 ```
 
 ### Server Startup Output
@@ -1187,368 +844,77 @@ npm test
 ╔══════════════════════════════════════════════╗
 ║     Creative Ad Agent Server Running         ║
 ╠══════════════════════════════════════════════╣
-║  🚀 Server: http://localhost:3001            ║
+║  Server: http://localhost:3001               ║
 ║                                              ║
 ║  Core Endpoints:                             ║
-║  📝 POST /test - Test query with sessions    ║
-║  🎨 POST /generate - Generate ad campaigns   ║
-║  💚 GET /health - Health check               ║
+║  POST /test - Test query with sessions       ║
+║  POST /generate - Natural language prompt    ║
+║  GET /health - Health check                  ║
 ║                                              ║
-║  Session Management:                         ║
-║  📋 GET /sessions - List active sessions     ║
-║  📊 GET /sessions/:id - Get session info     ║
-║  🔄 POST /sessions/:id/continue - Resume     ║
-║  🌿 POST /sessions/:id/fork - Fork variant   ║
-║  🌳 GET /sessions/:id/family - Session tree  ║
-╠══════════════════════════════════════════════╣
 ║  Features Enabled:                           ║
-║  ✅ Session Forking (A/B testing)            ║
-║  ✅ Custom System Prompt (ad specialist)     ║
-║  ✅ Real-time Instrumentation                ║
-╠══════════════════════════════════════════════╣
-║  Environment:                                ║
-║  - Anthropic API: ✅ Configured              ║
-║  - Gemini API: ✅ Configured (Image Gen)     ║
-║  - Session Storage: ./sessions               ║
-║  - Image Storage: ./generated-images         ║
+║  ✅ Natural Language Prompt Interface        ║
+║  ✅ Automatic Workflow Orchestration         ║
+║  ✅ Session Management & Forking             ║
+║  ✅ MCP Tools (nano_banana for images)       ║
+║  ✅ Multi-Agent System (2 specialists)       ║
+║  ✅ Skills System (1 creative skill)         ║
+║  ✅ Real-time Cost Tracking                  ║
 ╚══════════════════════════════════════════════╝
 ```
 
-### Health Check
-
-```bash
-curl http://localhost:3001/health
-```
-
-Response:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-10-01T10:00:00.000Z",
-  "config": {
-    "hasAnthropicKey": true,
-    "hasGeminiKey": false,
-    "port": 3001
-  }
-}
-```
-
 ---
 
-## Design Decisions & Insights
+## Design Decisions
 
-### 1. Why Async Generators?
+### 1. Why 2 Agents (Not 3)?
 
-**Decision**: Use async generator pattern with persistent lifecycle for SDK queries
+**Decision**: Consolidated from 3 agents (brand-researcher, culture-researcher, creative-director) to 2 agents (researcher, creator)
 
 **Rationale**:
-- **REQUIRED** for MCP server integration (nano_banana is now production-ready)
-- Enables streaming responses
-- Generator MUST stay alive during entire tool execution
-- Without persistence, long-running MCP tools fail with "stream closed" error
+- **Mode-based flexibility**: Single researcher adapts depth based on ad type
+- **Reduced overhead**: Fewer agent handoffs means faster execution
+- **Simpler orchestration**: Two-step workflow is easier to coordinate
+- **Context preservation**: All research in one file, no synthesis needed
 
-**Critical Discovery** (January 2025):
-The async generator must not complete after yielding the initial message. If it completes too early, the SDK loses its connection to maintain session state during long-running tool execution (like 10+ second Gemini API calls). This appeared as "Tool permission stream closed before response received" errors.
+### 2. Why Adaptive Research Modes?
 
-**Correct Implementation**:
-```typescript
-private async *createPromptGenerator(
-  promptText: string,
-  attachments?: Array<{type: string; source: any}>,
-  signal?: AbortSignal  // Controls generator lifetime
-) {
-  // Yield user message
-  yield {
-    type: "user",
-    message: { role: "user", content: promptText },
-    parent_tool_use_id: null
-  };
-
-  // 🎯 CRITICAL: Keep generator alive!
-  // Without this, stream closes prematurely during tool execution
-  if (signal) {
-    await new Promise<void>((resolve) => {
-      signal.addEventListener('abort', () => resolve());
-    });
-  } else {
-    // Fallback: keep alive indefinitely (SDK closes when done)
-    await new Promise<void>(() => {});
-  }
-}
-
-// Usage with AbortController for proper cleanup
-const controller = new AbortController();
-for await (const message of query({
-  prompt: promptGenerator(text, attachments, controller.signal),
-  options
-})) {
-  // Process streaming messages
-}
-controller.abort();  // Clean shutdown
-```
-
-**Why This Matters**:
-- **Before fix**: Generator completes → SDK detects closed stream → MCP tool fails even though it's still running
-- **After fix**: Generator waits for abort signal → SDK maintains connection → MCP tool completes successfully and returns results
-
-### 2. Why Two Session IDs?
-
-**Decision**: Track both our session ID and SDK's session ID
+**Decision**: Researcher runs in STANDARD (4 searches) or EXTENDED (7 searches) mode
 
 **Rationale**:
-- Our ID: User-facing, stable across requests
-- SDK ID: Internal, required for `resume` option
-- Decoupling allows flexibility in session management
+- **Conversion ads don't need cultural deep-dives**: Standard mode is faster and cheaper
+- **Meme ads require cultural context**: Extended mode adds meme culture, viral patterns, emotional triggers
+- **Cost efficiency**: Don't pay for research you won't use
+- **Quality focus**: Right depth for the right output
 
-**Pattern**:
-```typescript
-{
-  id: "session_abc123",           // Our ID (stable)
-  sdkSessionId: "sdk-xyz789",     // SDK's ID (from init message)
-}
+### 3. Why Embedded Conversion Framework?
 
-// Resume uses SDK ID
-aiClient.queryStream(prompt, { resume: "sdk-xyz789" })
-```
+**Decision**: Creator has conversion framework embedded, only loads skill for memes
 
-### 3. How MCP Tools Work with Subagents
+**Rationale**:
+- **Conversion is default**: Most requests are for professional ads
+- **Skill loading has overhead**: Avoid unnecessary skill invocation
+- **Separation of concerns**: Meme skill is specialized knowledge
+- **Faster execution**: Embedded framework is always available
 
-**Status**: ✅ **Production Ready** (Validated January 2025)
+### 4. Why File-Based Agent Communication?
 
-**Key Mechanism**:
-- MCP tools listed in top-level `allowedTools` array are available to ALL agents
-- Subagents inherit tool access from the session-wide configuration
-- Agent definitions specify which tools they use via `tools:` frontmatter field
-- Generator lifecycle fix enables long-running MCP tools (10+ seconds)
+**Decision**: Agents communicate through files in `agent/files/`
 
-**Configuration Pattern**:
-```typescript
-// ai-client.ts - Top-level configuration
-allowedTools: [
-  "Task", "WebFetch", "Read", "Write", ...  // Built-in tools
-  "mcp__nano-banana__generate_ad_images"    // MCP tool - available to ALL agents
-]
+**Rationale**:
+- **Decoupling**: Agents don't need to know about each other directly
+- **Persistence**: Research artifacts are preserved for debugging
+- **Named outputs**: `{brand}_brand_profile.txt` is clear and reusable
+- **Auditable**: Can review what each agent produced
 
-// .claude/agents/visual-director.md - Agent definition
----
-tools: Read, Bash, mcp__nano-banana__generate_ad_images
----
-```
+### 5. Why Synchronous MCP (v3.0.0)?
 
-**Complete Workflow** (All Phases Validated):
-```
-Research Phase: Subagents (WebFetch, WebSearch) ✅
-   ↓
-Strategy Phase: Main Agent ✅
-   ↓
-Copy Generation: copy-creator subagent ✅
-   ↓
-Image Generation: visual-director subagent + MCP ✅
-   └─> mcp__nano-banana__generate_ad_images
-       └─> Gemini 2.5 Flash Image API (10.5s avg)
-           └─> Returns PNG images with URLs
-```
+**Decision**: Simple synchronous pattern for image generation
 
-**MCP Tool Execution Flow**:
-```
-┌─────────────────────────────────────────────────────────┐
-│ LEVEL 1: Main Agent or Subagent                         │
-│ Calls: mcp__nano-banana__generate_ad_images             │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ↓
-┌─────────────────────────────────────────────────────────┐
-│ LEVEL 2: MCP Server (nano-banana-mcp.ts)                │
-│ - Receives: prompts[], style, dimensions, sessionId     │
-│ - Calls: Gemini 2.5 Flash Image API                    │
-│ - Processing time: ~10 seconds per image               │
-└────────────────────────┬────────────────────────────────┘
-                         │
-                         ↓ (Generator stays alive!)
-┌─────────────────────────────────────────────────────────┐
-│ LEVEL 3: Async Generator Lifecycle                      │
-│                                                          │
-│ t=0s     Generator yields user message                  │
-│ t=0.1s   Generator waits on AbortSignal                │
-│          [Keeps connection alive]                       │
-│ t=10.5s  Gemini API completes                          │
-│ t=10.6s  MCP tool returns result                       │
-│ t=10.7s  SDK aborts generator                          │
-│ t=10.8s  Generator closes gracefully                   │
-└─────────────────────────────────────────────────────────┘
-```
-
-**Critical Fix for MCP Tools** (Documented in `MCP_STREAM_FIX.md`):
-- **Problem**: Generator completed immediately after yielding → Stream closed prematurely
-- **Solution**: Generator waits for AbortSignal → Stays alive during tool execution
-- **Result**: Long-running tools (10+ seconds) work perfectly
-- **Validation**: Tested with 10.5s Gemini API calls - 100% success rate
-
-### 4. Why Session Forking?
-
-**Decision**: Allow forking sessions for A/B testing creative variants
-
-**Use Case**:
-- Complete expensive research once
-- Fork at decision point to try different creative angles
-- Compare results across variants
-- Original session preserved (safe experimentation)
-
-**Implementation**:
-```typescript
-aiClient.queryWithSessionFork(
-  "Try emotional angle",
-  baseSessionId,
-  { forkPurpose: "emotional-variant" }
-)
-```
-
-### 5. Why Real-time Instrumentation?
-
-**Decision**: Process every SDK message through instrumentor
-
-**Benefits**:
-- Complete observability of agent behavior
-- Real-time cost tracking (no surprises)
-- Debugging complex agent workflows
-- Performance optimization insights
-
-**Pattern**:
-```typescript
-for await (const message of query(...)) {
-  instrumentor.processMessage(message);  // Track everything
-  sessionManager.addMessage(sessionId, message);  // Persist
-}
-```
-
----
-
-## Future Enhancements
-
-### ✅ Recently Completed
-
-1. **Image Generation Integration** (✅ Production Ready - January 2025)
-   - **nano_banana MCP server** for Gemini 2.5 Flash Image (`gemini-2.5-flash-image-preview`)
-   - **visual-director subagent** with MCP access (PHASE 4 in workflow)
-   - **Synchronous generation**: Up to 3 images per call (10.5s average per image)
-   - **File storage**: Images saved to `generated-images/{sessionId}/` as PNG files
-   - **HTTP serving**: `/images` endpoints for accessing generated images
-   - **Generator lifecycle fix**: AbortController pattern enables long-running MCP tools
-   - **Multi-agent validation**: Tested with @image-tester and @visual-director agents
-   - **Error rate**: 0% in production testing (previously 100% due to stream closure bug)
-
-2. **MCP Tool Stream Fix** (✅ Critical Bug Fix - January 2025)
-   - **Root cause identified**: Async generator completing too early
-   - **Solution implemented**: Generator persistence using AbortSignal
-   - **Impact**: Enables any long-running MCP tool (not just image generation)
-   - **Documentation**: See `MCP_STREAM_FIX.md` for complete technical analysis
-
-### Planned Features
-
-1. **Enhanced Session Management**
-   - Session merging (combine forks)
-   - Session replay (debugging)
-   - Session export (share campaigns)
-
-3. **Advanced Analytics**
-   - Cost prediction before execution
-   - Performance comparison across forks
-   - Agent efficiency metrics
-
-4. **Platform Integrations**
-   - Direct export to Meta Ads Manager
-   - Instagram integration
-   - Campaign tracking post-deployment
-
-5. **Optimization**
-   - Research result caching (avoid redundant WebFetch)
-   - Parallel fork execution
-   - Cost-optimized agent selection
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### 1. "Session not found"
-```bash
-# Check active sessions
-curl http://localhost:3001/sessions
-
-# Session may have expired (24 hour limit)
-# Create new session by omitting sessionId in request
-```
-
-#### 2. "No SDK session ID found"
-```bash
-# Cannot fork before session initialization complete
-# Wait for system.init message before forking
-# Check session stats to verify sdkSessionId exists
-curl http://localhost:3001/sessions/{id}
-```
-
-#### 3. "Agent not found"
-```bash
-# Verify agent files exist in .claude/agents/
-ls .claude/agents/
-
-# Check cwd setting in ai-client.ts
-# Should point to project root (parent of server/)
-```
-
-#### 4. High costs
-```bash
-# Check instrumentation report
-# POST /generate includes detailed cost breakdown
-# Enable caching by running similar queries
-# Consider reducing maxTurns if excessive
-```
-
-#### 5. "Tool permission stream closed before response received"
-```bash
-# MCP Tool Issue: Async generator completing too early
-# Solution: Ensure ai-client.ts has generator lifecycle fix
-
-# Verify fix is in place:
-grep -A 10 "signal.addEventListener" server/lib/ai-client.ts
-
-# Should see AbortSignal pattern:
-if (signal) {
-  await new Promise<void>((resolve) => {
-    signal.addEventListener('abort', () => resolve());
-  });
-}
-
-# If missing, see MCP_STREAM_FIX.md for implementation details
-```
-
-#### 6. MCP tool works but agent reports error
-```bash
-# Symptom: Image file exists but agent says "failed"
-# Cause: Generator closed before tool returned result
-
-# Check server logs for timing:
-grep -E "(TOOL CALLED|API response received|TOOL COMPLETED)" server_log.md
-
-# If you see:
-#   TOOL CALLED → TOOL COMPLETED (error) → API response (success)
-# Then the generator is closing too early (see issue #5)
-
-# Expected pattern:
-#   TOOL CALLED → API response (success) → TOOL COMPLETED (no error)
-```
-
-#### 7. GEMINI_API_KEY not configured
-```bash
-# MCP image generation requires Gemini API key
-# Add to .env file:
-GEMINI_API_KEY=your_key_here
-
-# Verify:
-curl http://localhost:3001/health
-# Should show: "hasGeminiKey": true
-```
+**Rationale**:
+- **Reliability**: No polling, no job queues, no timeouts
+- **Simplicity**: Direct request-response model
+- **Graceful degradation**: Continues with remaining images if one fails
+- **Debuggability**: Easy to trace issues in linear flow
 
 ---
 
@@ -1556,49 +922,92 @@ curl http://localhost:3001/health
 
 ### Performance Benchmarks
 
-| Metric | Target | Typical |
-|--------|--------|---------|
-| Total Generation Time | < 5 min | 2-4 min |
-| Research Phase | < 60s | 30-45s |
-| Copy Generation | < 90s | 60-75s |
-| Session Creation | < 100ms | 50ms |
-| API Response Time | < 500ms | 200-300ms |
+| Metric | Typical |
+|--------|---------|
+| Total Campaign Generation | 2-5 minutes |
+| Step 1 (Research - Standard) | 1-2 minutes |
+| Step 1 (Research - Extended) | 2-3 minutes |
+| Step 2 (Creative Execution) | 1-2 minutes |
+| Image Generation (per image) | ~10 seconds |
+| Session Creation | ~50ms |
 
 ### Cost Benchmarks
 
 | Operation | Estimated Cost |
-|-----------|---------------|
-| Full Campaign (10 creatives) | $0.20-$0.40 |
-| Research Phase Only | $0.05-$0.10 |
-| Copy Generation | $0.08-$0.15 |
-| Session Fork | $0.10-$0.20 |
+|-----------|----------------|
+| Full Campaign (5 images) | $0.10-$0.25 |
+| Research Phase (Standard) | $0.02-$0.05 |
+| Research Phase (Extended) | $0.04-$0.08 |
+| Creative Phase + Images | $0.06-$0.12 |
 
-*Costs vary based on cache hits and content volume*
+*Costs vary based on research depth and number of images*
+
+---
+
+## Troubleshooting
+
+### Common Issues
+
+#### "Agent not found"
+```bash
+# Verify agent files exist
+ls agent/.claude/agents/
+
+# Check cwd in ai-client.ts points to agent/ directory
+```
+
+#### "Skill not found"
+```bash
+# Verify skill files exist
+ls agent/.claude/skills/*/SKILL.md
+
+# Ensure settingSources includes 'project'
+```
+
+#### "Tool permission stream closed"
+```bash
+# MCP tools need persistent generator
+# Verify AbortController pattern in ai-client.ts
+```
+
+#### "GEMINI_API_KEY not configured"
+```bash
+# Add to .env file
+GEMINI_API_KEY=your_key_here
+
+# Verify via health check
+curl http://localhost:3001/health
+```
 
 ---
 
 ## Conclusion
 
-This architecture provides a robust, scalable foundation for AI-powered creative ad generation. Key strengths:
+This architecture provides a streamlined foundation for AI-powered ad generation:
 
-- **Modularity**: Clear separation of concerns (server, client, session, instrumentation)
+- **Dual-Mode System**: Conversion (default) or Meme (on request) with appropriate depth
+- **2-Agent Workflow**: Researcher → Creator with mode-based adaptation
+- **On-Demand Skills**: Viral-meme skill loaded only when needed
+- **File-Based Communication**: Clear handoffs with named research files
 - **Observability**: Complete tracking of costs, performance, and agent behavior
-- **Flexibility**: Session forking enables creative experimentation
-- **Scalability**: Parallel agent execution, session persistence
-- **Future-proof**: MCP integration ready, extensible agent system
+- **Production-Ready**: MCP image generation, session persistence, error handling
 
-The system successfully orchestrates 5 specialized agents to generate 10 unique ad creatives in under 5 minutes, with full cost transparency and session management.
+The system orchestrates 2 specialized agents with 1 consultable skill to generate 5 ready-to-post ad images with comprehensive campaign briefs.
 
 ---
 
-**Last Updated**: January 10, 2025
-**Version**: 1.1 - MCP Image Generation Integration
+**Last Updated**: November 2025
+**Version**: 3.0 - Dual-Mode Ad Generator (Conversion + Meme)
 **Maintained By**: Creative Agent Team
 
-## Recent Changes (v1.1)
+## Recent Changes (v3.0)
 
-- ✅ **MCP Image Generation**: nano_banana server integrated and validated
-- ✅ **Generator Lifecycle Fix**: AbortController pattern for long-running tools
-- ✅ **Multi-Agent MCP Access**: Subagents can call MCP tools successfully
-- ✅ **Image Serving**: HTTP endpoints for generated images
-- 📖 **Documentation**: MCP_STREAM_FIX.md with root cause analysis
+- Consolidated from 3 agents to **2 agents** (researcher, creator)
+- Introduced **mode-based research**: STANDARD (4 searches) vs EXTENDED (7 searches)
+- **Embedded conversion framework** in creator agent (no skill needed for default mode)
+- Single **viral-meme skill** loaded on demand for meme content
+- Simplified file naming: `{brand}_brand_profile.txt`, `{brand}_campaign_brief.txt`
+- Removed separate cultural intelligence file (merged into brand profile extended sections)
+- Updated orchestrator to be more conversational and insightful
+- MCP server upgraded to v3.0.0 (simple synchronous pattern)
+- Output standardized to **5 ad images** per campaign
