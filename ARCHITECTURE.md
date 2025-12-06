@@ -1,8 +1,8 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 3.0
-**Last Updated:** November 2025
-**Status:** Production (Dual-Mode Ad Generator with MCP Image Generation)
+**Version:** 4.0
+**Last Updated:** December 2025
+**Status:** Production (Hook-First Conversion Ad Generator with MCP Image Generation)
 
 ---
 
@@ -27,108 +27,89 @@
 ## System Overview
 
 ### Purpose
-An AI-powered creative advertising agent that generates professional conversion ads or viral meme ads for brands. The system analyzes brand websites, extracts customer language, and creates ready-to-post ad images using Gemini AI image generation.
+An AI-powered creative advertising agent that generates conversion-focused ads using a **hook-first methodology**. The system analyzes brand websites, extracts factual data, and creates 6 diverse ad concepts with AI-generated images using Gemini 3 Pro Image Preview.
 
 ### Key Features
-- **Dual-Mode Ad Generation**: Conversion ads (default) or meme ads (on request)
-- **2-Agent Orchestration**: Coordinates researcher and creator agents sequentially
-- **Adaptive Research**: Standard mode (4 searches) or Extended mode (7 searches) based on ad type
-- **Skills System**: On-demand viral-meme skill for entertainment-first content
-- **MCP Image Generation**: Nano-banana MCP server generates images using Gemini 2.5 Flash
+- **Hook-First Ad Generation**: Hooks are mined from research data using 7 proven formulas
+- **2-Agent Orchestration**: Coordinates strategist (research) and creator (ads) agents sequentially
+- **Conversion-Craft Skill**: Operational framework with hook extraction system and copywriting frameworks
+- **Hook Diversity Matrix**: 6 concepts MUST cover different emotional triggers (Stat, Story, FOMO, Curiosity, Call-out, Contrast)
+- **MCP Image Generation**: Nano-banana MCP server generates images using Gemini 3 Pro Image Preview
 - **Session Management**: Stateful conversation handling with forking capabilities
 - **Real-time Instrumentation**: Complete observability of SDK operations, costs, and performance
 
 ### Performance Targets
-- **Total Generation Time**: 2-5 minutes (depends on research depth)
-- **Sequential Workflow**: 2 agents executed in order (researcher → creator)
-- **Image Generation**: Up to 3 images per MCP call (~10 seconds each)
-- **Output**: 5 ready-to-post ad images + comprehensive campaign brief
+- **Total Generation Time**: 2-5 minutes
+- **Sequential Workflow**: 2 agents executed in order (strategist → creator)
+- **Image Generation**: Up to 3 images per MCP call
+- **Output**: 6 ad concepts with hook diversity + generated images
 
 ---
 
 ## High-Level Architecture
 
 ```
-+--------------------------------------------------------------------------------+
-|                              CLIENT LAYER                                       |
-|                         (HTTP REST API Consumers)                               |
-+---------------------------------------+----------------------------------------+
-                                        |
-                                        v
-+--------------------------------------------------------------------------------+
-|                            EXPRESS SERVER                                       |
-|                          (server/sdk-server.ts)                                 |
-|  +-------------+------------------+----------------+------------------+         |
-|  | POST        | POST             | GET            | GET              |         |
-|  | /generate   | /test            | /sessions      | /images          |         |
-|  | (campaign)  | (SDK test)       | (management)   | (serve images)   |         |
-|  +-------------+------------------+----------------+------------------+         |
-+---------------------------------------+----------------------------------------+
-                                        |
-                                        v
-+--------------------------------------------------------------------------------+
-|                           CORE LIBRARIES                                        |
-|  +------------------+------------------+---------------------+                  |
-|  |   AIClient       | SessionManager   |  SDKInstrumentor    |                  |
-|  | (ai-client.ts)   | (session-mgr.ts) | (instrumentor.ts)   |                  |
-|  +--------+---------+--------+---------+---------+-----------+                  |
-|           |                  |                   |                              |
-|           v                  v                   v                              |
-|  +------------------+  +------------------+  +------------------+               |
-|  | Claude SDK       |  | File Storage     |  | Event Stream     |               |
-|  | @anthropic-ai    |  | ./sessions/      |  | Processing       |               |
-|  +--------+---------+  +------------------+  +------------------+               |
-|           |                                                                     |
-+-----------|---------------------------------------------------------------------+
-            |
-            v
-+--------------------------------------------------------------------------------+
-|                        AGENT ECOSYSTEM                                          |
-|                   (agent/.claude/agents/)                                       |
-|                                                                                 |
-|  +------------------------------------------------------------------------+    |
-|  |                   ORCHESTRATOR (Main Agent)                             |    |
-|  |            (Coordinates SEQUENTIAL workflow via Task tool)              |    |
-|  |                   System Prompt: orchestrator-prompt.ts                 |    |
-|  +-----------------------------------+------------------------------------+    |
-|                                      |                                          |
-|            STEP 1                    |         STEP 2                          |
-|            +----------+              |         +----------+                    |
-|            v                         |         v                               |
-|  +---------------------------+       |  +---------------------------+          |
-|  | researcher                |       |  | creator                   |          |
-|  |                           |       |  |                           |          |
-|  | MODE DETECTION:           |       |  | MODE DETECTION:           |          |
-|  | - STANDARD: 4 searches    |       |  | - CONVERSION: Embedded    |          |
-|  |   (for conversion ads)    |       |  |   framework (default)     |          |
-|  | - EXTENDED: 7 searches    |       |  | - MEME: Loads viral-meme  |          |
-|  |   (for meme/viral ads)    |       |  |   skill via Skill tool    |          |
-|  |                           |       |  |                           |          |
-|  | Tools: WebSearch,         |       |  | Tools: Read, Write, Skill,|          |
-|  |        WebFetch,          |       |  |   mcp__nano-banana__      |          |
-|  |        Read, Write        |       |  |   generate_ad_images      |          |
-|  +-------------+-------------+       |  +-------------+-------------+          |
-|                |                     |                |                         |
-|                v                     |                v                         |
-|  +---------------------------+       |  +---------------------------+          |
-|  | files/research/           |       |  | files/final_output/       |          |
-|  | {brand}_brand_profile.txt |------>|  | {brand}_campaign_brief.txt|          |
-|  |                           |       |  | + PNG images              |          |
-|  +---------------------------+       |  +---------------------------+          |
-+--------------------------------------------------------------------------------+
-                                        |
-                                        v
-+--------------------------------------------------------------------------------+
-|                         MCP SERVER                                              |
-|                    (nano-banana-mcp.ts)                                         |
-|  +------------------------------------------------------------------------+    |
-|  | mcp__nano-banana__generate_ad_images                                    |    |
-|  |   - Uses Gemini 2.5 Flash Image API                                    |    |
-|  |   - Generates up to 3 images per call                                  |    |
-|  |   - Saves PNG files to generated-images/{sessionId}/                   |    |
-|  |   - Returns image URLs for inclusion in campaign brief                 |    |
-|  +------------------------------------------------------------------------+    |
-+--------------------------------------------------------------------------------+
++------------------------------------------------------------------+
+|                         CLIENT REQUEST                            |
+|                    POST /generate { prompt }                      |
++----------------------------------+-------------------------------+
+                                   |
+                                   v
++------------------------------------------------------------------+
+|                      EXPRESS SERVER (sdk-server.ts)               |
+|                         Port: 3001                                |
+|  +------------------------------------------------------------+  |
+|  |  Endpoints:                                                 |  |
+|  |  - POST /generate      (campaign generation)                |  |
+|  |  - GET  /sessions      (list sessions)                      |  |
+|  |  - POST /sessions/:id/continue (resume session)             |  |
+|  |  - POST /sessions/:id/fork     (branch session)             |  |
+|  |  - GET  /images/:sessionId/:filename (serve images)         |  |
+|  +------------------------------------------------------------+  |
++----------------------------------+-------------------------------+
+                                   |
+                                   v
++------------------------------------------------------------------+
+|                        AIClient (ai-client.ts)                    |
+|  +------------------------------------------------------------+  |
+|  |  - queryStream()         Async generator for SDK messages   |  |
+|  |  - queryWithSession()    Session-aware streaming            |  |
+|  |  - queryWithSessionFork() Branch from existing session      |  |
+|  +------------------------------------------------------------+  |
+|                                   |                               |
+|     +-----------------------------+-----------------------------+ |
+|     |                             |                             | |
+|     v                             v                             v |
+| +----------------+    +-------------------+    +---------------+  |
+| | SessionManager |    | SDKInstrumentor   |    | Claude SDK    |  |
+| | (sessions.ts)  |    | (instrumentor.ts) |    | query()       |  |
+| +----------------+    +-------------------+    +---------------+  |
++------------------------------------------------------------------+
+                                   |
+                                   v
++------------------------------------------------------------------+
+|                    CLAUDE AGENT SDK ORCHESTRATION                 |
+|  +------------------------------------------------------------+  |
+|  |  Model: claude-opus-4-5-20251101                           |  |
+|  |  Max Turns: 30                                              |  |
+|  |  CWD: agent/ (loads .claude/agents/ and .claude/skills/)   |  |
+|  +------------------------------------------------------------+  |
+|                                   |                               |
+|     +-----------------------------+-----------------------------+ |
+|     |                                                           | |
+|     v                                                           v |
+| +--------------------+                           +---------------+|
+| | ORCHESTRATOR AGENT |                           | MCP SERVERS   ||
+| | (system prompt)    |                           | +-----------+ ||
+| +--------------------+                           | |nano-banana| ||
+|     |                                            | |(Gemini AI)| ||
+|     | Task Tool                                  | +-----------+ ||
+|     v                                            +---------------+|
+| +--------------------+    +--------------------+                  |
+| | STRATEGIST AGENT   |    | CREATOR AGENT      |                  |
+| | (strategist.md)    |--->| (creator.md)       |                  |
+| +--------------------+    +--------------------+                  |
++------------------------------------------------------------------+
 ```
 
 ---
@@ -335,111 +316,214 @@ interface SessionInfo {
 
 ## Agent System
 
-### Agent Hierarchy & Dual-Mode Workflow
+### Agent Hierarchy & Hook-First Workflow
 
 ```
-ORCHESTRATOR (Main Agent)
-    |
-    +-- Parses request, detects mode (CONVERSION or MEME)
-    |
-    +-- STEP 1: Research
-    |   |
-    |   +-- researcher
-    |       Tools: WebSearch, WebFetch, Read, Write
-    |
-    |       MODE DETECTION (from task context):
-    |       - STANDARD MODE (default): 4 WebSearches
-    |         → Customer voice, pain points, category context, competition
-    |       - EXTENDED MODE (meme keywords): 7 WebSearches
-    |         → Standard + meme culture, viral patterns, emotional triggers
-    |
-    |       Output: files/research/{brand}_brand_profile.txt
-    |       (~150 lines standard, ~220 lines extended)
-    |
-    +-- STEP 2: Creation (after Step 1 completes)
-        |
-        +-- creator
-            Tools: Read, Write, Skill, mcp__nano-banana__generate_ad_images
-
-            MODE DETECTION (from task context):
-            - CONVERSION MODE (default): Uses embedded framework
-              → Professional ads with clear value props and CTAs
-            - MEME MODE (keywords detected): Loads viral-meme skill
-              → Entertainment-first, 70/30 rule, 11pm test
-
-            Output:
-            - files/final_output/{brand}_campaign_brief.txt
-            - 5 PNG ad images
++------------------------------------------------------------------+
+|                    USER REQUEST PROCESSING                        |
+|             "Create ads for https://example.com"                  |
++------------------------------------------------------------------+
+                                   |
+                                   v
++------------------------------------------------------------------+
+|                      ORCHESTRATOR AGENT                           |
+|                                                                   |
+|   1. Parse request                                                |
+|      +-- Extract URL (required)                                   |
+|      +-- Extract style preference (optional)                      |
+|                                                                   |
+|   2. Spawn STRATEGIST subagent                                    |
+|      +-- Wait for research completion                             |
+|                                                                   |
+|   3. Spawn CREATOR subagent                                       |
+|      +-- Pass style preference                                    |
+|                                                                   |
+|   4. Report completion                                            |
++------------------------------------------------------------------+
+                                   |
+        +--------------------------|---------------------------+
+        |                          |                           |
+        v                          |                           v
++-------------------+              |              +-------------------+
+|   STRATEGIST      |              |              |    CREATOR        |
+|   AGENT           |              |              |    AGENT          |
++-------------------+              |              +-------------------+
+|                   |              |              |                   |
+| Tools:            |              |              | Tools:            |
+| - WebFetch        |              |              | - Read            |
+| - Read            |              |              | - Write           |
+| - Write           |              |              | - Skill           |
+|                   |              |              | - MCP Image Gen   |
++-------------------+              |              +-------------------+
+        |                          |                      |
+        v                          |                      v
++-------------------+              |              +-------------------+
+| OUTPUT:           |              |              | INPUT:            |
+| files/strategy/   |--------------+------------->| files/strategy/   |
+| {brand}_research  |                             | {brand}_research  |
+| .md               |                             | .md               |
++-------------------+                             +-------------------+
+                                                          |
+                                                          v
+                                                  +-------------------+
+                                                  | SKILL LOAD:       |
+                                                  | conversion-craft  |
+                                                  +-------------------+
+                                                          |
+                                                          v
+                                                  +-------------------+
+                                                  | OUTPUT:           |
+                                                  | - 6 Ad Concepts   |
+                                                  | - Generated Images|
+                                                  | - Campaign Brief  |
+                                                  +-------------------+
 ```
 
 ### Agent Definitions
 
-#### 1. researcher (`agent/.claude/agents/researcher.md`)
+#### 1. Strategist (`agent/.claude/agents/strategist.md`)
 
-**Purpose**: Adaptive brand intelligence researcher that extracts brand identity, customer voice, and cultural context
+**Purpose**: Data extraction agent that pulls factual information from business homepages
 
-**Tools**: WebSearch, WebFetch, Read, Write
+**Tools**: WebFetch, Read, Write
 
-**Mode Detection**:
-- Checks task context for meme/viral/humor keywords
-- STANDARD: 4 searches, ~150 lines output
-- EXTENDED: 7 searches, ~220 lines output (includes cultural landscape, psychology, humor patterns)
+**Key Responsibilities**:
+- Extract brand name from URL for file naming
+- Fetch and analyze homepage content
+- Extract SPECIFIC data (numbers, quotes, colors) - NOT creative decisions
 
 **Research Workflow**:
-1. Extract brand name from URL for file naming
-2. WebFetch homepage with brand intelligence prompt
-3. WebFetch additional pages if needed (About, Products)
-4. WebSearches (STANDARD MODE - 4 searches):
-   - Customer voice (Reddit, reviews)
-   - Audience pain points
-   - Category context
-   - Competitive landscape
-5. Extended WebSearches (EXTENDED MODE ONLY - 3 more):
-   - Audience meme culture
-   - Viral content patterns
-   - Emotional triggers
-6. Synthesize and write to `files/research/{brand}_brand_profile.txt`
+1. Extract brand name from URL
+2. WebFetch homepage
+3. Extract structured data in categories
+4. Write to `files/strategy/{brand}_research.md`
 
-**Output Sections**:
-1. Business Overview (offerings, value prop, differentiator)
-2. Visual Identity (colors, typography, aesthetic)
-3. Target Audience (demographics, psychographics, emotional state)
-4. Pain Points & Customer Language (with exact phrases)
-5. Competitive Context
-6. Brand Voice & Tone (including humor tolerance)
-7. Cultural Landscape (EXTENDED only)
-8. Psychological Triggers (EXTENDED only)
-9. Humor Patterns (EXTENDED only)
-10. White Space & Opportunities (EXTENDED only)
-11. Anti-Patterns (EXTENDED only)
+**Output Sections** (~50-60 lines, concise):
+| Section | What to Extract |
+|---------|-----------------|
+| THE OFFER | Products, prices, timeframes, geographic scope |
+| VALUE PROPS | 3-5 specific differentiators |
+| PROOF POINTS | Reviews, ratings, licenses, case studies with numbers |
+| PRODUCTS/SERVICES | Full listing |
+| VISUAL IDENTITY | Colors (hex), typography, aesthetic, imagery style |
+| BRAND VOICE | Tone and communication style |
+| TESTIMONIALS | Exact quotes with attribution |
+| MESSAGING | Headlines and CTAs |
 
-#### 2. creator (`agent/.claude/agents/creator.md`)
+**Critical Rules**:
+- Data extraction ONLY - no creative decisions
+- Be SPECIFIC with numbers, not vague
+- Extract exact quotes for testimonials
+- Include color codes (hex or descriptions)
+- Don't make recommendations - facts only
 
-**Purpose**: Ad creative generator that transforms brand research into conversion ads (default) or meme ads (when requested)
+#### 2. Creator (`agent/.claude/agents/creator.md`)
+
+**Purpose**: Conversion-focused ad creation using hook-first methodology
 
 **Tools**: Read, Write, Skill, mcp__nano-banana__generate_ad_images
 
-**Workflow**:
-1. Read research file (`files/research/{brand}_brand_profile.txt`)
-2. Determine ad type from task keywords
-3. **If meme keywords found**: Load `viral-meme` skill using Skill tool
-4. **If no meme keywords**: Use embedded conversion framework
-5. Create 5 ad concepts with copy and visual direction
-6. Generate images using `mcp__nano-banana__generate_ad_images`
-7. Write campaign brief to `files/final_output/{brand}_campaign_brief.txt`
+**9-Step Workflow**:
+```
++------------------+
+| 1. READ RESEARCH |
++--------+---------+
+         v
++------------------+
+| 2. LOAD SKILL    |
+| conversion-craft |
++--------+---------+
+         v
++------------------+
+| 3. DETERMINE     |
+|    STYLE         |
++--------+---------+
+         v
++------------------+
+| 4. BUILD HOOK    |
+|    BANK (15-20)  |
++--------+---------+
+         v
++------------------+
+| 5. SELECT 6      |
+|    DIVERSE HOOKS |
++--------+---------+
+         v
++------------------+
+| 6. BUILD         |
+|    CONCEPTS      |
++--------+---------+
+         v
++------------------+
+| 7. CRAFT IMAGE   |
+|    PROMPTS       |
++--------+---------+
+         v
++------------------+
+| 8. GENERATE      |
+|    IMAGES (MCP)  |
++--------+---------+
+         v
++------------------+
+| 9. DELIVER       |
+|    CREATIVES     |
++------------------+
+```
 
-**Embedded Conversion Framework**:
-- Headline templates (Pain Point, Benefit, Question, Social Proof)
-- Body copy guidelines (1-2 sentences, customer language, no jargon)
-- CTAs matched to funnel stage
-- Emotional targets (Relief, Aspiration, FOMO, Simplicity)
+**Style Detection** (from user request):
+| Keywords | Style |
+|----------|-------|
+| "illustration", "illustrated" | Illustration |
+| "meme", "funny", "viral" | Meme |
+| "cinematic", "photography" | Photography (default) |
+| "minimal", "clean" | Minimalist |
+| "bold", "graphic" | Bold Graphic |
 
-**Image Prompting Techniques** (embedded):
-- Golden rule: "white text with thick black outline"
-- Platform dimensions (1:1, 4:5, 9:16, 16:9)
-- Visual styles (professional, lifestyle, minimal, meme)
-- Text placement (top/bottom/center/split)
-- Brand integration (colors, subtle logo watermark)
+**Hook Diversity Matrix** (6 Concepts MUST Use Different Types):
+```
++------------------------------------------------------------------+
+|                    6 CONCEPTS - HOOK DIVERSITY                    |
++------------------------------------------------------------------+
+
+  Concept   Hook Type           Research Source      Emotional Trigger
+  -------   ---------           ---------------      -----------------
+    [1]     Stat/Data           Proof Points         Social Proof
+    [2]     Story/Result        Testimonials         Empathy + Relief
+    [3]     FOMO/Urgency        Offer + Scarcity     Loss Aversion
+    [4]     Curiosity           Value Props          Intrigue
+    [5]     Call-out/Question   Pain Points          Recognition
+    [6]     Contrast/Versus     Competitor Angle     Logic + Greed
+
++------------------------------------------------------------------+
+```
+
+**Image Generation Strategy**:
+- Generate in batches: 3 first, then 3
+- Use "2K" resolution for most ads
+- Match aspect ratio to platform (1:1 Instagram, 9:16 Stories, 4:5 Facebook)
+
+### Tool Permissions by Agent
+
+```
++------------------------------------------------------------------+
+|                      TOOL ACCESS MATRIX                           |
++------------------------------------------------------------------+
+
+                    Task  Skill  Todo  Web   Read  Write  MCP
+                    ----  -----  ----  ----  ----  -----  ---
+  Orchestrator       X      X     X     -     -      -     -
+  Strategist         -      -     -     X     X      X     -
+  Creator            -      X     -     -     X      X     X
+
++------------------------------------------------------------------+
+|  MCP Tool: mcp__nano-banana__generate_ad_images                   |
+|  - prompts: string[] (1-3 image descriptions)                     |
+|  - style: string (cinematic, illustration, meme, etc.)            |
+|  - aspectRatio: string (1:1, 9:16, 4:5, 16:9, 2:3)               |
+|  - imageSize: "2K" | "4K"                                         |
+|  - sessionId: string (for organizing output)                      |
++------------------------------------------------------------------+
+```
 
 ---
 
@@ -447,48 +531,104 @@ ORCHESTRATOR (Main Agent)
 
 Skills provide specialized guidance that agents consult during their workflow. Defined in `agent/.claude/skills/` and invoked using the `Skill` tool.
 
-### viral-meme (`agent/.claude/skills/viral-meme/SKILL.md`)
+### conversion-craft (`agent/.claude/skills/conversion-craft/SKILL.md`)
 
-**Purpose**: Transform brand research into viral meme concepts for entertainment-first content
+**Purpose**: Operational framework for creating conversion-focused ads with proven formulas
 
-**When to Use**: User requests memes, viral content, funny ads, or humor-based marketing
+**When to Use**: Creator agent loads this skill FIRST before building hooks
 
-**Key Frameworks**:
+**Key Components**:
 
-**The Golden Rule**: 70% entertainment, 30% brand (at most)
+#### 1. Hook Extraction System
 
-**Hard Constraints**:
-| Never Do | Why |
-|----------|-----|
-| Copy existing meme formats | Templates scream "marketing team" |
-| Use marketing language | Only words customers actually say |
-| Make brand the hero | Customer's struggle is the hero |
-| Explain the joke | If it needs explanation, it's dead |
+Maps research data → potential hooks:
 
-**Emotional Targets** (pick ONE per concept):
-| Target | Feeling | Signs Working |
-|--------|---------|---------------|
-| Catharsis | "Finally someone said it" | Tagging friends, "THIS" |
-| Validation | "This is SO me" | Screenshots, identity expression |
-| Surprise | "Wait, what?" | Comments, debates |
-| Belonging | "My people get this" | Niche community spread |
-| Hope | "Maybe there's a way" | Saves, encouragement shares |
+```
++------------------------------------------------------------------+
+|                    HOOK EXTRACTION MAPPING                        |
++------------------------------------------------------------------+
 
-**Humor Patterns**:
-| Pattern | Energy | Best For |
-|---------|--------|----------|
-| Self-deprecating | "I'm a mess but funny" | Shared struggles |
-| Observational | "Why is this SO true?" | Universal moments |
-| Absurdist | "Makes no sense but YES" | Breaking patterns |
-| Wholesome | "I needed this today" | Genuine support |
-| Dark/Gallows | "At least we can laugh" | Heavy topics, solidarity |
+  Research Section       What to Extract          Hook Types
+  ----------------       ---------------          ----------
+  The Offer              Price, speed,            Price hooks
+                         guarantee, mechanism     Speed hooks
+                                                  Guarantee hooks
 
-**The 11pm Test**: "Would I send this to a friend at 11pm with no context?"
+  Value Props            Time saved, money        Benefit hooks
+                         saved, pain removed      Transformation hooks
 
-**Visual Philosophy**:
-- Cognitive load: One focal point, one joke
-- Authenticity: Intentional lo-fi > corporate polish
-- Lo-Fi Spectrum: Screenshots → iPhone photo → Designed → Studio
+  Proof Points           Customer count,          Stat hooks
+                         success rate, stats      Social proof hooks
+
+  Testimonials           Specific results,        Quote hooks
+                         emotional quotes         Story hooks
+                                                  Result hooks
+
+  Pain Points            Frustrations, fears,     FOMO hooks
+                         obstacles                Loss aversion hooks
+                                                  Question hooks
++------------------------------------------------------------------+
+```
+
+#### 2. Seven Hook Formulas
+
+| Hook Type | Formula | Example |
+|-----------|---------|---------|
+| FOMO | "[X] [audience] already [achieved]. Are you next?" | "1,247 homeowners saved $340/mo. Are you next?" |
+| Stat | "[Number]% of [audience] [pain]. Here's the fix." | "73% of first-time buyers overpay. Here's the fix." |
+| Curiosity | "What [audience] discovered about [topic] (surprising)" | "What homeowners discovered about rates (surprising)" |
+| Call-out | "Hey [audience], stop [mistake]" | "Hey first-time buyers, stop calling 10 lenders" |
+| Contrast | "[Old way] vs [Brand way]: [difference]" | "10 phone calls vs 1 click: same rates, 10x faster" |
+| Question | "Are you still [behavior]? [Consequence]" | "Are you still paying 7.5%? You're losing $340/mo." |
+| Story/Result | "[Name] [result] in [time]. Here's how." | "Sarah locked 6.2% in 60 seconds. Here's how." |
+
+#### 3. Hook Scoring Checklist
+
+Each hook must verify:
+- ✅ **Specific?** (Numbers, names, timeframes from research - not generic)
+- ✅ **Emotional trigger?** (FOMO, curiosity, loss aversion, greed)
+- ✅ **3-second test?** (Message clear instantly on mobile)
+- ✅ **Competitor-proof?** (They can't copy this exact hook)
+
+#### 4. Copywriting Frameworks
+
+**PAS (Problem → Agitate → Solution)**:
+- Best for pain points and emotional connection
+
+**BAB (Before → After → Bridge)**:
+- Best for transformation stories
+
+**AIDA (Attention → Interest → Desire → Action)**:
+- Best for audiences in buying mode
+
+#### 5. Emotional Triggers
+
+| Trigger | How to Use | Key Words |
+|---------|------------|-----------|
+| Fear/FOMO | Limited time, scarcity | "Last chance", "Don't miss" |
+| Loss Aversion | Cost of inaction > gain | "Stop losing $X", "You're leaving $X behind" |
+| Greed | Lead with value | "Free", "Save $X", "Get $X back" |
+| Social Proof | Specific numbers, names | "[X] customers", "[Name] did it" |
+| Urgency | Real deadlines | "Ends [date]", "Today only" |
+
+**Key Insight**: 70% of purchases are emotional, not logical. Lead with feeling, back with proof.
+
+#### 6. Anti-Patterns (NEVER USE)
+
+```
++------------------------------------------------------------------+
+|                    ANTI-PATTERNS TO AVOID                         |
++------------------------------------------------------------------+
+
+  ❌ "Your trusted partner"
+  ❌ "Quality you can count on"
+  ❌ "Solutions for your needs"
+  ❌ Round numbers when research has exact ones
+  ❌ Generic benefits when research has specific ones
+  ❌ Stock handshakes, keys-to-new-home, suited professionals
+
++------------------------------------------------------------------+
+```
 
 ---
 
@@ -497,8 +637,76 @@ Skills provide specialized guidance that agents consult during their workflow. D
 ### Complete Campaign Generation Flow
 
 ```
++------------------------------------------------------------------+
+|                     COMPLETE DATA FLOW                            |
++------------------------------------------------------------------+
+
+  USER                  SERVER                 AGENTS               MCP
+   |                      |                      |                   |
+   | POST /generate       |                      |                   |
+   | {prompt: "URL"}      |                      |                   |
+   |--------------------->|                      |                   |
+   |                      |                      |                   |
+   |                      | Create Session       |                   |
+   |                      |---+                  |                   |
+   |                      |<--+                  |                   |
+   |                      |                      |                   |
+   |                      | Initialize           |                   |
+   |                      | Instrumentation      |                   |
+   |                      |---+                  |                   |
+   |                      |<--+                  |                   |
+   |                      |                      |                   |
+   |                      | SDK Query            |                   |
+   |                      |--------------------->|                   |
+   |                      |                      |                   |
+   |                      |                      | ORCHESTRATOR      |
+   |                      |                      | Parse URL/Style   |
+   |                      |                      |                   |
+   |                      |                      | Task: Strategist  |
+   |                      |                      |---+               |
+   |                      |                      |   | WebFetch      |
+   |                      |                      |   | Extract Data  |
+   |                      |                      |   | Write File    |
+   |                      |                      |<--+               |
+   |                      |                      |                   |
+   |                      |                      | Task: Creator     |
+   |                      |                      |---+               |
+   |                      |                      |   | Read Research |
+   |                      |                      |   | Load Skill    |
+   |                      |                      |   | Build Hooks   |
+   |                      |                      |   |               |
+   |                      |                      |   | MCP Call      |
+   |                      |                      |   |-------------->|
+   |                      |                      |   |               |
+   |                      |                      |   |   Gemini API  |
+   |                      |                      |   |   Generate    |
+   |                      |                      |   |   Save PNGs   |
+   |                      |                      |   |               |
+   |                      |                      |   |<--------------|
+   |                      |                      |   | Images Ready  |
+   |                      |                      |<--+               |
+   |                      |                      |                   |
+   |                      |<---------------------|                   |
+   |                      | Stream Complete      |                   |
+   |                      |                      |                   |
+   |                      | Process Results      |                   |
+   |                      | Compile Metrics      |                   |
+   |                      |                      |                   |
+   |<---------------------|                      |                   |
+   | JSON Response        |                      |                   |
+   | - sessionId          |                      |                   |
+   | - response           |                      |                   |
+   | - sessionStats       |                      |                   |
+   | - instrumentation    |                      |                   |
+   | - images (URLs)      |                      |                   |
+   |                      |                      |                   |
+```
+
+### Detailed Step-by-Step Flow
+
+```
 1. USER REQUEST
-   POST /generate { "prompt": "Create memes for https://brand.com targeting millennials" }
+   POST /generate { "prompt": "Create ads for https://brand.com" }
                                         |
                                         v
 2. SESSION INITIALIZATION
@@ -507,45 +715,40 @@ Skills provide specialized guidance that agents consult during their workflow. D
                                         |
                                         v
 3. ORCHESTRATOR RECEIVES PROMPT
-   - Parses request: extracts URL, detects mode (MEME detected)
-   - Notes context: "targeting millennials"
+   - Parses request: extracts URL (required)
+   - Extracts style preference (optional)
                                         |
                                         v
-4. STEP 1: RESEARCH (EXTENDED MODE)
-   researcher
+4. STEP 1: RESEARCH (STRATEGIST)
+   strategist
    |
    +-- WebFetch homepage
-   +-- WebFetch about/products (if needed)
-   +-- WebSearch: customer voice (Reddit, reviews)
-   +-- WebSearch: audience pain points
-   +-- WebSearch: category context
-   +-- WebSearch: competitive landscape
-   +-- WebSearch: audience meme culture (EXTENDED)
-   +-- WebSearch: viral content patterns (EXTENDED)
-   +-- WebSearch: emotional triggers (EXTENDED)
-   +-- Write brand_brand_profile.txt (~220 lines)
+   +-- Extract structured data:
+   |   - THE OFFER (products, prices)
+   |   - VALUE PROPS (differentiators)
+   |   - PROOF POINTS (stats, reviews)
+   |   - VISUAL IDENTITY (colors, typography)
+   |   - BRAND VOICE (tone)
+   |   - TESTIMONIALS (exact quotes)
+   |
+   +-- Write files/strategy/{brand}_research.md (~50-60 lines)
    |
    v (orchestrator waits for completion)
                                         |
                                         v
-5. ORCHESTRATOR READS RESEARCH
-   - Reads brand_profile.txt for own context
-   - Extracts brand name and business type
-   - Prepares to spawn creator with mode info
-                                        |
-                                        v
-6. STEP 2: CREATIVE EXECUTION (MEME MODE)
+5. STEP 2: CREATIVE EXECUTION (CREATOR)
    creator
    |
-   +-- Skill: viral-meme (load framework FIRST)
-   +-- Read brand_brand_profile.txt
-   +-- Apply 70/30 rule, emotional targets, humor patterns
-   +-- Create 5 meme concepts using 11pm test
-   +-- MCP: nano-banana generate_ad_images (1-2 calls for 5 images)
-   +-- Write campaign_brief.txt
+   +-- Read files/strategy/{brand}_research.md
+   +-- Skill: conversion-craft (load hook extraction system)
+   +-- Build hook bank (15-20 potential hooks)
+   +-- Select 6 diverse hooks (using diversity matrix)
+   +-- Craft image prompts (natural language, style-matched)
+   +-- MCP: nano-banana generate_ad_images (2 calls for 6 images)
+   +-- Deliver 6 concepts with images
                                         |
                                         v
-7. RESPONSE ASSEMBLY
+6. RESPONSE ASSEMBLY
    {
      success: true,
      sessionId: "campaign-123",
@@ -561,27 +764,33 @@ Skills provide specialized guidance that agents consult during their workflow. D
 
 ```
 +-------------------+     saves      +---------------------------+
-| researcher        | ------------> | {brand}_brand_profile.txt |
-|                   |                | - Business Overview       |
-| (4-7 searches     |                | - Visual Identity         |
-|  based on mode)   |                | - Target Audience         |
-+-------------------+                | - Pain Points             |
-                                     | - Brand Voice             |
-                                     | (Extended: +5 sections)   |
+| STRATEGIST        | ------------> | files/strategy/           |
+|                   |                | {brand}_research.md       |
+| Tools:            |                |                           |
+| - WebFetch        |                | Sections:                 |
+| - Read            |                | - THE OFFER               |
+| - Write           |                | - VALUE PROPS             |
++-------------------+                | - PROOF POINTS            |
+                                     | - VISUAL IDENTITY         |
+                                     | - BRAND VOICE             |
+                                     | - TESTIMONIALS            |
+                                     | - MESSAGING               |
                                      +-------------+-------------+
                                                    |
                                                    | reads
                                                    v
 +-------------------+                +---------------------------+
-| creator           | <------------- | (applies mode framework)  |
+| CREATOR           | <------------- | (mines hooks from data)   |
 |                   |                +---------------------------+
-| CONVERSION:       |
-| Uses embedded     |     saves
-| framework         | ------------> +---------------------------+
-|                   |               | files/final_output/       |
-| MEME:             |               | - {brand}_campaign_brief  |
-| Loads viral-meme  |               | - 5 PNG ad images         |
-| skill first       |               +---------------------------+
+| Tools:            |
+| - Read            |
+| - Write           |     generates
+| - Skill           | ------------> +---------------------------+
+| - MCP Image Gen   |               | generated-images/         |
+|                   |               | {sessionId}/*.png         |
+| Loads:            |               |                           |
+| conversion-craft  |               | 6 images (2 batches of 3) |
+| skill             |               +---------------------------+
 +-------------------+
 ```
 
@@ -595,19 +804,18 @@ creative_agent/
 +-- agent/                               # Agent ecosystem
 |   +-- .claude/
 |   |   +-- agents/                      # Agent definitions
-|   |   |   +-- researcher.md            # Adaptive brand researcher
-|   |   |   +-- creator.md               # Dual-mode ad creator
+|   |   |   +-- strategist.md            # Data extraction agent
+|   |   |   +-- creator.md               # Hook-first ad creator
 |   |   |
 |   |   +-- skills/                      # Skill definitions
-|   |       +-- viral-meme/
-|   |           +-- SKILL.md             # Meme creation methodology
+|   |       +-- conversion-craft/
+|   |           +-- SKILL.md             # Hook extraction & copywriting framework
 |   |
 |   +-- files/                           # Agent working directory
-|       +-- research/
-|       |   +-- {brand}_brand_profile.txt  # Research output
-|       +-- final_output/
-|           +-- {brand}_campaign_brief.txt # Campaign document
-|           +-- *.png                      # Generated ad images
+|       +-- strategy/
+|       |   +-- {brand}_research.md      # Research output (strategist)
+|       +-- creatives/
+|           +-- {brand}_ads.md           # Campaign brief (creator)
 |
 +-- server/                              # Express server
 |   +-- sdk-server.ts                    # Main server file
@@ -616,7 +824,7 @@ creative_agent/
 |   |   +-- orchestrator-prompt.ts       # System prompt for main agent
 |   |   +-- session-manager.ts           # Session lifecycle management
 |   |   +-- instrumentor.ts              # Metrics tracking
-|   |   +-- nano-banana-mcp.ts           # Gemini image generation MCP
+|   |   +-- nano-banana-mcp.ts           # Gemini 3 Pro image generation MCP
 |   +-- sessions/                        # Session persistence (auto-generated)
 |   +-- package.json
 |   +-- tsconfig.json
@@ -866,47 +1074,57 @@ npm start
 
 ## Design Decisions
 
-### 1. Why 2 Agents (Not 3)?
+### 1. Why Strategist + Creator (Not Researcher)?
 
-**Decision**: Consolidated from 3 agents (brand-researcher, culture-researcher, creative-director) to 2 agents (researcher, creator)
-
-**Rationale**:
-- **Mode-based flexibility**: Single researcher adapts depth based on ad type
-- **Reduced overhead**: Fewer agent handoffs means faster execution
-- **Simpler orchestration**: Two-step workflow is easier to coordinate
-- **Context preservation**: All research in one file, no synthesis needed
-
-### 2. Why Adaptive Research Modes?
-
-**Decision**: Researcher runs in STANDARD (4 searches) or EXTENDED (7 searches) mode
+**Decision**: Renamed "researcher" to "strategist" to emphasize data extraction vs. analysis
 
 **Rationale**:
-- **Conversion ads don't need cultural deep-dives**: Standard mode is faster and cheaper
-- **Meme ads require cultural context**: Extended mode adds meme culture, viral patterns, emotional triggers
-- **Cost efficiency**: Don't pay for research you won't use
-- **Quality focus**: Right depth for the right output
+- **Clear separation**: Strategist extracts FACTS, Creator makes CREATIVE decisions
+- **No overlap**: Strategist never recommends, never interprets
+- **Quality input**: Specific numbers and quotes fuel better hooks
+- **Auditable**: Research file is verifiable against source
 
-### 3. Why Embedded Conversion Framework?
+### 2. Why Hook-First Methodology?
 
-**Decision**: Creator has conversion framework embedded, only loads skill for memes
+**Decision**: Build hooks BEFORE visuals, not after
 
 **Rationale**:
-- **Conversion is default**: Most requests are for professional ads
-- **Skill loading has overhead**: Avoid unnecessary skill invocation
-- **Separation of concerns**: Meme skill is specialized knowledge
-- **Faster execution**: Embedded framework is always available
+- **Hooks stop the scroll**: The hook is the ad; visuals support it
+- **Data-driven**: Hooks mined from research ensure specificity
+- **Testable diversity**: 6 different hook types = 6 emotional triggers tested
+- **Competitor-proof**: Specific hooks can't be copied
 
-### 4. Why File-Based Agent Communication?
+### 3. Why 6 Concepts with Diversity Matrix?
+
+**Decision**: Require 6 concepts covering different hook types (not variations of one)
+
+**Rationale**:
+- **Test different emotions**: Stat vs Story vs FOMO vs Curiosity all perform differently
+- **Avoid echo chamber**: Without matrix, all concepts might use same hook type
+- **Optimization data**: Learn which emotional trigger resonates with audience
+- **Coverage**: Hit different segments (logical buyers, emotional buyers, FOMO-susceptible)
+
+### 4. Why Conversion-Craft Skill (vs Embedded)?
+
+**Decision**: Hook extraction system as loadable skill, not embedded in agent
+
+**Rationale**:
+- **Modularity**: Can update hook formulas without changing agent
+- **Explicit loading**: Creator knows when methodology is active
+- **Extensibility**: Could add more skills (e.g., meme-craft, B2B-craft)
+- **Debugging**: Can verify skill was loaded in execution trace
+
+### 5. Why File-Based Agent Communication?
 
 **Decision**: Agents communicate through files in `agent/files/`
 
 **Rationale**:
 - **Decoupling**: Agents don't need to know about each other directly
-- **Persistence**: Research artifacts are preserved for debugging
-- **Named outputs**: `{brand}_brand_profile.txt` is clear and reusable
+- **Persistence**: Research artifacts preserved for debugging
+- **Named outputs**: `{brand}_research.md` is clear and reusable
 - **Auditable**: Can review what each agent produced
 
-### 5. Why Synchronous MCP (v3.0.0)?
+### 6. Why Synchronous MCP?
 
 **Decision**: Simple synchronous pattern for image generation
 
@@ -985,29 +1203,30 @@ curl http://localhost:3001/health
 
 This architecture provides a streamlined foundation for AI-powered ad generation:
 
-- **Dual-Mode System**: Conversion (default) or Meme (on request) with appropriate depth
-- **2-Agent Workflow**: Researcher → Creator with mode-based adaptation
-- **On-Demand Skills**: Viral-meme skill loaded only when needed
+- **Hook-First Methodology**: Hooks are mined from research data, not invented
+- **2-Agent Workflow**: Strategist (facts) → Creator (hooks + images)
+- **Conversion-Craft Skill**: 7 hook formulas, diversity matrix, copywriting frameworks
+- **6 Diverse Concepts**: Each concept tests a different emotional trigger
 - **File-Based Communication**: Clear handoffs with named research files
 - **Observability**: Complete tracking of costs, performance, and agent behavior
 - **Production-Ready**: MCP image generation, session persistence, error handling
 
-The system orchestrates 2 specialized agents with 1 consultable skill to generate 5 ready-to-post ad images with comprehensive campaign briefs.
+The system orchestrates 2 specialized agents with 1 consultable skill to generate 6 conversion-focused ad concepts with AI-generated images.
 
 ---
 
-**Last Updated**: November 2025
-**Version**: 3.0 - Dual-Mode Ad Generator (Conversion + Meme)
+**Last Updated**: December 2025
+**Version**: 4.0 - Hook-First Conversion Ad Generator
 **Maintained By**: Creative Agent Team
 
-## Recent Changes (v3.0)
+## Recent Changes (v4.0)
 
-- Consolidated from 3 agents to **2 agents** (researcher, creator)
-- Introduced **mode-based research**: STANDARD (4 searches) vs EXTENDED (7 searches)
-- **Embedded conversion framework** in creator agent (no skill needed for default mode)
-- Single **viral-meme skill** loaded on demand for meme content
-- Simplified file naming: `{brand}_brand_profile.txt`, `{brand}_campaign_brief.txt`
-- Removed separate cultural intelligence file (merged into brand profile extended sections)
-- Updated orchestrator to be more conversational and insightful
-- MCP server upgraded to v3.0.0 (simple synchronous pattern)
-- Output standardized to **5 ad images** per campaign
+- Renamed **researcher → strategist** (emphasizes data extraction, not analysis)
+- Introduced **hook-first methodology**: Build 15-20 hooks, select 6 diverse ones
+- New **conversion-craft skill** with hook extraction system and 7 formulas
+- **Hook diversity matrix**: 6 concepts MUST use different hook types
+- File paths: `files/strategy/{brand}_research.md`, `files/creatives/{brand}_ads.md`
+- Output standardized to **6 ad concepts** (one per hook type)
+- MCP upgraded to **Gemini 3 Pro Image Preview**
+- Added **style detection** (illustration, meme, cinematic, minimal, bold)
+- Creator follows **9-step workflow** with explicit skill loading

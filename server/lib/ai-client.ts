@@ -24,7 +24,7 @@ export class AIClient {
 
     this.defaultOptions = {
       cwd: projectRoot, // Points to agent/ directory where .claude/agents/ is located
-      model: 'claude-haiku-4-5-20251001',
+      model: 'claude-opus-4-5-20251101',
       maxTurns: 30, // CRITICAL for tool usage!
       // Note: Output token limit is controlled by CLAUDE_CODE_MAX_OUTPUT_TOKENS environment variable
       // Set to 16384 in .env for large campaign responses (SDK default: 8192)

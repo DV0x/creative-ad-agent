@@ -9,15 +9,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /**
- * nano_banana MCP Server - Simplified Synchronous Pattern
+ * nano_banana MCP Server - Gemini 3 Pro Image Preview
  *
  * This MCP server provides AI-powered image generation for ad creatives using
- * Google's Gemini 2.5 Flash Image model (codenamed "nano banana").
+ * Google's Gemini 3 Pro Image Preview model (codenamed "nano banana pro").
+ *
+ * Features:
+ * - High resolution outputs: 1K, 2K (default), or 4K
+ * - Multiple aspect ratios for different platforms
+ * - Google Search grounding for real-time data (weather, news, events)
+ * - Reference image support (up to 14 images for style/subject consistency)
+ * - Thinking mode for complex compositions (enabled by default)
  *
  * Architecture: Simple Synchronous Generation
  * - Generates up to 3 images per call
  * - Returns complete results through MCP stream
- * - No job queue, no HTTP polling - just simple and reliable
  *
  * For larger batches (10+ images), the agent will automatically make multiple calls.
  */
@@ -58,11 +64,13 @@ function ensureOutputDirectory(sessionId?: string): string {
  */
 export const nanoBananaMcpServer = createSdkMcpServer({
   name: "nano-banana",
-  version: "3.0.0",
+  version: "4.0.0",
   tools: [
     tool(
       "generate_ad_images",
-      "Generate up to 3 images synchronously using Gemini 2.5 Flash Image. For larger batches, call this tool multiple times. Returns complete image URLs and metadata.",
+      "Generate up to 3 high-quality images using Gemini 3 Pro Image Preview. " +
+      "Supports 1K/2K/4K resolution (default 2K), multiple aspect ratios, " +
+      "Google Search grounding for real-time data, and up to 14 reference images for style/subject consistency.",
       {
         prompts: z.array(z.string()).max(3).describe(
           "Array of 1-3 image generation prompts. Each prompt should be descriptive and detailed. " +
@@ -72,20 +80,35 @@ export const nanoBananaMcpServer = createSdkMcpServer({
           "Visual style to apply across all images. " +
           "Examples: 'modern minimal', 'photorealistic', 'vibrant and energetic', 'professional corporate', 'warm and friendly'"
         ),
-        dimensions: z.string().optional().describe(
-          "Target image dimensions for the platform. " +
-          "Examples: '1080x1080' (Instagram square), '1080x1350' (Instagram portrait), '1200x628' (Facebook feed)"
-        ),
+        aspectRatio: z.enum(['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'])
+          .optional()
+          .describe("Aspect ratio for generated images. Default: '1:1'. Use '9:16' for stories, '16:9' for landscape, '1:1' for square posts."),
+        imageSize: z.enum(['1K', '2K', '4K'])
+          .optional()
+          .describe("Output resolution. Default: '2K'. Options: '1K' (fastest), '2K' (balanced), '4K' (highest quality). Must use uppercase K."),
+        useGoogleSearch: z.boolean()
+          .optional()
+          .describe("Enable Google Search grounding for real-time data (weather, news, sports scores, events). Default: false"),
+        referenceImages: z.array(z.object({
+          data: z.string().describe("Base64 encoded image data"),
+          mimeType: z.string().describe("MIME type (e.g., 'image/png', 'image/jpeg')")
+        }))
+          .max(14)
+          .optional()
+          .describe("Up to 14 reference images for style transfer or character consistency. Include images of subjects, styles, or objects to maintain across generations."),
         sessionId: z.string().optional().describe(
           "Optional session ID for organizing images into folders. Images will be saved to generated-images/{sessionId}/"
         )
       },
       async (args) => {
         const toolStartTime = Date.now();
-        console.log(`🎨 [${new Date().toISOString()}] Starting synchronous image generation`);
+        console.log(`🎨 [${new Date().toISOString()}] Starting Gemini 3 Pro image generation`);
         console.log(`   Prompts: ${args.prompts.length}`);
         console.log(`   Style: ${args.style || 'default'}`);
-        console.log(`   Dimensions: ${args.dimensions || 'default'}`);
+        console.log(`   Resolution: ${args.imageSize || '2K'}`);
+        console.log(`   Aspect Ratio: ${args.aspectRatio || '1:1'}`);
+        console.log(`   Google Search: ${args.useGoogleSearch ? 'enabled' : 'disabled'}`);
+        console.log(`   Reference Images: ${args.referenceImages?.length || 0}`);
 
         // Check API key
         const apiKey = process.env.GEMINI_API_KEY;
@@ -113,13 +136,10 @@ export const nanoBananaMcpServer = createSdkMcpServer({
           for (let i = 0; i < args.prompts.length; i++) {
             const prompt = args.prompts[i];
 
-            // Enhance prompt with style and dimensions
+            // Enhance prompt with style
             let enhancedPrompt = prompt;
             if (args.style) {
               enhancedPrompt = `${prompt}. Style: ${args.style}.`;
-            }
-            if (args.dimensions) {
-              enhancedPrompt = `${enhancedPrompt} Image dimensions: ${args.dimensions}.`;
             }
 
             console.log(`🖼️  [${new Date().toISOString()}] Generating image ${i + 1}/${args.prompts.length}...`);
@@ -127,9 +147,41 @@ export const nanoBananaMcpServer = createSdkMcpServer({
 
             try {
               const apiCallStart = Date.now();
+
+              // Build contents array (text prompt + optional reference images)
+              const contents: any[] = [{ text: enhancedPrompt }];
+
+              // Add reference images if provided (only on first image to avoid duplication)
+              if (i === 0 && args.referenceImages && args.referenceImages.length > 0) {
+                for (const refImg of args.referenceImages) {
+                  contents.push({
+                    inlineData: {
+                      mimeType: refImg.mimeType,
+                      data: refImg.data,
+                    },
+                  });
+                }
+                console.log(`   📎 Including ${args.referenceImages.length} reference image(s)`);
+              }
+
+              // Build config for Gemini 3 Pro Image Preview
+              const config: any = {
+                responseModalities: ['TEXT', 'IMAGE'],
+                imageConfig: {
+                  aspectRatio: args.aspectRatio || '1:1',
+                  imageSize: args.imageSize || '2K',
+                },
+              };
+
+              // Add Google Search grounding if enabled
+              if (args.useGoogleSearch) {
+                config.tools = [{ googleSearch: {} }];
+              }
+
               const response = await ai.models.generateContent({
-                model: "gemini-2.5-flash-image-preview",
-                contents: enhancedPrompt
+                model: "gemini-3-pro-image-preview",
+                contents: contents,
+                config: config,
               });
               const apiCallDuration = Date.now() - apiCallStart;
 
@@ -175,8 +227,11 @@ export const nanoBananaMcpServer = createSdkMcpServer({
                     enhancedPrompt: enhancedPrompt,
                     mimeType: mimeType,
                     sizeKB: Math.round(buffer.length / 1024),
-                    dimensions: args.dimensions || "default",
-                    style: args.style || "default"
+                    aspectRatio: args.aspectRatio || '1:1',
+                    resolution: args.imageSize || '2K',
+                    style: args.style || "default",
+                    googleSearchEnabled: args.useGoogleSearch || false,
+                    referenceImagesUsed: args.referenceImages?.length || 0,
                   });
 
                   console.log(`   ✅ Image ${i + 1} complete`);
@@ -239,4 +294,4 @@ export const nanoBananaMcpServer = createSdkMcpServer({
   ]
 });
 
-console.log('✅ nano_banana MCP server created (v3.0.0 - Simple Synchronous)');
+console.log('✅ nano_banana MCP server created (v4.0.0 - Gemini 3 Pro Image Preview)');
