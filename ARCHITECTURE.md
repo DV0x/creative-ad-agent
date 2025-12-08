@@ -1,6 +1,6 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 4.0
+**Version:** 5.0
 **Last Updated:** December 2025
 **Status:** Production (Hook-First Conversion Ad Generator with MCP Image Generation)
 
@@ -10,788 +10,784 @@
 
 1. [System Overview](#system-overview)
 2. [High-Level Architecture](#high-level-architecture)
-3. [Component Details](#component-details)
-4. [Agent System](#agent-system)
-5. [Skills System](#skills-system)
+3. [Complete Workflow Diagram](#complete-workflow-diagram)
+4. [Component Details](#component-details)
+5. [Agent & Skills System](#agent--skills-system)
 6. [Data Flow](#data-flow)
 7. [File Structure](#file-structure)
 8. [API Endpoints](#api-endpoints)
 9. [Session Management](#session-management)
-10. [Instrumentation & Observability](#instrumentation--observability)
-11. [Technology Stack](#technology-stack)
-12. [Deployment](#deployment)
-13. [Design Decisions](#design-decisions)
+10. [Technology Stack](#technology-stack)
+11. [Design Decisions](#design-decisions)
 
 ---
 
 ## System Overview
 
 ### Purpose
-An AI-powered creative advertising agent that generates conversion-focused ads using a **hook-first methodology**. The system analyzes brand websites, extracts factual data, and creates 6 diverse ad concepts with AI-generated images using Gemini 3 Pro Image Preview.
+
+An AI-powered creative advertising agent that generates conversion-focused ads using a **hook-first methodology**. The system analyzes brand websites, extracts factual data, and creates 6 diverse ad concepts with AI-generated images.
+
+### Architecture Pattern
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           ORCHESTRATOR (Main Agent)                         │
+│                                                                             │
+│    Coordinates:  1 Agent  +  2 Skills  +  1 MCP Tool                       │
+│                                                                             │
+│    ┌─────────────┐    ┌──────────────────┐    ┌───────────────┐            │
+│    │  research   │ -> │ hook-methodology │ -> │   art-style   │            │
+│    │   (Agent)   │    │     (Skill)      │    │    (Skill)    │            │
+│    └─────────────┘    └──────────────────┘    └───────────────┘            │
+│           │                    │                      │                     │
+│           v                    v                      v                     │
+│    ┌─────────────┐    ┌──────────────────┐    ┌───────────────┐            │
+│    │  research/  │    │   hook-bank/     │    │  creatives/   │            │
+│    │  {brand}.md │    │ {brand}-{date}.md│    │{brand}.json   │            │
+│    └─────────────┘    └──────────────────┘    └───────┬───────┘            │
+│                                                       │                     │
+│                                        ┌──────────────┘                     │
+│                                        v                                    │
+│                              ┌──────────────────┐                          │
+│                              │   nano-banana    │                          │
+│                              │   (MCP Tool)     │                          │
+│                              │  Gemini 3 Pro    │                          │
+│                              └────────┬─────────┘                          │
+│                                       v                                     │
+│                              ┌──────────────────┐                          │
+│                              │ generated-images/│                          │
+│                              │  {sessionId}/    │                          │
+│                              └──────────────────┘                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ### Key Features
-- **Hook-First Ad Generation**: Hooks are mined from research data using 7 proven formulas
-- **2-Agent Orchestration**: Coordinates strategist (research) and creator (ads) agents sequentially
-- **Conversion-Craft Skill**: Operational framework with hook extraction system and copywriting frameworks
-- **Hook Diversity Matrix**: 6 concepts MUST cover different emotional triggers (Stat, Story, FOMO, Curiosity, Call-out, Contrast)
-- **MCP Image Generation**: Nano-banana MCP server generates images using Gemini 3 Pro Image Preview
-- **Session Management**: Stateful conversation handling with forking capabilities
-- **Real-time Instrumentation**: Complete observability of SDK operations, costs, and performance
 
-### Performance Targets
-- **Total Generation Time**: 2-5 minutes
-- **Sequential Workflow**: 2 agents executed in order (strategist → creator)
-- **Image Generation**: Up to 3 images per MCP call
-- **Output**: 6 ad concepts with hook diversity + generated images
+- **Hook-First Ad Generation**: Hooks mined from research data using proven formulas
+- **1-Agent + 2-Skills Workflow**: Research agent extracts data, skills handle creative
+- **6 Diverse Concepts**: Each concept uses a different emotional trigger
+- **MCP Image Generation**: Nano-banana MCP generates images via Gemini 3 Pro
+- **Session Management**: Stateful conversations with forking for A/B testing
 
 ---
 
 ## High-Level Architecture
 
 ```
-+------------------------------------------------------------------+
-|                         CLIENT REQUEST                            |
-|                    POST /generate { prompt }                      |
-+----------------------------------+-------------------------------+
-                                   |
-                                   v
-+------------------------------------------------------------------+
-|                      EXPRESS SERVER (sdk-server.ts)               |
-|                         Port: 3001                                |
-|  +------------------------------------------------------------+  |
-|  |  Endpoints:                                                 |  |
-|  |  - POST /generate      (campaign generation)                |  |
-|  |  - GET  /sessions      (list sessions)                      |  |
-|  |  - POST /sessions/:id/continue (resume session)             |  |
-|  |  - POST /sessions/:id/fork     (branch session)             |  |
-|  |  - GET  /images/:sessionId/:filename (serve images)         |  |
-|  +------------------------------------------------------------+  |
-+----------------------------------+-------------------------------+
-                                   |
-                                   v
-+------------------------------------------------------------------+
-|                        AIClient (ai-client.ts)                    |
-|  +------------------------------------------------------------+  |
-|  |  - queryStream()         Async generator for SDK messages   |  |
-|  |  - queryWithSession()    Session-aware streaming            |  |
-|  |  - queryWithSessionFork() Branch from existing session      |  |
-|  +------------------------------------------------------------+  |
-|                                   |                               |
-|     +-----------------------------+-----------------------------+ |
-|     |                             |                             | |
-|     v                             v                             v |
-| +----------------+    +-------------------+    +---------------+  |
-| | SessionManager |    | SDKInstrumentor   |    | Claude SDK    |  |
-| | (sessions.ts)  |    | (instrumentor.ts) |    | query()       |  |
-| +----------------+    +-------------------+    +---------------+  |
-+------------------------------------------------------------------+
-                                   |
-                                   v
-+------------------------------------------------------------------+
-|                    CLAUDE AGENT SDK ORCHESTRATION                 |
-|  +------------------------------------------------------------+  |
-|  |  Model: claude-opus-4-5-20251101                           |  |
-|  |  Max Turns: 30                                              |  |
-|  |  CWD: agent/ (loads .claude/agents/ and .claude/skills/)   |  |
-|  +------------------------------------------------------------+  |
-|                                   |                               |
-|     +-----------------------------+-----------------------------+ |
-|     |                                                           | |
-|     v                                                           v |
-| +--------------------+                           +---------------+|
-| | ORCHESTRATOR AGENT |                           | MCP SERVERS   ||
-| | (system prompt)    |                           | +-----------+ ||
-| +--------------------+                           | |nano-banana| ||
-|     |                                            | |(Gemini AI)| ||
-|     | Task Tool                                  | +-----------+ ||
-|     v                                            +---------------+|
-| +--------------------+    +--------------------+                  |
-| | STRATEGIST AGENT   |    | CREATOR AGENT      |                  |
-| | (strategist.md)    |--->| (creator.md)       |                  |
-| +--------------------+    +--------------------+                  |
-+------------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CLIENT REQUEST                                  │
+│                         POST /generate { prompt }                           │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         EXPRESS SERVER (sdk-server.ts)                       │
+│                               Port: 3001                                     │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │  Endpoints:                                                             │ │
+│  │  POST /generate           - Campaign generation                         │ │
+│  │  GET  /sessions           - List sessions                               │ │
+│  │  POST /sessions/:id/continue - Resume session                           │ │
+│  │  POST /sessions/:id/fork     - Branch session (A/B testing)             │ │
+│  │  GET  /images/:sessionId/:filename - Serve generated images             │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           AIClient (ai-client.ts)                            │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │  - queryStream()           Async generator for SDK messages             │ │
+│  │  - queryWithSession()      Session-aware streaming                      │ │
+│  │  - queryWithSessionFork()  Branch from existing session                 │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                       │
+│     ┌────────────────────────────────┼────────────────────────────────┐     │
+│     │                                │                                │     │
+│     v                                v                                v     │
+│ ┌────────────────┐    ┌───────────────────────┐    ┌────────────────┐      │
+│ │ SessionManager │    │    SDKInstrumentor    │    │   Claude SDK   │      │
+│ │ (session-      │    │   (instrumentor.ts)   │    │    query()     │      │
+│ │  manager.ts)   │    │   Cost/Token Tracking │    │                │      │
+│ └────────────────┘    └───────────────────────┘    └────────────────┘      │
+└─────────────────────────────────────────────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       CLAUDE AGENT SDK ORCHESTRATION                         │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │  Model: claude-opus-4-5-20251101                                        │ │
+│  │  Max Turns: 30                                                          │ │
+│  │  CWD: agent/ (loads .claude/agents/ and .claude/skills/)               │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+│                                      │                                       │
+│     ┌────────────────────────────────┼────────────────────────────────┐     │
+│     │                                │                                │     │
+│     v                                v                                v     │
+│ ┌────────────────┐    ┌───────────────────────┐    ┌────────────────┐      │
+│ │  ORCHESTRATOR  │    │        SKILLS         │    │  MCP SERVERS   │      │
+│ │  (main agent)  │    │  ┌─────────────────┐  │    │ ┌────────────┐ │      │
+│ │                │    │  │hook-methodology │  │    │ │nano-banana │ │      │
+│ │ Uses:          │    │  └─────────────────┘  │    │ │(Gemini 3   │ │      │
+│ │ - Task         │    │  ┌─────────────────┐  │    │ │ Pro)       │ │      │
+│ │ - Skill        │    │  │   art-style     │  │    │ └────────────┘ │      │
+│ │ - TodoWrite    │    │  └─────────────────┘  │    └────────────────┘      │
+│ └────────────────┘    └───────────────────────┘                             │
+│         │                                                                    │
+│         │ Task Tool                                                          │
+│         v                                                                    │
+│ ┌────────────────┐                                                          │
+│ │ RESEARCH AGENT │                                                          │
+│ │ (research.md)  │                                                          │
+│ │                │                                                          │
+│ │ Tools:         │                                                          │
+│ │ - WebFetch     │                                                          │
+│ │ - Read         │                                                          │
+│ │ - Write        │                                                          │
+│ └────────────────┘                                                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## Complete Workflow Diagram
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         COMPLETE WORKFLOW                                    │
+│              "Create ads for https://theratefinder.ca"                       │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STEP 1: ORCHESTRATOR PARSES REQUEST                                        │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │  Extract:                                                               │ │
+│  │  - URL: https://theratefinder.ca (required)                            │ │
+│  │  - Brand: theratefinder                                                 │ │
+│  │  - Style: none specified → default "Soft Brutalism Clay"               │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STEP 2: SPAWN RESEARCH AGENT                                                │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                                                                         │ │
+│  │   Task(subagent_type: "research")                                       │ │
+│  │        │                                                                │ │
+│  │        v                                                                │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │                    RESEARCH AGENT                        │          │ │
+│  │   │                                                          │          │ │
+│  │   │   1. WebFetch homepage                                   │          │ │
+│  │   │   2. Extract: Offer, Value Props, Proof Points           │          │ │
+│  │   │   3. Extract: Brand Colors, Voice, Messaging             │          │ │
+│  │   │   4. Analyze: Target Audience / ICP                      │          │ │
+│  │   │   5. Write: files/research/theratefinder_research.md     │          │ │
+│  │   │                                                          │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  │                              │                                          │ │
+│  │                              v                                          │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │  OUTPUT: files/research/theratefinder_research.md        │          │ │
+│  │   │                                                          │          │ │
+│  │   │  # TheRateFinder - Research Brief                        │          │ │
+│  │   │  ## The Offer                                            │          │ │
+│  │   │  ## Key Value Props                                      │          │ │
+│  │   │  ## Proof Points                                         │          │ │
+│  │   │  ## Brand Colors                                         │          │ │
+│  │   │  ## Target Audience / ICP                                │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STEP 3: TRIGGER HOOK-METHODOLOGY SKILL                                      │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                                                                         │ │
+│  │   Skill("hook-methodology")                                             │ │
+│  │        │                                                                │ │
+│  │        v                                                                │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │              HOOK-METHODOLOGY SKILL                      │          │ │
+│  │   │                                                          │          │ │
+│  │   │   1. Read research file                                  │          │ │
+│  │   │   2. Build Hook Bank (10+ potential hooks)               │          │ │
+│  │   │   3. Select 6 Diverse Hooks (diversity matrix)           │          │ │
+│  │   │   4. Quality Check each hook                             │          │ │
+│  │   │   5. Write Body + CTA for each                           │          │ │
+│  │   │   6. Write: hook-bank/theratefinder-2025-12-06.md        │          │ │
+│  │   │                                                          │          │ │
+│  │   │   DIVERSITY MATRIX:                                      │          │ │
+│  │   │   ┌────────┬─────────────────┬──────────────────┐       │          │ │
+│  │   │   │Concept │ Hook Type       │ Emotional Trigger│       │          │ │
+│  │   │   ├────────┼─────────────────┼──────────────────┤       │          │ │
+│  │   │   │   1    │ Stat/Data       │ Social Proof     │       │          │ │
+│  │   │   │   2    │ Story/Result    │ Empathy + Relief │       │          │ │
+│  │   │   │   3    │ FOMO/Urgency    │ Loss Aversion    │       │          │ │
+│  │   │   │   4    │ Curiosity       │ Intrigue         │       │          │ │
+│  │   │   │   5    │ Call-out        │ Recognition      │       │          │ │
+│  │   │   │   6    │ Contrast/Enemy  │ Differentiation  │       │          │ │
+│  │   │   └────────┴─────────────────┴──────────────────┘       │          │ │
+│  │   │                                                          │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  │                              │                                          │ │
+│  │                              v                                          │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │  OUTPUT: hook-bank/theratefinder-2025-12-06.md           │          │ │
+│  │   │                                                          │          │ │
+│  │   │  # TheRateFinder - Hook Bank                             │          │ │
+│  │   │  ## Brand Colors (from research)                         │          │ │
+│  │   │  ## ICP Summary                                          │          │ │
+│  │   │  ## Concept 1-6 (Hook + Body + CTA each)                │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STEP 4: TRIGGER ART-STYLE SKILL                                             │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                                                                         │ │
+│  │   Skill("art-style")                                                    │ │
+│  │        │                                                                │ │
+│  │        v                                                                │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │                  ART-STYLE SKILL                         │          │ │
+│  │   │                                                          │          │ │
+│  │   │   1. Read hook-bank file                                 │          │ │
+│  │   │   2. Route to style workflow:                            │          │ │
+│  │   │      - "clay"/"brutalist" → Soft Brutalism Clay          │          │ │
+│  │   │      - "surreal"/"dreamlike" → Surrealist Scale          │          │ │
+│  │   │      - "minimal"/"clean" → Minimal Photography           │          │ │
+│  │   │      - (none) → Default: Soft Brutalism Clay             │          │ │
+│  │   │   3. Create visual prompts for each hook                 │          │ │
+│  │   │   4. Write: files/creatives/theratefinder_prompts.json   │          │ │
+│  │   │                                                          │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  │                              │                                          │ │
+│  │                              v                                          │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │  OUTPUT: files/creatives/theratefinder_prompts.json      │          │ │
+│  │   │                                                          │          │ │
+│  │   │  {                                                       │          │ │
+│  │   │    "brand": "theratefinder",                             │          │ │
+│  │   │    "style": "soft-brutalism-clay",                       │          │ │
+│  │   │    "prompts": [                                          │          │ │
+│  │   │      "Prompt 1 for image generation...",                 │          │ │
+│  │   │      "Prompt 2 for image generation...",                 │          │ │
+│  │   │      ...6 total prompts                                  │          │ │
+│  │   │    ]                                                     │          │ │
+│  │   │  }                                                       │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STEP 5: GENERATE IMAGES VIA MCP                                             │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                                                                         │ │
+│  │   Orchestrator reads prompts.json                                       │ │
+│  │        │                                                                │ │
+│  │        v                                                                │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │           NANO-BANANA MCP SERVER                         │          │ │
+│  │   │              (Gemini 3 Pro Image Preview)                │          │ │
+│  │   │                                                          │          │ │
+│  │   │   BATCH 1:                                               │          │ │
+│  │   │   mcp__nano-banana__generate_ad_images({                 │          │ │
+│  │   │     prompts: [prompt1, prompt2, prompt3],                │          │ │
+│  │   │     aspectRatio: "1:1",                                  │          │ │
+│  │   │     imageSize: "2K",                                     │          │ │
+│  │   │     sessionId: "campaign-xxx"                            │          │ │
+│  │   │   })                                                     │          │ │
+│  │   │   → 3 PNG files                                          │          │ │
+│  │   │                                                          │          │ │
+│  │   │   BATCH 2:                                               │          │ │
+│  │   │   mcp__nano-banana__generate_ad_images({                 │          │ │
+│  │   │     prompts: [prompt4, prompt5, prompt6],                │          │ │
+│  │   │     ...                                                  │          │ │
+│  │   │   })                                                     │          │ │
+│  │   │   → 3 PNG files                                          │          │ │
+│  │   │                                                          │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  │                              │                                          │ │
+│  │                              v                                          │ │
+│  │   ┌─────────────────────────────────────────────────────────┐          │ │
+│  │   │  OUTPUT: generated-images/{sessionId}/                   │          │ │
+│  │   │                                                          │          │ │
+│  │   │  ├── 1733500000_1_first_prompt.png                       │          │ │
+│  │   │  ├── 1733500001_2_second_prompt.png                      │          │ │
+│  │   │  ├── 1733500002_3_third_prompt.png                       │          │ │
+│  │   │  ├── 1733500010_4_fourth_prompt.png                      │          │ │
+│  │   │  ├── 1733500011_5_fifth_prompt.png                       │          │ │
+│  │   │  └── 1733500012_6_sixth_prompt.png                       │          │ │
+│  │   └─────────────────────────────────────────────────────────┘          │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────┬───────────────────────────────────────┘
+                                      │
+                                      v
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  STEP 6: REPORT COMPLETION                                                   │
+│  ┌────────────────────────────────────────────────────────────────────────┐ │
+│  │                                                                         │ │
+│  │   Orchestrator returns:                                                 │ │
+│  │   - Summary of 6 ad concepts                                           │ │
+│  │   - Image URLs: http://localhost:3001/images/{sessionId}/              │ │
+│  │   - Instrumentation data (costs, tokens, timing)                       │ │
+│  │                                                                         │ │
+│  └────────────────────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Component Details
 
-### 1. Express Server (`server/sdk-server.ts`)
+### Server Components
 
-**Responsibilities**:
-- HTTP API endpoint handling
-- Request validation and routing
-- Response formatting and error handling
-- CORS and middleware configuration
-- Image serving for generated ads
-
-**Key Endpoints**:
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/generate` | POST | Main campaign generation - accepts natural language prompt |
-| `/test` | POST | SDK query testing with session management |
-| `/sessions` | GET | List all active sessions |
-| `/sessions/:id` | GET | Get specific session stats |
-| `/sessions/:id/continue` | POST | Resume existing session |
-| `/sessions/:id/fork` | POST | Create session variant |
-| `/sessions/:id/family` | GET | Get session family tree |
-| `/images` | GET | List all generated images by session |
-| `/images/:sessionId/:filename` | GET | Serve specific generated image |
-| `/health` | GET | Health check with config status |
-
----
-
-### 2. AIClient (`server/lib/ai-client.ts`)
-
-**Purpose**: Wrapper around Claude SDK with session-aware query capabilities
-
-**Configuration**:
-```typescript
-{
-  cwd: projectRoot,                    // Points to agent/ directory
-  model: 'claude-haiku-4-5-20251001',  // Fast model for orchestration
-  maxTurns: 30,                        // CRITICAL for tool usage
-  settingSources: ['user', 'project'], // Load agents + skills from .claude/
-  allowedTools: [
-    // Orchestrator tools
-    "Task", "Skill", "TodoWrite",
-    // Subagent tools
-    "WebFetch", "WebSearch", "Read", "Write", "Glob", "Grep", "Bash", "Edit",
-    // MCP tool
-    "mcp__nano-banana__generate_ad_images"
-  ],
-  systemPrompt: ORCHESTRATOR_SYSTEM_PROMPT,
-  mcpServers: {
-    "nano-banana": nanoBananaMcpServer
-  }
-}
 ```
-
-**Key Methods**:
-- `queryStream()` - Stream query to Claude SDK
-- `queryWithSession()` - Session-aware query with automatic management
-- `queryWithSessionFork()` - Fork session for A/B testing
-
-**Generator Lifecycle Pattern** (Critical for MCP):
-```typescript
-// Generator must stay alive during tool execution
-// Uses AbortController for proper cleanup
-const abortController = new AbortController();
-
-// Generator waits on abort signal to stay alive
-if (signal) {
-  await new Promise<void>((resolve) => {
-    signal.addEventListener('abort', () => resolve());
-  });
-}
-
-// Abort when query completes
-abortController.abort();
-```
-
-**Agent & Skill Discovery**:
-At initialization, AIClient:
-1. Scans `agent/.claude/agents/` for agent definitions
-2. Scans `agent/.claude/skills/` for skill definitions
-3. Logs discovered agents and skills with their tools and descriptions
-
----
-
-### 3. Orchestrator Prompt (`server/lib/orchestrator-prompt.ts`)
-
-**Purpose**: Defines the main agent's behavior as an intelligent coordinator
-
-**Capabilities**:
-1. Spawn researcher agent to analyze brand URLs
-2. Spawn creator agent to generate ad creatives
-3. Understand natural language requests and extract intent
-4. Communicate with insight about what it's doing
-
-**Mode Detection**:
-- **MEME MODE keywords**: "meme", "memes", "viral", "funny", "humor", "humorous", "entertainment"
-- **CONVERSION MODE**: Default when no meme keywords found
-
-**Workflow**:
-1. Parse request (extract URL, detect format, note context)
-2. Spawn researcher (with meme hint if applicable)
-3. Read research file (for orchestrator's own context)
-4. Spawn creator (pass format decision in prompt)
-5. Summarize results
-
-**Agent Prompts** (from orchestrator):
-```typescript
-// researcher
-Task({
-  subagent_type: "researcher",
-  description: "Brand research for {domain}",
-  prompt: "Research {URL}. Extract brand overview, visual identity, target audience,
-          pain points, and customer language. Save to files/research/{brand}_brand_profile.txt"
-})
-// For meme mode, add: "This is for viral meme content - go deep on audience culture and humor patterns."
-
-// creator
-Task({
-  subagent_type: "creator",
-  description: "Create {format} ads for {brand}",
-  prompt: "Create {FORMAT} ads for {BRAND_NAME}.
-          Read files/research/{brand}_brand_profile.txt for full research.
-          {MEME: 'Load the viral-meme skill and create entertainment-first content.'}
-          {CONVERSION: 'Use the embedded conversion framework for professional ads with clear CTAs.'}
-          Generate 5 concepts with images. Save to files/final_output/"
-})
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           SERVER COMPONENTS                                  │
+│                           server/                                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  sdk-server.ts                                          (~920 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  Express HTTP server - main entry point                              │  │
+│  │                                                                      │  │
+│  │  Responsibilities:                                                   │  │
+│  │  - HTTP endpoint handling (/generate, /sessions, /images)           │  │
+│  │  - Request validation and routing                                    │  │
+│  │  - Response formatting with instrumentation                          │  │
+│  │  - Image serving for generated ads                                   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  lib/ai-client.ts                                       (~490 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  Claude SDK wrapper with session-aware queries                       │  │
+│  │                                                                      │  │
+│  │  Key Methods:                                                        │  │
+│  │  - queryStream()           → Async generator for SDK messages        │  │
+│  │  - queryWithSession()      → Session-aware streaming                 │  │
+│  │  - queryWithSessionFork()  → Fork for A/B testing                    │  │
+│  │                                                                      │  │
+│  │  SDK Configuration:                                                  │  │
+│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
+│  │  │  cwd: "agent/"                                                 │ │  │
+│  │  │  model: "claude-opus-4-5-20251101"                             │ │  │
+│  │  │  maxTurns: 30                                                  │ │  │
+│  │  │  settingSources: ['user', 'project']                           │ │  │
+│  │  │  allowedTools: [Task, Skill, TodoWrite, WebFetch, Read, ...]   │ │  │
+│  │  │  mcpServers: { "nano-banana": nanoBananaMcpServer }            │ │  │
+│  │  └────────────────────────────────────────────────────────────────┘ │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  lib/session-manager.ts                                 (~340 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  Session lifecycle and persistence                                   │  │
+│  │                                                                      │  │
+│  │  Features:                                                           │  │
+│  │  - Persistence: ./sessions/*.json files                              │  │
+│  │  - Auto-save: Every 10 messages                                      │  │
+│  │  - Cleanup: 24-hour max age                                          │  │
+│  │  - Forking: Create session variants for A/B testing                  │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  lib/nano-banana-mcp.ts                                 (~300 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  MCP server for AI image generation via Gemini 3 Pro                 │  │
+│  │                                                                      │  │
+│  │  Tool: mcp__nano-banana__generate_ad_images                          │  │
+│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
+│  │  │  Parameters:                                                   │ │  │
+│  │  │  - prompts: string[]      (1-3 prompts per call)              │ │  │
+│  │  │  - style: string          (visual style)                       │ │  │
+│  │  │  - aspectRatio: enum      (1:1, 9:16, 16:9, etc.)             │ │  │
+│  │  │  - imageSize: enum        (1K, 2K, 4K)                        │ │  │
+│  │  │  - sessionId: string      (for file organization)             │ │  │
+│  │  │                                                                │ │  │
+│  │  │  Output: PNG files → generated-images/{sessionId}/             │ │  │
+│  │  └────────────────────────────────────────────────────────────────┘ │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  lib/orchestrator-prompt.ts                              (~72 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  System prompt for main agent - defines workflow                     │  │
+│  │                                                                      │  │
+│  │  Workflow:                                                           │  │
+│  │  1. Parse request → Extract URL, brand, style                        │  │
+│  │  2. Spawn research agent → Wait for research file                    │  │
+│  │  3. Trigger hook-methodology skill → Wait for hook-bank              │  │
+│  │  4. Trigger art-style skill → Wait for prompts.json                  │  │
+│  │  5. Call MCP to generate images (2 batches of 3)                     │  │
+│  │  6. Report completion with image URLs                                │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  lib/instrumentor.ts                                    (~150 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  Real-time instrumentation and metrics tracking                      │  │
+│  │                                                                      │  │
+│  │  Tracks:                                                             │  │
+│  │  - Events: All SDK message types                                     │  │
+│  │  - Tool Calls: Every tool invocation                                 │  │
+│  │  - Agent Calls: Subagent launches via Task                           │  │
+│  │  - Costs: SDK-provided USD costs                                     │  │
+│  │  - Usage: Token counts (input, output, cache)                        │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-### 4. SessionManager (`server/lib/session-manager.ts`)
+## Agent & Skills System
 
-**Purpose**: Manages SDK session lifecycle and persistence
-
-**Data Model**:
-```typescript
-interface SessionInfo {
-  id: string;                    // Our session ID
-  sdkSessionId?: string;         // SDK's internal session ID
-  createdAt: Date;
-  lastAccessedAt: Date;
-  metadata: {
-    status: 'active' | 'completed' | 'error';
-    messageCount: number;
-    forkedFrom?: string;         // Base session if fork
-    forkPurpose?: string;
-  };
-  messages: any[];               // Full message history
-  turnCount: number;
-}
-```
-
-**Key Features**:
-- **Persistence**: `./sessions/*.json` files
-- **Auto-save**: Every 10 messages
-- **Cleanup**: 24-hour max age, 1-hour inactivity for completed sessions
-- **Forking**: Create session variants for A/B testing
-
----
-
-### 5. SDKInstrumentor (`server/lib/instrumentor.ts`)
-
-**Purpose**: Real-time instrumentation and metrics tracking
-
-**Tracked Metrics**:
-- Events: All SDK message types
-- Tool Calls: Every tool invocation
-- Agent Calls: Subagent launches via Task tool
-- Costs: SDK-provided USD costs (authoritative from `result.success`)
-- Timing: Event timestamps and durations
-- Usage: Token counts (input, output, cache read, cache write)
-
----
-
-### 6. Nano Banana MCP Server (`server/lib/nano-banana-mcp.ts`)
-
-**Purpose**: AI-powered image generation using Gemini 2.5 Flash
-
-**Tool**: `generate_ad_images`
-
-**Parameters**:
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| prompts | string[] | Array of 1-3 image generation prompts |
-| style | string? | Visual style (e.g., "modern minimal", "photorealistic") |
-| dimensions | string? | Target dimensions (e.g., "1080x1080", "1080x1350") |
-| sessionId | string? | Session ID for organizing images into folders |
-
-**Output**:
-- PNG files saved to `generated-images/{sessionId}/`
-- URLs returned for inclusion in campaign brief
-- Filename format: `{timestamp}_{index}_{sanitized_prompt}.png`
-
-**Architecture**: Simple synchronous pattern (v3.0.0)
-- Generates up to 3 images per call
-- Returns complete results through MCP stream
-- 1-second rate limit between requests
-- Graceful error handling (continues with remaining images if one fails)
-
----
-
-## Agent System
-
-### Agent Hierarchy & Hook-First Workflow
+### Agent Hierarchy
 
 ```
-+------------------------------------------------------------------+
-|                    USER REQUEST PROCESSING                        |
-|             "Create ads for https://example.com"                  |
-+------------------------------------------------------------------+
-                                   |
-                                   v
-+------------------------------------------------------------------+
-|                      ORCHESTRATOR AGENT                           |
-|                                                                   |
-|   1. Parse request                                                |
-|      +-- Extract URL (required)                                   |
-|      +-- Extract style preference (optional)                      |
-|                                                                   |
-|   2. Spawn STRATEGIST subagent                                    |
-|      +-- Wait for research completion                             |
-|                                                                   |
-|   3. Spawn CREATOR subagent                                       |
-|      +-- Pass style preference                                    |
-|                                                                   |
-|   4. Report completion                                            |
-+------------------------------------------------------------------+
-                                   |
-        +--------------------------|---------------------------+
-        |                          |                           |
-        v                          |                           v
-+-------------------+              |              +-------------------+
-|   STRATEGIST      |              |              |    CREATOR        |
-|   AGENT           |              |              |    AGENT          |
-+-------------------+              |              +-------------------+
-|                   |              |              |                   |
-| Tools:            |              |              | Tools:            |
-| - WebFetch        |              |              | - Read            |
-| - Read            |              |              | - Write           |
-| - Write           |              |              | - Skill           |
-|                   |              |              | - MCP Image Gen   |
-+-------------------+              |              +-------------------+
-        |                          |                      |
-        v                          |                      v
-+-------------------+              |              +-------------------+
-| OUTPUT:           |              |              | INPUT:            |
-| files/strategy/   |--------------+------------->| files/strategy/   |
-| {brand}_research  |                             | {brand}_research  |
-| .md               |                             | .md               |
-+-------------------+                             +-------------------+
-                                                          |
-                                                          v
-                                                  +-------------------+
-                                                  | SKILL LOAD:       |
-                                                  | conversion-craft  |
-                                                  +-------------------+
-                                                          |
-                                                          v
-                                                  +-------------------+
-                                                  | OUTPUT:           |
-                                                  | - 6 Ad Concepts   |
-                                                  | - Generated Images|
-                                                  | - Campaign Brief  |
-                                                  +-------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        AGENT & SKILLS HIERARCHY                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│                    ┌─────────────────────────────┐                          │
+│                    │     ORCHESTRATOR            │                          │
+│                    │     (Main Agent)            │                          │
+│                    │                             │                          │
+│                    │  Tools:                     │                          │
+│                    │  - Task (spawn agents)      │                          │
+│                    │  - Skill (consult skills)   │                          │
+│                    │  - TodoWrite                │                          │
+│                    │  - MCP (nano-banana)        │                          │
+│                    └──────────────┬──────────────┘                          │
+│                                   │                                          │
+│          ┌────────────────────────┼────────────────────────┐                │
+│          │                        │                        │                │
+│          v                        v                        v                │
+│  ┌───────────────┐    ┌───────────────────┐    ┌───────────────┐           │
+│  │   RESEARCH    │    │ HOOK-METHODOLOGY  │    │   ART-STYLE   │           │
+│  │   (Agent)     │    │     (Skill)       │    │    (Skill)    │           │
+│  │               │    │                   │    │               │           │
+│  │ Tools:        │    │ Guidance for:     │    │ Guidance for: │           │
+│  │ - WebFetch    │    │ - Hook formulas   │    │ - Style routing│          │
+│  │ - Read        │    │ - Diversity matrix│    │ - Prompt craft │          │
+│  │ - Write       │    │ - Quality checks  │    │ - Visual themes│          │
+│  └───────┬───────┘    └─────────┬─────────┘    └───────┬───────┘           │
+│          │                      │                      │                    │
+│          v                      v                      v                    │
+│  ┌───────────────┐    ┌───────────────────┐    ┌───────────────┐           │
+│  │ research/     │    │ hook-bank/        │    │ creatives/    │           │
+│  │{brand}_       │ -> │{brand}-{date}.md  │ -> │{brand}_       │           │
+│  │ research.md   │    │                   │    │ prompts.json  │           │
+│  └───────────────┘    └───────────────────┘    └───────────────┘           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Agent Definitions
-
-#### 1. Strategist (`agent/.claude/agents/strategist.md`)
-
-**Purpose**: Data extraction agent that pulls factual information from business homepages
-
-**Tools**: WebFetch, Read, Write
-
-**Key Responsibilities**:
-- Extract brand name from URL for file naming
-- Fetch and analyze homepage content
-- Extract SPECIFIC data (numbers, quotes, colors) - NOT creative decisions
-
-**Research Workflow**:
-1. Extract brand name from URL
-2. WebFetch homepage
-3. Extract structured data in categories
-4. Write to `files/strategy/{brand}_research.md`
-
-**Output Sections** (~50-60 lines, concise):
-| Section | What to Extract |
-|---------|-----------------|
-| THE OFFER | Products, prices, timeframes, geographic scope |
-| VALUE PROPS | 3-5 specific differentiators |
-| PROOF POINTS | Reviews, ratings, licenses, case studies with numbers |
-| PRODUCTS/SERVICES | Full listing |
-| VISUAL IDENTITY | Colors (hex), typography, aesthetic, imagery style |
-| BRAND VOICE | Tone and communication style |
-| TESTIMONIALS | Exact quotes with attribution |
-| MESSAGING | Headlines and CTAs |
-
-**Critical Rules**:
-- Data extraction ONLY - no creative decisions
-- Be SPECIFIC with numbers, not vague
-- Extract exact quotes for testimonials
-- Include color codes (hex or descriptions)
-- Don't make recommendations - facts only
-
-#### 2. Creator (`agent/.claude/agents/creator.md`)
-
-**Purpose**: Conversion-focused ad creation using hook-first methodology
-
-**Tools**: Read, Write, Skill, mcp__nano-banana__generate_ad_images
-
-**9-Step Workflow**:
-```
-+------------------+
-| 1. READ RESEARCH |
-+--------+---------+
-         v
-+------------------+
-| 2. LOAD SKILL    |
-| conversion-craft |
-+--------+---------+
-         v
-+------------------+
-| 3. DETERMINE     |
-|    STYLE         |
-+--------+---------+
-         v
-+------------------+
-| 4. BUILD HOOK    |
-|    BANK (15-20)  |
-+--------+---------+
-         v
-+------------------+
-| 5. SELECT 6      |
-|    DIVERSE HOOKS |
-+--------+---------+
-         v
-+------------------+
-| 6. BUILD         |
-|    CONCEPTS      |
-+--------+---------+
-         v
-+------------------+
-| 7. CRAFT IMAGE   |
-|    PROMPTS       |
-+--------+---------+
-         v
-+------------------+
-| 8. GENERATE      |
-|    IMAGES (MCP)  |
-+--------+---------+
-         v
-+------------------+
-| 9. DELIVER       |
-|    CREATIVES     |
-+------------------+
-```
-
-**Style Detection** (from user request):
-| Keywords | Style |
-|----------|-------|
-| "illustration", "illustrated" | Illustration |
-| "meme", "funny", "viral" | Meme |
-| "cinematic", "photography" | Photography (default) |
-| "minimal", "clean" | Minimalist |
-| "bold", "graphic" | Bold Graphic |
-
-**Hook Diversity Matrix** (6 Concepts MUST Use Different Types):
-```
-+------------------------------------------------------------------+
-|                    6 CONCEPTS - HOOK DIVERSITY                    |
-+------------------------------------------------------------------+
-
-  Concept   Hook Type           Research Source      Emotional Trigger
-  -------   ---------           ---------------      -----------------
-    [1]     Stat/Data           Proof Points         Social Proof
-    [2]     Story/Result        Testimonials         Empathy + Relief
-    [3]     FOMO/Urgency        Offer + Scarcity     Loss Aversion
-    [4]     Curiosity           Value Props          Intrigue
-    [5]     Call-out/Question   Pain Points          Recognition
-    [6]     Contrast/Versus     Competitor Angle     Logic + Greed
-
-+------------------------------------------------------------------+
-```
-
-**Image Generation Strategy**:
-- Generate in batches: 3 first, then 3
-- Use "2K" resolution for most ads
-- Match aspect ratio to platform (1:1 Instagram, 9:16 Stories, 4:5 Facebook)
-
-### Tool Permissions by Agent
+### Research Agent Detail
 
 ```
-+------------------------------------------------------------------+
-|                      TOOL ACCESS MATRIX                           |
-+------------------------------------------------------------------+
-
-                    Task  Skill  Todo  Web   Read  Write  MCP
-                    ----  -----  ----  ----  ----  -----  ---
-  Orchestrator       X      X     X     -     -      -     -
-  Strategist         -      -     -     X     X      X     -
-  Creator            -      X     -     -     X      X     X
-
-+------------------------------------------------------------------+
-|  MCP Tool: mcp__nano-banana__generate_ad_images                   |
-|  - prompts: string[] (1-3 image descriptions)                     |
-|  - style: string (cinematic, illustration, meme, etc.)            |
-|  - aspectRatio: string (1:1, 9:16, 4:5, 16:9, 2:3)               |
-|  - imageSize: "2K" | "4K"                                         |
-|  - sessionId: string (for organizing output)                      |
-+------------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          RESEARCH AGENT                                      │
+│                    agent/.claude/agents/research.md                          │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  PURPOSE: Extract factual data from homepages + analyze target audience     │
+│                                                                             │
+│  TOOLS: WebFetch, Read, Write                                               │
+│                                                                             │
+│  WORKFLOW:                                                                  │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │                                                                        ││
+│  │   1. EXTRACT BRAND NAME                                                ││
+│  │      URL → Brand name for file naming                                  ││
+│  │      https://theratefinder.ca → theratefinder                          ││
+│  │                                                                        ││
+│  │   2. WEBFETCH HOMEPAGE                                                 ││
+│  │      Fetch with structured extraction prompt                           ││
+│  │                                                                        ││
+│  │   3. EXTRACT STRUCTURED DATA                                           ││
+│  │      ┌────────────────────────────────────────────┐                   ││
+│  │      │ THE OFFER        │ Products, prices, scope │                   ││
+│  │      │ VALUE PROPS      │ Differentiators         │                   ││
+│  │      │ PROOF POINTS     │ Stats, reviews, creds   │                   ││
+│  │      │ PAIN POINTS      │ Problems solved         │                   ││
+│  │      │ TESTIMONIALS     │ Exact quotes            │                   ││
+│  │      │ BRAND COLORS     │ Hex codes               │                   ││
+│  │      │ BRAND VOICE      │ Tone, style             │                   ││
+│  │      │ MESSAGING        │ Headlines, CTAs         │                   ││
+│  │      └────────────────────────────────────────────┘                   ││
+│  │                                                                        ││
+│  │   4. ANALYZE ICP (Target Audience)                                     ││
+│  │      ┌────────────────────────────────────────────┐                   ││
+│  │      │ WHO          │ Demographics + situation    │                   ││
+│  │      │ PAIN POINTS  │ Specific frustrations       │                   ││
+│  │      │ MOTIVATIONS  │ Goals + deeper desires      │                   ││
+│  │      │ LANGUAGE     │ Terms they use              │                   ││
+│  │      └────────────────────────────────────────────┘                   ││
+│  │                                                                        ││
+│  │   5. WRITE TO FILE                                                     ││
+│  │      → files/research/{brand}_research.md (~60-70 lines)              ││
+│  │                                                                        ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+│  RULES:                                                                     │
+│  - Be SPECIFIC: Numbers, names, exact quotes                               │
+│  - Extract brand colors with hex codes                                      │
+│  - ICP analysis is the ONE analysis allowed                                 │
+│  - Don't make recommendations - facts only                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
----
-
-## Skills System
-
-Skills provide specialized guidance that agents consult during their workflow. Defined in `agent/.claude/skills/` and invoked using the `Skill` tool.
-
-### conversion-craft (`agent/.claude/skills/conversion-craft/SKILL.md`)
-
-**Purpose**: Operational framework for creating conversion-focused ads with proven formulas
-
-**When to Use**: Creator agent loads this skill FIRST before building hooks
-
-**Key Components**:
-
-#### 1. Hook Extraction System
-
-Maps research data → potential hooks:
+### Hook-Methodology Skill Detail
 
 ```
-+------------------------------------------------------------------+
-|                    HOOK EXTRACTION MAPPING                        |
-+------------------------------------------------------------------+
-
-  Research Section       What to Extract          Hook Types
-  ----------------       ---------------          ----------
-  The Offer              Price, speed,            Price hooks
-                         guarantee, mechanism     Speed hooks
-                                                  Guarantee hooks
-
-  Value Props            Time saved, money        Benefit hooks
-                         saved, pain removed      Transformation hooks
-
-  Proof Points           Customer count,          Stat hooks
-                         success rate, stats      Social proof hooks
-
-  Testimonials           Specific results,        Quote hooks
-                         emotional quotes         Story hooks
-                                                  Result hooks
-
-  Pain Points            Frustrations, fears,     FOMO hooks
-                         obstacles                Loss aversion hooks
-                                                  Question hooks
-+------------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       HOOK-METHODOLOGY SKILL                                 │
+│              agent/.claude/skills/hook-methodology/SKILL.md                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  PURPOSE: Generate conversion-focused ad copy using hook-first methodology  │
+│                                                                             │
+│  CORE PRINCIPLE:                                                            │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │                                                                        ││
+│  │   Hook = 80% of ad performance                                         ││
+│  │   Body + CTA = 20%                                                     ││
+│  │                                                                        ││
+│  │   If the hook doesn't stop the scroll, nothing else matters.           ││
+│  │                                                                        ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+│  WORKFLOW:                                                                  │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │                                                                        ││
+│  │   Step 1: READ RESEARCH                                                ││
+│  │           Read files/research/{brand}_research.md                      ││
+│  │           Extract numbers, pain points, testimonials, colors           ││
+│  │                                                                        ││
+│  │   Step 2: BUILD HOOK BANK                                              ││
+│  │           Generate 10+ potential hooks using formulas                  ││
+│  │           See formulas.md for hook formula reference                   ││
+│  │                                                                        ││
+│  │   Step 3: SELECT 6 DIVERSE HOOKS                                       ││
+│  │           ┌────────┬─────────────────┬──────────────────┐             ││
+│  │           │Concept │ Hook Type       │ Emotional Trigger│             ││
+│  │           ├────────┼─────────────────┼──────────────────┤             ││
+│  │           │   1    │ Stat/Data       │ Social Proof     │             ││
+│  │           │   2    │ Story/Result    │ Empathy + Relief │             ││
+│  │           │   3    │ FOMO/Urgency    │ Loss Aversion    │             ││
+│  │           │   4    │ Curiosity       │ Intrigue         │             ││
+│  │           │   5    │ Call-out        │ Recognition      │             ││
+│  │           │   6    │ Contrast/Enemy  │ Differentiation  │             ││
+│  │           └────────┴─────────────────┴──────────────────┘             ││
+│  │                                                                        ││
+│  │   Step 4: QUALITY CHECK                                                ││
+│  │           Each hook must pass:                                         ││
+│  │           [x] Specific? — Has numbers/names from research              ││
+│  │           [x] Emotional? — Triggers a feeling                          ││
+│  │           [x] 3-Second? — Message is instantly clear                   ││
+│  │           [x] Competitor-proof? — Can't be easily copied               ││
+│  │                                                                        ││
+│  │   Step 5: WRITE SUPPORTING COPY                                        ││
+│  │           For each hook: Body (1-2 sentences) + CTA                    ││
+│  │                                                                        ││
+│  │   Step 6: WRITE TO HOOK BANK                                           ││
+│  │           → hook-bank/{brand}-{YYYY-MM-DD}.md                          ││
+│  │                                                                        ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+│  ANTI-PATTERNS (never use):                                                 │
+│  - "Your trusted partner" (generic)                                         │
+│  - "Quality you can count on" (meaningless)                                 │
+│  - Round numbers like "save thousands" (use exact: "$347/mo")              │
+│  - "Learn more" as CTA (weak)                                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### 2. Seven Hook Formulas
-
-| Hook Type | Formula | Example |
-|-----------|---------|---------|
-| FOMO | "[X] [audience] already [achieved]. Are you next?" | "1,247 homeowners saved $340/mo. Are you next?" |
-| Stat | "[Number]% of [audience] [pain]. Here's the fix." | "73% of first-time buyers overpay. Here's the fix." |
-| Curiosity | "What [audience] discovered about [topic] (surprising)" | "What homeowners discovered about rates (surprising)" |
-| Call-out | "Hey [audience], stop [mistake]" | "Hey first-time buyers, stop calling 10 lenders" |
-| Contrast | "[Old way] vs [Brand way]: [difference]" | "10 phone calls vs 1 click: same rates, 10x faster" |
-| Question | "Are you still [behavior]? [Consequence]" | "Are you still paying 7.5%? You're losing $340/mo." |
-| Story/Result | "[Name] [result] in [time]. Here's how." | "Sarah locked 6.2% in 60 seconds. Here's how." |
-
-#### 3. Hook Scoring Checklist
-
-Each hook must verify:
-- ✅ **Specific?** (Numbers, names, timeframes from research - not generic)
-- ✅ **Emotional trigger?** (FOMO, curiosity, loss aversion, greed)
-- ✅ **3-second test?** (Message clear instantly on mobile)
-- ✅ **Competitor-proof?** (They can't copy this exact hook)
-
-#### 4. Copywriting Frameworks
-
-**PAS (Problem → Agitate → Solution)**:
-- Best for pain points and emotional connection
-
-**BAB (Before → After → Bridge)**:
-- Best for transformation stories
-
-**AIDA (Attention → Interest → Desire → Action)**:
-- Best for audiences in buying mode
-
-#### 5. Emotional Triggers
-
-| Trigger | How to Use | Key Words |
-|---------|------------|-----------|
-| Fear/FOMO | Limited time, scarcity | "Last chance", "Don't miss" |
-| Loss Aversion | Cost of inaction > gain | "Stop losing $X", "You're leaving $X behind" |
-| Greed | Lead with value | "Free", "Save $X", "Get $X back" |
-| Social Proof | Specific numbers, names | "[X] customers", "[Name] did it" |
-| Urgency | Real deadlines | "Ends [date]", "Today only" |
-
-**Key Insight**: 70% of purchases are emotional, not logical. Lead with feeling, back with proof.
-
-#### 6. Anti-Patterns (NEVER USE)
+### Art-Style Skill Detail
 
 ```
-+------------------------------------------------------------------+
-|                    ANTI-PATTERNS TO AVOID                         |
-+------------------------------------------------------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          ART-STYLE SKILL                                     │
+│                agent/.claude/skills/art-style/SKILL.md                       │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  PURPOSE: Create visual prompts from hooks for image generation             │
+│                                                                             │
+│  PREREQUISITE: Hook-bank must exist before triggering this skill            │
+│                                                                             │
+│  INPUT/OUTPUT:                                                              │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │                                                                        ││
+│  │   INPUT:  hook-bank/{brand}-{date}.md                                  ││
+│  │           Contains brand colors, ICP, 6 hook concepts                  ││
+│  │                                                                        ││
+│  │   OUTPUT: files/creatives/{brand}_prompts.json                         ││
+│  │           Contains prompts array for MCP image generation              ││
+│  │                                                                        ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+│  STYLE ROUTING:                                                             │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │                                                                        ││
+│  │   User Keywords              →  Workflow                               ││
+│  │   ─────────────────────────────────────────────────────────            ││
+│  │   "clay", "brutalist",       →  workflows/soft-brutalism-clay.md       ││
+│  │   "handcrafted", "warm"          (DEFAULT)                             ││
+│  │                                                                        ││
+│  │   "surreal", "dreamlike",    →  workflows/surrealist-scale.md          ││
+│  │   "scale", "giant"               (future)                              ││
+│  │                                                                        ││
+│  │   "minimal", "clean",        →  workflows/minimal-photography.md       ││
+│  │   "photography", "simple"        (future)                              ││
+│  │                                                                        ││
+│  │   (none specified)           →  workflows/soft-brutalism-clay.md       ││
+│  │                                  (DEFAULT)                             ││
+│  │                                                                        ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+│  OUTPUT FORMAT:                                                             │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │   {                                                                    ││
+│  │     "brand": "theratefinder",                                          ││
+│  │     "style": "soft-brutalism-clay",                                    ││
+│  │     "prompts": [                                                       ││
+│  │       "Visual prompt for concept 1...",                                ││
+│  │       "Visual prompt for concept 2...",                                ││
+│  │       "Visual prompt for concept 3...",                                ││
+│  │       "Visual prompt for concept 4...",                                ││
+│  │       "Visual prompt for concept 5...",                                ││
+│  │       "Visual prompt for concept 6..."                                 ││
+│  │     ]                                                                  ││
+│  │   }                                                                    ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-  ❌ "Your trusted partner"
-  ❌ "Quality you can count on"
-  ❌ "Solutions for your needs"
-  ❌ Round numbers when research has exact ones
-  ❌ Generic benefits when research has specific ones
-  ❌ Stock handshakes, keys-to-new-home, suited professionals
+### Tool Permissions Matrix
 
-+------------------------------------------------------------------+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        TOOL ACCESS MATRIX                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│              │ Task │ Skill │ Todo │ Web  │ Read │ Write │ MCP             │
+│              │      │       │ Write│ Fetch│      │       │ (nano-banana)   │
+│  ────────────┼──────┼───────┼──────┼──────┼──────┼───────┼─────────────────│
+│  Orchestrator│  X   │   X   │  X   │  -   │  X   │   -   │   X             │
+│  ────────────┼──────┼───────┼──────┼──────┼──────┼───────┼─────────────────│
+│  Research    │  -   │   -   │  -   │  X   │  X   │   X   │   -             │
+│  (Agent)     │      │       │      │      │      │       │                 │
+│  ────────────┴──────┴───────┴──────┴──────┴──────┴───────┴─────────────────│
+│                                                                             │
+│  Skills are NOT tools - they provide guidance/context to the orchestrator   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Data Flow
 
-### Complete Campaign Generation Flow
+### File-Based Communication
 
 ```
-+------------------------------------------------------------------+
-|                     COMPLETE DATA FLOW                            |
-+------------------------------------------------------------------+
-
-  USER                  SERVER                 AGENTS               MCP
-   |                      |                      |                   |
-   | POST /generate       |                      |                   |
-   | {prompt: "URL"}      |                      |                   |
-   |--------------------->|                      |                   |
-   |                      |                      |                   |
-   |                      | Create Session       |                   |
-   |                      |---+                  |                   |
-   |                      |<--+                  |                   |
-   |                      |                      |                   |
-   |                      | Initialize           |                   |
-   |                      | Instrumentation      |                   |
-   |                      |---+                  |                   |
-   |                      |<--+                  |                   |
-   |                      |                      |                   |
-   |                      | SDK Query            |                   |
-   |                      |--------------------->|                   |
-   |                      |                      |                   |
-   |                      |                      | ORCHESTRATOR      |
-   |                      |                      | Parse URL/Style   |
-   |                      |                      |                   |
-   |                      |                      | Task: Strategist  |
-   |                      |                      |---+               |
-   |                      |                      |   | WebFetch      |
-   |                      |                      |   | Extract Data  |
-   |                      |                      |   | Write File    |
-   |                      |                      |<--+               |
-   |                      |                      |                   |
-   |                      |                      | Task: Creator     |
-   |                      |                      |---+               |
-   |                      |                      |   | Read Research |
-   |                      |                      |   | Load Skill    |
-   |                      |                      |   | Build Hooks   |
-   |                      |                      |   |               |
-   |                      |                      |   | MCP Call      |
-   |                      |                      |   |-------------->|
-   |                      |                      |   |               |
-   |                      |                      |   |   Gemini API  |
-   |                      |                      |   |   Generate    |
-   |                      |                      |   |   Save PNGs   |
-   |                      |                      |   |               |
-   |                      |                      |   |<--------------|
-   |                      |                      |   | Images Ready  |
-   |                      |                      |<--+               |
-   |                      |                      |                   |
-   |                      |<---------------------|                   |
-   |                      | Stream Complete      |                   |
-   |                      |                      |                   |
-   |                      | Process Results      |                   |
-   |                      | Compile Metrics      |                   |
-   |                      |                      |                   |
-   |<---------------------|                      |                   |
-   | JSON Response        |                      |                   |
-   | - sessionId          |                      |                   |
-   | - response           |                      |                   |
-   | - sessionStats       |                      |                   |
-   | - instrumentation    |                      |                   |
-   | - images (URLs)      |                      |                   |
-   |                      |                      |                   |
-```
-
-### Detailed Step-by-Step Flow
-
-```
-1. USER REQUEST
-   POST /generate { "prompt": "Create ads for https://brand.com" }
-                                        |
-                                        v
-2. SESSION INITIALIZATION
-   - sessionManager.getOrCreateSession(campaignSessionId)
-   - instrumentor = new SDKInstrumentor(campaignId)
-                                        |
-                                        v
-3. ORCHESTRATOR RECEIVES PROMPT
-   - Parses request: extracts URL (required)
-   - Extracts style preference (optional)
-                                        |
-                                        v
-4. STEP 1: RESEARCH (STRATEGIST)
-   strategist
-   |
-   +-- WebFetch homepage
-   +-- Extract structured data:
-   |   - THE OFFER (products, prices)
-   |   - VALUE PROPS (differentiators)
-   |   - PROOF POINTS (stats, reviews)
-   |   - VISUAL IDENTITY (colors, typography)
-   |   - BRAND VOICE (tone)
-   |   - TESTIMONIALS (exact quotes)
-   |
-   +-- Write files/strategy/{brand}_research.md (~50-60 lines)
-   |
-   v (orchestrator waits for completion)
-                                        |
-                                        v
-5. STEP 2: CREATIVE EXECUTION (CREATOR)
-   creator
-   |
-   +-- Read files/strategy/{brand}_research.md
-   +-- Skill: conversion-craft (load hook extraction system)
-   +-- Build hook bank (15-20 potential hooks)
-   +-- Select 6 diverse hooks (using diversity matrix)
-   +-- Craft image prompts (natural language, style-matched)
-   +-- MCP: nano-banana generate_ad_images (2 calls for 6 images)
-   +-- Deliver 6 concepts with images
-                                        |
-                                        v
-6. RESPONSE ASSEMBLY
-   {
-     success: true,
-     sessionId: "campaign-123",
-     response: { summary, fullResponse, structuredData },
-     sessionStats: { turnCount, messageCount },
-     performance: { duration, messageCount },
-     instrumentation: { totalCost, totalTokens, timeline },
-     images: { storageLocation, viewUrl, listUrl }
-   }
-```
-
-### File-Based Agent Communication
-
-```
-+-------------------+     saves      +---------------------------+
-| STRATEGIST        | ------------> | files/strategy/           |
-|                   |                | {brand}_research.md       |
-| Tools:            |                |                           |
-| - WebFetch        |                | Sections:                 |
-| - Read            |                | - THE OFFER               |
-| - Write           |                | - VALUE PROPS             |
-+-------------------+                | - PROOF POINTS            |
-                                     | - VISUAL IDENTITY         |
-                                     | - BRAND VOICE             |
-                                     | - TESTIMONIALS            |
-                                     | - MESSAGING               |
-                                     +-------------+-------------+
-                                                   |
-                                                   | reads
-                                                   v
-+-------------------+                +---------------------------+
-| CREATOR           | <------------- | (mines hooks from data)   |
-|                   |                +---------------------------+
-| Tools:            |
-| - Read            |
-| - Write           |     generates
-| - Skill           | ------------> +---------------------------+
-| - MCP Image Gen   |               | generated-images/         |
-|                   |               | {sessionId}/*.png         |
-| Loads:            |               |                           |
-| conversion-craft  |               | 6 images (2 batches of 3) |
-| skill             |               +---------------------------+
-+-------------------+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                    FILE-BASED AGENT/SKILL COMMUNICATION                      │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────┐                                                        │
+│  │  RESEARCH AGENT │                                                        │
+│  │                 │                                                        │
+│  │  WebFetch URL   │                                                        │
+│  │  Extract data   │                                                        │
+│  │  Analyze ICP    │                                                        │
+│  └────────┬────────┘                                                        │
+│           │ writes                                                          │
+│           v                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  files/research/{brand}_research.md                                  │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  # Brand - Research Brief                                            │   │
+│  │  ## The Offer                                                        │   │
+│  │  ## Key Value Props                                                  │   │
+│  │  ## Proof Points                                                     │   │
+│  │  ## Brand Colors (hex codes)                                         │   │
+│  │  ## Target Audience / ICP                                            │   │
+│  └─────────────────────────────────────┬───────────────────────────────┘   │
+│                                        │ reads                              │
+│                                        v                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  HOOK-METHODOLOGY SKILL                                              │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  1. Read research file                                               │   │
+│  │  2. Build 10+ hooks from data                                        │   │
+│  │  3. Select 6 with diversity matrix                                   │   │
+│  │  4. Add Body + CTA for each                                          │   │
+│  └────────┬────────────────────────────────────────────────────────────┘   │
+│           │ writes                                                          │
+│           v                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  hook-bank/{brand}-{date}.md                                         │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  # Brand - Hook Bank                                                 │   │
+│  │  ## Brand Colors                                                     │   │
+│  │  ## ICP Summary                                                      │   │
+│  │  ## Concept 1-6 (Hook + Body + CTA)                                 │   │
+│  └─────────────────────────────────────┬───────────────────────────────┘   │
+│                                        │ reads                              │
+│                                        v                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ART-STYLE SKILL                                                     │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  1. Read hook-bank file                                              │   │
+│  │  2. Route to style workflow                                          │   │
+│  │  3. Create visual prompt for each hook                               │   │
+│  └────────┬────────────────────────────────────────────────────────────┘   │
+│           │ writes                                                          │
+│           v                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  files/creatives/{brand}_prompts.json                                │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  { "brand": "...", "style": "...", "prompts": [...] }               │   │
+│  └─────────────────────────────────────┬───────────────────────────────┘   │
+│                                        │ reads                              │
+│                                        v                                    │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  ORCHESTRATOR + MCP                                                  │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  1. Read prompts.json                                                │   │
+│  │  2. Call mcp__nano-banana__generate_ad_images (batch 1: 3 images)   │   │
+│  │  3. Call mcp__nano-banana__generate_ad_images (batch 2: 3 images)   │   │
+│  └────────┬────────────────────────────────────────────────────────────┘   │
+│           │ generates                                                       │
+│           v                                                                 │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  generated-images/{sessionId}/                                       │   │
+│  │  ─────────────────────────────────────────────────────────────────── │   │
+│  │  ├── {timestamp}_1_{prompt}.png                                      │   │
+│  │  ├── {timestamp}_2_{prompt}.png                                      │   │
+│  │  ├── {timestamp}_3_{prompt}.png                                      │   │
+│  │  ├── {timestamp}_4_{prompt}.png                                      │   │
+│  │  ├── {timestamp}_5_{prompt}.png                                      │   │
+│  │  └── {timestamp}_6_{prompt}.png                                      │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -800,433 +796,356 @@ Each hook must verify:
 
 ```
 creative_agent/
-|
-+-- agent/                               # Agent ecosystem
-|   +-- .claude/
-|   |   +-- agents/                      # Agent definitions
-|   |   |   +-- strategist.md            # Data extraction agent
-|   |   |   +-- creator.md               # Hook-first ad creator
-|   |   |
-|   |   +-- skills/                      # Skill definitions
-|   |       +-- conversion-craft/
-|   |           +-- SKILL.md             # Hook extraction & copywriting framework
-|   |
-|   +-- files/                           # Agent working directory
-|       +-- strategy/
-|       |   +-- {brand}_research.md      # Research output (strategist)
-|       +-- creatives/
-|           +-- {brand}_ads.md           # Campaign brief (creator)
-|
-+-- server/                              # Express server
-|   +-- sdk-server.ts                    # Main server file
-|   +-- lib/
-|   |   +-- ai-client.ts                 # Claude SDK wrapper
-|   |   +-- orchestrator-prompt.ts       # System prompt for main agent
-|   |   +-- session-manager.ts           # Session lifecycle management
-|   |   +-- instrumentor.ts              # Metrics tracking
-|   |   +-- nano-banana-mcp.ts           # Gemini 3 Pro image generation MCP
-|   +-- sessions/                        # Session persistence (auto-generated)
-|   +-- package.json
-|   +-- tsconfig.json
-|
-+-- generated-images/                    # Image output (auto-generated, git-ignored)
-|   +-- {sessionId}/
-|       +-- {timestamp}_{index}_{prompt}.png
-|
-+-- .env                                 # Environment variables
-+-- ARCHITECTURE.md                      # This file
+│
+├── agent/                                   # Agent ecosystem
+│   ├── .claude/
+│   │   ├── agents/                          # Agent definitions
+│   │   │   └── research.md                  # Data extraction + ICP agent
+│   │   │
+│   │   └── skills/                          # Skill definitions
+│   │       ├── hook-methodology/
+│   │       │   ├── SKILL.md                 # Hook generation skill
+│   │       │   ├── formulas.md              # Hook formula reference
+│   │       │   └── hook-bank/               # Generated hook files
+│   │       │       └── {brand}-{date}.md
+│   │       │
+│   │       └── art-style/
+│   │           ├── SKILL.md                 # Visual prompt skill
+│   │           └── workflows/
+│   │               └── soft-brutalism-clay.md
+│   │
+│   └── files/                               # Agent working directory
+│       ├── research/
+│       │   └── {brand}_research.md          # Research output
+│       └── creatives/
+│           └── {brand}_prompts.json         # Visual prompts
+│
+├── server/                                  # Express server
+│   ├── sdk-server.ts                        # Main server (~920 lines)
+│   ├── lib/
+│   │   ├── ai-client.ts                     # SDK wrapper (~490 lines)
+│   │   ├── orchestrator-prompt.ts           # System prompt (~72 lines)
+│   │   ├── session-manager.ts               # Sessions (~340 lines)
+│   │   ├── instrumentor.ts                  # Metrics (~150 lines)
+│   │   └── nano-banana-mcp.ts               # Image MCP (~300 lines)
+│   ├── sessions/                            # Session persistence
+│   ├── package.json
+│   └── tsconfig.json
+│
+├── generated-images/                        # Image output (git-ignored)
+│   └── {sessionId}/
+│       └── {timestamp}_{index}_{prompt}.png
+│
+├── .env                                     # Environment variables
+└── ARCHITECTURE.md                          # This file
 ```
 
 ---
 
 ## API Endpoints
 
-### POST /generate - Main Campaign Generation
+### Endpoint Summary
 
-**Purpose**: Generate complete ad campaign from natural language prompt
-
-**Request**:
-```json
-{
-  "prompt": "Create memes for https://brand.com targeting millennials",
-  "sessionId": "optional-resume-session"
-}
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            API ENDPOINTS                                     │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  CORE ENDPOINTS                                                             │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  POST /generate              Main campaign generation                        │
+│  GET  /health                Health check with config status                 │
+│                                                                             │
+│  SESSION ENDPOINTS                                                          │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  GET  /sessions              List all active sessions                        │
+│  GET  /sessions/:id          Get specific session stats                      │
+│  POST /sessions/:id/continue Resume existing session                         │
+│  POST /sessions/:id/fork     Create session variant (A/B testing)           │
+│  GET  /sessions/:id/family   Get session family tree                         │
+│                                                                             │
+│  IMAGE ENDPOINTS                                                            │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  GET  /images                List all generated images by session            │
+│  GET  /images/:sessionId/:filename   Serve specific image                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-**Response**:
-```json
-{
-  "success": true,
-  "sessionId": "campaign-1234567890",
-  "prompt": "...",
-  "generatedAt": "2025-11-26T...",
-  "response": {
-    "summary": "Final assistant message",
-    "fullResponse": "All assistant messages joined",
-    "structuredData": null
-  },
-  "sessionStats": {
-    "messageCount": 45,
-    "turnCount": 8
-  },
-  "performance": {
-    "duration": "180000ms",
-    "messageCount": 45
-  },
-  "instrumentation": {
-    "campaignMetrics": { "totalCost_usd": 0.2847, ... },
-    "costBreakdown": { ... },
-    "timeline": [ ... ],
-    "summary": { "totalCost": "$0.2847", "totalTokens": 124567, ... }
-  },
-  "images": {
-    "storageLocation": "generated-images/campaign-1234567890/",
-    "viewUrl": "http://localhost:3001/images/campaign-1234567890",
-    "listUrl": "http://localhost:3001/images"
-  }
-}
+### POST /generate - Main Endpoint
+
 ```
-
-### GET /images - List Generated Images
-
-**Response**:
-```json
-{
-  "success": true,
-  "totalImages": 15,
-  "totalSessions": 3,
-  "imagesBySession": {
-    "campaign-abc123": [
-      "http://localhost:3001/images/campaign-abc123/1760327650986_1_meme_text.png"
-    ]
-  }
-}
-```
-
-### GET /health - Health Check
-
-**Response**:
-```json
-{
-  "status": "healthy",
-  "timestamp": "2025-11-26T10:00:00Z",
-  "config": {
-    "hasAnthropicKey": true,
-    "hasGeminiKey": true,
-    "port": 3001
-  }
-}
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  POST /generate                                                              │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  REQUEST:                                                                   │
+│  {                                                                          │
+│    "prompt": "Create ads for https://theratefinder.ca targeting renters",  │
+│    "sessionId": "optional-resume-session"                                   │
+│  }                                                                          │
+│                                                                             │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  RESPONSE:                                                                  │
+│  {                                                                          │
+│    "success": true,                                                         │
+│    "sessionId": "campaign-1733500000000",                                   │
+│    "prompt": "...",                                                         │
+│    "generatedAt": "2025-12-06T...",                                         │
+│    "response": {                                                            │
+│      "summary": "Final assistant message",                                  │
+│      "fullResponse": "All assistant messages",                              │
+│      "structuredData": null                                                 │
+│    },                                                                       │
+│    "sessionStats": {                                                        │
+│      "messageCount": 45,                                                    │
+│      "turnCount": 8                                                         │
+│    },                                                                       │
+│    "instrumentation": {                                                     │
+│      "campaignMetrics": { "totalCost_usd": 0.28, ... },                    │
+│      "timeline": [ ... ]                                                    │
+│    },                                                                       │
+│    "images": {                                                              │
+│      "storageLocation": "generated-images/campaign-xxx/",                   │
+│      "viewUrl": "http://localhost:3001/images/campaign-xxx",                │
+│      "listUrl": "http://localhost:3001/images"                              │
+│    }                                                                        │
+│  }                                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Session Management
 
-### Session Lifecycle
-
 ```
-1. CREATION
-   POST /generate (no sessionId)
-   -> sessionManager.getOrCreateSession() -> new session_abc123
-   -> Status: 'active', messages: [], turnCount: 0
-
-2. SDK INITIALIZATION
-   -> SDK returns: {type: 'system', subtype: 'init', session_id: 'sdk-xyz789'}
-   -> sessionManager.updateSdkSessionId('session_abc123', 'sdk-xyz789')
-
-3. MESSAGE ACCUMULATION
-   -> Each SDK message -> sessionManager.addMessage()
-   -> Auto-save every 10 messages to ./sessions/session_abc123.json
-
-4. SESSION RESUMPTION (Optional)
-   POST /sessions/session_abc123/continue
-   -> sessionManager.getResumeOptions() -> {resume: 'sdk-xyz789'}
-   -> SDK continues conversation with full context
-
-5. SESSION FORKING (Optional)
-   POST /sessions/session_abc123/fork
-   -> Create new session with metadata.forkedFrom = 'session_abc123'
-   -> SDK creates branch from sdk-xyz789
-
-6. COMPLETION
-   -> sessionManager.completeSession()
-   -> Status: 'completed', final save to disk
-
-7. CLEANUP (Automatic)
-   -> Every 1 hour: delete sessions older than 24 hours
-```
-
----
-
-## Instrumentation & Observability
-
-### Message Processing
-
-The instrumentor tracks every SDK message:
-
-```typescript
-switch (message.type) {
-  case 'system':
-    // Track init, tool calls
-    if (message.subtype === 'init') {
-      this.logEvent('INIT', { sessionId: message.session_id });
-    }
-    if (message.tool_name) {
-      this.toolCalls.push({ tool: message.tool_name, timestamp: Date.now() });
-    }
-    break;
-  case 'assistant':
-    // Track usage tokens from each turn
-    if (message.usage) {
-      this.logEvent('USAGE', {
-        tokens: {
-          input: message.usage.input_tokens,
-          output: message.usage.output_tokens,
-          cache_read: message.usage.cache_read_input_tokens,
-          cache_write: message.usage.cache_creation_input_tokens
-        }
-      });
-    }
-    break;
-  case 'result':
-    // Capture final cost (authoritative from SDK)
-    if (message.subtype === 'success') {
-      this.totalCost = message.total_cost_usd || 0;
-    }
-    break;
-}
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                         SESSION LIFECYCLE                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│   1. CREATION                                                               │
+│      POST /generate (no sessionId)                                          │
+│      → sessionManager.getOrCreateSession()                                  │
+│      → new session: campaign-{timestamp}                                    │
+│      → Status: 'active', messages: []                                       │
+│                                                                             │
+│   2. SDK INITIALIZATION                                                     │
+│      → SDK returns: {type: 'system', subtype: 'init', session_id: '...'}   │
+│      → sessionManager.updateSdkSessionId()                                  │
+│                                                                             │
+│   3. MESSAGE ACCUMULATION                                                   │
+│      → Each SDK message → sessionManager.addMessage()                       │
+│      → Auto-save every 10 messages to ./sessions/{id}.json                  │
+│                                                                             │
+│   4. RESUMPTION (optional)                                                  │
+│      POST /sessions/{id}/continue                                           │
+│      → SDK continues with full context                                      │
+│                                                                             │
+│   5. FORKING (optional)                                                     │
+│      POST /sessions/{id}/fork                                               │
+│      → Creates new branch for A/B testing                                   │
+│      → metadata.forkedFrom = original session                               │
+│                                                                             │
+│   6. COMPLETION                                                             │
+│      → sessionManager.completeSession()                                     │
+│      → Status: 'completed', final save                                      │
+│                                                                             │
+│   7. CLEANUP (automatic)                                                    │
+│      → Every 1 hour: delete sessions > 24 hours old                         │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Technology Stack
 
-### Runtime
-- **Node.js**: v20+
-- **TypeScript**: v5.3+
-- **tsx**: v4.7+ (TypeScript execution)
-
-### Core Dependencies
-| Package | Version | Purpose |
-|---------|---------|---------|
-| @anthropic-ai/claude-agent-sdk | ^0.1.1 | Claude SDK for agent orchestration |
-| @google/genai | ^1.24.0 | Gemini 2.5 Flash Image API |
-| express | ^4.18.2 | HTTP server |
-| cors | ^2.8.5 | Cross-origin requests |
-| dotenv | ^16.3.1 | Environment variables |
-| zod | ^3.22.4 | Runtime type validation |
-
----
-
-## Deployment
-
-### Environment Variables
-
-```bash
-# Required
-ANTHROPIC_API_KEY=sk-ant-...
-
-# Required for Image Generation (MCP)
-GEMINI_API_KEY=AIzaSy...
-
-# Optional
-PORT=3001
-CLAUDE_CODE_MAX_OUTPUT_TOKENS=16384  # For large campaign responses
 ```
-
-### Starting the Server
-
-```bash
-# Development (with hot reload)
-cd server
-npm run dev
-
-# Production
-cd server
-npm start
-```
-
-### Server Startup Output
-
-```
-╔══════════════════════════════════════════════╗
-║     Creative Ad Agent Server Running         ║
-╠══════════════════════════════════════════════╣
-║  Server: http://localhost:3001               ║
-║                                              ║
-║  Core Endpoints:                             ║
-║  POST /test - Test query with sessions       ║
-║  POST /generate - Natural language prompt    ║
-║  GET /health - Health check                  ║
-║                                              ║
-║  Features Enabled:                           ║
-║  ✅ Natural Language Prompt Interface        ║
-║  ✅ Automatic Workflow Orchestration         ║
-║  ✅ Session Management & Forking             ║
-║  ✅ MCP Tools (nano_banana for images)       ║
-║  ✅ Multi-Agent System (2 specialists)       ║
-║  ✅ Skills System (1 creative skill)         ║
-║  ✅ Real-time Cost Tracking                  ║
-╚══════════════════════════════════════════════╝
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          TECHNOLOGY STACK                                    │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  RUNTIME                                                                    │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  Node.js        v20+                                                        │
+│  TypeScript     v5.3+                                                       │
+│  tsx            v4.7+  (TypeScript execution)                               │
+│                                                                             │
+│  CORE DEPENDENCIES                                                          │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  @anthropic-ai/claude-agent-sdk    ^0.1.54    Claude SDK for orchestration  │
+│  @google/genai                     ^1.24.0    Gemini 3 Pro Image API        │
+│  express                           ^4.18.2    HTTP server                    │
+│  cors                              ^2.8.5     Cross-origin requests          │
+│  dotenv                            ^16.3.1    Environment variables          │
+│  zod                               ^3.22.4    Runtime type validation        │
+│                                                                             │
+│  ENVIRONMENT VARIABLES                                                      │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  ANTHROPIC_API_KEY                 Required   Claude API key                 │
+│  GEMINI_API_KEY                    Required   Gemini image generation        │
+│  PORT                              Optional   Server port (default: 3001)    │
+│  CLAUDE_CODE_MAX_OUTPUT_TOKENS     Optional   Token limit (default: 16384)   │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
 ## Design Decisions
 
-### 1. Why Strategist + Creator (Not Researcher)?
+### Why 1 Agent + 2 Skills (Not 2 Agents)?
 
-**Decision**: Renamed "researcher" to "strategist" to emphasize data extraction vs. analysis
-
-**Rationale**:
-- **Clear separation**: Strategist extracts FACTS, Creator makes CREATIVE decisions
-- **No overlap**: Strategist never recommends, never interprets
-- **Quality input**: Specific numbers and quotes fuel better hooks
-- **Auditable**: Research file is verifiable against source
-
-### 2. Why Hook-First Methodology?
-
-**Decision**: Build hooks BEFORE visuals, not after
-
-**Rationale**:
-- **Hooks stop the scroll**: The hook is the ad; visuals support it
-- **Data-driven**: Hooks mined from research ensure specificity
-- **Testable diversity**: 6 different hook types = 6 emotional triggers tested
-- **Competitor-proof**: Specific hooks can't be copied
-
-### 3. Why 6 Concepts with Diversity Matrix?
-
-**Decision**: Require 6 concepts covering different hook types (not variations of one)
-
-**Rationale**:
-- **Test different emotions**: Stat vs Story vs FOMO vs Curiosity all perform differently
-- **Avoid echo chamber**: Without matrix, all concepts might use same hook type
-- **Optimization data**: Learn which emotional trigger resonates with audience
-- **Coverage**: Hit different segments (logical buyers, emotional buyers, FOMO-susceptible)
-
-### 4. Why Conversion-Craft Skill (vs Embedded)?
-
-**Decision**: Hook extraction system as loadable skill, not embedded in agent
-
-**Rationale**:
-- **Modularity**: Can update hook formulas without changing agent
-- **Explicit loading**: Creator knows when methodology is active
-- **Extensibility**: Could add more skills (e.g., meme-craft, B2B-craft)
-- **Debugging**: Can verify skill was loaded in execution trace
-
-### 5. Why File-Based Agent Communication?
-
-**Decision**: Agents communicate through files in `agent/files/`
-
-**Rationale**:
-- **Decoupling**: Agents don't need to know about each other directly
-- **Persistence**: Research artifacts preserved for debugging
-- **Named outputs**: `{brand}_research.md` is clear and reusable
-- **Auditable**: Can review what each agent produced
-
-### 6. Why Synchronous MCP?
-
-**Decision**: Simple synchronous pattern for image generation
-
-**Rationale**:
-- **Reliability**: No polling, no job queues, no timeouts
-- **Simplicity**: Direct request-response model
-- **Graceful degradation**: Continues with remaining images if one fails
-- **Debuggability**: Easy to trace issues in linear flow
-
----
-
-## Key Metrics
-
-### Performance Benchmarks
-
-| Metric | Typical |
-|--------|---------|
-| Total Campaign Generation | 2-5 minutes |
-| Step 1 (Research - Standard) | 1-2 minutes |
-| Step 1 (Research - Extended) | 2-3 minutes |
-| Step 2 (Creative Execution) | 1-2 minutes |
-| Image Generation (per image) | ~10 seconds |
-| Session Creation | ~50ms |
-
-### Cost Benchmarks
-
-| Operation | Estimated Cost |
-|-----------|----------------|
-| Full Campaign (5 images) | $0.10-$0.25 |
-| Research Phase (Standard) | $0.02-$0.05 |
-| Research Phase (Extended) | $0.04-$0.08 |
-| Creative Phase + Images | $0.06-$0.12 |
-
-*Costs vary based on research depth and number of images*
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-#### "Agent not found"
-```bash
-# Verify agent files exist
-ls agent/.claude/agents/
-
-# Check cwd in ai-client.ts points to agent/ directory
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DECISION: Single Research Agent + Hook/Art Skills                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  RATIONALE:                                                                 │
+│                                                                             │
+│  1. CLEAR SEPARATION                                                        │
+│     - Research Agent: EXTRACTS factual data (needs WebFetch tool)           │
+│     - Skills: TRANSFORM data into creative outputs (guidance only)          │
+│                                                                             │
+│  2. SKILLS ARE GUIDANCE, NOT EXECUTION                                      │
+│     - Skills provide frameworks/methodology                                 │
+│     - Orchestrator executes with skill guidance                             │
+│     - No tool permissions needed for creative transformation                │
+│                                                                             │
+│  3. SIMPLER ORCHESTRATION                                                   │
+│     - Only one subagent to spawn (research)                                │
+│     - Skills triggered in sequence by orchestrator                          │
+│     - Cleaner error handling and debugging                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### "Skill not found"
-```bash
-# Verify skill files exist
-ls agent/.claude/skills/*/SKILL.md
+### Why Hook-First Methodology?
 
-# Ensure settingSources includes 'project'
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DECISION: Build hooks BEFORE visuals                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  RATIONALE:                                                                 │
+│                                                                             │
+│  Hook = 80% of ad performance                                               │
+│                                                                             │
+│  1. HOOKS STOP THE SCROLL                                                   │
+│     - The hook IS the ad; visuals support it                               │
+│     - Without a strong hook, great visuals don't matter                     │
+│                                                                             │
+│  2. DATA-DRIVEN                                                             │
+│     - Hooks mined from research ensure specificity                          │
+│     - Real numbers, real quotes, real pain points                           │
+│                                                                             │
+│  3. TESTABLE DIVERSITY                                                      │
+│     - 6 different hook types = 6 emotional triggers                        │
+│     - Learn which resonates with audience                                   │
+│                                                                             │
+│  4. COMPETITOR-PROOF                                                        │
+│     - Specific hooks can't be copied                                       │
+│     - Based on unique brand data                                            │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-#### "Tool permission stream closed"
-```bash
-# MCP tools need persistent generator
-# Verify AbortController pattern in ai-client.ts
+### Why 6 Concepts with Diversity Matrix?
+
 ```
-
-#### "GEMINI_API_KEY not configured"
-```bash
-# Add to .env file
-GEMINI_API_KEY=your_key_here
-
-# Verify via health check
-curl http://localhost:3001/health
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DECISION: 6 concepts, each with different hook type                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  RATIONALE:                                                                 │
+│                                                                             │
+│  1. TEST DIFFERENT EMOTIONS                                                 │
+│     ┌────────────────┬─────────────────────────────────────────┐           │
+│     │ Stat/Data      │ Appeals to logical buyers (social proof)│           │
+│     │ Story/Result   │ Appeals to empathy-driven buyers        │           │
+│     │ FOMO/Urgency   │ Appeals to loss-averse buyers           │           │
+│     │ Curiosity      │ Appeals to intrigue-motivated buyers    │           │
+│     │ Call-out       │ Appeals to identity-driven buyers       │           │
+│     │ Contrast       │ Appeals to comparison shoppers          │           │
+│     └────────────────┴─────────────────────────────────────────┘           │
+│                                                                             │
+│  2. AVOID ECHO CHAMBER                                                      │
+│     - Without matrix, all concepts might use same hook type                │
+│     - Matrix forces creative diversity                                      │
+│                                                                             │
+│  3. OPTIMIZATION DATA                                                       │
+│     - Learn which emotional trigger resonates                               │
+│     - Inform future campaigns                                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## Conclusion
+## Performance Benchmarks
 
-This architecture provides a streamlined foundation for AI-powered ad generation:
-
-- **Hook-First Methodology**: Hooks are mined from research data, not invented
-- **2-Agent Workflow**: Strategist (facts) → Creator (hooks + images)
-- **Conversion-Craft Skill**: 7 hook formulas, diversity matrix, copywriting frameworks
-- **6 Diverse Concepts**: Each concept tests a different emotional trigger
-- **File-Based Communication**: Clear handoffs with named research files
-- **Observability**: Complete tracking of costs, performance, and agent behavior
-- **Production-Ready**: MCP image generation, session persistence, error handling
-
-The system orchestrates 2 specialized agents with 1 consultable skill to generate 6 conversion-focused ad concepts with AI-generated images.
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                       PERFORMANCE BENCHMARKS                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  TIMING                                                                     │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  Total Campaign Generation     2-5 minutes                                  │
+│  Research Phase                1-2 minutes                                  │
+│  Hook Generation               30-60 seconds                                │
+│  Art Style + Prompts           20-40 seconds                                │
+│  Image Generation              60-120 seconds (6 images)                    │
+│                                                                             │
+│  COSTS (Estimated)                                                          │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  Full Campaign (6 images)      $0.15-$0.30                                  │
+│  Research Phase                $0.02-$0.05                                  │
+│  Creative Phase                $0.05-$0.10                                  │
+│  Image Generation              $0.05-$0.15                                  │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-**Last Updated**: December 2025
-**Version**: 4.0 - Hook-First Conversion Ad Generator
-**Maintained By**: Creative Agent Team
+## Deployment
 
-## Recent Changes (v4.0)
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                           DEPLOYMENT                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  DEVELOPMENT                                                                │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  cd server                                                                  │
+│  npm run dev                   # Hot reload with tsx watch                  │
+│                                                                             │
+│  PRODUCTION                                                                 │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  cd server                                                                  │
+│  npm start                                                                  │
+│                                                                             │
+│  HEALTH CHECK                                                               │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  curl http://localhost:3001/health                                          │
+│                                                                             │
+│  {                                                                          │
+│    "status": "healthy",                                                     │
+│    "config": {                                                              │
+│      "hasAnthropicKey": true,                                               │
+│      "hasGeminiKey": true,                                                  │
+│      "port": 3001                                                           │
+│    }                                                                        │
+│  }                                                                          │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
 
-- Renamed **researcher → strategist** (emphasizes data extraction, not analysis)
-- Introduced **hook-first methodology**: Build 15-20 hooks, select 6 diverse ones
-- New **conversion-craft skill** with hook extraction system and 7 formulas
-- **Hook diversity matrix**: 6 concepts MUST use different hook types
-- File paths: `files/strategy/{brand}_research.md`, `files/creatives/{brand}_ads.md`
-- Output standardized to **6 ad concepts** (one per hook type)
-- MCP upgraded to **Gemini 3 Pro Image Preview**
-- Added **style detection** (illustration, meme, cinematic, minimal, bold)
-- Creator follows **9-step workflow** with explicit skill loading
+---
+
+**Version:** 5.0
+**Last Updated:** December 2025
+**Architecture:** 1 Agent + 2 Skills + MCP Image Generation
