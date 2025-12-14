@@ -1,0 +1,15 @@
+{
+  "name": "creative-agent-sandbox",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Agent SDK runner for Cloudflare Sandbox",
+  "dependencies": {
+    "@anthropic-ai/claude-agent-sdk": "^0.1.62",
+    "@google/genai": "^1.24.0",
+    "zod": "^3.22.4",
+    "tsx": "^4.7.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0"
+  }
+}

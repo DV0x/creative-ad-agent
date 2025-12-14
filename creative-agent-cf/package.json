@@ -1,0 +1,24 @@
+{
+  "name": "creative-agent-cf",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Creative Agent deployed on Cloudflare Workers + Sandbox",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:staging": "wrangler deploy --env staging",
+    "db:create": "wrangler d1 create creative-agent-sessions",
+    "db:init": "wrangler d1 execute creative-agent-sessions --file=schema.sql",
+    "r2:create": "wrangler r2 bucket create creative-agent-storage",
+    "containers:list": "wrangler containers list",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241205.0",
+    "typescript": "^5.3.3",
+    "wrangler": "^4.53.0"
+  },
+  "dependencies": {
+    "@cloudflare/sandbox": "^0.6.3"
+  }
+}

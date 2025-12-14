@@ -1,0 +1,230 @@
+/* Import distinctive fonts - must be first */
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Instrument+Serif:ital@0;1&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Typography */
+  --font-display: 'Instrument Serif', Georgia, serif;
+  --font-mono: 'Space Mono', 'Courier New', monospace;
+
+  /* Core palette - Industrial dark with electric coral */
+  --color-void: #0a0a0a;
+  --color-surface: #141414;
+  --color-surface-raised: #1a1a1a;
+  --color-border: #2a2a2a;
+  --color-border-bright: #3a3a3a;
+
+  /* Text hierarchy */
+  --color-text-primary: #fafafa;
+  --color-text-secondary: #888888;
+  --color-text-muted: #555555;
+
+  /* Accent - Electric Coral */
+  --color-accent: #ff6b4a;
+  --color-accent-dim: #cc5038;
+  --color-accent-glow: rgba(255, 107, 74, 0.15);
+
+  /* Status colors */
+  --color-success: #4ade80;
+  --color-error: #ef4444;
+  --color-warning: #fbbf24;
+
+  /* Mechanical greens for terminal */
+  --color-terminal-green: #39ff14;
+  --color-terminal-amber: #ffb000;
+}
+
+/* Base styles */
+html {
+  font-family: var(--font-mono);
+  background-color: var(--color-void);
+  color: var(--color-text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(255, 107, 74, 0.03) 0%, transparent 50%),
+    var(--color-void);
+}
+
+/* Noise texture overlay */
+body::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.015;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+  z-index: 9999;
+}
+
+/* Selection */
+::selection {
+  background: var(--color-accent);
+  color: var(--color-void);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border-bright);
+  border-radius: 0;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-muted);
+}
+
+/* Terminal scrollbar */
+.terminal-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.terminal-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.terminal-scroll::-webkit-scrollbar-thumb {
+  background: var(--color-border-bright);
+}
+
+/* Utility classes */
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+/* Glow effects */
+.glow-accent {
+  box-shadow:
+    0 0 20px var(--color-accent-glow),
+    inset 0 0 20px var(--color-accent-glow);
+}
+
+/* Mechanical border style */
+.border-mechanical {
+  border: 1px solid var(--color-border);
+  position: relative;
+}
+
+.border-mechanical::before,
+.border-mechanical::after {
+  content: '';
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--color-border-bright);
+}
+
+.border-mechanical::before {
+  top: -1px;
+  left: -1px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.border-mechanical::after {
+  bottom: -1px;
+  right: -1px;
+  border-left: none;
+  border-top: none;
+}
+
+/* Scanline effect for terminal */
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+.scanline::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    rgba(57, 255, 20, 0.1),
+    transparent
+  );
+  animation: scanline 4s linear infinite;
+  pointer-events: none;
+}
+
+/* Typing cursor */
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+}
+
+/* Progress bar fill animation */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* Stagger animation delays */
+.stagger-1 { animation-delay: 0.1s; }
+.stagger-2 { animation-delay: 0.2s; }
+.stagger-3 { animation-delay: 0.3s; }
+.stagger-4 { animation-delay: 0.4s; }
+.stagger-5 { animation-delay: 0.5s; }
+.stagger-6 { animation-delay: 0.6s; }
+
+/* Fade in animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-out forwards;
+  opacity: 0;
+}
+
+/* Image reveal */
+@keyframes imageReveal {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+    filter: brightness(2) contrast(0.5);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+    filter: brightness(1) contrast(1);
+  }
+}
+
+.animate-imageReveal {
+  animation: imageReveal 0.6s ease-out forwards;
+}

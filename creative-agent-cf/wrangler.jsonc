@@ -1,0 +1,48 @@
+{
+  "$schema": "https://raw.githubusercontent.com/cloudflare/workers-sdk/main/packages/wrangler/schemas/config.schema.json",
+  "name": "creative-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2024-12-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // Sandbox container configuration
+  "containers": [{
+    "class_name": "Sandbox",
+    "image": "./Dockerfile",
+    "instance_type": "standard-1",
+    "max_instances": 10
+  }],
+
+  // Durable Objects for sandbox state
+  "durable_objects": {
+    "bindings": [{
+      "name": "Sandbox",
+      "class_name": "Sandbox"
+    }]
+  },
+
+  // D1 database for session metadata
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "creative-agent-sessions",
+    "database_id": "009b3a45-168a-4138-bd09-e7fbcb42c184"
+  }],
+
+  // R2 bucket for file storage
+  "r2_buckets": [{
+    "binding": "STORAGE",
+    "bucket_name": "creative-agent-storage"
+  }],
+
+  // Environment variables (non-secret)
+  "vars": {
+    "ENVIRONMENT": "production",
+    "CF_ACCOUNT_ID": "091650847ca6a1d9bb40bee044dfdc91"
+  },
+
+  // Migrations for Durable Objects
+  "migrations": [{
+    "tag": "v1",
+    "new_sqlite_classes": ["Sandbox"]
+  }]
+}
