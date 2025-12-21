@@ -5,7 +5,7 @@
   "description": "Agent SDK runner for Cloudflare Sandbox",
   "dependencies": {
     "@anthropic-ai/claude-agent-sdk": "^0.1.62",
-    "@google/genai": "^1.24.0",
+    "@fal-ai/client": "^1.8.0",
     "zod": "^3.22.4",
     "tsx": "^4.7.0"
   },

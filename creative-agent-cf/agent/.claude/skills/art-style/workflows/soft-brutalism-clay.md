@@ -16,7 +16,16 @@ Read the hook-bank file for brand data.
 1. List files matching `{brand}-*.md` in the hooks folder
 2. Sort by date (from filename: `{brand}-YYYY-MM-DD.md`)
 3. Read the most recent file (unless user specified a date)
-4. Extract: Brand colors, ICP summary, 6 hook concepts
+4. Extract ALL content without trimming:
+   - Brand colors (hex codes)
+   - ICP summary
+   - 6 hook concepts with FULL content:
+     - **Hook** (headline) — complete text
+     - **Body** (supporting copy) — complete text
+     - **CTA** (call-to-action) — complete text
+     - **Insight** — the underlying truth
+
+**IMPORTANT:** Never truncate or summarize hook content. The full Hook, Body, and CTA text must be preserved and included in the output prompts.json for each concept.
 
 ---
 
@@ -152,6 +161,8 @@ Aspect ratio [X:X], high resolution for [platform] placement.
 
 ## Example Prompts
 
+**IMPORTANT:** These examples are for understanding the style and structure ONLY. Never copy or adapt these prompts for actual creatives. Each brand deserves fresh, original concepts that emerge from their specific hook insights. Treat these as a style reference, not a template.
+
 ### Example 1: "The Key Moment" (1:1)
 
 ```
@@ -212,14 +223,21 @@ Write prompts to: `/storage/creatives/{brand}_prompts.json`
   "style": "soft-brutalism-clay",
   "prompts": [
     {
-      "prompt": "Full prompt text...",
-      "filename": "hook_slug",
+      "concept": 1,
+      "hook": "Full hook headline text — never truncate",
+      "body": "Full body copy text — never truncate",
+      "cta": "Full CTA text — never truncate",
+      "insight": "The underlying truth from hook-bank",
+      "prompt": "Full image generation prompt...",
+      "filename": "descriptive_slug",
       "aspectRatio": "1:1",
       "size": "2K"
     }
   ]
 }
 ```
+
+**IMPORTANT:** Include the complete hook, body, and CTA from the hook-bank. These are needed for ad assembly and must not be summarized or shortened.
 
 **Aspect Ratio Mix:** 6 at 1:1
 

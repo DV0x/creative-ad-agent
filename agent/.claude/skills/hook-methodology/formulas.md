@@ -1,240 +1,201 @@
-# Hook Formulas Reference
+# Hook Principles Reference
 
-Detailed formulas and examples for each hook type.
-
----
-
-## 1. STAT HOOK
-
-**Formula:** `[Specific number] + [Surprising implication]`
-
-**Examples:**
-```
-"73% of first-time buyers overpay. You won't."
-"$340/month. That's what the average homeowner is losing."
-"2,400 five-star reviews. Zero from big banks."
-"350+ lenders. One search. 60 seconds."
-```
-
-**Best when:** Research has credible, specific numbers.
-
-**Mine from:** Proof Points, The Offer, Value Props
+**Purpose:** Understand WHY hooks work, not templates to copy. Use for validation after you've crafted hooks through insight.
 
 ---
 
-## 2. STORY HOOK
+## The Psychology of Stopping the Scroll
 
-**Formula:** `[Person] + [Problem] → [Result]`
+People scroll on autopilot. To stop them, you must trigger one of these responses:
 
-**Examples:**
-```
-"Rejected by 3 banks. Approved in 48 hours."
-"Sarah was told to wait 6 months. She closed in 3 weeks."
-"Self-employed for 2 years. Banks said no. We said yes."
-"Credit score 620. Rate: 5.9%. True story."
-```
+### Pattern Interrupt
+The brain notices what doesn't fit. Unexpected specificity, unusual framing, or contradiction to assumed reality.
 
-**Best when:** Research has testimonials or transformation patterns.
+**What creates it:**
+- Specific numbers where vague claims are expected
+- Naming something people feel but haven't heard articulated
+- Contradicting common industry messaging
 
-**Mine from:** Testimonials, Pain Points
+### Self-Reference
+The brain prioritizes information about itself. "You" and identity markers activate self-relevant processing.
 
----
+**What creates it:**
+- Direct address to a specific situation
+- Identity markers ("If you're someone who...")
+- Naming their internal experience
 
-## 3. FOMO HOOK
+### Open Loop
+The brain wants closure. Incomplete information creates tension that demands resolution.
 
-**Formula:** `[Others acting] + [Implicit "what about you?"]`
+**What creates it:**
+- Revealing that something hidden exists without showing it
+- Implying a story without telling it
+- Suggesting knowledge they don't have
 
-**Examples:**
-```
-"12,847 homeowners switched this month."
-"Your neighbor just locked 5.9%. Still waiting?"
-"Rates up 0.5% since Monday. Still shopping?"
-"1,247 approvals this week. Where's yours?"
-```
+### Emotional Resonance
+The brain responds to feeling faster than logic. Emotion creates engagement before comprehension.
 
-**Best when:** Genuine urgency or social momentum exists.
-
-**Mine from:** Proof Points (customer count), Market context
-
----
-
-## 4. CURIOSITY HOOK
-
-**Formula:** `[Unexpected reveal] + [Open loop]`
-
-**Examples:**
-```
-"The rate your bank quotes first is never the best one."
-"What 350+ lenders know that your bank won't tell you."
-"There's a reason banks don't show you comparisons."
-"The mortgage hack your broker hopes you never find."
-```
-
-**Best when:** Information asymmetry exists to exploit.
-
-**Mine from:** Value Props (unique access), Pain Points (what's hidden)
+**What creates it:**
+- Naming a feeling they have
+- Validating frustration or fear
+- Offering relief or hope
 
 ---
 
-## 5. CALL-OUT HOOK
+## Validation Principles
 
-**Formula:** `"Hey [specific audience]" + [Direct challenge]`
+After crafting hooks through insight, use these to validate. **Not to generate.**
 
-**Examples:**
-```
-"Hey first-time buyers: stop calling 10 different lenders."
-"Toronto homeowners: you're probably overpaying."
-"Self-employed? Banks don't get your income. We do."
-"Bad credit? You still have options. Real ones."
-```
+### Specificity Principle
 
-**Best when:** ICP is clearly defined with specific frustrations.
+Specific beats generic. Always.
 
-**Mine from:** ICP, Pain Points
+| Weak | Strong |
+|------|--------|
+| Round numbers | Exact figures from research |
+| General claims | Particular situations |
+| Category language | Individual experience |
 
----
+**Test:** Could you make this MORE specific without losing clarity?
 
-## 6. CONTRAST HOOK
+### Tension Principle
 
-**Formula:** `[Old way] vs [New way] = [Clear winner]`
+Hooks need inherent tension — something unresolved that demands attention.
 
-**Examples:**
-```
-"10 phone calls vs. 1 click. Same rates."
-"3 weeks at the bank vs. 48 hours here."
-"Guessing your rate vs. seeing 350+ options."
-"Bank's rate vs. market rate. You choose."
-```
+**Sources of tension:**
+- Gap between expectation and reality
+- Contrast between two states
+- Conflict between what is and what should be
+- Unfinished story
 
-**Best when:** Brand has clear speed/ease/access advantage.
+**Test:** Is there something unresolved that creates pull?
 
-**Mine from:** Value Props, The Offer (speed, access)
+### Ownership Principle
 
----
+The best hook is one only you can use.
 
-## 7. QUESTION HOOK
+**Sources of ownership:**
+- Your specific proof points
+- Your specific customer's language
+- Your specific perspective on the problem
+- Your specific results
 
-**Formula:** `[Provocative question] + [Implied answer]`
+**Test:** Could a competitor swap in their logo and use this?
 
-**Examples:**
-```
-"Still paying 7.5%? In this market?"
-"What if your rate is $340/month too high?"
-"Why do banks only show you their rates?"
-"Think you got a good deal? Let's check."
-```
+### Conversation Principle
 
-**Best when:** Audience likely has the problem you're highlighting.
+You're not starting a conversation. You're entering one already happening.
 
-**Mine from:** Pain Points, Market context
+**The conversation already happening:**
+- Their fears at 2am
+- What they complain about to friends
+- The thing they Google but don't ask out loud
+- The frustration they've accepted as normal
 
----
+**Test:** Would your customer read this and think "finally, someone gets it"?
 
-## 8. IDENTITY HOOK
+### Simplicity Principle
 
-**Formula:** `"If you're [identity]" + [Specific relevance]`
+If it takes more than 3 seconds to understand, it fails.
 
-**Examples:**
-```
-"If you're self-employed, banks see risk. We see opportunity."
-"First-time buyers: the process is confusing. We made it simple."
-"If you've been rejected before, this is for you."
-"New to Canada? Your credit history isn't. We see both."
-```
+**Enemies of clarity:**
+- Clever wordplay that requires processing
+- Multiple ideas in one hook
+- Industry jargon
+- Hedging or qualifiers
 
-**Best when:** ICP has strong identity markers.
-
-**Mine from:** ICP, Pain Points
+**Test:** Read it fast, once. Did you get it?
 
 ---
 
-## 9. ENEMY HOOK
+## Emotional Territories
 
-**Formula:** `[Enemy] + [What they don't want you to know]`
+Hooks can land in different emotional places. Ensure variety across your 6 concepts.
 
-**Examples:**
-```
-"Banks make more when you don't compare. Compare anyway."
-"Your lender hopes you never see this rate comparison."
-"Big banks hate this. 350+ lenders in one search."
-"The rate tool lenders don't advertise."
-```
+**Not categories to fill. Territories to cover.**
 
-**Best when:** Positioning against established players.
+### Fear / Protection
+The instinct to avoid loss, danger, or regret.
+> Activated by: what they might lose, what could go wrong, what they're risking
 
-**Mine from:** Value Props (differentiation), Pain Points (industry frustrations)
+### Hope / Aspiration
+The pull toward a better future self or situation.
+> Activated by: what becomes possible, who they could become, what they deserve
 
----
+### Frustration / Anger
+The energy of unfairness or broken expectations.
+> Activated by: naming what's wrong, exposing what's hidden, validating their anger
 
-## 10. RESULT HOOK
+### Relief / Comfort
+The exhale of a problem solved or burden lifted.
+> Activated by: making the complex simple, removing obstacles, offering support
 
-**Formula:** `[Specific outcome] + [Timeframe]`
+### Pride / Identity
+The need to be seen as the person they believe themselves to be.
+> Activated by: reflecting their values, acknowledging their situation, tribal markers
 
-**Examples:**
-```
-"$340/month savings. Found in 60 seconds."
-"Pre-approved in 48 hours. Not 3 weeks."
-"6.2% locked. While others were still calling banks."
-"Approved Friday. Keys Monday."
-```
-
-**Best when:** Research has specific, impressive outcomes.
-
-**Mine from:** Proof Points, Testimonials, The Offer
+### Curiosity / Intrigue
+The pull toward hidden information or unexpected insight.
+> Activated by: revealing that something exists they didn't know, opening loops
 
 ---
 
-## Research Section → Hook Type Mapping
+## Common Failure Modes
 
-| Research Section | Best Hook Types |
-|------------------|-----------------|
-| The Offer | Stat, Result, Contrast |
-| Value Props | Curiosity, Contrast, Enemy |
-| Proof Points | Stat, FOMO, Social Proof |
-| Pain Points | Call-out, Question, Identity |
-| Testimonials | Story, Result |
-| ICP | Identity, Call-out |
+### The Template Trap
+Starting with a formula and filling in blanks produces generic output. The formula should validate, not generate.
 
----
+### The Cleverness Trap
+Wordplay that makes the writer feel smart but makes the reader work. Clarity beats clever.
 
-## ICP Pain Point → Hook Type Mapping
+### The Features Trap
+Listing what you do instead of what it means to them. Features are external. Hooks need internal or philosophical depth.
 
-| Pain Point | Best Hook Types |
-|------------|-----------------|
-| "Rejected by banks" | Story, Identity, Enemy |
-| "Confused by options" | Contrast, Curiosity |
-| "No time to shop around" | Result, Stat (speed) |
-| "Price sensitive" | Stat (savings), Contrast |
-| "First-time anxiety" | Identity, Call-out |
-| "Trust issues" | Stat (reviews), Story |
-| "Complex income" | Identity, Story, Enemy |
+### The Everyone Trap
+Trying to appeal to the whole category instead of speaking precisely to your specific customer.
+
+### The First Thought Trap
+The obvious hook is obvious to everyone. Your first instinct is usually the same as every competitor's first instinct.
+
+### The Jargon Trap
+Using industry language that signals "this is marketing" instead of human language that signals "I understand you."
 
 ---
 
-## Psychology Quick Reference
+## Mapping to Research
 
-| Trigger | How It Works |
-|---------|--------------|
-| Self-Reference | "You" activates self-relevant processing |
-| Specificity | Exact numbers signal truth |
-| Pattern Interrupt | Unexpected breaks autopilot scrolling |
-| Curiosity Gap | Open loops demand closure |
-| Loss Aversion | Fear of losing > joy of gaining (2:1) |
-| Social Proof | Others' actions reduce uncertainty |
-| Identity | "People like me" creates belonging |
+When validating hooks, trace each one back to research:
+
+| Hook Element | Should Come From |
+|--------------|------------------|
+| Specific numbers | Proof Points, The Offer |
+| Customer language | ICP section verbatim phrases |
+| Emotional truth | Pain Points, Testimonials |
+| Unique angle | Value Props + brand's specific perspective |
+| Brand voice | Brand Voice section |
+
+If you can't trace a hook element to research, it might be invention. Invention is weak. Discovery is strong.
 
 ---
 
-## Finance/Mortgage Compliance Notes
+## Final Check
 
-**Do:**
-- Use specific numbers from research
-- Reference comparison/choice
-- Focus on process benefits
-- Use social proof with real numbers
+Before finalizing any hook, ask:
 
-**Don't:**
-- Guarantee specific rates
-- Promise approval outcomes
-- Use pressure tactics
-- Make unsubstantiated claims
+1. **Is this true?** (Can we actually say this? Is there proof?)
+2. **Is this ours?** (Can only we say this?)
+3. **Is this felt?** (Does it name an emotion, not just a fact?)
+4. **Is this clear?** (3 seconds or less?)
+5. **Is this them?** (Their words? Their world?)
+
+If any answer is no, the hook isn't ready.
+
+---
+
+## Remember
+
+This document exists to help you evaluate hooks you've already created through insight.
+
+If you find yourself using this to GENERATE hooks, stop. Go back to the research. Sit with it. Find what makes you feel something.
+
+The best hook is hiding in the research. Your job is to find it, not to construct it from templates.

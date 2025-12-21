@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
 import type { GeneratedImage } from '../types';
+import { API_BASE } from '../api/config';
 
 interface ImageLightboxProps {
   image: GeneratedImage;
@@ -20,9 +21,10 @@ export function ImageLightbox({ image, onClose }: ImageLightboxProps) {
     };
   }, [onClose]);
 
+  // In production, prepend API_BASE to relative paths
   const imageUrl = image.url.startsWith('http')
     ? image.url
-    : image.urlPath;
+    : `${API_BASE}${image.urlPath}`;
 
   return (
     <div

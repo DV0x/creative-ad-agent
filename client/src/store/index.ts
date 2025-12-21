@@ -27,6 +27,7 @@ interface AppState {
   setPhase: (phase: Phase) => void;
   addTerminalLine: (line: Omit<TerminalLine, 'id' | 'timestamp'>) => void;
   addImage: (image: GeneratedImage) => void;
+  recoverImages: (images: GeneratedImage[]) => void;
   setComplete: () => void;
   setError: (error: string) => void;
   reset: () => void;
@@ -75,6 +76,15 @@ export const useAppStore = create<AppState>((set) => ({
   addImage: (image) => set((state) => ({
     images: [...state.images, image],
   })),
+
+  recoverImages: (newImages) => set((state) => {
+    // Only add images we don't already have (by URL)
+    const existingUrls = new Set(state.images.map(img => img.url));
+    const uniqueNewImages = newImages.filter(img => !existingUrls.has(img.url));
+    return {
+      images: [...state.images, ...uniqueNewImages],
+    };
+  }),
 
   setComplete: () => set({
     status: 'complete',

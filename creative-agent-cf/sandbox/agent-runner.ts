@@ -8,7 +8,7 @@
  * - PROMPT: User's input prompt
  * - SESSION_ID: Unique session identifier
  * - ANTHROPIC_API_KEY: Claude API key
- * - GEMINI_API_KEY: Gemini API key for image generation
+ * - FAL_KEY: fal.ai API key for image generation
  *
  * CRITICAL: This implementation matches the working local pattern from ai-client.ts
  * Key requirements:
@@ -44,27 +44,40 @@ function emitTrace(type: string, data: Record<string, unknown>) {
 import { generateAdImages } from "./nano-banana-mcp.js";
 import { ORCHESTRATOR_SYSTEM_PROMPT } from "./orchestrator-prompt.js";
 
-// Create MCP server for image generation
+// Create MCP server for image generation (fal.ai Nano Banana Pro)
 const nanoBananaMcp = createSdkMcpServer({
   name: "nano-banana",
-  version: "4.0.0",
+  version: "5.1.0",
   tools: [
     tool(
       "generate_ad_images",
-      "Generate up to 3 high-quality images using Gemini 3 Pro Image Preview. " +
-      "Supports 1K/2K/4K resolution (default 2K), multiple aspect ratios.",
+      "Generate up to 6 high-quality images using fal.ai Nano Banana Pro. " +
+      "Supports 1K/2K/4K resolution, multiple aspect ratios, web search grounding, and optional reference images. " +
+      "When reference images are provided, automatically uses image editing mode for style/subject consistency.",
       {
-        prompts: z.array(z.string()).max(3).describe(
-          "Array of 1-3 image generation prompts"
+        prompts: z.array(z.string()).min(1).max(6).describe(
+          "Array of 1-6 image generation prompts. Each prompt should be descriptive and detailed."
         ),
-        style: z.string().optional().describe("Visual style to apply"),
-        aspectRatio: z.enum(['1:1', '2:3', '3:2', '3:4', '4:3', '4:5', '5:4', '9:16', '16:9', '21:9'])
+        style: z.string().optional().describe(
+          "Visual style to apply across all images. Examples: 'modern minimal', 'photorealistic', 'vibrant and energetic'"
+        ),
+        referenceImageUrls: z.array(z.string().url()).max(10).optional().describe(
+          "Optional reference image URLs for style transfer or subject consistency. " +
+          "When provided, automatically uses the edit endpoint. Supports up to 10 reference images."
+        ),
+        aspectRatio: z.enum(['21:9', '16:9', '3:2', '4:3', '5:4', '1:1', '4:5', '3:4', '2:3', '9:16'])
           .optional()
-          .describe("Aspect ratio for images. Default: '1:1'"),
-        imageSize: z.enum(['1K', '2K', '4K'])
+          .describe("Aspect ratio for images. Default: '1:1'. Use '9:16' for stories, '16:9' for landscape."),
+        resolution: z.enum(['1K', '2K', '4K'])
           .optional()
-          .describe("Output resolution. Default: '2K'"),
-        sessionId: z.string().optional().describe("Session ID for organizing images")
+          .describe("Output resolution. Default: '1K'. Options: '1K' (fastest), '2K' (balanced), '4K' (highest quality)."),
+        outputFormat: z.enum(['jpeg', 'png', 'webp'])
+          .optional()
+          .describe("Output image format. Default: 'png'."),
+        enableWebSearch: z.boolean()
+          .optional()
+          .describe("Enable web search grounding for real-time data (weather, news, sports). Default: false"),
+        sessionId: z.string().optional().describe("Session ID for organizing images into folders")
       },
       async (args) => generateAdImages({
         ...args,

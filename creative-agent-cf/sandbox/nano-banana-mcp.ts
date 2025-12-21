@@ -1,18 +1,21 @@
 /**
- * nano_banana MCP Server - Gemini 3 Pro Image Preview
+ * nano_banana MCP Server - fal.ai Nano Banana Pro
  *
  * Adapted for Cloudflare Sandbox with R2 storage mounted at /storage/
  *
  * This MCP server provides AI-powered image generation for ad creatives using
- * Google's Gemini 3 Pro Image Preview model.
+ * fal.ai's Nano Banana Pro model (Google's Gemini image model via fal.ai).
  *
  * Features:
- * - High resolution outputs: 1K, 2K (default), or 4K
+ * - Text-to-image generation with high resolution (1K, 2K, 4K)
+ * - Auto-routing: uses edit endpoint when reference images provided
  * - Multiple aspect ratios for different platforms
+ * - Web search grounding for real-time data
+ * - Up to 6 images per call
  * - Images saved to R2 via mounted /storage/images/ path
  */
 
-import { GoogleGenAI } from '@google/genai';
+import { fal } from '@fal-ai/client';
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -47,50 +50,86 @@ function ensureOutputDirectory(sessionId?: string): string {
   return outputDir;
 }
 
+/**
+ * Download image from URL and save to file
+ */
+async function downloadImage(url: string, filepath: string): Promise<number> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to download image: ${response.statusText}`);
+  }
+  const arrayBuffer = await response.arrayBuffer();
+  const buffer = Buffer.from(arrayBuffer);
+  fs.writeFileSync(filepath, buffer);
+  return buffer.length;
+}
+
+/**
+ * Configure fal.ai client with API key
+ */
+function configureFalClient(): boolean {
+  const apiKey = process.env.FAL_KEY;
+  if (!apiKey) {
+    console.error('FAL_KEY not found');
+    return false;
+  }
+  fal.config({ credentials: apiKey });
+  return true;
+}
+
+// Type definitions for tool arguments
 interface GenerateAdImagesArgs {
   prompts: string[];
   style?: string;
-  aspectRatio?: string;
-  imageSize?: string;
+  referenceImageUrls?: string[];
+  aspectRatio?: '21:9' | '16:9' | '3:2' | '4:3' | '5:4' | '1:1' | '4:5' | '3:4' | '2:3' | '9:16';
+  resolution?: '1K' | '2K' | '4K';
+  outputFormat?: 'jpeg' | 'png' | 'webp';
+  enableWebSearch?: boolean;
   sessionId?: string;
 }
 
 /**
- * Generate ad images using Gemini 3 Pro Image Preview
+ * Generate ad images using fal.ai Nano Banana Pro
  */
 export async function generateAdImages(args: GenerateAdImagesArgs): Promise<{
   content: Array<{ type: string; text: string }>
 }> {
   const toolStartTime = Date.now();
-  console.log(`[${new Date().toISOString()}] Starting Gemini 3 Pro image generation`);
+  const hasReferenceImages = args.referenceImageUrls && args.referenceImageUrls.length > 0;
+  const mode = hasReferenceImages ? 'edit (with references)' : 'text-to-image';
+
+  console.log(`[${new Date().toISOString()}] Starting fal.ai Nano Banana Pro image generation`);
+  console.log(`   Mode: ${mode}`);
   console.log(`   Prompts: ${args.prompts.length}`);
   console.log(`   Style: ${args.style || 'default'}`);
-  console.log(`   Resolution: ${args.imageSize || '2K'}`);
+  console.log(`   Resolution: ${args.resolution || '1K'}`);
   console.log(`   Aspect Ratio: ${args.aspectRatio || '1:1'}`);
+  console.log(`   Web Search: ${args.enableWebSearch ? 'enabled' : 'disabled'}`);
+  if (hasReferenceImages) {
+    console.log(`   Reference Images: ${args.referenceImageUrls!.length}`);
+  }
 
-  // Check API key
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    console.error('GEMINI_API_KEY not found');
+  // Configure fal.ai client
+  if (!configureFalClient()) {
     return {
       content: [{
         type: "text",
         text: JSON.stringify({
           success: false,
-          error: 'GEMINI_API_KEY environment variable is not set',
-          message: 'Please configure GEMINI_API_KEY as a Cloudflare secret'
+          error: 'FAL_KEY environment variable is not set',
+          message: 'Please configure FAL_KEY as a Cloudflare secret'
         }, null, 2)
       }]
     };
   }
 
   try {
-    const ai = new GoogleGenAI({ apiKey });
     const outputDir = ensureOutputDirectory(args.sessionId);
     const timestamp = Date.now();
     const results: any[] = [];
 
-    // Generate images synchronously
+    // Process prompts one at a time
     for (let i = 0; i < args.prompts.length; i++) {
       const prompt = args.prompts[i];
 
@@ -100,79 +139,100 @@ export async function generateAdImages(args: GenerateAdImagesArgs): Promise<{
         enhancedPrompt = `${prompt}. Style: ${args.style}.`;
       }
 
-      console.log(`Generating image ${i + 1}/${args.prompts.length}...`);
+      console.log(`[${new Date().toISOString()}] Generating image ${i + 1}/${args.prompts.length}...`);
       console.log(`   Prompt: ${enhancedPrompt.substring(0, 100)}...`);
 
       try {
         const apiCallStart = Date.now();
+        let result;
 
-        // Build config for Gemini 3 Pro Image Preview
-        const config: any = {
-          responseModalities: ['TEXT', 'IMAGE'],
-          imageConfig: {
-            aspectRatio: args.aspectRatio || '1:1',
-            imageSize: args.imageSize || '2K',
-          },
-        };
+        if (hasReferenceImages) {
+          // Use edit endpoint when reference images are provided
+          result = await fal.subscribe("fal-ai/nano-banana-pro/edit", {
+            input: {
+              prompt: enhancedPrompt,
+              image_urls: args.referenceImageUrls!,
+              num_images: 1,
+              aspect_ratio: args.aspectRatio || '1:1',
+              resolution: args.resolution || '1K',
+              output_format: args.outputFormat || 'png',
+              enable_web_search: args.enableWebSearch || false,
+            },
+            logs: true,
+            onQueueUpdate: (update) => {
+              if (update.status === "IN_PROGRESS" && update.logs) {
+                update.logs.map((log) => log.message).forEach((msg) => {
+                  console.log(`   ${msg}`);
+                });
+              }
+            },
+          });
+        } else {
+          // Use text-to-image endpoint
+          result = await fal.subscribe("fal-ai/nano-banana-pro", {
+            input: {
+              prompt: enhancedPrompt,
+              num_images: 1,
+              aspect_ratio: args.aspectRatio || '1:1',
+              resolution: args.resolution || '1K',
+              output_format: args.outputFormat || 'png',
+              enable_web_search: args.enableWebSearch || false,
+            },
+            logs: true,
+            onQueueUpdate: (update) => {
+              if (update.status === "IN_PROGRESS" && update.logs) {
+                update.logs.map((log) => log.message).forEach((msg) => {
+                  console.log(`   ${msg}`);
+                });
+              }
+            },
+          });
+        }
 
-        const response = await ai.models.generateContent({
-          model: "gemini-3-pro-image-preview",
-          contents: [{ text: enhancedPrompt }],
-          config: config,
-        });
         const apiCallDuration = Date.now() - apiCallStart;
+        console.log(`[${new Date().toISOString()}] API response received for image ${i + 1} (took ${apiCallDuration}ms)`);
 
-        console.log(`API response received for image ${i + 1} (took ${apiCallDuration}ms)`);
+        // Extract image from response
+        const data = result.data as { images: Array<{ url: string; file_name: string; content_type: string }>; description?: string };
 
-        // Extract image data
-        if (!response.candidates || response.candidates.length === 0) {
-          throw new Error('No candidates in response');
+        if (!data.images || data.images.length === 0) {
+          throw new Error('No images in response');
         }
 
-        const candidate = response.candidates[0];
-        if (!candidate?.content?.parts) {
-          throw new Error('Invalid response structure');
-        }
+        const image = data.images[0];
+        const ext = args.outputFormat || 'png';
+        const sanitizedPrompt = sanitizeFilename(prompt);
+        const filename = `${timestamp}_${i + 1}_${sanitizedPrompt}.${ext}`;
+        const filepath = path.join(outputDir, filename);
 
-        const parts = candidate.content.parts;
+        // Download and save image to R2-mounted storage
+        const fileSize = await downloadImage(image.url, filepath);
+        console.log(`   Saved: ${filename} (${Math.round(fileSize / 1024)}KB)`);
 
-        for (const part of parts) {
-          if (part.inlineData && part.inlineData.data) {
-            const base64Data = part.inlineData.data;
-            const mimeType = part.inlineData.mimeType || "image/png";
+        // Construct URL path (Worker will serve from R2)
+        const urlPath = `/images/${args.sessionId ? args.sessionId + '/' : ''}${filename}`;
 
-            // Convert base64 to buffer
-            const buffer = Buffer.from(base64Data, 'base64');
+        results.push({
+          id: `image_${i + 1}`,
+          filename: filename,
+          path: filepath,
+          urlPath: urlPath,
+          originalUrl: image.url,
+          prompt: prompt,
+          enhancedPrompt: enhancedPrompt,
+          mimeType: image.content_type || `image/${ext}`,
+          sizeKB: Math.round(fileSize / 1024),
+          aspectRatio: args.aspectRatio || '1:1',
+          resolution: args.resolution || '1K',
+          style: args.style || "default",
+          webSearchEnabled: args.enableWebSearch || false,
+          referenceImagesUsed: hasReferenceImages ? args.referenceImageUrls!.length : 0,
+          mode: mode,
+          description: data.description || '',
+        });
 
-            // Generate filename
-            const sanitizedPrompt = sanitizeFilename(prompt);
-            const filename = `${timestamp}_${i + 1}_${sanitizedPrompt}.png`;
-            const filepath = path.join(outputDir, filename);
+        console.log(`   Image ${i + 1} complete`);
 
-            // Save PNG file to R2-mounted storage
-            fs.writeFileSync(filepath, buffer);
-            console.log(`   Saved: ${filename} (${Math.round(buffer.length / 1024)}KB)`);
-
-            // Construct URL path (Worker will serve from R2)
-            const urlPath = `/images/${args.sessionId ? args.sessionId + '/' : ''}${filename}`;
-
-            results.push({
-              id: `image_${i + 1}`,
-              filename: filename,
-              path: filepath,
-              urlPath: urlPath,
-              prompt: prompt,
-              enhancedPrompt: enhancedPrompt,
-              mimeType: mimeType,
-              sizeKB: Math.round(buffer.length / 1024),
-              aspectRatio: args.aspectRatio || '1:1',
-              resolution: args.imageSize || '2K',
-              style: args.style || "default",
-            });
-
-            console.log(`   Image ${i + 1} complete`);
-          }
-        }
       } catch (imageError: any) {
         console.error(`Failed to generate image ${i + 1}:`, imageError.message);
         // Continue with next image instead of failing entire batch
@@ -183,15 +243,15 @@ export async function generateAdImages(args: GenerateAdImagesArgs): Promise<{
         });
       }
 
-      // Rate limit between requests (except for last image)
+      // Small delay between requests to avoid rate limiting
       if (i < args.prompts.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        await new Promise(resolve => setTimeout(resolve, 500));
       }
     }
 
     const successCount = results.filter(r => !r.error).length;
     const toolDuration = Date.now() - toolStartTime;
-    console.log(`Generation complete: ${successCount}/${args.prompts.length} images (${toolDuration}ms)`);
+    console.log(`[${new Date().toISOString()}] Generation complete: ${successCount}/${args.prompts.length} images (${toolDuration}ms)`);
 
     return {
       content: [{
@@ -199,8 +259,10 @@ export async function generateAdImages(args: GenerateAdImagesArgs): Promise<{
         text: JSON.stringify({
           success: true,
           message: `Successfully generated ${successCount} of ${args.prompts.length} images`,
+          mode: mode,
           totalRequested: args.prompts.length,
           totalGenerated: successCount,
+          referenceImagesUsed: hasReferenceImages ? args.referenceImageUrls!.length : 0,
           images: results,
           storageLocation: outputDir,
           note: successCount < args.prompts.length
@@ -225,4 +287,4 @@ export async function generateAdImages(args: GenerateAdImagesArgs): Promise<{
   }
 }
 
-console.log('nano_banana MCP module loaded (v4.0.0 - Cloudflare Sandbox)');
+console.log('nano_banana MCP module loaded (v5.1.0 - fal.ai Nano Banana Pro with auto-routing for Cloudflare Sandbox)');

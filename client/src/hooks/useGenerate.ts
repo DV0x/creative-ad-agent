@@ -1,8 +1,8 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useAppStore } from '../store';
 import { parseSSEStream } from '../api/parseSSE';
 import { API_BASE } from '../api/config';
-import type { Phase } from '../types';
+import type { Phase, GeneratedImage } from '../types';
 
 // Trace event types from backend
 interface TraceEvent {
@@ -139,6 +139,49 @@ function extractImages(text: string): Array<{
   return results;
 }
 
+// Poll session endpoint for recovery
+async function pollSession(
+  sessionId: string,
+  onImages: (images: GeneratedImage[]) => void,
+  onComplete: () => void,
+  onStatus: (message: string) => void,
+  signal: AbortSignal
+): Promise<boolean> {
+  try {
+    const response = await fetch(`${API_BASE}/sessions/${sessionId}`, { signal });
+    if (!response.ok) return false;
+
+    const data = await response.json();
+    const session = data.session;
+
+    // Recover images from session
+    if (session?.images && Array.isArray(session.images)) {
+      const recoveredImages: GeneratedImage[] = session.images.map((urlPath: string, i: number) => ({
+        id: `recovered-${i}-${Date.now()}`,
+        url: urlPath,
+        urlPath: urlPath,
+        prompt: '',
+        filename: urlPath.split('/').pop() || `image-${i}.png`
+      }));
+
+      if (recoveredImages.length > 0) {
+        onImages(recoveredImages);
+        onStatus(`Recovered ${recoveredImages.length} image(s)`);
+      }
+    }
+
+    // Check if complete
+    if (session?.status === 'completed' || session?.status === 'complete') {
+      onComplete();
+      return true;
+    }
+
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function useGenerate() {
   const {
     prompt,
@@ -146,9 +189,12 @@ export function useGenerate() {
     setPhase,
     addTerminalLine,
     addImage,
+    recoverImages,
     setComplete,
     setError,
   } = useAppStore();
+
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const generate = useCallback(async () => {
     if (!prompt.trim()) return;
@@ -313,14 +359,49 @@ export function useGenerate() {
         addTerminalLine({ type: 'error', text: 'Request timed out after 10 minutes' });
         setError('Request timed out after 10 minutes');
       } else {
+        // Connection lost - switch to polling mode
         const message = error instanceof Error ? error.message : 'Unknown error';
-        addTerminalLine({ type: 'error', text: message });
-        setError(message);
+        addTerminalLine({ type: 'output', text: `Connection interrupted: ${message}` });
+        addTerminalLine({ type: 'output', text: 'Switching to polling mode...' });
+
+        // Start polling for recovery
+        const pollController = new AbortController();
+        let pollCount = 0;
+        const maxPolls = 60; // 5 minutes max (60 * 5s)
+
+        const startPolling = async () => {
+          pollCount++;
+
+          const isComplete = await pollSession(
+            sessionId,
+            recoverImages,
+            () => {
+              clearTimeout(timeoutId);
+              if (pollingRef.current) clearInterval(pollingRef.current);
+              setComplete();
+              addTerminalLine({ type: 'success', text: 'Generation complete (recovered)!' });
+            },
+            (statusMsg) => addTerminalLine({ type: 'output', text: statusMsg }),
+            pollController.signal
+          );
+
+          if (isComplete || pollCount >= maxPolls) {
+            if (pollingRef.current) clearInterval(pollingRef.current);
+            if (!isComplete && pollCount >= maxPolls) {
+              addTerminalLine({ type: 'error', text: 'Polling timeout - generation may still be running' });
+              setError('Polling timeout');
+            }
+          }
+        };
+
+        // Poll immediately, then every 5 seconds
+        startPolling();
+        pollingRef.current = setInterval(startPolling, 5000);
       }
     } finally {
       clearTimeout(timeoutId);
     }
-  }, [prompt, startGeneration, setPhase, addTerminalLine, addImage, setComplete, setError]);
+  }, [prompt, startGeneration, setPhase, addTerminalLine, addImage, recoverImages, setComplete, setError]);
 
   return { generate };
 }

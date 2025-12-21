@@ -103,7 +103,7 @@ export async function handleGenerate(
 
         // API keys
         ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
-        GEMINI_API_KEY: env.GEMINI_API_KEY,
+        FAL_KEY: env.FAL_KEY,
 
         // Claude Code configuration
         HOME: "/root",

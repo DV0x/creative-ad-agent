@@ -11,12 +11,12 @@ Routes to the appropriate art style workflow based on user keywords.
 
 **Hook-bank must exist before triggering this skill.**
 Main Agent triggers `hook-methodology` skill first, which creates:
-`agent/.claude/skills/hook-methodology/hook-bank/{brand}-{date}.md`
+`/storage/hooks/{brand}-{date}.md`
 
 ## Input/Output
 
 - **Input:** Reads hook-bank file for brand colors, ICP, and 6 hook concepts
-- **Output:** Writes `agent/files/creatives/{brand}_prompts.json`
+- **Output:** Writes `/storage/creatives/{brand}_prompts.json`
 
 Main Agent handles image generation via MCP after this skill completes.
 
@@ -38,6 +38,6 @@ Main Agent handles image generation via MCP after this skill completes.
 1. Create `workflows/new-style-name.md`
 2. Include: hook-bank loading, creative process, prompt construction
 3. Add detection keywords to routing table above
-4. Output prompts to `agent/files/creatives/{brand}_prompts.json`
+4. Output prompts to `/storage/creatives/{brand}_prompts.json`
 
 Each workflow file must be **100% self-contained** for the creative process.

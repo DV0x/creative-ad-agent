@@ -1,10 +1,10 @@
 FROM docker.io/cloudflare/sandbox:0.6.3
 
-# Install Node.js 20
+# Install Node.js 22 (required by @fal-ai/client >= 1.8.0)
 RUN apt-get update && apt-get install -y \
     curl \
     git \
-    && curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
+    && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 

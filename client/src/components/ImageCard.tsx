@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { GeneratedImage } from '../types';
+import { API_BASE } from '../api/config';
 
 interface ImageCardProps {
   image: GeneratedImage;
@@ -11,9 +12,10 @@ export function ImageCard({ image, onClick, index }: ImageCardProps) {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
 
+  // In production, prepend API_BASE to relative paths
   const imageUrl = image.url.startsWith('http')
     ? image.url
-    : image.urlPath;
+    : `${API_BASE}${image.urlPath}`;
 
   return (
     <div

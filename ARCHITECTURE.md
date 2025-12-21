@@ -1,24 +1,26 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 5.0
+**Version:** 6.1
 **Last Updated:** December 2025
-**Status:** Production (Hook-First Conversion Ad Generator with MCP Image Generation)
+**Status:** Production (Hook-First Conversion Ad Generator with fal.ai Image Generation)
 
 ---
 
 ## Table of Contents
 
 1. [System Overview](#system-overview)
-2. [High-Level Architecture](#high-level-architecture)
-3. [Complete Workflow Diagram](#complete-workflow-diagram)
-4. [Component Details](#component-details)
-5. [Agent & Skills System](#agent--skills-system)
-6. [Data Flow](#data-flow)
-7. [File Structure](#file-structure)
-8. [API Endpoints](#api-endpoints)
-9. [Session Management](#session-management)
-10. [Technology Stack](#technology-stack)
-11. [Design Decisions](#design-decisions)
+2. [Deployment Architecture](#deployment-architecture)
+3. [High-Level Architecture](#high-level-architecture)
+4. [Complete Workflow Diagram](#complete-workflow-diagram)
+5. [Component Details](#component-details)
+6. [Agent & Skills System](#agent--skills-system)
+7. [Data Flow](#data-flow)
+8. [File Structure](#file-structure)
+9. [API Endpoints](#api-endpoints)
+10. [Session Management](#session-management)
+11. [React Client](#react-client)
+12. [Technology Stack](#technology-stack)
+13. [Design Decisions](#design-decisions)
 
 ---
 
@@ -52,7 +54,7 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 │                              ┌──────────────────┐                          │
 │                              │   nano-banana    │                          │
 │                              │   (MCP Tool)     │                          │
-│                              │  Gemini 3 Pro    │                          │
+│                              │  fal.ai API      │                          │
 │                              └────────┬─────────┘                          │
 │                                       v                                     │
 │                              ┌──────────────────┐                          │
@@ -67,8 +69,68 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 - **Hook-First Ad Generation**: Hooks mined from research data using proven formulas
 - **1-Agent + 2-Skills Workflow**: Research agent extracts data, skills handle creative
 - **6 Diverse Concepts**: Each concept uses a different emotional trigger
-- **MCP Image Generation**: Nano-banana MCP generates images via Gemini 3 Pro
+- **MCP Image Generation**: Nano-banana MCP generates images via fal.ai Nano Banana Pro
 - **Session Management**: Stateful conversations with forking for A/B testing
+- **Dual Deployment**: Local development server + Cloudflare Workers production
+
+---
+
+## Deployment Architecture
+
+The system supports two deployment targets with identical agent logic but different infrastructure:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        DEPLOYMENT ARCHITECTURE                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────┐     ┌─────────────────────────────┐       │
+│  │    LOCAL DEVELOPMENT        │     │    CLOUDFLARE PRODUCTION    │       │
+│  │         server/             │     │      creative-agent-cf/     │       │
+│  ├─────────────────────────────┤     ├─────────────────────────────┤       │
+│  │                             │     │                             │       │
+│  │  Runtime: Node.js + Express │     │  Runtime: Workers + Sandbox │       │
+│  │  Port: 3001                 │     │  Edge: workers.dev          │       │
+│  │                             │     │                             │       │
+│  │  Storage:                   │     │  Storage:                   │       │
+│  │  - Filesystem (JSON)        │     │  - D1 (SQLite)             │       │
+│  │  - sessions/*.json          │     │  - R2 (Object Storage)      │       │
+│  │                             │     │                             │       │
+│  │  Features:                  │     │  Features:                  │       │
+│  │  - Session forking          │     │  - SSE streaming            │       │
+│  │  - Debug endpoints          │     │  - Trace events             │       │
+│  │  - Cost instrumentation     │     │  - Heartbeat keepalive      │       │
+│  │                             │     │  - Container orchestration  │       │
+│  └─────────────────────────────┘     └─────────────────────────────┘       │
+│                                                                             │
+│                    Both use same:                                           │
+│                    - Agent definitions (agent/.claude/)                     │
+│                    - Workflow (research → hooks → art → images)            │
+│                    - MCP tool (nano-banana for fal.ai)                     │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Environment Comparison
+
+| Aspect | Local (`server/`) | Cloudflare (`creative-agent-cf/`) |
+|--------|-------------------|-----------------------------------|
+| **Use Case** | Development, debugging | Production API |
+| **Runtime** | Node.js + Express | Workers + Sandbox containers |
+| **SDK Version** | 0.1.54 | 0.1.62 |
+| **Storage** | Filesystem | D1 (metadata) + R2 (files) |
+| **Sessions** | JSON files | D1 database |
+| **Streaming** | JSON response | SSE with trace events |
+| **Images** | `generated-images/` | R2 bucket |
+
+### File Path Mapping
+
+| File Type | Local Path | Cloudflare Path |
+|-----------|------------|-----------------|
+| Research | `agent/files/research/{brand}_research.md` | `/storage/research/{brand}_research.md` |
+| Hooks | `agent/.claude/skills/hook-methodology/hook-bank/{brand}-{date}.md` | `/storage/hooks/{brand}-{date}.md` |
+| Prompts | `agent/files/creatives/{brand}_prompts.json` | `/storage/creatives/{brand}_prompts.json` |
+| Images | `generated-images/{sessionId}/` | `/storage/images/{sessionId}/` |
 
 ---
 
@@ -129,8 +191,8 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 │ │  ORCHESTRATOR  │    │        SKILLS         │    │  MCP SERVERS   │      │
 │ │  (main agent)  │    │  ┌─────────────────┐  │    │ ┌────────────┐ │      │
 │ │                │    │  │hook-methodology │  │    │ │nano-banana │ │      │
-│ │ Uses:          │    │  └─────────────────┘  │    │ │(Gemini 3   │ │      │
-│ │ - Task         │    │  ┌─────────────────┐  │    │ │ Pro)       │ │      │
+│ │ Uses:          │    │  └─────────────────┘  │    │ │(fal.ai     │ │      │
+│ │ - Task         │    │  ┌─────────────────┐  │    │ │ API)       │ │      │
 │ │ - Skill        │    │  │   art-style     │  │    │ └────────────┘ │      │
 │ │ - TodoWrite    │    │  └─────────────────┘  │    └────────────────┘      │
 │ └────────────────┘    └───────────────────────┘                             │
@@ -296,7 +358,7 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 │  │        v                                                                │ │
 │  │   ┌─────────────────────────────────────────────────────────┐          │ │
 │  │   │           NANO-BANANA MCP SERVER                         │          │ │
-│  │   │              (Gemini 3 Pro Image Preview)                │          │ │
+│  │   │              (fal.ai Nano Banana Pro)                    │          │ │
 │  │   │                                                          │          │ │
 │  │   │   BATCH 1:                                               │          │ │
 │  │   │   mcp__nano-banana__generate_ad_images({                 │          │ │
@@ -402,9 +464,9 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 │  └──────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/nano-banana-mcp.ts                                 (~300 lines) │  │
+│  │  lib/nano-banana-mcp.ts                                 (~450 lines) │  │
 │  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  MCP server for AI image generation via Gemini 3 Pro                 │  │
+│  │  MCP server for AI image generation via fal.ai Nano Banana Pro       │  │
 │  │                                                                      │  │
 │  │  Tool: mcp__nano-banana__generate_ad_images                          │  │
 │  │  ┌────────────────────────────────────────────────────────────────┐ │  │
@@ -797,7 +859,7 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 ```
 creative_agent/
 │
-├── agent/                                   # Agent ecosystem
+├── agent/                                   # Agent ecosystem (SOURCE OF TRUTH)
 │   ├── .claude/
 │   │   ├── agents/                          # Agent definitions
 │   │   │   └── research.md                  # Data extraction + ICP agent
@@ -806,7 +868,7 @@ creative_agent/
 │   │       ├── hook-methodology/
 │   │       │   ├── SKILL.md                 # Hook generation skill
 │   │       │   ├── formulas.md              # Hook formula reference
-│   │       │   └── hook-bank/               # Generated hook files
+│   │       │   └── hook-bank/               # Generated hook files (local)
 │   │       │       └── {brand}-{date}.md
 │   │       │
 │   │       └── art-style/
@@ -814,25 +876,73 @@ creative_agent/
 │   │           └── workflows/
 │   │               └── soft-brutalism-clay.md
 │   │
-│   └── files/                               # Agent working directory
+│   └── files/                               # Agent working directory (local)
 │       ├── research/
 │       │   └── {brand}_research.md          # Research output
 │       └── creatives/
 │           └── {brand}_prompts.json         # Visual prompts
 │
-├── server/                                  # Express server
+├── server/                                  # LOCAL: Express development server
 │   ├── sdk-server.ts                        # Main server (~920 lines)
 │   ├── lib/
 │   │   ├── ai-client.ts                     # SDK wrapper (~490 lines)
-│   │   ├── orchestrator-prompt.ts           # System prompt (~72 lines)
+│   │   ├── orchestrator-prompt.ts           # System prompt (local paths)
 │   │   ├── session-manager.ts               # Sessions (~340 lines)
 │   │   ├── instrumentor.ts                  # Metrics (~150 lines)
 │   │   └── nano-banana-mcp.ts               # Image MCP (~300 lines)
-│   ├── sessions/                            # Session persistence
+│   ├── sessions/                            # Session persistence (JSON files)
 │   ├── package.json
 │   └── tsconfig.json
 │
-├── generated-images/                        # Image output (git-ignored)
+├── creative-agent-cf/                       # PRODUCTION: Cloudflare Workers
+│   ├── src/                                 # Worker code
+│   │   ├── index.ts                         # Router, CORS, env interface
+│   │   └── handlers/
+│   │       ├── generate.ts                  # POST /generate (SSE streaming)
+│   │       ├── sessions.ts                  # Session management
+│   │       └── images.ts                    # Image serving from R2
+│   │
+│   ├── sandbox/                             # Runs inside container
+│   │   ├── agent-runner.ts                  # SDK orchestration
+│   │   ├── nano-banana-mcp.ts               # Image MCP (R2 paths)
+│   │   ├── orchestrator-prompt.ts           # System prompt (/storage/ paths)
+│   │   └── package.json                     # Container dependencies
+│   │
+│   ├── agent/                               # Copy of agent/ for container
+│   │   └── .claude/                         # (sync from root agent/)
+│   │
+│   ├── wrangler.jsonc                       # Cloudflare config
+│   ├── Dockerfile                           # Sandbox container image
+│   ├── schema.sql                           # D1 database schema
+│   └── package.json
+│
+├── client/                                  # React frontend
+│   ├── src/
+│   │   ├── App.tsx                          # Main app component
+│   │   ├── components/                      # UI components
+│   │   │   ├── PromptInput.tsx              # Input form
+│   │   │   ├── ProgressDots.tsx             # Phase indicators
+│   │   │   ├── Terminal.tsx                 # Log output
+│   │   │   ├── ImageGrid.tsx                # Image gallery
+│   │   │   ├── ImageCard.tsx                # Individual image
+│   │   │   └── ImageLightbox.tsx            # Full-screen view
+│   │   ├── hooks/
+│   │   │   └── useGenerate.ts               # SSE hook
+│   │   ├── store/
+│   │   │   └── index.ts                     # Zustand state
+│   │   └── api/
+│   │       └── client.ts                    # API client
+│   ├── package.json
+│   └── vite.config.ts
+│
+├── docs/                                    # Documentation
+│   ├── CREATIVE-AGENT-CF-REFERENCE.md       # CF quick reference
+│   ├── cloudflare-deployment-plan.md        # Deployment guide
+│   ├── cloudflare-agent-blueprint.md        # Reusable patterns
+│   ├── frontend-design-system.md            # UI design guide
+│   └── frontend-implementation-guide.md     # Frontend build guide
+│
+├── generated-images/                        # Image output (local, git-ignored)
 │   └── {sessionId}/
 │       └── {timestamp}_{index}_{prompt}.png
 │
@@ -960,6 +1070,67 @@ creative_agent/
 
 ---
 
+## React Client
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                            REACT CLIENT                                      │
+│                              client/                                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  PURPOSE: Web UI for interacting with the Creative Agent API                │
+│                                                                             │
+│  STACK:                                                                     │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  React          ^18           UI framework                                  │
+│  Vite           ^5            Build tool                                    │
+│  Tailwind CSS   ^3            Styling                                       │
+│  Zustand        ^4            State management                              │
+│  TypeScript     ^5            Type safety                                   │
+│                                                                             │
+│  FEATURES:                                                                  │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  - Real-time SSE streaming with phase indicators                            │
+│  - Terminal-style log output for trace events                               │
+│  - Image gallery with lightbox viewer                                       │
+│  - Progress tracking (Parse → Research → Hooks → Art → Images)             │
+│                                                                             │
+│  DESIGN SYSTEM:                                                             │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  Theme: "The Machine Room" - industrial control panel aesthetic             │
+│  Colors: Dark background, green/amber accents for status                    │
+│  Typography: Monospace for terminal, sans-serif for UI                      │
+│  See: docs/frontend-design-system.md                                        │
+│                                                                             │
+│  COMPONENT HIERARCHY:                                                       │
+│  ┌────────────────────────────────────────────────────────────────────────┐│
+│  │  App.tsx                                                               ││
+│  │  ├── PromptInput      - URL input and generate button                  ││
+│  │  ├── ProgressDots     - Phase indicators (5 phases)                    ││
+│  │  ├── Terminal         - Scrolling log output                           ││
+│  │  ├── ImageGrid        - Generated images gallery                       ││
+│  │  │   └── ImageCard    - Individual image with hover state              ││
+│  │  └── ImageLightbox    - Full-screen image viewer                       ││
+│  └────────────────────────────────────────────────────────────────────────┘│
+│                                                                             │
+│  SSE INTEGRATION (useGenerate hook):                                        │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  1. POST /generate → Returns SSE stream                                     │
+│  2. Parse trace events: phase, tool_start, tool_end, image, message        │
+│  3. Update Zustand store with real-time state                               │
+│  4. Display progress and results                                            │
+│                                                                             │
+│  RUNNING:                                                                   │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  cd client                                                                  │
+│  npm run dev          # Development server (Vite)                           │
+│  npm run build        # Production build                                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Technology Stack
 
 ```
@@ -973,21 +1144,47 @@ creative_agent/
 │  TypeScript     v5.3+                                                       │
 │  tsx            v4.7+  (TypeScript execution)                               │
 │                                                                             │
-│  CORE DEPENDENCIES                                                          │
+│  LOCAL SERVER DEPENDENCIES (server/)                                        │
 │  ─────────────────────────────────────────────────────────────────────────  │
 │  @anthropic-ai/claude-agent-sdk    ^0.1.54    Claude SDK for orchestration  │
-│  @google/genai                     ^1.24.0    Gemini 3 Pro Image API        │
+│  @fal-ai/client                    ^1.x       fal.ai Image Generation API   │
 │  express                           ^4.18.2    HTTP server                    │
 │  cors                              ^2.8.5     Cross-origin requests          │
 │  dotenv                            ^16.3.1    Environment variables          │
 │  zod                               ^3.22.4    Runtime type validation        │
 │                                                                             │
+│  CLOUDFLARE WORKER DEPENDENCIES (creative-agent-cf/)                        │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  @cloudflare/sandbox               ^0.6.3     Container orchestration        │
+│  wrangler                          ^4.53.0    Cloudflare CLI                 │
+│                                                                             │
+│  CLOUDFLARE SANDBOX DEPENDENCIES (creative-agent-cf/sandbox/)               │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  @anthropic-ai/claude-agent-sdk    ^0.1.62    Claude SDK (newer version)    │
+│  @fal-ai/client                    ^1.x       fal.ai Image Generation API   │
+│  zod                               ^3.22.4    Runtime type validation        │
+│  tsx                               ^4.7.0     TypeScript execution           │
+│                                                                             │
+│  REACT CLIENT DEPENDENCIES (client/)                                        │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  react                             ^18        UI framework                   │
+│  zustand                           ^4         State management               │
+│  vite                              ^5         Build tool                     │
+│  tailwindcss                       ^3         Styling                        │
+│                                                                             │
 │  ENVIRONMENT VARIABLES                                                      │
 │  ─────────────────────────────────────────────────────────────────────────  │
 │  ANTHROPIC_API_KEY                 Required   Claude API key                 │
-│  GEMINI_API_KEY                    Required   Gemini image generation        │
+│  FAL_KEY                           Required   fal.ai image generation        │
 │  PORT                              Optional   Server port (default: 3001)    │
 │  CLAUDE_CODE_MAX_OUTPUT_TOKENS     Optional   Token limit (default: 16384)   │
+│                                                                             │
+│  CLOUDFLARE SECRETS (set via wrangler)                                      │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  ANTHROPIC_API_KEY                 Required   Claude API key                 │
+│  FAL_KEY                           Required   fal.ai image generation        │
+│  AWS_ACCESS_KEY_ID                 Required   R2 S3-compatible access        │
+│  AWS_SECRET_ACCESS_KEY             Required   R2 S3-compatible secret        │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
@@ -1118,34 +1315,77 @@ creative_agent/
 │                           DEPLOYMENT                                         │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  DEVELOPMENT                                                                │
+│  LOCAL DEVELOPMENT (server/)                                                │
 │  ─────────────────────────────────────────────────────────────────────────  │
 │  cd server                                                                  │
 │  npm run dev                   # Hot reload with tsx watch                  │
+│  npm run start                 # Production mode                            │
 │                                                                             │
-│  PRODUCTION                                                                 │
+│  Health Check: curl http://localhost:3001/health                            │
+│                                                                             │
+│  REACT CLIENT (client/)                                                     │
 │  ─────────────────────────────────────────────────────────────────────────  │
-│  cd server                                                                  │
-│  npm start                                                                  │
+│  cd client                                                                  │
+│  npm run dev                   # Vite dev server                            │
+│  npm run build                 # Production build                           │
 │                                                                             │
-│  HEALTH CHECK                                                               │
+│  CLOUDFLARE PRODUCTION (creative-agent-cf/)                                 │
 │  ─────────────────────────────────────────────────────────────────────────  │
-│  curl http://localhost:3001/health                                          │
+│  cd creative-agent-cf                                                       │
 │                                                                             │
-│  {                                                                          │
-│    "status": "healthy",                                                     │
-│    "config": {                                                              │
-│      "hasAnthropicKey": true,                                               │
-│      "hasGeminiKey": true,                                                  │
-│      "port": 3001                                                           │
-│    }                                                                        │
-│  }                                                                          │
+│  # First-time setup                                                         │
+│  npm run db:create             # Create D1 database                         │
+│  npm run db:init               # Run schema.sql                             │
+│  npm run r2:create             # Create R2 bucket                           │
+│                                                                             │
+│  # Set secrets                                                              │
+│  wrangler secret put ANTHROPIC_API_KEY                                      │
+│  wrangler secret put FAL_KEY                                                │
+│  wrangler secret put AWS_ACCESS_KEY_ID                                      │
+│  wrangler secret put AWS_SECRET_ACCESS_KEY                                  │
+│                                                                             │
+│  # Deploy                                                                   │
+│  npm run dev                   # Local dev with wrangler                    │
+│  npm run deploy                # Deploy to production                       │
+│  npm run tail                  # View production logs                       │
+│                                                                             │
+│  SYNCING AGENT DEFINITIONS                                                  │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  The agent/ directory at project root is the SOURCE OF TRUTH.               │
+│  When updating agents/skills, sync to Cloudflare:                           │
+│                                                                             │
+│  cp -r agent/.claude/* creative-agent-cf/agent/.claude/                    │
+│  cd creative-agent-cf && npm run deploy                                     │
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-**Version:** 5.0
+## Quick Reference
+
+| Task | Command |
+|------|---------|
+| Local server | `cd server && npm run dev` |
+| React client | `cd client && npm run dev` |
+| Cloudflare dev | `cd creative-agent-cf && npm run dev` |
+| Deploy to production | `cd creative-agent-cf && npm run deploy` |
+| View CF logs | `cd creative-agent-cf && npm run tail` |
+| Sync agents to CF | `cp -r agent/.claude/* creative-agent-cf/agent/.claude/` |
+
+---
+
+## Related Documentation
+
+- **Cloudflare Quick Reference:** `docs/CREATIVE-AGENT-CF-REFERENCE.md`
+- **Deployment Guide:** `docs/cloudflare-deployment-plan.md`
+- **Frontend Design:** `docs/frontend-design-system.md`
+- **Frontend Implementation:** `docs/frontend-implementation-guide.md`
+- **Blueprint (Reusable):** `docs/cloudflare-agent-blueprint.md`
+
+---
+
+**Version:** 6.1
 **Last Updated:** December 2025
-**Architecture:** 1 Agent + 2 Skills + MCP Image Generation
+**Architecture:** 1 Agent + 2 Skills + fal.ai MCP Image Generation
+**Deployments:** Local (Express) + Production (Cloudflare Workers)

@@ -17,7 +17,7 @@ export interface Env {
   DB: D1Database;
   STORAGE: R2Bucket;
   ANTHROPIC_API_KEY: string;
-  GEMINI_API_KEY: string;
+  FAL_KEY: string;
   CF_ACCOUNT_ID: string;
   ENVIRONMENT: string;
   // R2 S3-compatible credentials for mountBucket

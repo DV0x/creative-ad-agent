@@ -1,0 +1,3 @@
+# Proxy API requests to the backend Workers API
+/images/*    https://creative-agent.alphasapien17.workers.dev/images/:splat    200
+/sessions/*  https://creative-agent.alphasapien17.workers.dev/sessions/:splat  200
