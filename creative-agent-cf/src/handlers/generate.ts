@@ -118,7 +118,7 @@ export async function handleGenerate(
         TERM: "dumb",
         NO_COLOR: "1",
       },
-      timeout: 600000, // 10 min timeout for long agent runs
+      timeout: 960000, // 16 min timeout for long agent runs
     });
 
     // Transform the stream to add session metadata and handle completion

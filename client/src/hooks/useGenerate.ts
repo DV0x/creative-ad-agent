@@ -204,11 +204,11 @@ export function useGenerate() {
 
     addTerminalLine({ type: 'command', text: `$ starting session ${sessionId.slice(0, 8)}...` });
 
-    // AbortController for timeout handling (10 minute timeout)
+    // AbortController for timeout handling (16 minute timeout)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, 600000); // 10 minutes
+    }, 960000); // 16 minutes
 
     try {
       const response = await fetch(`${API_BASE}/generate`, {

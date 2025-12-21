@@ -122,7 +122,7 @@ LANGUAGE: How do they talk?
 
 ### Step 4: Write Research Brief
 
-Save to: `/storage/research/{brand}_research.md`
+Save to: `files/research/{brand}_research.md`
 
 **Output format - follow this exactly:**
 
@@ -299,4 +299,4 @@ Note what's missing, don't invent:
 - Extract facts, analyze audience, nothing more
 - The Hook Skill will use your ICP to write targeted copy
 - The Art Skill will use your brand colors for visuals
-- Save to: `/storage/research/{brand}_research.md`
+- Save to: `files/research/{brand}_research.md`

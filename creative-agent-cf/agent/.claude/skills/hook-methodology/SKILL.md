@@ -23,7 +23,7 @@ you're just filling in blanks.
 
 ## Phase 1: Immersion
 
-Read `/storage/research/{brand}_research.md`
+Read `agent/files/research/{brand}_research.md`
 
 ### First Pass: Absorb
 Read the entire research file without stopping to analyze. Let it wash over you.
@@ -239,7 +239,7 @@ The CTA should feel like the natural next step, not a demand.
 
 ## Output
 
-Write to: `/storage/hooks/{brand}-{YYYY-MM-DD}.md`
+Write to: `agent/.claude/skills/hook-methodology/hook-bank/{brand}-{YYYY-MM-DD}.md`
 
 ```markdown
 # [Brand Name] - Hook Bank

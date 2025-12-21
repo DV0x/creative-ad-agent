@@ -208,7 +208,7 @@ async function continueSession(
         ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
         GEMINI_API_KEY: env.GEMINI_API_KEY,
       },
-      timeout: 600000,
+      timeout: 960000, // 16 min timeout
     });
 
     if (!result.success) {
@@ -317,7 +317,7 @@ async function forkSession(
           ANTHROPIC_API_KEY: env.ANTHROPIC_API_KEY,
           GEMINI_API_KEY: env.GEMINI_API_KEY,
         },
-        timeout: 600000,
+        timeout: 960000, // 16 min timeout
       });
 
       if (result.success) {
