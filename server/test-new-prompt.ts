@@ -10,78 +10,119 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from project root
 dotenv.config({ path: path.join(__dirname, '..', '.env') });
 
-// New VISUAL-FIRST prompts from the updated workflow
+// Testing Soft Brutalism + Clay prompts with proper TEXT RENDERING
+// Using hooks from truenorthmortgage-2025-01-24.md
 const prompts = [
   {
-    name: "concept_2_self_employed_symbolic",
+    name: "concept_3_salaried_advisors_metaphor",
     prompt: `Create a 1:1 social media ad image.
 
 SCENE:
-A clay briefcase sits open on the ground, overflowing with glowing golden
-coins and bills — clearly valuable, clearly real. The briefcase is warm
-terracotta, the money radiates soft amber light. Behind it, a large gray
-clay bank door with a "CLOSED" sign, imposing and cold. The contrast is
-stark: the wealth is right there, tangible, but the door won't open.
-A small clay house key lies just outside the briefcase, waiting.
+Two clay scales side by side. Left scale: a suited broker figure with dollar
+signs for eyes, weighing down one side while stacks of gold coins weigh down
+the customer side — unbalanced, tilted against the customer. Right scale: a
+friendly advisor figure in casual clothes, perfectly balanced with a small
+house on the other side — fair, equal, harmonious. The left scale is gray
+and cold. The right scale glows with warm amber light.
 
 STYLE:
-Clay/ceramic aesthetic. All elements handcrafted with finger-pressed
-texture, matte finish. Soft directional lighting from the briefcase's
-glow. Color palette: terracotta briefcase, amber money glow, cold gray
-door, teal (#00707F) accents on key. Neo-brutalist framing with 10px
-teal border.
+Clay/ceramic aesthetic. Finger-pressed texture, matte finish. Soft directional
+lighting highlighting the balanced scale. Warm terracotta figures, gray tones
+for the unfair scale, amber glow for the fair one.
+
+COLOR PALETTE:
+- Primary #00707F (teal) for: 10px border
+- Secondary #C3E1E2 (light cyan) for: background gradient
+- Accent #E8846B (coral) for: warm glow on balanced scale
+- Clay base: terracotta figures, gray for unfair scale
+
+Neo-brutalist framing with 10px #00707F border.
 
 COMPOSITION:
-Briefcase front-center, angled open toward viewer. Bank door looms in
-background, upper half of frame. Key in foreground bottom-right.
-Top third has clear space against the gray door for headline.
+Two scales side by side, filling center of frame. Unfair scale left, fair
+scale right. Clear space in top third for headline text.
 
-TEXT OVERLAY:
-Headline: "Your business pays your bills. Why can't it buy you a home?" —
-bold white, top third, against the gray door.
-CTA: "Get the approval you've earned" — teal, bottom-left.
+TEXT RENDERING:
+Render the following text directly in the image:
+
+HEADLINE: "Our brokers don't make more when you pay more."
+- Position: Top third, centered horizontally
+- Style: Bold, condensed sans-serif, high-impact
+- Color: White with strong contrast against light cyan background
+- Size: Large, dominant
+
+CTA: "Talk to someone with nothing to sell you"
+- Position: Bottom-center, above the border
+- Style: Medium-bold, clean sans-serif
+- Color: #00707F (teal)
+- Size: Smaller than headline, clearly legible
+
+Ensure text is sharp, legible, and integrated with the scene.
 
 MOOD:
-Frustration meeting vindication. The value is obvious. The rejection is absurd.
+Honest contrast. The difference is visible. Fairness has a shape.
 
-DO NOT: Make the briefcase look empty or the money look fake. The wealth
-should feel undeniable — that's the whole point.`
+DO NOT:
+- Mannequin figures (give them personality)
+- Both scales looking the same
+- Text too small or illegible
+- Floating objects without shadows`
   },
   {
-    name: "concept_6_renewal_transformation",
+    name: "concept_4_rate_guarantee_symbolic",
     prompt: `Create a 1:1 social media ad image.
 
 SCENE:
-A clay envelope caught mid-metamorphosis. The left side is heavy, gray,
-crumpled — stamped with an urgent red "RENEW NOW" seal, looking like a
-burden. The right side is transforming: the paper lifts and unfolds into
-golden wings, edges curling upward like a butterfly emerging. Where gray
-meets gold, there's a visible gradient — the moment of transformation.
-Soft amber light emanates from the golden side, casting warmth across
-the scene.
+Oversized clay hand entering from bottom-left, palm up, confident, offering.
+In the palm: five crisp $100 bills fanned out, rendered in clay but clearly
+reading as money with visible denominations. The hand is warm terracotta,
+substantial, real. Behind it, soft-focus generic bank buildings receding
+into the background, diminished, less important. The money is the hero —
+tangible, available, yours for the taking. A subtle warm glow surrounds
+the bills.
 
 STYLE:
-Clay/ceramic aesthetic. Heavy finger-pressed texture on the gray burden
-side. Smoother, lighter texture on the golden wing side. Matte finish
-throughout. Cream (#F5F0E8) background. Dramatic but soft lighting from
-right side. 10px coral (#E8846B) border.
+Clay/ceramic aesthetic. Finger-pressed texture on hand and money, but bills
+have enough definition to read as currency. Matte finish. Depth of field:
+sharp foreground, soft background.
+
+COLOR PALETTE:
+- Primary #00707F (teal) for: 10px border, subtle tint on background
+- Secondary #C3E1E2 (light cyan) for: background gradient, receding banks
+- Accent #E8846B (coral) for: warm glow around the money
+- Clay base: terracotta hand, cream/green bills with texture
+
+Neo-brutalist framing with 10px #00707F border.
 
 COMPOSITION:
-Envelope large and centered, filling 60% of frame horizontally.
-Transformation gradient runs left to right — burden to power.
-Wings extend slightly beyond envelope edges on the right.
-Clear space in top third for headline.
+Hand and money fill center-bottom, entering from left. Banks faded in
+upper-right background, small and distant. Top third clear for headline.
 
-TEXT OVERLAY:
-Headline: "That renewal letter? It's not a deadline. It's your leverage." —
-bold white, top third.
-CTA: "See your real options" — coral, bottom-center.
+TEXT RENDERING:
+Render the following text directly in the image:
+
+HEADLINE: "Find a lower rate. Anywhere. We'll pay you $500."
+- Position: Top third, centered horizontally
+- Style: Bold, condensed sans-serif, confident and direct
+- Color: #2D2D2D (charcoal) with strong contrast against light background
+- Size: Large, impactful — the challenge is clear
+
+CTA: "Test us"
+- Position: Bottom-right, above the border
+- Style: Bold sans-serif, punchy
+- Color: #00707F (teal)
+- Size: Medium, confident — short and direct
+
+Ensure text is sharp and bold — this is a challenge, text should match.
 
 MOOD:
-Reframe. Power shift. The thing you feared is actually your weapon.
+Bold confidence. Put your money where your mouth is. We already have.
 
-DO NOT: Make both halves look similar. The contrast between heavy/gray/burden
-and light/gold/freedom must be dramatic and immediate.`
+DO NOT:
+- Money looking fake or cartoonish
+- Hand looking stiff
+- Text rendered weakly or small
+- Losing the bank buildings entirely (they provide context)`
   }
 ];
 
