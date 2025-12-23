@@ -1,5 +1,7 @@
 # Soft Brutalism + Clay
 
+> **⚠️ DEPRECATED:** This workflow has been replaced by `anderson-clay-diorama.md` which provides enhanced visual direction with theatrical lighting, camera grammar, composition systems, and texture hierarchy. Use the new workflow for all new creative generation.
+
 Visual-first ad creatives where tactile clay scenes embody emotional insights. The image stops the scroll; text anchors meaning.
 
 ---

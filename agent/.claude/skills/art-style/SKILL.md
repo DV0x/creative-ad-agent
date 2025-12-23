@@ -26,10 +26,12 @@ Main Agent handles image generation via MCP after this skill completes.
 
 | User Keywords | Workflow |
 |---------------|----------|
-| "clay", "brutalist", "handcrafted", "warm" | `workflows/soft-brutalism-clay.md` |
+| "clay", "diorama", "anderson", "theatrical", "miniature", "handcrafted" | `workflows/anderson-clay-diorama.md` |
 | "surreal", "dreamlike", "scale", "giant" | `workflows/surrealist-scale.md` (future) |
 | "minimal", "clean", "photography", "simple" | `workflows/minimal-photography.md` (future) |
-| (none specified) | `workflows/soft-brutalism-clay.md` **(default)** |
+| (none specified) | `workflows/anderson-clay-diorama.md` **(default)** |
+
+> **Note:** `soft-brutalism-clay.md` is deprecated. Use `anderson-clay-diorama.md` which includes theatrical lighting, camera grammar, composition systems, and texture hierarchy.
 
 ---
 

@@ -1,306 +1,452 @@
 ---
 name: hook-methodology
-description: Generates conversion-focused ad copy through insight-first discovery. Creates 6 unique hook concepts by mining research for emotional truth and unexpected angles. Use when creating Meta ads, conversion campaigns, or scroll-stopping copy.
+description: Generates conversion-focused ad copy through research-first extraction. Creates unique hook concepts by mining EVERY section of the research document. Use when creating Meta ads, conversion campaigns, or scroll-stopping copy.
 ---
 
-# Hook Methodology
+# Research-First Hook Methodology
 
-Insight-first approach to conversion copy. The hook stops the scroll—but only if it enters the conversation already happening in the customer's mind.
+Every hook must be traceable to a specific research element. No invention—only discovery.
 
 ## Core Philosophy
 
 ```
-Insight first. Formula never.
+Research first. Every hook has a SOURCE.
 
-The best hooks don't come from matching data to templates.
-They come from discovering what's never been said about what everyone already feels.
+The best hooks aren't constructed from templates.
+They're extracted from what the brand has already proven, said, or delivered.
 
-Research IS the creative work. If you're not sitting with it until it speaks,
-you're just filling in blanks.
+If you can't point to where it came from in the research,
+it's invention. Invention is weak. Discovery is strong.
 ```
 
 ---
 
-## Phase 1: Immersion
+## The 10 Hook Types
+
+Before extracting, know what you're looking for:
+
+### Attention Hooks (Stop the Scroll)
+
+| Type | Purpose | Example Pattern |
+|------|---------|-----------------|
+| **Question** | Challenge assumption | "What's the biggest mistake you're making?" |
+| **Surprising Stat** | Unexpected number | "90% of banks reject self-employed applicants" |
+| **Pattern Interrupt** | Break expectations | Unexpected statement that contradicts normal |
+| **Controversial** | Challenge belief | Question something everyone accepts |
+| **Direct Address** | Call out situation | "Self-employed? Bank said no?" |
+
+### Desire Hooks (Drive Clicks)
+
+| Type | Purpose | Example Pattern |
+|------|---------|-----------------|
+| **Social Proof** | Credibility through numbers | "16,000+ Canadians switched and saved" |
+| **Problem-Solution** | Name pain, offer relief | Pain statement → Solution hint |
+| **Contrast** | Show gap | "[Bad thing] vs. [Better thing]" |
+| **FOMO/Urgency** | Scarcity, pressure | Limited time, competitive pressure |
+| **Curiosity** | Tease hidden info | "What your bank isn't telling you" |
+
+---
+
+## Step 1: EXTRACT (Read EVERY Section)
 
 Read `agent/files/research/{brand}_research.md`
 
-### First Pass: Absorb
-Read the entire research file without stopping to analyze. Let it wash over you.
-
-### Second Pass: Feel
-Read again, but this time ask yourself:
-
-> "What made me FEEL something?"
-
-Not "what data is useful" — what landed emotionally? What surprised you? What felt unfair? What made you angry on behalf of the customer?
-
-**Mark 5 moments that created an emotional response.**
-
-These are your insight seeds. Everything else is noise.
-
-### Third Pass: Swipe Language
-Go to the ICP section. Extract **5 verbatim phrases** — the actual words customers use.
-
-Not marketing language. Their language.
-
-| Marketing Speak | Their Actual Words |
-|-----------------|-------------------|
-| "Customers seek affordable options" | "I'm wasting so much on rent" |
-| "Users experience confusion" | "I don't even know where to start" |
-| "Prospects face rejection" | "Banks keep rejecting me" |
-
-These phrases ARE your hooks. You just need to find them.
+**You MUST extract from EVERY section. No exceptions.**
 
 ---
 
-## Phase 2: The Messy Middle
+### FROM: The Offer
+Extract:
+- Core promise (what they sell)
+- Key numbers (rates, coverage, speed, capacity)
 
-This is where insight lives. Don't skip it.
-
-### Go Deeper on Each Insight Seed
-
-For each of your 5 marked moments, ask:
-
-**Level 1 — External (what they'd say):**
-> "What's the surface problem here?"
-
-**Level 2 — Internal (the real struggle):**
-> "What does this make them FEEL about themselves?"
-
-**Level 3 — Philosophical (why it matters):**
-> "What do they believe they DESERVE that they're not getting?"
-
+```
 Example:
-```
-External: "I need to find a mortgage rate"
-Internal: "I feel stupid and overwhelmed — like everyone else knows something I don't"
-Philosophical: "I work hard. I deserve a fair shot at owning a home."
+"AI-powered mortgage brokerage, 350+ lenders, rates from 4.19%, 24-48 hour approvals"
 ```
 
-**Most brands only address Level 1. The breakthrough is choosing Level 2 or 3.**
-
-### The Ownership Question
-
-For each insight, ask:
-
-> "Can ONLY this brand say this?"
-
-If a competitor could say the exact same thing, go deeper. Find the angle that's unique to:
-- This brand's specific proof points
-- This brand's specific customer
-- This brand's specific perspective
-
 ---
 
-## Phase 3: Connectivity
-
-Great hooks connect unexpected things. Look for:
-
-### What would make the customer say "finally, someone gets it"?
-The insight that names something they've felt but never heard articulated.
-
-### What's hiding in plain sight?
-The obvious truth about the industry that nobody says out loud.
-
-### What would piss off competitors?
-The angle that exposes what others don't want discussed.
-
-### What's the unexpected frame?
-- If everyone talks about SAVING money, talk about what money MEANS
-- If everyone talks about SPEED, talk about what waiting COSTS emotionally
-- If everyone talks about FEATURES, talk about IDENTITY
-
-### Write Raw Observations
-Not hooks yet. Just observations.
+### FROM: Key Value Props
+Extract:
+- Each differentiator as a potential hook angle
+- What makes them different from competitors
 
 ```
-"The real problem isn't finding a rate — it's feeling like you're going to screw up
-the biggest financial decision of your life."
-
-"Banks make the process confusing on purpose. Confusion benefits them."
-
-"First-time buyers don't just want approval. They want someone to say 'you're not
-crazy, you CAN do this.'"
+Example:
+- AI-Powered Intelligence
+- Rapid Approval (24-48 hours)
+- 350+ institutional + 150+ private lenders
+- 24+ specialized loan products
 ```
 
-These become hooks. But not yet.
+---
+
+### FROM: Proof Points
+Extract:
+- Specific stats (ratings, reviews, credentials)
+- Real deal examples with numbers
+- Certifications, licenses, awards
+
+```
+Example:
+- 4.8/5 rating, 856 reviews
+- FSRA Licensed #M20003023
+- $547.5K purchase closed in 24 hours (Oshawa)
+- $2M construction deal (Vaughan)
+```
 
 ---
 
-## Phase 4: First Drafts (Then Reject Them)
+### FROM: Products/Services ← CRITICAL
 
-### Write 10 Raw Hook Attempts
-Fast. Don't edit. Let them be ugly.
+**Every product is a potential hook for a specific audience.**
 
-### Cross Out the First 5
-They're the obvious ones. Everyone would write these.
+Extract:
+- Every product category
+- Unique or surprising offerings
+- Niche products that solve specific problems
 
-The first thought is rarely the best thought. Ogilvy threw away his first 20 attempts.
+```
+Example:
+RESIDENTIAL:
+- Bank Decline Financing → hook for rejected borrowers
+- 120% LTV Owner-Occupied → surprising high leverage
+- Non-Resident Mortgages → new Canadians hook
+- Rush Closing 24-48 hours → urgency hook
 
-### Push the Remaining 5
-For each survivor, ask:
-- Can I make it more specific? (Add a number, name, or timeframe)
-- Can I make it more emotional? (Go to Level 2 or 3)
-- Can I make it more unexpected? (Flip the frame)
+SPECIALIZED:
+- BRRR Strategy Loans (72-hour funding) → investor hook
+- Fix & Flip Financing → investor hook
+- Power-of-Sale Financing → rescue/urgent hook
+- Bridge Loans → timing gap hook
 
----
-
-## Phase 5: Brand Voice Filter
-
-Read each hook aloud. Does it sound like this brand?
-
-### Check Research for Brand Voice
-The research captured brand voice. Use it.
-
-| Brand Voice | Hook Treatment |
-|-------------|----------------|
-| Playful + Confident | Casual language, subtle wit, conversational rhythm |
-| Premium + Authoritative | Direct statements, no hedging, commanding tone |
-| Warm + Supportive | Empathetic framing, "we" language, reassuring |
-| Technical + Precise | Data-forward, specific metrics, no fluff |
-
-### Inject Customer Language
-Where possible, use the verbatim phrases you swiped. Their words are more powerful than your clever rewrites.
+COMMERCIAL:
+- No Personal Guarantee (up to $1M) → risk-reduction hook
+- CMHC Multi-Family (95% LTV) → leverage hook
+```
 
 ---
 
-## Phase 6: Validation
+### FROM: Pain Points Addressed
+Extract:
+- Each pain point + the brand's solution
+- Verbatim language when available
 
-**These are principles, not formulas. Use them to CHECK your work, not to GENERATE it.**
-
-### Specificity Check
-Does it have at least one of:
-- A specific number from research
-- A specific timeframe
-- A specific customer situation
-- A specific contrast
-
-> "Fast approvals" ❌ → "48-hour approval when banks take 3 weeks" ✓
-
-### Emotional Truth Check
-Does it name a feeling, not just a feature?
-
-> "Compare rates from 350 lenders" ❌ → "Stop guessing. See every option." ✓
-
-### 3-Second Check
-If someone scrolling at full speed sees this for 3 seconds, do they get it?
-
-Read it fast. If you have to re-read, simplify.
-
-### Ownership Check
-Could a competitor use this exact hook by changing the logo?
-
-If yes, it's not done. Find what makes it YOURS.
-
-### Conversation Check
-Does this enter a conversation already happening in their head?
-
-Or does it start a new conversation they don't care about?
+```
+Example:
+- "Slow bank approvals" → 24-48 hour turnaround
+- "Bank rejection" → Bank-decline rescue financing
+- "Self-employed income" → No-income verification options
+```
 
 ---
 
-## Phase 7: Diversity Verification
+### FROM: Testimonials
+Extract:
+- Exact customer quotes (social proof)
+- Specific results mentioned
+- Emotional language used
 
-**Only AFTER you've crafted hooks through insight, check for emotional diversity.**
-
-Map your 6 final hooks. Do they cover different emotional territories?
-
-You don't need to hit specific categories. But you DO need variety:
-
-- Are some hooks about FEAR and some about HOPE?
-- Are some hooks about IDENTITY and some about OUTCOME?
-- Are some hooks provocative and some reassuring?
-
-If they all feel the same emotionally, go back to Phase 3 and find different connections.
+```
+Example:
+- "Got approved in just 2 days with a great rate" — Sarah M.
+- "AI search helped me understand all my options" — John D.
+```
 
 ---
 
-## Phase 8: Write Supporting Copy
+### FROM: Brand Voice
+Extract:
+- Tone to match in hook writing
+- Words/phrases to use or avoid
 
-For each hook, add:
+```
+Example:
+"Confident yet accessible, professional but approachable, results-oriented"
+```
 
-**Body:** 1-2 sentences that:
-- Expand the emotional truth (don't just repeat the hook)
-- Add proof or specificity
-- Bridge to the CTA
+---
 
-**CTA:** Action + Implied Outcome
+### FROM: Their Messaging
+Extract:
+- Headlines, taglines they already use (starting points)
+- CTAs they use
+- Key phrases they repeat
+
+```
+Example:
+- Headline: "Canada's First Lending Hub"
+- Tagline: "Not Just Rates. Real Loans for Every Property Type."
+- CTAs: "Apply Now", "Start My Deal", "Get started →"
+```
+
+---
+
+### FROM: ICP Segments (EACH segment separately)
+
+For EACH segment extract:
+- WHO they are
+- PAIN POINTS (verbatim language)
+- MOTIVATIONS (immediate + deeper)
+- LANGUAGE they use
+
+```
+Example - Segment 1 (Complex Residential Borrowers):
+WHO: Self-employed, business owners, rejected by banks
+PAIN: "bank doesn't understand my income", "rejected multiple times"
+MOTIVATION: Feel validated, access same opportunities as W-2 employees
+LANGUAGE: "self-employed", "bank said no", "complicated income"
+
+Example - Segment 2 (Real Estate Investors):
+WHO: BRRR, fix-and-flip, portfolio builders
+PAIN: Banks too slow, need creative financing
+MOTIVATION: Build wealth, financial freedom
+LANGUAGE: "BRRR", "fix and flip", "bridge loan", "LTV"
+
+Example - Segment 3 (Underserved Homebuyers):
+WHO: New Canadians, first-time buyers, urgent situations
+PAIN: Don't qualify, feeling excluded
+MOTIVATION: Canadian dream, stability, prove they belong
+LANGUAGE: "new to Canada", "first home", "credit issues"
+```
+
+---
+
+## Extraction Checklist
+
+**STOP. Before writing ANY hooks, verify you have extracted from:**
+
+- [ ] **The Offer** — Core promise, key numbers
+- [ ] **Key Value Props** — ALL differentiators listed
+- [ ] **Proof Points** — ALL stats, ratings, real deals
+- [ ] **Products/Services** — EVERY product category, unique offerings noted
+- [ ] **Pain Points Addressed** — ALL pain + solution pairs
+- [ ] **Testimonials** — ALL customer quotes
+- [ ] **Brand Voice** — Tone noted for calibration
+- [ ] **Their Messaging** — Headlines, taglines, CTAs captured
+- [ ] **ICP Segment 1** — WHO, PAIN, MOTIVATION, LANGUAGE
+- [ ] **ICP Segment 2** — WHO, PAIN, MOTIVATION, LANGUAGE (if exists)
+- [ ] **ICP Segment 3** — WHO, PAIN, MOTIVATION, LANGUAGE (if exists)
+
+**If any checkbox is unchecked, go back and extract from that section.**
+
+---
+
+## Step 2: MATCH (Research Element → Hook Type)
+
+For each extracted element, identify which hook type it best serves:
+
+| Research Element | Best Hook Type | Why |
+|------------------|----------------|-----|
+| "4.8/5, 856 reviews" | Social Proof | Credibility through numbers |
+| "24-48 hours vs. 3-6 weeks" | Contrast | Clear before/after |
+| "bank said no" | Direct Address | Customer's exact words |
+| "$547.5K closed in 24 hours" | Surprising Stat | Specific, unexpected |
+| "350+ lenders" | FOMO/Access | More options than competitors |
+| "AI-powered" | Curiosity | Technology intrigue |
+| "Self-employed rejection" | Problem-Solution | Pain + relief |
+| "Bank Decline Financing" product | Direct Address | Names the situation |
+| "BRRR Strategy Loans" product | Direct Address | Investor terminology |
+
+**Match at least 3-5 research elements to hook types before constructing.**
+
+---
+
+## Step 3: CONSTRUCT (Build Hooks)
+
+For each hook, use this structure:
+
+```
+HOOK TYPE: [Which type from the 10]
+SOURCE: [Which research section + specific element]
+TARGET: [Which ICP segment, or "General"]
+HOOK: [The actual headline — under 10 words ideal]
+WHY IT WORKS: [Psychology — pattern interrupt? self-reference? open loop?]
+```
+
+### Construction Principles
+
+**Benefits over features:**
+- "Get approved in 48 hours" not "Fast processing"
+
+**Direct address ("You"):**
+- Make it personal, use identity markers
+
+**Specificity:**
+- "350+ lenders" not "many options"
+- Exact numbers from Proof Points
+
+**Empathy first:**
+- Acknowledge struggle before offering solution
+
+**Their language:**
+- Use verbatim phrases from ICP sections
+
+**Example Construction:**
+```
+HOOK TYPE: Contrast
+SOURCE: Value Props ("24-48 hour approval") + Pain Points ("banks take 3-6 weeks")
+TARGET: Complex Residential Borrowers
+HOOK: "Banks take weeks. We close in 48 hours."
+WHY IT WORKS: Pattern interrupt (unexpected speed) + Tension (bad vs. good)
+```
+
+---
+
+## Step 4: BODY + CTA
+
+### Body Formula
+
+1. Expand the hook's promise (don't repeat it)
+2. Add ONE proof element not in the hook
+3. Bridge to CTA
+
+**Keep to 1-2 sentences.**
+
+### CTA Formula
+
+**Action Verb + Implied Outcome**
 
 | Weak CTA | Strong CTA |
 |----------|------------|
 | "Learn more" | "See your options" |
 | "Apply now" | "Get your answer" |
 | "Contact us" | "Talk to someone who gets it" |
+| "Get started" | "Find your lender" |
 
 The CTA should feel like the natural next step, not a demand.
 
 ---
 
-## Output
+## Step 5: VARIETY CHECK
+
+Before finalizing, verify diversity:
+
+### Hook Types Used
+- [ ] At least 3 different hook types represented
+- [ ] Not all questions, not all stats
+
+### Research Sections Used
+- [ ] Not all hooks from Pain Points
+- [ ] Proof Points used in at least 1 hook
+- [ ] Products/Services referenced in at least 1 hook
+- [ ] Value Props featured in at least 1 hook
+
+### ICP Segments Covered
+- [ ] If multiple segments exist, hooks address different ones
+- [ ] Not all hooks targeting same persona
+
+### Emotions Triggered
+Cover at least 3 of these territories:
+- [ ] Fear / Protection (what they might lose)
+- [ ] Hope / Aspiration (what becomes possible)
+- [ ] Frustration / Anger (what's unfair)
+- [ ] Relief / Comfort (burden lifted)
+- [ ] Pride / Identity (being seen)
+- [ ] Curiosity / Intrigue (hidden information)
+
+**If variety is lacking, return to Step 2 and find different research elements to match.**
+
+---
+
+## Output Format
 
 Write to: `agent/.claude/skills/hook-methodology/hook-bank/{brand}-{YYYY-MM-DD}.md`
 
 ```markdown
 # [Brand Name] - Hook Bank
-**Date:** [YYYY-MM-DD]
-**Brand:** [brand-slug]
+**Date:** YYYY-MM-DD
+**Hooks Generated:** [number]
 
 ## Brand Colors
-- Primary: [#hex]
-- Secondary: [#hex]
-- Accent: [#hex]
+- Primary: #hex
+- Secondary: #hex
+- Accent: #hex
 
-## ICP Essence
-[2-3 sentences capturing the emotional reality of the customer — not demographics, but what they FEEL]
-
-## Customer Language
-[3-5 verbatim phrases from research — their actual words]
+## Research Elements Used
+[List which sections were mined for each hook]
 
 ---
 
-## Concept 1
-**Insight:** [The underlying truth this hook is built on]
-**Hook:** [The scroll-stopping headline]
-**Body:** [1-2 supporting sentences]
-**CTA:** [Action text]
+## Hook 1
+**Type:** [Hook type from the 10]
+**Source:** [Research section + specific element]
+**Target:** [ICP segment or "General"]
+**Hook:** "[The headline]"
+**Body:** [1-2 sentences]
+**CTA:** [Action + outcome]
+**Psychology:** [Why it stops scroll + drives click]
 
-## Concept 2
-**Insight:** [The underlying truth]
-**Hook:** [Headline]
-**Body:** [Support]
-**CTA:** [Action]
+## Hook 2
+[Same structure]
 
-[Continue for all 6 concepts]
+## Hook 3
+[Same structure]
+
+[Continue for each hook — default 3, or as specified by user]
+
+---
+
+## Variety Verification
+- Hook Types Used: [list]
+- Research Sections Used: [list]
+- ICP Segments Covered: [list]
+- Emotions Triggered: [list]
 ```
 
 ---
 
-## The Hard Rules
+## Hook Volume
 
-### Never Do This
-- Copy the structure of an example you've seen
-- Start with a formula and fill in blanks
-- Use the first hook that comes to mind
-- Write hooks that could work for any brand in the category
-- Ignore the customer's actual language
-- Skip the messy middle
+- **Default:** Generate 3 hooks
+- **User-specified:** Generate the number requested
 
-### Always Do This
-- Sit with research until something makes you FEEL
-- Go deeper than the external problem
-- Reject your first instincts
-- Sound like the brand, not like "marketing"
-- Use their words, not your clever rewrites
-- Ask "can only WE say this?"
+Quality over quantity. Each hook must pass all validation checks.
+
+---
+
+## Validation Checklist (Final Pass)
+
+Before each hook is complete, verify:
+
+1. **Is it TRACEABLE?** — Can you point to the exact research element?
+2. **Is it OWNED?** — Could a competitor use this by changing the logo?
+3. **Is it FELT?** — Does it name an emotion, not just a fact?
+4. **Is it CLEAR?** — 3 seconds or less to understand?
+5. **Is it THEIRS?** — Uses their words, their world?
+
+If any answer is no, revise or replace the hook.
+
+---
+
+## Common Failure Modes
+
+### The Skip Trap
+Skipping Products/Services or Proof Points because they seem "obvious." Every section has hook potential.
+
+### The Generic Trap
+Writing hooks that could work for any competitor. Use specific proof points to make it OWNED.
+
+### The Template Trap
+Starting with a formula and filling in blanks. Start with research elements, then match to types.
+
+### The Pain-Only Trap
+Only using Pain Points section. Testimonials, Products, and Value Props often contain stronger hooks.
+
+### The Invention Trap
+Creating claims that aren't in the research. If you can't cite the source, don't use it.
 
 ---
 
 ## Remember
 
-The goal is not to produce 6 hooks.
+```
+Mine the research. Every hook must be traceable.
 
-The goal is to find 6 truths that only this brand can say,
-in a way that enters the conversation already happening in the customer's mind.
+The goal is not to be clever.
+The goal is to find what the brand has already proven
+and frame it in a way that stops the scroll.
 
-If you're not uncomfortable rejecting your first ideas, you're not pushing hard enough.
+If you can't point to where it came from, start over.
+```
