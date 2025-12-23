@@ -1,251 +1,277 @@
-# Soft Brutalism + Clay
+# Soft Brutalism + 3D Clay
 
-> **⚠️ DEPRECATED:** This workflow has been replaced by `anderson-clay-diorama.md` which provides enhanced visual direction with theatrical lighting, camera grammar, composition systems, and texture hierarchy. Use the new workflow for all new creative generation.
+Bold neo-brutalist borders and typography combined with warm, handcrafted 3D clay elements. The contrast between hard geometric frames and soft organic clay creates visual tension that stops the scroll.
 
-Visual-first ad creatives where tactile clay scenes embody emotional insights. The image stops the scroll; text anchors meaning.
-
----
-
-## Philosophy
-
-The visual IS the hook. Before reading any text, the image makes someone FEEL something. Visual metaphors impact attention, elaboration, pleasure, and liking — the extra effort to decode is rewarded with positive attitudes toward the ad.
-
-Clay's warmth disarms. Brutalism's boldness arrests attention. Together: scroll-stopping authenticity.
+**Prerequisites:** Hook-bank file must exist. Main Agent triggers hook-methodology skill first.
 
 ---
 
 ## Step 1: Load Hook Bank
 
-Read `agent/.claude/skills/hook-methodology/hook-bank/{brand}-{date}.md`
+Read the hook-bank file for brand data.
 
-Extract: **Brand Colors** (hex codes), **ICP Essence**, **6 Concepts** (insight, hook, body, CTA)
+**Location:** `agent/.claude/skills/hook-methodology/hook-bank/`
 
-### Brand Color Mapping
-
-| Color | Visual Element | Purpose |
-|-------|----------------|---------|
-| **Primary** | Border, headline | Brand recognition |
-| **Secondary** | Backgrounds, supporting objects | Visual cohesion |
-| **Accent** | Glowing elements, CTAs | Draw attention, signal hope |
-
-**Always use exact hex values.** Never fall back to defaults when brand colors exist.
+**Process:**
+1. List files matching `{brand}-*.md` in the hook-bank folder
+2. Sort by date (from filename: `{brand}-YYYY-MM-DD.md`)
+3. Read the most recent file (unless user specified a date)
+4. Extract: Brand colors, ICP summary, 6 hook concepts
 
 ---
 
-## Step 2: Translate Insight → Visual
+## Style Overview
 
-Ask: **"What would make someone FEEL this insight before reading any words?"**
+**What it is:** Bold neo-brutalist borders and typography combined with warm, handcrafted 3D clay elements.
 
-| Insight Type | Visual Translation |
-|--------------|-------------------|
-| Hidden truth exposed | Revealing scene — peeling back, spotlight |
-| Emotional frustration | Tension scene — blocked paths, weight, obstacles |
-| Permission/relief | Opening scene — doorways, warmth breaking through |
-| Power shift/reframe | Transformation — before/after mid-change |
-| Challenge/confrontation | Bold symbolic object — the object IS the challenge |
-| Social proof | Quantity scene — multiple figures, stacked evidence |
+**Why it works:**
+- Hard borders = confidence, stability
+- Soft clay = human touch, approachability
+- The contrast creates visual tension that stops the scroll
+- Handmade aesthetic differentiates from stock photo competitors
 
----
 
-## Step 3: Choose Visual Approach
-
-| Approach | When to Use |
-|----------|-------------|
-| **Metaphor Scene** | Insight implies hidden dynamic — environment tells story |
-| **Emotional Moment** | Insight names a feeling — character IS the story |
-| **Symbolic Object** | Insight is punchy/direct — hero object dominates |
-| **Transformation** | Insight reframes reality — metamorphosis in progress |
-
-**Distribution for 6 concepts:** Never use same approach twice in a row. Variety creates test-worthy creative.
-
----
-
-## Step 4: Clay Aesthetic
-
-| Property | Specification |
-|----------|--------------|
-| **Surface** | Finger-pressed, thumbprint marks, organic imperfections |
-| **Finish** | Matte — absorbs light |
-| **Shadows** | Soft, diffused — objects grounded, not floating |
-| **Colors** | Warm terracotta/cream base; brand colors for accents |
-
-Think: Wallace & Gromit meets Wes Anderson. Handmade but directed.
-
----
-
-## Step 5: Human Figures
-
-**Never mannequins. Always characters.**
-
-| Element | Requirement |
-|---------|-------------|
-| **Face** | Expressive eyes, subtle emotion |
-| **Body** | Visible clothing with texture |
-| **Hair** | Styled, with personality |
-| **Posture** | Natural body language showing emotion |
-
-```
-✅ "A young woman in her late 20s, wearing a chunky cardigan. Dark hair
-   pulled back loosely. Holding a glowing house, looking at it with wonder.
-   Rendered in clay with finger-pressed texture but clearly human."
-```
-
----
-
-## Step 6: Brutalist Framing
+## Visual Characteristics
 
 | Element | Specification |
-|---------|--------------|
-| **Border** | 8-12px solid, brand primary color |
-| **Negative Space** | 30-40% minimum for text |
-| **Hierarchy** | Scene (70%) → Headline (20%) → CTA (10%) |
+|---------|---------------|
+| Borders | Thick, intentional (8-12px) in warm colors |
+| Clay texture | Visible finger-pressed impressions, handmade feel |
+| Finish | Matte with subtle highlights catching edges |
+| Edges | Soft, rounded on dimensional elements |
+| Negative space | 40%+ of composition |
+| Shadows | Soft, grounding objects in space |
 
 ---
 
-## Step 7: Write Prompts
+## Default Color Palette
+
+| Role | Color | Hex |
+|------|-------|-----|
+| Primary Warm | Terracotta | #C4755B |
+| Secondary Calm | Sage Green | #87A087 |
+| Neutral Light | Warm Cream | #F5F0E8 |
+| Neutral Dark | Deep Charcoal | #2D2D2D |
+| Accent Energy | Warm Coral | #E8846B |
+
+**Brand Color Integration:** Use brand primary for hero object or border, brand secondary for background. Fall back to defaults for missing colors.
+
+---
+
+## Step 2: Create Visual Concepts
+
+For each hook, identify:
+1. What's the **before** feeling? → Visual tension
+2. What's the **after** feeling? → Visual resolution
+3. What object represents this transformation? → The hero object
+
+### Visual Metaphor Library
+
+| Metaphor | Visual | Emotional Territory |
+|----------|--------|---------------------|
+| **The Key** | Oversized clay key, home-shaped head | Achievement, trust |
+| **The Bridge** | Two platforms connected by bridge | Progress, journey |
+| **The Roots** | House with organic roots beneath | Stability, belonging |
+| **The Door** | Standalone door ajar with warm glow | Possibility, invitation |
+
+**Expand to:** Ladders, compasses, anchors, nests, seeds growing, puzzle pieces, lighthouses, pathways, umbrellas, blueprints coming to life and go beyond these examples.
+
+**The rule:** Match metaphor to the emotional truth of the hook.
+
+---
+
+## Step 3: Apply Design Principles
+
+### 1. Intentional Contrast
+- Soft clay + hard borders
+- Warm terracotta + cool sage
+- Bold headlines + delicate supporting text
+
+### 2. Strategic Negative Space
+- 40%+ of composition should breathe
+- One hero object, not a cluttered scene
+
+### 3. Typography as Architecture
+- Headlines have weight and presence
+- Clear hierarchy: primary → secondary → tertiary
+- Sans-serif for modernity, serif for premium
+
+**Text Rendering (Critical for Nano Banana):**
+- Always specify exact text in quotes: `"YOUR FIRST HOME"`
+- Define font style explicitly: `bold, white, sans-serif font`
+- State position clearly: `at the top`, `bottom-left corner`
+- For multi-line, describe stacking: `stacked vertically`
+- Keep headlines SHORT (2-4 words) for reliable rendering
+
+### 4. Materiality Creates Believability
+- Visible finger-pressed impressions in clay
+- Soft shadows grounding objects in space
+- Matte finishes with subtle light catching edges
+
+### 5. Emotional Truth Over Features
+- Not "Fast pre-approval" → "Confidence when you need it"
+- Not "Low rates" → "More room to breathe"
+
+### 6. Distinctive Signature
+- Consistent color palette
+- Recurring border treatment
+- Same clay materiality
+
+---
+
+## Step 4: Write Prompts
 
 ### Prompt Structure
 
 ```
+[FORMAT]
 Create a [1:1/9:16] social media ad image.
 
-SCENE:
-[Cinematic description of visual metaphor — 60% of prompt weight.
-Be specific about what viewer sees, emotional tone, story through objects.]
+[SCENE]
+[Description of the visual metaphor — what the viewer sees, the hero object, the emotional story]
 
-STYLE:
-Clay/ceramic aesthetic. Handcrafted, finger-pressed texture, matte finish.
-Soft directional lighting, gentle shadows grounding objects.
+[MATERIALITY]
+[Clay texture: finger-pressed impressions, matte finish, soft highlights]
+[Surface quality: warm cream background, soft shadows grounding objects]
 
-COLOR PALETTE (from hook-bank):
-- Primary [#HEX] for: border frame, headline text, key brand elements
-- Secondary [#HEX] for: background gradient, supporting elements
-- Accent [#HEX] for: glowing elements, CTA text, focal points
-- Clay base: warm terracotta/cream for figures and objects
+[COMPOSITION]
+[Layout: negative space percentage, hero object position]
+[Framing: thick [Xpx] [color] border — neo-brutalist, intentional]
+[Visual hierarchy: what draws the eye first, second, third]
 
-Neo-brutalist framing with 10px solid [brand primary #HEX] border.
+[TYPOGRAPHY]
+HEADLINE: "[EXACT TEXT IN CAPS]"
+- Font: Bold [weight] [style] sans-serif
+- Color: [hex or description]
+- Position: [top/bottom] [left/center/right], [stacked vertically if multi-line]
+- Size: Large, dominant, architectural presence
 
-COMPOSITION:
-[Element positions. Reserve clear space for text — top or bottom third.]
+SUBTEXT: "[exact supporting text]"
+- Font: [lighter weight], same family
+- Color: [hex or description]
+- Position: Below headline / [specific location]
 
-TYPOGRAPHY (Brutalist-Aligned):
-Text must feel architectural — bold, geometric, intentional. Like signage
-on a concrete building. Not decorative. Not playful. Structural.
+[LIGHTING]
+[Light direction: upper-left, soft diffused, golden hour, etc.]
+[How light catches the clay edges and creates highlights]
 
-HEADLINE: "[EXACT HOOK TEXT]"
-- Position: Top third, centered, with generous padding from border
-- Font: Bold, condensed, geometric sans-serif (like Bebas Neue, Anton, or Impact style)
-- Color: [brand primary #HEX] or white for maximum contrast
-- Size: Large, commanding — fills 60-70% of the text zone width
-- Weight: Extra bold / Black — text should feel solid and heavy
-- Treatment: All caps for impact, tight letter-spacing
+[MOOD]
+[One line — the emotional direction, what it should NOT feel like]
 
-CTA: "[EXACT CTA TEXT]"
-- Position: Bottom third, right-aligned or centered
-- Font: Medium-weight geometric sans-serif, same family feel as headline
-- Color: [brand accent #HEX]
-- Size: 40% of headline size — clearly secondary but readable
-- Treatment: Sentence case or all caps, clean and direct
-
-Text sits ON the composition like brutalist signage — integrated but distinct.
-Not floating. Not decorative. Purposeful.
-
-MOOD:
-[One-line emotional direction]
-
-DO NOT:
-[Specific failures: mannequins, floating objects, illegible text, etc.]
+[TECHNICAL]
+Aspect ratio [1:1 or 9:16], 2K resolution.
 ```
 
----
+**Text Rendering Best Practices:**
+- Headline text MUST be in quotes and ALL CAPS
+- Specify font weight (Bold, Extra Bold, Black)
+- State exact position (top third, bottom-left corner)
+- Keep headlines to 2-4 words for reliable rendering
+- Describe text as "rendered in" or "displayed as" for clarity
 
-## Step 8: Typography & Brand Colors
+### Aspect Ratios
 
-### Brutalist Text = Architectural
+| Ratio | Platform |
+|-------|----------|
+| 1:1 | Meta Feed, Instagram Feed |
+| 9:16 | Instagram Stories, Reels |
 
-| Property | Specification |
-|----------|--------------|
-| **Weight** | Extra Bold / Black — solid, heavy |
-| **Style** | Geometric sans-serif (Bebas Neue, Anton) |
-| **Case** | ALL CAPS headlines |
-| **Position** | Grid-aligned, not floating |
-
-### Brand Color Application (Mandatory)
-
-| Element | Color Source |
-|---------|--------------|
-| **Border** | Brand Primary (`#00707F`) |
-| **Headline** | Brand Primary or white |
-| **CTA** | Brand Accent (`#E8846B`) |
-| **Glow/Focus** | Brand Accent |
-| **Background** | Brand Secondary (`#C3E1E2`) |
-
-**Never use defaults when brand colors exist.**
+**Default mix:** 3 at 1:1, 3 at 9:16
 
 ---
 
-## Example Prompt
+## Example Prompts
 
-**Brand Colors:** Primary #00707F, Secondary #C3E1E2, Accent #E8846B
-**Hook:** "Your bank is betting you won't read this."
-**Insight:** Banks count on your overwhelm. Your paralysis is their profit.
+### Example 1: "The Key Moment" (1:1)
 
 ```
 Create a 1:1 social media ad image.
 
 SCENE:
-Clay figure at crossroads, looking up at towering wall of stacked documents
-blocking the path. Papers gray, imposing, casting shadows. One glowing gap
-in the wall — doorway-sized opening with warm amber-coral light streaming
-through. Figure small but resolute, turned toward the light.
+A single oversized house key made of warm terracotta clay, positioned slightly off-center to the right. The key has satisfying weight and dimensionality. The key head is shaped like a simplified home silhouette — immediately recognizable, emotionally resonant.
 
-STYLE:
-Clay/ceramic aesthetic. Finger-pressed texture, matte finish. Soft overhead
-lighting, gentle shadows grounding objects.
-
-COLOR PALETTE (from hook-bank):
-- Primary #00707F (teal) for: 10px border frame, headline text
-- Secondary #C3E1E2 (light cyan) for: background gradient, sky area
-- Accent #E8846B (coral) for: glowing doorway light, CTA text
-- Clay base: warm terracotta figure, gray/charcoal documents
-
-Neo-brutalist framing with 10px solid #00707F border.
+MATERIALITY:
+Clay texture: visible finger-pressed impressions across the key surface, soft rounded edges, matte finish. Soft highlights catch light from upper-left, giving the clay depth and tactile appeal. The key feels handmade, precious.
 
 COMPOSITION:
-Figure bottom-left. Document wall center-right, towering. Glowing gap
-center-right. Top third has clear #C3E1E2 gradient for headline.
+Layout: 45% negative space on the left, hero key on the right
+Framing: 8px warm coral (#E8846B) border — thick, confident, neo-brutalist
+Background: Soft sage green (#87A087), flat and calm
+Visual hierarchy: Key first, headline second, subtext third
 
-TYPOGRAPHY (Brutalist-Aligned):
-Text feels architectural — like signage on concrete. Bold, geometric, intentional.
+TYPOGRAPHY:
+HEADLINE: "YOUR FIRST HOME"
+- Font: Extra Bold condensed sans-serif
+- Color: Deep charcoal (#2D2D2D)
+- Position: Left side, stacked vertically in the negative space
+- Size: Large, architectural presence
 
-HEADLINE: "YOUR BANK IS BETTING YOU WON'T READ THIS."
-- Position: Top third, centered, generous padding from border
-- Font: Bold, condensed, geometric sans-serif (Bebas Neue / Anton style)
-- Color: #00707F (brand primary) — matches border, creates unity
-- Size: Large, commanding — fills 65% of text zone width
-- Weight: Extra bold, solid, heavy
-- Treatment: ALL CAPS, tight letter-spacing
+SUBTEXT: "starts with the right guide"
+- Font: Medium weight, same sans-serif family
+- Color: Warm coral (#E8846B) matching the border
+- Position: Below headline, left-aligned
 
-CTA: "See what they're hiding"
-- Position: Bottom-center, above border
-- Font: Medium-weight geometric sans-serif
-- Color: #E8846B (brand accent) — draws eye to action
-- Size: 40% of headline size
-- Treatment: Sentence case, clean
-
-Text sits ON the composition like brutalist signage — integrated but distinct.
+LIGHTING:
+Soft diffused light from upper-left. Gentle highlights on clay edges. Soft shadow beneath the key grounding it in space.
 
 MOOD:
-Confrontational but hopeful. There IS a way through.
+Warm confidence — not corporate, not salesy. Like a trusted friend handing you something valuable.
 
-DO NOT:
-- Mannequin figures
-- Floating objects without shadows
-- Decorative or script fonts
-- Text smaller than readable
-- Generic colors instead of brand palette
-- Text floating randomly (must be grid-aligned)
+Aspect ratio 1:1, 2K resolution.
 ```
+
+### Example 2: "The Bridge" (1:1)
+
+```
+Create a 1:1 social media ad image.
+
+SCENE:
+A miniature 3D clay diorama showing two platforms connected by a bridge. Left platform: a small building in muted gray clay ("where you are"). Right platform: a larger building in warm terracotta ("where you're going"). Between them, a solid bridge in sage green clay. The scene tells a story of growth and progress.
+
+MATERIALITY:
+Clay texture: subtle fingerprint impressions on all surfaces, soft rounded edges, matte finish with gentle highlights. Each building has handmade charm — slightly imperfect, clearly crafted with care.
+
+COMPOSITION:
+Layout: Scene centered, 30% negative space above for headline
+Framing: 10px black (#2D2D2D) border — neo-brutalist, bold, confident
+Background: Creamy off-white (#F5F0E8) surface beneath the scene
+Camera: Slightly elevated 3/4 angle, looking down at the diorama
+Visual hierarchy: Bridge connection first, buildings second, text third
+
+TYPOGRAPHY:
+HEADLINE: "GROW INTO YOUR NEXT SPACE"
+- Font: Bold architectural sans-serif
+- Color: Deep charcoal (#2D2D2D)
+- Position: Top of frame, centered
+- Size: Dominant, commanding
+
+SUBTEXT: "Commercial financing, simplified"
+- Font: Light weight, same family
+- Color: Warm terracotta (#C4755B)
+- Position: Below headline, centered
+
+LIGHTING:
+Soft golden hour light from upper-right. Warm highlights on the terracotta building. The bridge catches light, drawing the eye to the connection.
+
+MOOD:
+Momentum and possibility — not intimidating financial jargon. Progress feels achievable.
+
+Aspect ratio 1:1, 2K resolution.
+```
+
+---
+
+## Anti-Patterns (Never Do)
+
+- Stock photo concepts (handshake, happy family)
+- Obvious metaphors without twist
+- Cluttered compositions (multiple hero objects)
+- Generic clay (no fingerprint texture)
+- Typography as afterthought
+- Corporate cold aesthetic
+- Aggressive urgency ("ACT NOW")
+- Clay that looks like plastic
+- Borders under 6px
 
 ---
 
@@ -257,47 +283,52 @@ Write to: `agent/files/creatives/{brand}_prompts.json`
 {
   "brand": "brandname",
   "style": "soft-brutalism-clay",
-  "brandColors": { "primary": "#HEX", "secondary": "#HEX", "accent": "#HEX" },
+  "brandColors": {
+    "primary": "#HEX",
+    "secondary": "#HEX",
+    "accent": "#HEX"
+  },
   "concepts": [{
     "concept": 1,
-    "hookType": "stat-data|story-result|fomo-urgency|curiosity|call-out|contrast-enemy",
-    "insight": "...", "hook": "...", "body": "...", "cta": "...",
-    "visualApproach": "metaphor-scene|emotional-moment|symbolic-object|transformation",
-    "prompt": "Full prompt...",
-    "aspectRatio": "1:1", "size": "2K"
+    "story": {
+      "hookType": "Direct-Address|Contrast|Question|etc",
+      "hookSource": "Research section + element",
+      "hookTarget": "ICP segment or General",
+      "visualMetaphor": "key|bridge|door|roots|etc",
+      "psychology": "Why the hook works",
+      "hook": "The headline text",
+      "body": "Supporting copy",
+      "cta": "Call to action text"
+    },
+    "stage": {
+      "heroObject": "Description of the main clay element",
+      "background": "Color and treatment",
+      "border": "Xpx color style",
+      "negativeSpace": "percentage and position"
+    },
+    "prompt": "Full prompt text...",
+    "aspectRatio": "1:1",
+    "size": "2K"
   }]
 }
 ```
 
----
-
-## Quality Checklist
-
-- [ ] **Brand colors** from hook-bank with exact hex values (no defaults)
-- [ ] **Border** uses brand primary hex
-- [ ] **Headline** uses brand primary or white (high contrast)
-- [ ] **CTA** uses brand accent hex
-- [ ] **Glow/focal elements** use brand accent
-- [ ] Scene embodies INSIGHT (not just illustrates hook)
-- [ ] Clay texture specified (finger-pressed, matte)
-- [ ] Human figures have faces, expression, clothing
-- [ ] TYPOGRAPHY section with brutalist specs (bold, geometric, ALL CAPS)
-- [ ] Text feels architectural — like signage, not decoration
-- [ ] DO NOT includes: decorative fonts, generic colors, floating text
+**Aspect Ratio Mix:** Default 6 at 1:1 (or as specified)
 
 ---
 
-## Anti-Patterns
+## Input Compatibility
 
-| Never | Instead |
-|-------|---------|
-| Mannequin figures | Characters with faces, expression, clothing |
-| Default/generic colors | Brand hex codes from hook-bank (primary, secondary, accent) |
-| Decorative/script fonts | Bold, geometric sans-serif (Bebas Neue, Anton style) |
-| Lowercase headlines | ALL CAPS — brutalist, commanding |
-| Thin/light font weights | Extra Bold / Black — solid, heavy |
-| Text floating randomly | Grid-aligned, architectural positioning |
-| Generic white/black text | Brand primary for headline, brand accent for CTA |
-| Missing TYPOGRAPHY section | Full brutalist text specs in every prompt |
+Reads hook-bank in the new Research-First format:
+- **Type** (hook type)
+- **Source** (research section + element)
+- **Target** (ICP segment)
+- **Hook** (headline)
+- **Body + CTA**
+- **Psychology** (why it works — use for visual metaphor selection)
 
-**v2.1** | December 2025
+---
+
+## Done
+
+After writing prompts.json, this skill is complete. Main Agent handles image generation via MCP.

@@ -27,11 +27,17 @@ Main Agent handles image generation via MCP after this skill completes.
 | User Keywords | Workflow |
 |---------------|----------|
 | "clay", "diorama", "anderson", "theatrical", "miniature", "handcrafted" | `workflows/anderson-clay-diorama.md` |
+| "brutalism", "soft brutalism", "neo-brutalist", "bold borders" | `workflows/soft-brutalism-clay.md` |
 | "surreal", "dreamlike", "scale", "giant" | `workflows/surrealist-scale.md` (future) |
 | "minimal", "clean", "photography", "simple" | `workflows/minimal-photography.md` (future) |
 | (none specified) | `workflows/anderson-clay-diorama.md` **(default)** |
 
-> **Note:** `soft-brutalism-clay.md` is deprecated. Use `anderson-clay-diorama.md` which includes theatrical lighting, camera grammar, composition systems, and texture hierarchy.
+### Style Comparison
+
+| Style | Best For | Visual Signature |
+|-------|----------|------------------|
+| **Anderson Clay Diorama** | Storytelling ads, emotional narratives | Wes Anderson symmetry, theatrical lighting, museum diorama feel |
+| **Soft Brutalism Clay** | Bold brand statements, high-contrast ads | Neo-brutalist borders, single hero object, generous negative space |
 
 ---
 
