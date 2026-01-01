@@ -52,6 +52,9 @@ temp/
 # Private reference files (not for public repo)
 .private/
 
+# Local Claude Code config (personal subagents)
+/.claude/
+
 # Output/debug files
 output.md
 docs/error.md
