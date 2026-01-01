@@ -48,3 +48,19 @@ generated-images/
 tmp/
 temp/
 *.tmp
+
+# Private reference files (not for public repo)
+.private/
+
+# Output/debug files
+output.md
+docs/error.md
+docs/response.md
+
+# Brand-specific data (example data only in repo)
+agent/files/research/*_research.md
+agent/files/creatives/*_prompts.json
+agent/.claude/skills/hook-methodology/hook-bank/*.md
+!agent/files/research/.gitkeep
+!agent/files/creatives/.gitkeep
+!agent/.claude/skills/hook-methodology/hook-bank/.gitkeep
