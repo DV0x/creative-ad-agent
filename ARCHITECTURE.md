@@ -1,8 +1,8 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 6.1
-**Last Updated:** December 2025
-**Status:** Production (Hook-First Conversion Ad Generator with fal.ai Image Generation)
+**Version:** 7.0
+**Last Updated:** January 2026
+**Status:** Production (Hook-First Conversion Ad Generator with fal.ai Image Generation + WebSocket Streaming)
 
 ---
 
@@ -70,6 +70,7 @@ An AI-powered creative advertising agent that generates conversion-focused ads u
 - **1-Agent + 2-Skills Workflow**: Research agent extracts data, skills handle creative
 - **6 Diverse Concepts**: Each concept uses a different emotional trigger
 - **MCP Image Generation**: Nano-banana MCP generates images via fal.ai Nano Banana Pro
+- **WebSocket Real-time Streaming**: Bidirectional communication with cancel/pause/resume
 - **Session Management**: Stateful conversations with forking for A/B testing
 - **Dual Deployment**: Local development server + Cloudflare Workers production
 
@@ -91,16 +92,18 @@ The system supports two deployment targets with identical agent logic but differ
 │  │                             │     │                             │       │
 │  │  Runtime: Node.js + Express │     │  Runtime: Workers + Sandbox │       │
 │  │  Port: 3001                 │     │  Edge: workers.dev          │       │
+│  │  WebSocket: /ws             │     │                             │       │
 │  │                             │     │                             │       │
 │  │  Storage:                   │     │  Storage:                   │       │
 │  │  - Filesystem (JSON)        │     │  - D1 (SQLite)             │       │
 │  │  - sessions/*.json          │     │  - R2 (Object Storage)      │       │
 │  │                             │     │                             │       │
 │  │  Features:                  │     │  Features:                  │       │
-│  │  - Session forking          │     │  - SSE streaming            │       │
-│  │  - Debug endpoints          │     │  - Trace events             │       │
-│  │  - Cost instrumentation     │     │  - Heartbeat keepalive      │       │
-│  │                             │     │  - Container orchestration  │       │
+│  │  - WebSocket streaming      │     │  - SSE streaming            │       │
+│  │  - Cancel/Pause/Resume      │     │  - Trace events             │       │
+│  │  - Session forking          │     │  - Heartbeat keepalive      │       │
+│  │  - Debug endpoints          │     │  - Container orchestration  │       │
+│  │  - Cost instrumentation     │     │                             │       │
 │  └─────────────────────────────┘     └─────────────────────────────┘       │
 │                                                                             │
 │                    Both use same:                                           │
@@ -120,7 +123,8 @@ The system supports two deployment targets with identical agent logic but differ
 | **SDK Version** | 0.1.54 | 0.1.62 |
 | **Storage** | Filesystem | D1 (metadata) + R2 (files) |
 | **Sessions** | JSON files | D1 database |
-| **Streaming** | JSON response | SSE with trace events |
+| **Streaming** | WebSocket (`/ws`) | SSE with trace events |
+| **Bidirectional** | Yes (cancel/pause/resume) | No (SSE is unidirectional) |
 | **Images** | `generated-images/` | R2 bucket |
 
 ### File Path Mapping
@@ -139,19 +143,24 @@ The system supports two deployment targets with identical agent logic but differ
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                              CLIENT REQUEST                                  │
-│                         POST /generate { prompt }                           │
+│                   WebSocket /ws → { type: "generate", prompt }              │
 └─────────────────────────────────────┬───────────────────────────────────────┘
                                       │
                                       v
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │                         EXPRESS SERVER (sdk-server.ts)                       │
-│                               Port: 3001                                     │
+│                     HTTP: Port 3001  |  WebSocket: /ws                      │
 │  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  Endpoints:                                                             │ │
+│  │  WebSocket Messages (Client → Server):                                  │ │
+│  │  generate    - Start generation { prompt, sessionId? }                  │ │
+│  │  cancel      - Abort current generation                                 │ │
+│  │  pause       - Pause streaming                                          │ │
+│  │  resume      - Resume streaming                                         │ │
+│  │  ping        - Keep-alive                                               │ │
+│  │                                                                         │ │
+│  │  REST Endpoints (fallback):                                             │ │
 │  │  POST /generate           - Campaign generation                         │ │
 │  │  GET  /sessions           - List sessions                               │ │
-│  │  POST /sessions/:id/continue - Resume session                           │ │
-│  │  POST /sessions/:id/fork     - Branch session (A/B testing)             │ │
 │  │  GET  /images/:sessionId/:filename - Serve generated images             │ │
 │  └────────────────────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────┬───────────────────────────────────────┘
@@ -421,13 +430,50 @@ The system supports two deployment targets with identical agent logic but differ
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
 │  │  sdk-server.ts                                          (~920 lines) │  │
 │  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  Express HTTP server - main entry point                              │  │
+│  │  Express HTTP + WebSocket server - main entry point                  │  │
 │  │                                                                      │  │
 │  │  Responsibilities:                                                   │  │
 │  │  - HTTP endpoint handling (/generate, /sessions, /images)           │  │
+│  │  - WebSocket server initialization on /ws path                       │  │
 │  │  - Request validation and routing                                    │  │
 │  │  - Response formatting with instrumentation                          │  │
 │  │  - Image serving for generated ads                                   │  │
+│  └──────────────────────────────────────────────────────────────────────┘  │
+│                                                                             │
+│  ┌──────────────────────────────────────────────────────────────────────┐  │
+│  │  lib/websocket-handler.ts                               (~420 lines) │  │
+│  │  ────────────────────────────────────────────────────────────────────│  │
+│  │  WebSocket server for real-time bidirectional streaming              │  │
+│  │                                                                      │  │
+│  │  Features:                                                           │  │
+│  │  - Connection management with state tracking                         │  │
+│  │  - AbortController for generation cancellation                       │  │
+│  │  - Message buffering for pause/resume                                │  │
+│  │  - 30-second heartbeat keep-alive                                    │  │
+│  │  - SDK message → WebSocket event conversion                          │  │
+│  │                                                                      │  │
+│  │  Client → Server Messages:                                           │  │
+│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
+│  │  │  generate  - Start generation { prompt, sessionId? }           │ │  │
+│  │  │  cancel    - Abort current generation                          │ │  │
+│  │  │  pause     - Pause streaming (buffer messages)                 │ │  │
+│  │  │  resume    - Resume streaming (flush buffer)                   │ │  │
+│  │  │  ping      - Keep-alive heartbeat                              │ │  │
+│  │  └────────────────────────────────────────────────────────────────┘ │  │
+│  │                                                                      │  │
+│  │  Server → Client Messages:                                           │  │
+│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
+│  │  │  phase      - Workflow phase change                            │ │  │
+│  │  │  tool_start - Tool invocation started                          │ │  │
+│  │  │  tool_end   - Tool completed                                   │ │  │
+│  │  │  message    - Assistant text output                            │ │  │
+│  │  │  status     - General status update                            │ │  │
+│  │  │  image      - Generated image ready                            │ │  │
+│  │  │  complete   - Generation finished                              │ │  │
+│  │  │  error      - Error occurred                                   │ │  │
+│  │  │  ack        - Message acknowledgment                           │ │  │
+│  │  │  pong       - Heartbeat response                               │ │  │
+│  │  └────────────────────────────────────────────────────────────────┘ │  │
 │  └──────────────────────────────────────────────────────────────────────┘  │
 │                                                                             │
 │  ┌──────────────────────────────────────────────────────────────────────┐  │
@@ -883,8 +929,9 @@ creative_agent/
 │           └── {brand}_prompts.json         # Visual prompts
 │
 ├── server/                                  # LOCAL: Express development server
-│   ├── sdk-server.ts                        # Main server (~920 lines)
+│   ├── sdk-server.ts                        # Main server + WebSocket init (~920 lines)
 │   ├── lib/
+│   │   ├── websocket-handler.ts             # WebSocket server (~420 lines) [NEW]
 │   │   ├── ai-client.ts                     # SDK wrapper (~490 lines)
 │   │   ├── orchestrator-prompt.ts           # System prompt (local paths)
 │   │   ├── session-manager.ts               # Sessions (~340 lines)
@@ -920,20 +967,23 @@ creative_agent/
 │   ├── src/
 │   │   ├── App.tsx                          # Main app component
 │   │   ├── components/                      # UI components
-│   │   │   ├── PromptInput.tsx              # Input form
+│   │   │   ├── PromptInput.tsx              # Input form + cancel button
 │   │   │   ├── ProgressDots.tsx             # Phase indicators
 │   │   │   ├── Terminal.tsx                 # Log output
 │   │   │   ├── ImageGrid.tsx                # Image gallery
 │   │   │   ├── ImageCard.tsx                # Individual image
 │   │   │   └── ImageLightbox.tsx            # Full-screen view
 │   │   ├── hooks/
-│   │   │   └── useGenerate.ts               # SSE hook
+│   │   │   └── useWebSocket.ts              # WebSocket hook (cancel/pause/resume)
+│   │   ├── types/
+│   │   │   ├── index.ts                     # Shared types
+│   │   │   └── websocket.ts                 # WebSocket message types
 │   │   ├── store/
 │   │   │   └── index.ts                     # Zustand state
 │   │   └── api/
-│   │       └── client.ts                    # API client
+│   │       └── config.ts                    # API configuration
 │   ├── package.json
-│   └── vite.config.ts
+│   └── vite.config.ts                       # Includes WebSocket proxy
 │
 ├── docs/                                    # Documentation
 │   ├── CREATIVE-AGENT-CF-REFERENCE.md       # CF quick reference
@@ -961,9 +1011,18 @@ creative_agent/
 │                            API ENDPOINTS                                     │
 ├─────────────────────────────────────────────────────────────────────────────┤
 │                                                                             │
-│  CORE ENDPOINTS                                                             │
+│  WEBSOCKET (PRIMARY - Real-time Streaming)                                  │
 │  ─────────────────────────────────────────────────────────────────────────  │
-│  POST /generate              Main campaign generation                        │
+│  WS   /ws                    Bidirectional WebSocket connection             │
+│       → generate             Start generation { prompt, sessionId? }        │
+│       → cancel               Abort current generation                       │
+│       → pause                Pause streaming                                │
+│       → resume               Resume streaming                               │
+│       → ping                 Keep-alive                                     │
+│                                                                             │
+│  REST ENDPOINTS (Fallback)                                                  │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│  POST /generate              Campaign generation (non-streaming)            │
 │  GET  /health                Health check with config status                 │
 │                                                                             │
 │  SESSION ENDPOINTS                                                          │
@@ -982,7 +1041,60 @@ creative_agent/
 └─────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### POST /generate - Main Endpoint
+### WebSocket /ws - Primary Interface (NEW)
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  WebSocket /ws                                                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  CONNECTION:                                                                │
+│  ws://localhost:3001/ws (dev)                                               │
+│  wss://your-domain.com/ws (production)                                      │
+│                                                                             │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  CLIENT → SERVER MESSAGES:                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  {                                                                   │   │
+│  │    "type": "generate",                                               │   │
+│  │    "prompt": "Create ads for https://example.com",                   │   │
+│  │    "sessionId": "optional-session-id"                                │   │
+│  │  }                                                                   │   │
+│  │                                                                      │   │
+│  │  { "type": "cancel" }     // Abort current generation               │   │
+│  │  { "type": "pause" }      // Pause streaming                        │   │
+│  │  { "type": "resume" }     // Resume streaming                       │   │
+│  │  { "type": "ping" }       // Keep-alive                             │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  ─────────────────────────────────────────────────────────────────────────  │
+│                                                                             │
+│  SERVER → CLIENT MESSAGES:                                                  │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │  { "type": "ack", "message": "Connected to Creative Machine" }      │   │
+│  │  { "type": "phase", "phase": "research", "label": "Researching" }   │   │
+│  │  { "type": "tool_start", "tool": "WebFetch", "toolId": "..." }      │   │
+│  │  { "type": "tool_end", "toolId": "...", "success": true }           │   │
+│  │  { "type": "message", "text": "Analyzing brand..." }                │   │
+│  │  { "type": "image", "id": "...", "urlPath": "/images/...",          │   │
+│  │          "prompt": "...", "filename": "image.png" }                 │   │
+│  │  { "type": "complete", "sessionId": "...", "duration": 120000,      │   │
+│  │          "imageCount": 6, "message": "Complete in 120s" }           │   │
+│  │  { "type": "error", "error": "Error message" }                      │   │
+│  │  { "type": "pong" }       // Heartbeat response                     │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                             │
+│  FEATURES:                                                                  │
+│  - Auto-reconnect (max 5 attempts, exponential backoff)                    │
+│  - 30-second heartbeat keep-alive                                          │
+│  - Message buffering during pause                                          │
+│  - Graceful cancellation via AbortController                               │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### POST /generate - REST Endpoint (Fallback)
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -1090,7 +1202,10 @@ creative_agent/
 │                                                                             │
 │  FEATURES:                                                                  │
 │  ─────────────────────────────────────────────────────────────────────────  │
-│  - Real-time SSE streaming with phase indicators                            │
+│  - Real-time WebSocket streaming with phase indicators                      │
+│  - Cancel generation mid-stream                                             │
+│  - Connection status indicator (green/amber/red)                            │
+│  - Auto-reconnect on disconnect (max 5 attempts)                            │
 │  - Terminal-style log output for trace events                               │
 │  - Image gallery with lightbox viewer                                       │
 │  - Progress tracking (Parse → Research → Hooks → Art → Images)             │
@@ -1098,14 +1213,15 @@ creative_agent/
 │  DESIGN SYSTEM:                                                             │
 │  ─────────────────────────────────────────────────────────────────────────  │
 │  Theme: "The Machine Room" - industrial control panel aesthetic             │
-│  Colors: Dark background, green/amber accents for status                    │
+│  Colors: Dark background, green/amber/red for connection status             │
 │  Typography: Monospace for terminal, sans-serif for UI                      │
 │  See: docs/frontend-design-system.md                                        │
 │                                                                             │
 │  COMPONENT HIERARCHY:                                                       │
 │  ┌────────────────────────────────────────────────────────────────────────┐│
 │  │  App.tsx                                                               ││
-│  │  ├── PromptInput      - URL input and generate button                  ││
+│  │  ├── PromptInput      - URL input, generate + cancel buttons           ││
+│  │  │   └── Connection indicator (WS status: green/amber/red)             ││
 │  │  ├── ProgressDots     - Phase indicators (5 phases)                    ││
 │  │  ├── Terminal         - Scrolling log output                           ││
 │  │  ├── ImageGrid        - Generated images gallery                       ││
@@ -1113,12 +1229,14 @@ creative_agent/
 │  │  └── ImageLightbox    - Full-screen image viewer                       ││
 │  └────────────────────────────────────────────────────────────────────────┘│
 │                                                                             │
-│  SSE INTEGRATION (useGenerate hook):                                        │
+│  WEBSOCKET INTEGRATION (useWebSocket hook):                                 │
 │  ─────────────────────────────────────────────────────────────────────────  │
-│  1. POST /generate → Returns SSE stream                                     │
-│  2. Parse trace events: phase, tool_start, tool_end, image, message        │
-│  3. Update Zustand store with real-time state                               │
-│  4. Display progress and results                                            │
+│  1. Auto-connect to /ws on mount                                            │
+│  2. Send { type: "generate", prompt } to start                              │
+│  3. Receive real-time events: phase, tool_start, image, complete           │
+│  4. Send { type: "cancel" } to abort mid-generation                        │
+│  5. Auto-reconnect on disconnect (exponential backoff)                      │
+│  6. Update Zustand store with real-time state                               │
 │                                                                             │
 │  RUNNING:                                                                   │
 │  ─────────────────────────────────────────────────────────────────────────  │
@@ -1149,6 +1267,7 @@ creative_agent/
 │  @anthropic-ai/claude-agent-sdk    ^0.1.54    Claude SDK for orchestration  │
 │  @fal-ai/client                    ^1.x       fal.ai Image Generation API   │
 │  express                           ^4.18.2    HTTP server                    │
+│  ws                                ^8.x       WebSocket server               │
 │  cors                              ^2.8.5     Cross-origin requests          │
 │  dotenv                            ^16.3.1    Environment variables          │
 │  zod                               ^3.22.4    Runtime type validation        │
@@ -1385,7 +1504,7 @@ creative_agent/
 
 ---
 
-**Version:** 6.1
-**Last Updated:** December 2025
-**Architecture:** 1 Agent + 2 Skills + fal.ai MCP Image Generation
-**Deployments:** Local (Express) + Production (Cloudflare Workers)
+**Version:** 7.0
+**Last Updated:** January 2026
+**Architecture:** 1 Agent + 2 Skills + fal.ai MCP Image Generation + WebSocket Streaming
+**Deployments:** Local (Express + WebSocket) + Production (Cloudflare Workers)
