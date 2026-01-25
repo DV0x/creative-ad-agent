@@ -10,6 +10,47 @@ const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 2000;
 const PING_INTERVAL = 25000;
 
+// Storage keys for session persistence
+const STORAGE_KEYS = {
+  ACTIVE_SESSION: 'creative-agent:activeSession',
+  LAST_EVENT_ID: (sessionId: string) => `creative-agent:lastEventId:${sessionId}`
+};
+
+// Session persistence helpers
+function saveActiveSession(sessionId: string, prompt: string): void {
+  localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify({
+    sessionId,
+    prompt,
+    startedAt: Date.now()
+  }));
+}
+
+function getActiveSession(): { sessionId: string; prompt: string; startedAt: number } | null {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION);
+    return saved ? JSON.parse(saved) : null;
+  } catch {
+    return null;
+  }
+}
+
+function clearActiveSession(): void {
+  const session = getActiveSession();
+  if (session) {
+    localStorage.removeItem(STORAGE_KEYS.LAST_EVENT_ID(session.sessionId));
+  }
+  localStorage.removeItem(STORAGE_KEYS.ACTIVE_SESSION);
+}
+
+function saveLastEventId(sessionId: string, eventId: number): void {
+  localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId), String(eventId));
+}
+
+function getLastEventId(sessionId: string): number {
+  const saved = localStorage.getItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId));
+  return saved ? parseInt(saved, 10) : 0;
+}
+
 export function useWebSocket(): UseWebSocketReturn {
   const {
     prompt,
@@ -26,8 +67,10 @@ export function useWebSocket(): UseWebSocketReturn {
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionIdRef = useRef<string | null>(null);
+  const lastEventIdRef = useRef<number>(0);
 
   const [connectionState, setConnectionState] = useState<WSConnectionState>('disconnected');
+  const [isRecovering, setIsRecovering] = useState(false);
 
   // Send message helper
   const sendMessage = useCallback((message: WSClientMessage) => {
@@ -43,7 +86,18 @@ export function useWebSocket(): UseWebSocketReturn {
     try {
       const message: WSServerMessage = JSON.parse(event.data);
 
+      // Track event ID for recovery (only numeric IDs from event buffer)
+      if (typeof message.id === 'number' && sessionIdRef.current) {
+        lastEventIdRef.current = message.id;
+        saveLastEventId(sessionIdRef.current, message.id);
+      }
+
       switch (message.type) {
+        case 'subscribed':
+          console.log('WebSocket: Subscribed to session, recovery complete');
+          setIsRecovering(false);
+          return;
+
         case 'phase':
           if (message.phase) {
             setPhase(message.phase as Phase);
@@ -104,7 +158,7 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'image':
           if (message.id && message.urlPath) {
             addImage({
-              id: message.id,
+              id: String(message.id),
               url: message.urlPath,
               urlPath: message.urlPath,
               prompt: message.prompt || '',
@@ -119,6 +173,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
         case 'complete':
           setComplete();
+          clearActiveSession();
           addTerminalLine({
             type: 'success',
             text: message.message || 'Generation complete!'
@@ -127,6 +182,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
         case 'error':
           setError(message.error || 'Unknown error');
+          clearActiveSession();
           addTerminalLine({
             type: 'error',
             text: message.error || 'Unknown error'
@@ -175,6 +231,28 @@ export function useWebSocket(): UseWebSocketReturn {
         pingIntervalRef.current = setInterval(() => {
           sendMessage({ type: 'ping' });
         }, PING_INTERVAL);
+
+        // Check for active session to recover
+        const savedSession = getActiveSession();
+        if (savedSession) {
+          console.log(`WebSocket: Recovering session ${savedSession.sessionId}`);
+          setIsRecovering(true);
+          sessionIdRef.current = savedSession.sessionId;
+
+          // Restore generation state in store
+          startGeneration(savedSession.sessionId);
+          addTerminalLine({
+            type: 'command',
+            text: `$ recovering session ${savedSession.sessionId.slice(0, 8)}...`
+          });
+
+          // Subscribe to the existing session
+          ws.send(JSON.stringify({
+            type: 'subscribe',
+            sessionId: savedSession.sessionId,
+            lastEventId: getLastEventId(savedSession.sessionId)
+          }));
+        }
       };
 
       ws.onmessage = handleMessage;
@@ -241,6 +319,11 @@ export function useWebSocket(): UseWebSocketReturn {
 
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
+    lastEventIdRef.current = 0;
+
+    // Persist session for recovery
+    saveActiveSession(sessionId, prompt);
+
     startGeneration(sessionId);
 
     addTerminalLine({
@@ -256,6 +339,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
     if (!sent) {
       setError('WebSocket not connected');
+      clearActiveSession();
       addTerminalLine({
         type: 'error',
         text: 'WebSocket not connected - please refresh'
@@ -266,6 +350,7 @@ export function useWebSocket(): UseWebSocketReturn {
   // Cancel action
   const cancel = useCallback(() => {
     sendMessage({ type: 'cancel' });
+    clearActiveSession();
     addTerminalLine({
       type: 'command',
       text: '$ cancelling...'
@@ -297,6 +382,7 @@ export function useWebSocket(): UseWebSocketReturn {
   return {
     connectionState,
     isConnected: connectionState === 'connected',
+    isRecovering,
     generate,
     cancel,
     pause,

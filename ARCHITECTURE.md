@@ -1,902 +1,360 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 7.0
-**Last Updated:** January 2026
-**Status:** Production (Hook-First Conversion Ad Generator with fal.ai Image Generation + WebSocket Streaming)
+**Version:** 7.1 | **Updated:** January 2026 | **Status:** Production
 
 ---
 
-## Table of Contents
+## Overview
 
-1. [System Overview](#system-overview)
-2. [Deployment Architecture](#deployment-architecture)
-3. [High-Level Architecture](#high-level-architecture)
-4. [Complete Workflow Diagram](#complete-workflow-diagram)
-5. [Component Details](#component-details)
-6. [Agent & Skills System](#agent--skills-system)
-7. [Data Flow](#data-flow)
-8. [File Structure](#file-structure)
-9. [API Endpoints](#api-endpoints)
-10. [Session Management](#session-management)
-11. [React Client](#react-client)
-12. [Technology Stack](#technology-stack)
-13. [Design Decisions](#design-decisions)
-
----
-
-## System Overview
-
-### Purpose
-
-An AI-powered creative advertising agent that generates conversion-focused ads using a **hook-first methodology**. The system analyzes brand websites, extracts factual data, and creates 6 diverse ad concepts with AI-generated images.
-
-### Architecture Pattern
+AI-powered ad generator using **hook-first methodology**: analyzes brand websites, extracts data, creates 6 diverse ad concepts with AI images.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           ORCHESTRATOR (Main Agent)                         │
-│                                                                             │
-│    Coordinates:  1 Agent  +  2 Skills  +  1 MCP Tool                       │
-│                                                                             │
-│    ┌─────────────┐    ┌──────────────────┐    ┌───────────────┐            │
-│    │  research   │ -> │ hook-methodology │ -> │   art-style   │            │
-│    │   (Agent)   │    │     (Skill)      │    │    (Skill)    │            │
-│    └─────────────┘    └──────────────────┘    └───────────────┘            │
-│           │                    │                      │                     │
-│           v                    v                      v                     │
-│    ┌─────────────┐    ┌──────────────────┐    ┌───────────────┐            │
-│    │  research/  │    │   hook-bank/     │    │  creatives/   │            │
-│    │  {brand}.md │    │ {brand}-{date}.md│    │{brand}.json   │            │
-│    └─────────────┘    └──────────────────┘    └───────┬───────┘            │
-│                                                       │                     │
-│                                        ┌──────────────┘                     │
-│                                        v                                    │
-│                              ┌──────────────────┐                          │
-│                              │   nano-banana    │                          │
-│                              │   (MCP Tool)     │                          │
-│                              │  fal.ai API      │                          │
-│                              └────────┬─────────┘                          │
-│                                       v                                     │
-│                              ┌──────────────────┐                          │
-│                              │ generated-images/│                          │
-│                              │  {sessionId}/    │                          │
-│                              └──────────────────┘                          │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      ORCHESTRATOR (Main Agent)                          │
+│   Coordinates: 1 Agent + 2 Skills + 1 MCP Tool                         │
+│                                                                         │
+│   ┌──────────┐    ┌─────────────────┐    ┌────────────┐                │
+│   │ research │ -> │ hook-methodology│ -> │ art-style  │                │
+│   │ (Agent)  │    │    (Skill)      │    │  (Skill)   │                │
+│   └────┬─────┘    └───────┬─────────┘    └─────┬──────┘                │
+│        ↓                  ↓                    ↓                        │
+│   research/          hook-bank/           creatives/                    │
+│   {brand}.md         {brand}-{date}.md    {brand}.json                 │
+│                                                ↓                        │
+│                                    ┌──────────────────┐                │
+│                                    │   nano-banana    │                │
+│                                    │   (MCP Tool)     │                │
+│                                    │   fal.ai API     │                │
+│                                    └────────┬─────────┘                │
+│                                             ↓                          │
+│                                    generated-images/                    │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
 
 ### Key Features
-
-- **Hook-First Ad Generation**: Hooks mined from research data using proven formulas
-- **1-Agent + 2-Skills Workflow**: Research agent extracts data, skills handle creative
-- **6 Diverse Concepts**: Each concept uses a different emotional trigger
-- **MCP Image Generation**: Nano-banana MCP generates images via fal.ai Nano Banana Pro
-- **WebSocket Real-time Streaming**: Bidirectional communication with cancel/pause/resume
-- **Session Management**: Stateful conversations with forking for A/B testing
-- **Dual Deployment**: Local development server + Cloudflare Workers production
-
----
-
-## Deployment Architecture
-
-The system supports two deployment targets with identical agent logic but different infrastructure:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        DEPLOYMENT ARCHITECTURE                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────────────────┐     ┌─────────────────────────────┐       │
-│  │    LOCAL DEVELOPMENT        │     │    CLOUDFLARE PRODUCTION    │       │
-│  │         server/             │     │      creative-agent-cf/     │       │
-│  ├─────────────────────────────┤     ├─────────────────────────────┤       │
-│  │                             │     │                             │       │
-│  │  Runtime: Node.js + Express │     │  Runtime: Workers + Sandbox │       │
-│  │  Port: 3001                 │     │  Edge: workers.dev          │       │
-│  │  WebSocket: /ws             │     │                             │       │
-│  │                             │     │                             │       │
-│  │  Storage:                   │     │  Storage:                   │       │
-│  │  - Filesystem (JSON)        │     │  - D1 (SQLite)             │       │
-│  │  - sessions/*.json          │     │  - R2 (Object Storage)      │       │
-│  │                             │     │                             │       │
-│  │  Features:                  │     │  Features:                  │       │
-│  │  - WebSocket streaming      │     │  - SSE streaming            │       │
-│  │  - Cancel/Pause/Resume      │     │  - Trace events             │       │
-│  │  - Session forking          │     │  - Heartbeat keepalive      │       │
-│  │  - Debug endpoints          │     │  - Container orchestration  │       │
-│  │  - Cost instrumentation     │     │                             │       │
-│  └─────────────────────────────┘     └─────────────────────────────┘       │
-│                                                                             │
-│                    Both use same:                                           │
-│                    - Agent definitions (agent/.claude/)                     │
-│                    - Workflow (research → hooks → art → images)            │
-│                    - MCP tool (nano-banana for fal.ai)                     │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Environment Comparison
-
-| Aspect | Local (`server/`) | Cloudflare (`creative-agent-cf/`) |
-|--------|-------------------|-----------------------------------|
-| **Use Case** | Development, debugging | Production API |
-| **Runtime** | Node.js + Express | Workers + Sandbox containers |
-| **SDK Version** | 0.1.54 | 0.1.62 |
-| **Storage** | Filesystem | D1 (metadata) + R2 (files) |
-| **Sessions** | JSON files | D1 database |
-| **Streaming** | WebSocket (`/ws`) | SSE with trace events |
-| **Bidirectional** | Yes (cancel/pause/resume) | No (SSE is unidirectional) |
-| **Images** | `generated-images/` | R2 bucket |
-
-### File Path Mapping
-
-| File Type | Local Path | Cloudflare Path |
-|-----------|------------|-----------------|
-| Research | `agent/files/research/{brand}_research.md` | `/storage/research/{brand}_research.md` |
-| Hooks | `agent/.claude/skills/hook-methodology/hook-bank/{brand}-{date}.md` | `/storage/hooks/{brand}-{date}.md` |
-| Prompts | `agent/files/creatives/{brand}_prompts.json` | `/storage/creatives/{brand}_prompts.json` |
-| Images | `generated-images/{sessionId}/` | `/storage/images/{sessionId}/` |
+- Hook-first ad generation with 6 diverse emotional triggers
+- Real-time WebSocket streaming with cancel/pause/resume
+- Session recovery after disconnect (40-min buffer)
+- MCP image generation via fal.ai Nano Banana Pro
+- Dual deployment: Local (Express) + Production (Cloudflare Workers)
 
 ---
 
 ## High-Level Architecture
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                              CLIENT REQUEST                                  │
-│                   WebSocket /ws → { type: "generate", prompt }              │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         EXPRESS SERVER (sdk-server.ts)                       │
-│                     HTTP: Port 3001  |  WebSocket: /ws                      │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  WebSocket Messages (Client → Server):                                  │ │
-│  │  generate    - Start generation { prompt, sessionId? }                  │ │
-│  │  cancel      - Abort current generation                                 │ │
-│  │  pause       - Pause streaming                                          │ │
-│  │  resume      - Resume streaming                                         │ │
-│  │  ping        - Keep-alive                                               │ │
-│  │                                                                         │ │
-│  │  REST Endpoints (fallback):                                             │ │
-│  │  POST /generate           - Campaign generation                         │ │
-│  │  GET  /sessions           - List sessions                               │ │
-│  │  GET  /images/:sessionId/:filename - Serve generated images             │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           AIClient (ai-client.ts)                            │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  - queryStream()           Async generator for SDK messages             │ │
-│  │  - queryWithSession()      Session-aware streaming                      │ │
-│  │  - queryWithSessionFork()  Branch from existing session                 │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                      │                                       │
-│     ┌────────────────────────────────┼────────────────────────────────┐     │
-│     │                                │                                │     │
-│     v                                v                                v     │
-│ ┌────────────────┐    ┌───────────────────────┐    ┌────────────────┐      │
-│ │ SessionManager │    │    SDKInstrumentor    │    │   Claude SDK   │      │
-│ │ (session-      │    │   (instrumentor.ts)   │    │    query()     │      │
-│ │  manager.ts)   │    │   Cost/Token Tracking │    │                │      │
-│ └────────────────┘    └───────────────────────┘    └────────────────┘      │
-└─────────────────────────────────────────────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       CLAUDE AGENT SDK ORCHESTRATION                         │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  Model: claude-opus-4-5-20251101                                        │ │
-│  │  Max Turns: 30                                                          │ │
-│  │  CWD: agent/ (loads .claude/agents/ and .claude/skills/)               │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-│                                      │                                       │
-│     ┌────────────────────────────────┼────────────────────────────────┐     │
-│     │                                │                                │     │
-│     v                                v                                v     │
-│ ┌────────────────┐    ┌───────────────────────┐    ┌────────────────┐      │
-│ │  ORCHESTRATOR  │    │        SKILLS         │    │  MCP SERVERS   │      │
-│ │  (main agent)  │    │  ┌─────────────────┐  │    │ ┌────────────┐ │      │
-│ │                │    │  │hook-methodology │  │    │ │nano-banana │ │      │
-│ │ Uses:          │    │  └─────────────────┘  │    │ │(fal.ai     │ │      │
-│ │ - Task         │    │  ┌─────────────────┐  │    │ │ API)       │ │      │
-│ │ - Skill        │    │  │   art-style     │  │    │ └────────────┘ │      │
-│ │ - TodoWrite    │    │  └─────────────────┘  │    └────────────────┘      │
-│ └────────────────┘    └───────────────────────┘                             │
-│         │                                                                    │
-│         │ Task Tool                                                          │
-│         v                                                                    │
-│ ┌────────────────┐                                                          │
-│ │ RESEARCH AGENT │                                                          │
-│ │ (research.md)  │                                                          │
-│ │                │                                                          │
-│ │ Tools:         │                                                          │
-│ │ - WebFetch     │                                                          │
-│ │ - Read         │                                                          │
-│ │ - Write        │                                                          │
-│ └────────────────┘                                                          │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           CLIENT REQUEST                                │
+│                WebSocket /ws → { type: "generate", prompt }             │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    ↓
+┌───────────────────────────────────────────────────────────────────────┐
+│  EXPRESS SERVER (sdk-server.ts)         HTTP: 3001 | WebSocket: /ws   │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │ WebSocket: generate, cancel, pause, resume, ping, subscribe     │  │
+│  │ REST: POST /generate, GET /sessions, GET /images                │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────┬─────────────────────────────────────┘
+                                    ↓
+┌───────────────────────────────────────────────────────────────────────┐
+│  AI CLIENT (ai-client.ts) → CLAUDE SDK ORCHESTRATION                  │
+│  ┌───────────────┐  ┌─────────────────┐  ┌──────────────────────┐    │
+│  │ SessionManager│  │ SDKInstrumentor │  │ Claude SDK query()   │    │
+│  │ (persistence) │  │ (cost tracking) │  │ model: opus-4-5      │    │
+│  └───────────────┘  └─────────────────┘  └──────────────────────┘    │
+│                                    ↓                                  │
+│  ┌─────────────────────────────────────────────────────────────────┐  │
+│  │ ORCHESTRATOR → Task(research) → Skill(hooks) → Skill(art) → MCP │  │
+│  └─────────────────────────────────────────────────────────────────┘  │
+└───────────────────────────────────────────────────────────────────────┘
+```
+
+## Deployment
+
+| Aspect | Local (`server/`) | Cloudflare (`creative-agent-cf/`) |
+|--------|-------------------|-----------------------------------|
+| Runtime | Node.js + Express | Workers + Sandbox containers |
+| Streaming | WebSocket `/ws` | SSE with trace events |
+| Storage | Filesystem JSON | D1 (metadata) + R2 (files) |
+| Bidirectional | Yes (cancel/pause/resume) | No (SSE unidirectional) |
+
+---
+
+## Workflow (6 Steps)
+
+### 1. Parse Request
+Extract URL, brand name, style preference from prompt.
+
+### 2. Research Agent
+```
+Task(subagent_type: "research")
+├── WebFetch homepage
+├── Extract: Offer, Value Props, Proof Points, Brand Colors
+├── Analyze: Target Audience / ICP
+└── Write: files/research/{brand}_research.md
+```
+
+### 3. Hook-Methodology Skill
+```
+Skill("hook-methodology")
+├── Read research file
+├── Build 10+ hooks using formulas
+├── Select 6 diverse hooks (diversity matrix below)
+├── Quality check each hook
+└── Write: hook-bank/{brand}-{date}.md
+```
+
+**Diversity Matrix:**
+| Concept | Hook Type | Emotional Trigger |
+|---------|-----------|-------------------|
+| 1 | Stat/Data | Social Proof |
+| 2 | Story/Result | Empathy + Relief |
+| 3 | FOMO/Urgency | Loss Aversion |
+| 4 | Curiosity | Intrigue |
+| 5 | Call-out | Recognition |
+| 6 | Contrast/Enemy | Differentiation |
+
+### 4. Art-Style Skill
+```
+Skill("art-style")
+├── Read hook-bank file
+├── Route to style workflow (default: soft-brutalism-clay)
+└── Write: files/creatives/{brand}_prompts.json
+```
+
+### 5. MCP Image Generation
+```
+mcp__nano-banana__generate_ad_images({
+  prompts: [prompt1, prompt2, prompt3],  // Batch 1
+  aspectRatio: "1:1", imageSize: "2K"
+})
+→ Repeat for prompts 4-6 (Batch 2)
+→ Output: generated-images/{sessionId}/*.png
+```
+
+### 6. Complete
+Return summary with image URLs and instrumentation data.
+
+### Data Flow Diagram
+
+```
+┌─────────────────┐
+│  RESEARCH AGENT │  WebFetch → Extract → Analyze ICP
+└────────┬────────┘
+         │ writes
+         ↓
+┌─────────────────────────────────────────┐
+│  files/research/{brand}_research.md     │
+│  # Brand - Research Brief               │
+│  ## The Offer, Value Props, Proof Points│
+│  ## Brand Colors (hex), Target ICP      │
+└────────┬────────────────────────────────┘
+         │ reads
+         ↓
+┌─────────────────────┐
+│  HOOK-METHODOLOGY   │  Build 10+ hooks → Select 6 diverse → Quality check
+└────────┬────────────┘
+         │ writes
+         ↓
+┌─────────────────────────────────────────┐
+│  hook-bank/{brand}-{date}.md            │
+│  # Brand - Hook Bank                    │
+│  ## Concept 1-6 (Hook + Body + CTA)     │
+└────────┬────────────────────────────────┘
+         │ reads
+         ↓
+┌─────────────────────┐
+│  ART-STYLE SKILL    │  Route to style → Create visual prompts
+└────────┬────────────┘
+         │ writes
+         ↓
+┌─────────────────────────────────────────┐
+│  files/creatives/{brand}_prompts.json   │
+│  { "brand": "...", "prompts": [...] }   │
+└────────┬────────────────────────────────┘
+         │ reads
+         ↓
+┌─────────────────────┐
+│  ORCHESTRATOR + MCP │  Batch 1 (3 images) → Batch 2 (3 images)
+└────────┬────────────┘
+         │ generates
+         ↓
+┌─────────────────────────────────────────┐
+│  generated-images/{sessionId}/          │
+│  ├── {timestamp}_1_{prompt}.png         │
+│  └── ... (6 total)                      │
+└─────────────────────────────────────────┘
 ```
 
 ---
 
-## Complete Workflow Diagram
+## Server Components
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         COMPLETE WORKFLOW                                    │
-│              "Create ads for https://theratefinder.ca"                       │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 1: ORCHESTRATOR PARSES REQUEST                                        │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │  Extract:                                                               │ │
-│  │  - URL: https://theratefinder.ca (required)                            │ │
-│  │  - Brand: theratefinder                                                 │ │
-│  │  - Style: none specified → default "Soft Brutalism Clay"               │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 2: SPAWN RESEARCH AGENT                                                │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                                                                         │ │
-│  │   Task(subagent_type: "research")                                       │ │
-│  │        │                                                                │ │
-│  │        v                                                                │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │                    RESEARCH AGENT                        │          │ │
-│  │   │                                                          │          │ │
-│  │   │   1. WebFetch homepage                                   │          │ │
-│  │   │   2. Extract: Offer, Value Props, Proof Points           │          │ │
-│  │   │   3. Extract: Brand Colors, Voice, Messaging             │          │ │
-│  │   │   4. Analyze: Target Audience / ICP                      │          │ │
-│  │   │   5. Write: files/research/theratefinder_research.md     │          │ │
-│  │   │                                                          │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  │                              │                                          │ │
-│  │                              v                                          │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │  OUTPUT: files/research/theratefinder_research.md        │          │ │
-│  │   │                                                          │          │ │
-│  │   │  # TheRateFinder - Research Brief                        │          │ │
-│  │   │  ## The Offer                                            │          │ │
-│  │   │  ## Key Value Props                                      │          │ │
-│  │   │  ## Proof Points                                         │          │ │
-│  │   │  ## Brand Colors                                         │          │ │
-│  │   │  ## Target Audience / ICP                                │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 3: TRIGGER HOOK-METHODOLOGY SKILL                                      │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                                                                         │ │
-│  │   Skill("hook-methodology")                                             │ │
-│  │        │                                                                │ │
-│  │        v                                                                │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │              HOOK-METHODOLOGY SKILL                      │          │ │
-│  │   │                                                          │          │ │
-│  │   │   1. Read research file                                  │          │ │
-│  │   │   2. Build Hook Bank (10+ potential hooks)               │          │ │
-│  │   │   3. Select 6 Diverse Hooks (diversity matrix)           │          │ │
-│  │   │   4. Quality Check each hook                             │          │ │
-│  │   │   5. Write Body + CTA for each                           │          │ │
-│  │   │   6. Write: hook-bank/theratefinder-2025-12-06.md        │          │ │
-│  │   │                                                          │          │ │
-│  │   │   DIVERSITY MATRIX:                                      │          │ │
-│  │   │   ┌────────┬─────────────────┬──────────────────┐       │          │ │
-│  │   │   │Concept │ Hook Type       │ Emotional Trigger│       │          │ │
-│  │   │   ├────────┼─────────────────┼──────────────────┤       │          │ │
-│  │   │   │   1    │ Stat/Data       │ Social Proof     │       │          │ │
-│  │   │   │   2    │ Story/Result    │ Empathy + Relief │       │          │ │
-│  │   │   │   3    │ FOMO/Urgency    │ Loss Aversion    │       │          │ │
-│  │   │   │   4    │ Curiosity       │ Intrigue         │       │          │ │
-│  │   │   │   5    │ Call-out        │ Recognition      │       │          │ │
-│  │   │   │   6    │ Contrast/Enemy  │ Differentiation  │       │          │ │
-│  │   │   └────────┴─────────────────┴──────────────────┘       │          │ │
-│  │   │                                                          │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  │                              │                                          │ │
-│  │                              v                                          │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │  OUTPUT: hook-bank/theratefinder-2025-12-06.md           │          │ │
-│  │   │                                                          │          │ │
-│  │   │  # TheRateFinder - Hook Bank                             │          │ │
-│  │   │  ## Brand Colors (from research)                         │          │ │
-│  │   │  ## ICP Summary                                          │          │ │
-│  │   │  ## Concept 1-6 (Hook + Body + CTA each)                │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 4: TRIGGER ART-STYLE SKILL                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                                                                         │ │
-│  │   Skill("art-style")                                                    │ │
-│  │        │                                                                │ │
-│  │        v                                                                │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │                  ART-STYLE SKILL                         │          │ │
-│  │   │                                                          │          │ │
-│  │   │   1. Read hook-bank file                                 │          │ │
-│  │   │   2. Route to style workflow:                            │          │ │
-│  │   │      - "clay"/"brutalist" → Soft Brutalism Clay          │          │ │
-│  │   │      - "surreal"/"dreamlike" → Surrealist Scale          │          │ │
-│  │   │      - "minimal"/"clean" → Minimal Photography           │          │ │
-│  │   │      - (none) → Default: Soft Brutalism Clay             │          │ │
-│  │   │   3. Create visual prompts for each hook                 │          │ │
-│  │   │   4. Write: files/creatives/theratefinder_prompts.json   │          │ │
-│  │   │                                                          │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  │                              │                                          │ │
-│  │                              v                                          │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │  OUTPUT: files/creatives/theratefinder_prompts.json      │          │ │
-│  │   │                                                          │          │ │
-│  │   │  {                                                       │          │ │
-│  │   │    "brand": "theratefinder",                             │          │ │
-│  │   │    "style": "soft-brutalism-clay",                       │          │ │
-│  │   │    "prompts": [                                          │          │ │
-│  │   │      "Prompt 1 for image generation...",                 │          │ │
-│  │   │      "Prompt 2 for image generation...",                 │          │ │
-│  │   │      ...6 total prompts                                  │          │ │
-│  │   │    ]                                                     │          │ │
-│  │   │  }                                                       │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 5: GENERATE IMAGES VIA MCP                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                                                                         │ │
-│  │   Orchestrator reads prompts.json                                       │ │
-│  │        │                                                                │ │
-│  │        v                                                                │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │           NANO-BANANA MCP SERVER                         │          │ │
-│  │   │              (fal.ai Nano Banana Pro)                    │          │ │
-│  │   │                                                          │          │ │
-│  │   │   BATCH 1:                                               │          │ │
-│  │   │   mcp__nano-banana__generate_ad_images({                 │          │ │
-│  │   │     prompts: [prompt1, prompt2, prompt3],                │          │ │
-│  │   │     aspectRatio: "1:1",                                  │          │ │
-│  │   │     imageSize: "2K",                                     │          │ │
-│  │   │     sessionId: "campaign-xxx"                            │          │ │
-│  │   │   })                                                     │          │ │
-│  │   │   → 3 PNG files                                          │          │ │
-│  │   │                                                          │          │ │
-│  │   │   BATCH 2:                                               │          │ │
-│  │   │   mcp__nano-banana__generate_ad_images({                 │          │ │
-│  │   │     prompts: [prompt4, prompt5, prompt6],                │          │ │
-│  │   │     ...                                                  │          │ │
-│  │   │   })                                                     │          │ │
-│  │   │   → 3 PNG files                                          │          │ │
-│  │   │                                                          │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  │                              │                                          │ │
-│  │                              v                                          │ │
-│  │   ┌─────────────────────────────────────────────────────────┐          │ │
-│  │   │  OUTPUT: generated-images/{sessionId}/                   │          │ │
-│  │   │                                                          │          │ │
-│  │   │  ├── 1733500000_1_first_prompt.png                       │          │ │
-│  │   │  ├── 1733500001_2_second_prompt.png                      │          │ │
-│  │   │  ├── 1733500002_3_third_prompt.png                       │          │ │
-│  │   │  ├── 1733500010_4_fourth_prompt.png                      │          │ │
-│  │   │  ├── 1733500011_5_fifth_prompt.png                       │          │ │
-│  │   │  └── 1733500012_6_sixth_prompt.png                       │          │ │
-│  │   └─────────────────────────────────────────────────────────┘          │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────┬───────────────────────────────────────┘
-                                      │
-                                      v
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  STEP 6: REPORT COMPLETION                                                   │
-│  ┌────────────────────────────────────────────────────────────────────────┐ │
-│  │                                                                         │ │
-│  │   Orchestrator returns:                                                 │ │
-│  │   - Summary of 6 ad concepts                                           │ │
-│  │   - Image URLs: http://localhost:3001/images/{sessionId}/              │ │
-│  │   - Instrumentation data (costs, tokens, timing)                       │ │
-│  │                                                                         │ │
-│  └────────────────────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| File | Lines | Purpose |
+|------|-------|---------|
+| `sdk-server.ts` | ~920 | Express server, WebSocket init, REST endpoints |
+| `lib/websocket-handler.ts` | ~480 | WebSocket server, resilience layer |
+| `lib/event-buffer.ts` | ~110 | Event buffering for session recovery |
+| `lib/ai-client.ts` | ~490 | Claude SDK wrapper, session-aware queries |
+| `lib/session-manager.ts` | ~340 | Session lifecycle, persistence, forking |
+| `lib/nano-banana-mcp.ts` | ~300 | MCP server for fal.ai image generation |
+| `lib/orchestrator-prompt.ts` | ~72 | System prompt defining workflow |
+| `lib/instrumentor.ts` | ~150 | Cost/token tracking |
 
 ---
 
-## Component Details
+## WebSocket API (`/ws`)
 
-### Server Components
+### Client → Server Messages
+| Type | Payload | Description |
+|------|---------|-------------|
+| `generate` | `{ prompt, sessionId? }` | Start generation |
+| `cancel` | `{}` | Abort current generation |
+| `pause` | `{}` | Pause streaming (buffer messages) |
+| `resume` | `{}` | Resume streaming (flush buffer) |
+| `ping` | `{}` | Keep-alive heartbeat |
+| `subscribe` | `{ sessionId, lastEventId }` | Reconnect to existing session |
+
+### Server → Client Messages
+All messages include `id` (number) for event tracking.
+
+| Type | Fields | Description |
+|------|--------|-------------|
+| `ack` | `message` | Connection/action acknowledgment |
+| `phase` | `phase, label` | Workflow phase change |
+| `tool_start` | `tool, toolId, input` | Tool invocation started |
+| `tool_end` | `toolId, success` | Tool completed |
+| `message` | `text` | Assistant text output |
+| `image` | `urlPath, prompt, filename` | Generated image ready |
+| `complete` | `sessionId, duration, imageCount` | Generation finished |
+| `error` | `error` | Error occurred |
+| `subscribed` | `sessionId, message` | Recovery confirmation |
+| `pong` | - | Heartbeat response |
+
+### WebSocket Resilience
+
+Generation continues on server when client disconnects. Events are buffered for replay on reconnect.
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           SERVER COMPONENTS                                  │
-│                           server/                                            │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  sdk-server.ts                                          (~920 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  Express HTTP + WebSocket server - main entry point                  │  │
-│  │                                                                      │  │
-│  │  Responsibilities:                                                   │  │
-│  │  - HTTP endpoint handling (/generate, /sessions, /images)           │  │
-│  │  - WebSocket server initialization on /ws path                       │  │
-│  │  - Request validation and routing                                    │  │
-│  │  - Response formatting with instrumentation                          │  │
-│  │  - Image serving for generated ads                                   │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/websocket-handler.ts                               (~420 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  WebSocket server for real-time bidirectional streaming              │  │
-│  │                                                                      │  │
-│  │  Features:                                                           │  │
-│  │  - Connection management with state tracking                         │  │
-│  │  - AbortController for generation cancellation                       │  │
-│  │  - Message buffering for pause/resume                                │  │
-│  │  - 30-second heartbeat keep-alive                                    │  │
-│  │  - SDK message → WebSocket event conversion                          │  │
-│  │                                                                      │  │
-│  │  Client → Server Messages:                                           │  │
-│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
-│  │  │  generate  - Start generation { prompt, sessionId? }           │ │  │
-│  │  │  cancel    - Abort current generation                          │ │  │
-│  │  │  pause     - Pause streaming (buffer messages)                 │ │  │
-│  │  │  resume    - Resume streaming (flush buffer)                   │ │  │
-│  │  │  ping      - Keep-alive heartbeat                              │ │  │
-│  │  └────────────────────────────────────────────────────────────────┘ │  │
-│  │                                                                      │  │
-│  │  Server → Client Messages:                                           │  │
-│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
-│  │  │  phase      - Workflow phase change                            │ │  │
-│  │  │  tool_start - Tool invocation started                          │ │  │
-│  │  │  tool_end   - Tool completed                                   │ │  │
-│  │  │  message    - Assistant text output                            │ │  │
-│  │  │  status     - General status update                            │ │  │
-│  │  │  image      - Generated image ready                            │ │  │
-│  │  │  complete   - Generation finished                              │ │  │
-│  │  │  error      - Error occurred                                   │ │  │
-│  │  │  ack        - Message acknowledgment                           │ │  │
-│  │  │  pong       - Heartbeat response                               │ │  │
-│  │  └────────────────────────────────────────────────────────────────┘ │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/ai-client.ts                                       (~490 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  Claude SDK wrapper with session-aware queries                       │  │
-│  │                                                                      │  │
-│  │  Key Methods:                                                        │  │
-│  │  - queryStream()           → Async generator for SDK messages        │  │
-│  │  - queryWithSession()      → Session-aware streaming                 │  │
-│  │  - queryWithSessionFork()  → Fork for A/B testing                    │  │
-│  │                                                                      │  │
-│  │  SDK Configuration:                                                  │  │
-│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
-│  │  │  cwd: "agent/"                                                 │ │  │
-│  │  │  model: "claude-opus-4-5-20251101"                             │ │  │
-│  │  │  maxTurns: 30                                                  │ │  │
-│  │  │  settingSources: ['user', 'project']                           │ │  │
-│  │  │  allowedTools: [Task, Skill, TodoWrite, WebFetch, Read, ...]   │ │  │
-│  │  │  mcpServers: { "nano-banana": nanoBananaMcpServer }            │ │  │
-│  │  └────────────────────────────────────────────────────────────────┘ │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/session-manager.ts                                 (~340 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  Session lifecycle and persistence                                   │  │
-│  │                                                                      │  │
-│  │  Features:                                                           │  │
-│  │  - Persistence: ./sessions/*.json files                              │  │
-│  │  - Auto-save: Every 10 messages                                      │  │
-│  │  - Cleanup: 24-hour max age                                          │  │
-│  │  - Forking: Create session variants for A/B testing                  │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/nano-banana-mcp.ts                                 (~450 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  MCP server for AI image generation via fal.ai Nano Banana Pro       │  │
-│  │                                                                      │  │
-│  │  Tool: mcp__nano-banana__generate_ad_images                          │  │
-│  │  ┌────────────────────────────────────────────────────────────────┐ │  │
-│  │  │  Parameters:                                                   │ │  │
-│  │  │  - prompts: string[]      (1-3 prompts per call)              │ │  │
-│  │  │  - style: string          (visual style)                       │ │  │
-│  │  │  - aspectRatio: enum      (1:1, 9:16, 16:9, etc.)             │ │  │
-│  │  │  - imageSize: enum        (1K, 2K, 4K)                        │ │  │
-│  │  │  - sessionId: string      (for file organization)             │ │  │
-│  │  │                                                                │ │  │
-│  │  │  Output: PNG files → generated-images/{sessionId}/             │ │  │
-│  │  └────────────────────────────────────────────────────────────────┘ │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/orchestrator-prompt.ts                              (~72 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  System prompt for main agent - defines workflow                     │  │
-│  │                                                                      │  │
-│  │  Workflow:                                                           │  │
-│  │  1. Parse request → Extract URL, brand, style                        │  │
-│  │  2. Spawn research agent → Wait for research file                    │  │
-│  │  3. Trigger hook-methodology skill → Wait for hook-bank              │  │
-│  │  4. Trigger art-style skill → Wait for prompts.json                  │  │
-│  │  5. Call MCP to generate images (2 batches of 3)                     │  │
-│  │  6. Report completion with image URLs                                │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-│  ┌──────────────────────────────────────────────────────────────────────┐  │
-│  │  lib/instrumentor.ts                                    (~150 lines) │  │
-│  │  ────────────────────────────────────────────────────────────────────│  │
-│  │  Real-time instrumentation and metrics tracking                      │  │
-│  │                                                                      │  │
-│  │  Tracks:                                                             │  │
-│  │  - Events: All SDK message types                                     │  │
-│  │  - Tool Calls: Every tool invocation                                 │  │
-│  │  - Agent Calls: Subagent launches via Task                           │  │
-│  │  - Costs: SDK-provided USD costs                                     │  │
-│  │  - Usage: Token counts (input, output, cache)                        │  │
-│  └──────────────────────────────────────────────────────────────────────┘  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                   WEBSOCKET RESILIENCE ARCHITECTURE                     │
+├─────────────────────────────────────────────────────────────────────────┤
+│  CLIENT                              SERVER                             │
+│  ┌──────────────────┐               ┌─────────────────────────────┐    │
+│  │  localStorage    │               │  event-buffer.ts            │    │
+│  │  ┌────────────┐  │               │  ┌───────────────────────┐  │    │
+│  │  │activeSession│  │               │  │ sessionEventBuffers   │  │    │
+│  │  │{ sessionId,│  │               │  │ Map<sessionId,        │  │    │
+│  │  │  prompt }  │  │               │  │   EventBuffer>        │  │    │
+│  │  ├────────────┤  │               │  │                       │  │    │
+│  │  │lastEventId │  │               │  │ { events: [...],      │  │    │
+│  │  │ 42         │  │               │  │   nextId: 43 }        │  │    │
+│  │  └────────────┘  │               │  └───────────────────────┘  │    │
+│  └────────┬─────────┘               └──────────────┬──────────────┘    │
+│           │                                        │                    │
+│  ┌────────▼─────────┐                              │                    │
+│  │ useWebSocket.ts  │◄══════ WebSocket ══════════►│                    │
+│  │ - Track eventId  │                              │                    │
+│  │ - Persist state  │               ┌──────────────▼──────────────┐    │
+│  │ - Auto-subscribe │               │  Generation Runner          │    │
+│  └──────────────────┘               │  (continues on disconnect)  │    │
+│                                     └─────────────────────────────┘    │
+├─────────────────────────────────────────────────────────────────────────┤
+│  RECOVERY FLOW:                                                         │
+│  1. Client disconnects (refresh/tab switch/network)                    │
+│     └── Server: Generation continues, events buffered                  │
+│  2. Client reconnects, reads sessionId + lastEventId from localStorage │
+│  3. Client sends: { type: "subscribe", sessionId, lastEventId: 42 }    │
+│  4. Server replays events 43, 44, 45... → Client UI catches up         │
+│  5. Server sends: { type: "subscribed" } → Normal streaming resumes    │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
+
+**Configuration:**
+- `MAX_EVENTS_PER_SESSION`: 1000 events
+- `MAX_BUFFER_AGE_MS`: 40 minutes
+- Cleanup interval: 5 minutes
+
+| Scenario | Behavior |
+|----------|----------|
+| Page refresh | Auto-recovers from localStorage |
+| Mobile tab switch | Reconnects when tab active |
+| Network blip | Replays missed events |
+| Close & reopen | Recovers if within 40-min window |
+| User cancels | Works even after reconnect |
+| Buffer expired | Graceful error: "Session not found" |
 
 ---
 
-## Agent & Skills System
+## REST API (Fallback)
 
-### Agent Hierarchy
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        AGENT & SKILLS HIERARCHY                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│                    ┌─────────────────────────────┐                          │
-│                    │     ORCHESTRATOR            │                          │
-│                    │     (Main Agent)            │                          │
-│                    │                             │                          │
-│                    │  Tools:                     │                          │
-│                    │  - Task (spawn agents)      │                          │
-│                    │  - Skill (consult skills)   │                          │
-│                    │  - TodoWrite                │                          │
-│                    │  - MCP (nano-banana)        │                          │
-│                    └──────────────┬──────────────┘                          │
-│                                   │                                          │
-│          ┌────────────────────────┼────────────────────────┐                │
-│          │                        │                        │                │
-│          v                        v                        v                │
-│  ┌───────────────┐    ┌───────────────────┐    ┌───────────────┐           │
-│  │   RESEARCH    │    │ HOOK-METHODOLOGY  │    │   ART-STYLE   │           │
-│  │   (Agent)     │    │     (Skill)       │    │    (Skill)    │           │
-│  │               │    │                   │    │               │           │
-│  │ Tools:        │    │ Guidance for:     │    │ Guidance for: │           │
-│  │ - WebFetch    │    │ - Hook formulas   │    │ - Style routing│          │
-│  │ - Read        │    │ - Diversity matrix│    │ - Prompt craft │          │
-│  │ - Write       │    │ - Quality checks  │    │ - Visual themes│          │
-│  └───────┬───────┘    └─────────┬─────────┘    └───────┬───────┘           │
-│          │                      │                      │                    │
-│          v                      v                      v                    │
-│  ┌───────────────┐    ┌───────────────────┐    ┌───────────────┐           │
-│  │ research/     │    │ hook-bank/        │    │ creatives/    │           │
-│  │{brand}_       │ -> │{brand}-{date}.md  │ -> │{brand}_       │           │
-│  │ research.md   │    │                   │    │ prompts.json  │           │
-│  └───────────────┘    └───────────────────┘    └───────────────┘           │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Research Agent Detail
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          RESEARCH AGENT                                      │
-│                    agent/.claude/agents/research.md                          │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  PURPOSE: Extract factual data from homepages + analyze target audience     │
-│                                                                             │
-│  TOOLS: WebFetch, Read, Write                                               │
-│                                                                             │
-│  WORKFLOW:                                                                  │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │                                                                        ││
-│  │   1. EXTRACT BRAND NAME                                                ││
-│  │      URL → Brand name for file naming                                  ││
-│  │      https://theratefinder.ca → theratefinder                          ││
-│  │                                                                        ││
-│  │   2. WEBFETCH HOMEPAGE                                                 ││
-│  │      Fetch with structured extraction prompt                           ││
-│  │                                                                        ││
-│  │   3. EXTRACT STRUCTURED DATA                                           ││
-│  │      ┌────────────────────────────────────────────┐                   ││
-│  │      │ THE OFFER        │ Products, prices, scope │                   ││
-│  │      │ VALUE PROPS      │ Differentiators         │                   ││
-│  │      │ PROOF POINTS     │ Stats, reviews, creds   │                   ││
-│  │      │ PAIN POINTS      │ Problems solved         │                   ││
-│  │      │ TESTIMONIALS     │ Exact quotes            │                   ││
-│  │      │ BRAND COLORS     │ Hex codes               │                   ││
-│  │      │ BRAND VOICE      │ Tone, style             │                   ││
-│  │      │ MESSAGING        │ Headlines, CTAs         │                   ││
-│  │      └────────────────────────────────────────────┘                   ││
-│  │                                                                        ││
-│  │   4. ANALYZE ICP (Target Audience)                                     ││
-│  │      ┌────────────────────────────────────────────┐                   ││
-│  │      │ WHO          │ Demographics + situation    │                   ││
-│  │      │ PAIN POINTS  │ Specific frustrations       │                   ││
-│  │      │ MOTIVATIONS  │ Goals + deeper desires      │                   ││
-│  │      │ LANGUAGE     │ Terms they use              │                   ││
-│  │      └────────────────────────────────────────────┘                   ││
-│  │                                                                        ││
-│  │   5. WRITE TO FILE                                                     ││
-│  │      → files/research/{brand}_research.md (~60-70 lines)              ││
-│  │                                                                        ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-│  RULES:                                                                     │
-│  - Be SPECIFIC: Numbers, names, exact quotes                               │
-│  - Extract brand colors with hex codes                                      │
-│  - ICP analysis is the ONE analysis allowed                                 │
-│  - Don't make recommendations - facts only                                  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Hook-Methodology Skill Detail
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       HOOK-METHODOLOGY SKILL                                 │
-│              agent/.claude/skills/hook-methodology/SKILL.md                  │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  PURPOSE: Generate conversion-focused ad copy using hook-first methodology  │
-│                                                                             │
-│  CORE PRINCIPLE:                                                            │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │                                                                        ││
-│  │   Hook = 80% of ad performance                                         ││
-│  │   Body + CTA = 20%                                                     ││
-│  │                                                                        ││
-│  │   If the hook doesn't stop the scroll, nothing else matters.           ││
-│  │                                                                        ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-│  WORKFLOW:                                                                  │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │                                                                        ││
-│  │   Step 1: READ RESEARCH                                                ││
-│  │           Read files/research/{brand}_research.md                      ││
-│  │           Extract numbers, pain points, testimonials, colors           ││
-│  │                                                                        ││
-│  │   Step 2: BUILD HOOK BANK                                              ││
-│  │           Generate 10+ potential hooks using formulas                  ││
-│  │           See formulas.md for hook formula reference                   ││
-│  │                                                                        ││
-│  │   Step 3: SELECT 6 DIVERSE HOOKS                                       ││
-│  │           ┌────────┬─────────────────┬──────────────────┐             ││
-│  │           │Concept │ Hook Type       │ Emotional Trigger│             ││
-│  │           ├────────┼─────────────────┼──────────────────┤             ││
-│  │           │   1    │ Stat/Data       │ Social Proof     │             ││
-│  │           │   2    │ Story/Result    │ Empathy + Relief │             ││
-│  │           │   3    │ FOMO/Urgency    │ Loss Aversion    │             ││
-│  │           │   4    │ Curiosity       │ Intrigue         │             ││
-│  │           │   5    │ Call-out        │ Recognition      │             ││
-│  │           │   6    │ Contrast/Enemy  │ Differentiation  │             ││
-│  │           └────────┴─────────────────┴──────────────────┘             ││
-│  │                                                                        ││
-│  │   Step 4: QUALITY CHECK                                                ││
-│  │           Each hook must pass:                                         ││
-│  │           [x] Specific? — Has numbers/names from research              ││
-│  │           [x] Emotional? — Triggers a feeling                          ││
-│  │           [x] 3-Second? — Message is instantly clear                   ││
-│  │           [x] Competitor-proof? — Can't be easily copied               ││
-│  │                                                                        ││
-│  │   Step 5: WRITE SUPPORTING COPY                                        ││
-│  │           For each hook: Body (1-2 sentences) + CTA                    ││
-│  │                                                                        ││
-│  │   Step 6: WRITE TO HOOK BANK                                           ││
-│  │           → hook-bank/{brand}-{YYYY-MM-DD}.md                          ││
-│  │                                                                        ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-│  ANTI-PATTERNS (never use):                                                 │
-│  - "Your trusted partner" (generic)                                         │
-│  - "Quality you can count on" (meaningless)                                 │
-│  - Round numbers like "save thousands" (use exact: "$347/mo")              │
-│  - "Learn more" as CTA (weak)                                               │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Art-Style Skill Detail
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          ART-STYLE SKILL                                     │
-│                agent/.claude/skills/art-style/SKILL.md                       │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  PURPOSE: Create visual prompts from hooks for image generation             │
-│                                                                             │
-│  PREREQUISITE: Hook-bank must exist before triggering this skill            │
-│                                                                             │
-│  INPUT/OUTPUT:                                                              │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │                                                                        ││
-│  │   INPUT:  hook-bank/{brand}-{date}.md                                  ││
-│  │           Contains brand colors, ICP, 6 hook concepts                  ││
-│  │                                                                        ││
-│  │   OUTPUT: files/creatives/{brand}_prompts.json                         ││
-│  │           Contains prompts array for MCP image generation              ││
-│  │                                                                        ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-│  STYLE ROUTING:                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │                                                                        ││
-│  │   User Keywords              →  Workflow                               ││
-│  │   ─────────────────────────────────────────────────────────            ││
-│  │   "clay", "brutalist",       →  workflows/soft-brutalism-clay.md       ││
-│  │   "handcrafted", "warm"          (DEFAULT)                             ││
-│  │                                                                        ││
-│  │   "surreal", "dreamlike",    →  workflows/surrealist-scale.md          ││
-│  │   "scale", "giant"               (future)                              ││
-│  │                                                                        ││
-│  │   "minimal", "clean",        →  workflows/minimal-photography.md       ││
-│  │   "photography", "simple"        (future)                              ││
-│  │                                                                        ││
-│  │   (none specified)           →  workflows/soft-brutalism-clay.md       ││
-│  │                                  (DEFAULT)                             ││
-│  │                                                                        ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-│  OUTPUT FORMAT:                                                             │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │   {                                                                    ││
-│  │     "brand": "theratefinder",                                          ││
-│  │     "style": "soft-brutalism-clay",                                    ││
-│  │     "prompts": [                                                       ││
-│  │       "Visual prompt for concept 1...",                                ││
-│  │       "Visual prompt for concept 2...",                                ││
-│  │       "Visual prompt for concept 3...",                                ││
-│  │       "Visual prompt for concept 4...",                                ││
-│  │       "Visual prompt for concept 5...",                                ││
-│  │       "Visual prompt for concept 6..."                                 ││
-│  │     ]                                                                  ││
-│  │   }                                                                    ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Tool Permissions Matrix
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                        TOOL ACCESS MATRIX                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│              │ Task │ Skill │ Todo │ Web  │ Read │ Write │ MCP             │
-│              │      │       │ Write│ Fetch│      │       │ (nano-banana)   │
-│  ────────────┼──────┼───────┼──────┼──────┼──────┼───────┼─────────────────│
-│  Orchestrator│  X   │   X   │  X   │  -   │  X   │   -   │   X             │
-│  ────────────┼──────┼───────┼──────┼──────┼──────┼───────┼─────────────────│
-│  Research    │  -   │   -   │  -   │  X   │  X   │   X   │   -             │
-│  (Agent)     │      │       │      │      │      │       │                 │
-│  ────────────┴──────┴───────┴──────┴──────┴──────┴───────┴─────────────────│
-│                                                                             │
-│  Skills are NOT tools - they provide guidance/context to the orchestrator   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/generate` | POST | Campaign generation (non-streaming) |
+| `/health` | GET | Health check |
+| `/sessions` | GET | List all sessions |
+| `/sessions/:id` | GET | Get session stats |
+| `/sessions/:id/continue` | POST | Resume session |
+| `/sessions/:id/fork` | POST | Create A/B variant |
+| `/images` | GET | List all images by session |
+| `/images/:sessionId/:filename` | GET | Serve image |
 
 ---
 
-## Data Flow
-
-### File-Based Communication
+## Agent & Skills
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                    FILE-BASED AGENT/SKILL COMMUNICATION                      │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  ┌─────────────────┐                                                        │
-│  │  RESEARCH AGENT │                                                        │
-│  │                 │                                                        │
-│  │  WebFetch URL   │                                                        │
-│  │  Extract data   │                                                        │
-│  │  Analyze ICP    │                                                        │
-│  └────────┬────────┘                                                        │
-│           │ writes                                                          │
-│           v                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  files/research/{brand}_research.md                                  │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  # Brand - Research Brief                                            │   │
-│  │  ## The Offer                                                        │   │
-│  │  ## Key Value Props                                                  │   │
-│  │  ## Proof Points                                                     │   │
-│  │  ## Brand Colors (hex codes)                                         │   │
-│  │  ## Target Audience / ICP                                            │   │
-│  └─────────────────────────────────────┬───────────────────────────────┘   │
-│                                        │ reads                              │
-│                                        v                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  HOOK-METHODOLOGY SKILL                                              │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  1. Read research file                                               │   │
-│  │  2. Build 10+ hooks from data                                        │   │
-│  │  3. Select 6 with diversity matrix                                   │   │
-│  │  4. Add Body + CTA for each                                          │   │
-│  └────────┬────────────────────────────────────────────────────────────┘   │
-│           │ writes                                                          │
-│           v                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  hook-bank/{brand}-{date}.md                                         │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  # Brand - Hook Bank                                                 │   │
-│  │  ## Brand Colors                                                     │   │
-│  │  ## ICP Summary                                                      │   │
-│  │  ## Concept 1-6 (Hook + Body + CTA)                                 │   │
-│  └─────────────────────────────────────┬───────────────────────────────┘   │
-│                                        │ reads                              │
-│                                        v                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  ART-STYLE SKILL                                                     │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  1. Read hook-bank file                                              │   │
-│  │  2. Route to style workflow                                          │   │
-│  │  3. Create visual prompt for each hook                               │   │
-│  └────────┬────────────────────────────────────────────────────────────┘   │
-│           │ writes                                                          │
-│           v                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  files/creatives/{brand}_prompts.json                                │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  { "brand": "...", "style": "...", "prompts": [...] }               │   │
-│  └─────────────────────────────────────┬───────────────────────────────┘   │
-│                                        │ reads                              │
-│                                        v                                    │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  ORCHESTRATOR + MCP                                                  │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  1. Read prompts.json                                                │   │
-│  │  2. Call mcp__nano-banana__generate_ad_images (batch 1: 3 images)   │   │
-│  │  3. Call mcp__nano-banana__generate_ad_images (batch 2: 3 images)   │   │
-│  └────────┬────────────────────────────────────────────────────────────┘   │
-│           │ generates                                                       │
-│           v                                                                 │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  generated-images/{sessionId}/                                       │   │
-│  │  ─────────────────────────────────────────────────────────────────── │   │
-│  │  ├── {timestamp}_1_{prompt}.png                                      │   │
-│  │  ├── {timestamp}_2_{prompt}.png                                      │   │
-│  │  ├── {timestamp}_3_{prompt}.png                                      │   │
-│  │  ├── {timestamp}_4_{prompt}.png                                      │   │
-│  │  ├── {timestamp}_5_{prompt}.png                                      │   │
-│  │  └── {timestamp}_6_{prompt}.png                                      │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────────────┐
+│                      AGENT & SKILLS HIERARCHY                           │
+├─────────────────────────────────────────────────────────────────────────┤
+│                  ┌─────────────────────────┐                            │
+│                  │     ORCHESTRATOR        │                            │
+│                  │     (Main Agent)        │                            │
+│                  │  Tools: Task, Skill,    │                            │
+│                  │  TodoWrite, MCP, Read   │                            │
+│                  └───────────┬─────────────┘                            │
+│         ┌────────────────────┼────────────────────┐                     │
+│         ↓                    ↓                    ↓                     │
+│  ┌─────────────┐    ┌───────────────┐    ┌─────────────┐               │
+│  │  RESEARCH   │    │    HOOK-      │    │  ART-STYLE  │               │
+│  │  (Agent)    │    │ METHODOLOGY   │    │   (Skill)   │               │
+│  │             │    │   (Skill)     │    │             │               │
+│  │ Tools:      │    │ Guidance:     │    │ Guidance:   │               │
+│  │ - WebFetch  │    │ - Formulas    │    │ - Style     │               │
+│  │ - Read      │    │ - Diversity   │    │   routing   │               │
+│  │ - Write     │    │ - Quality     │    │ - Prompts   │               │
+│  └──────┬──────┘    └───────┬───────┘    └──────┬──────┘               │
+│         ↓                   ↓                   ↓                       │
+│  research/{brand}.md  hook-bank/{date}.md  prompts.json                │
+└─────────────────────────────────────────────────────────────────────────┘
 ```
+
+### Tool Access Matrix
+| Component | Task | Skill | TodoWrite | WebFetch | Read | Write | MCP |
+|-----------|------|-------|-----------|----------|------|-------|-----|
+| Orchestrator | ✓ | ✓ | ✓ | - | ✓ | - | ✓ |
+| Research Agent | - | - | - | ✓ | ✓ | ✓ | - |
+
+*Skills provide guidance/context, not tool access.*
+
+### Research Agent (`agent/.claude/agents/research.md`)
+- **Purpose:** Extract factual data from homepages + analyze ICP
+- **Tools:** WebFetch, Read, Write
+- **Output:** `files/research/{brand}_research.md`
+- **Rules:** Be specific (numbers, quotes, hex codes), no recommendations
+
+### Hook-Methodology Skill (`agent/.claude/skills/hook-methodology/SKILL.md`)
+- **Purpose:** Generate conversion-focused ad copy
+- **Core principle:** Hook = 80% of ad performance
+- **Output:** `hook-bank/{brand}-{date}.md`
+- **Quality checks:** Specific? Emotional? 3-second clarity? Competitor-proof?
+- **Anti-patterns:** "Your trusted partner", round numbers, "Learn more" CTA
+
+### Art-Style Skill (`agent/.claude/skills/art-style/SKILL.md`)
+- **Purpose:** Create visual prompts for image generation
+- **Input:** hook-bank file
+- **Output:** `files/creatives/{brand}_prompts.json`
+- **Style routing:** clay/brutalist → soft-brutalism-clay (default), surreal → surrealist-scale, minimal → minimal-photography
 
 ---
 
@@ -904,238 +362,44 @@ The system supports two deployment targets with identical agent logic but differ
 
 ```
 creative_agent/
-│
-├── agent/                                   # Agent ecosystem (SOURCE OF TRUTH)
+├── agent/                          # Agent ecosystem (SOURCE OF TRUTH)
 │   ├── .claude/
-│   │   ├── agents/                          # Agent definitions
-│   │   │   └── research.md                  # Data extraction + ICP agent
-│   │   │
-│   │   └── skills/                          # Skill definitions
-│   │       ├── hook-methodology/
-│   │       │   ├── SKILL.md                 # Hook generation skill
-│   │       │   ├── formulas.md              # Hook formula reference
-│   │       │   └── hook-bank/               # Generated hook files (local)
-│   │       │       └── {brand}-{date}.md
-│   │       │
-│   │       └── art-style/
-│   │           ├── SKILL.md                 # Visual prompt skill
+│   │   ├── agents/research.md      # Data extraction agent
+│   │   └── skills/
+│   │       ├── hook-methodology/   # Hook generation skill
+│   │       │   ├── SKILL.md
+│   │       │   ├── formulas.md
+│   │       │   └── hook-bank/      # Generated hooks
+│   │       └── art-style/          # Visual prompt skill
+│   │           ├── SKILL.md
 │   │           └── workflows/
-│   │               └── soft-brutalism-clay.md
-│   │
-│   └── files/                               # Agent working directory (local)
-│       ├── research/
-│       │   └── {brand}_research.md          # Research output
-│       └── creatives/
-│           └── {brand}_prompts.json         # Visual prompts
-│
-├── server/                                  # LOCAL: Express development server
-│   ├── sdk-server.ts                        # Main server + WebSocket init (~920 lines)
+│   └── files/                      # Working directory
+│       ├── research/               # Research output
+│       └── creatives/              # Visual prompts
+├── server/                         # Local dev server
+│   ├── sdk-server.ts
 │   ├── lib/
-│   │   ├── websocket-handler.ts             # WebSocket server (~420 lines) [NEW]
-│   │   ├── ai-client.ts                     # SDK wrapper (~490 lines)
-│   │   ├── orchestrator-prompt.ts           # System prompt (local paths)
-│   │   ├── session-manager.ts               # Sessions (~340 lines)
-│   │   ├── instrumentor.ts                  # Metrics (~150 lines)
-│   │   └── nano-banana-mcp.ts               # Image MCP (~300 lines)
-│   ├── sessions/                            # Session persistence (JSON files)
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── creative-agent-cf/                       # PRODUCTION: Cloudflare Workers
-│   ├── src/                                 # Worker code
-│   │   ├── index.ts                         # Router, CORS, env interface
-│   │   └── handlers/
-│   │       ├── generate.ts                  # POST /generate (SSE streaming)
-│   │       ├── sessions.ts                  # Session management
-│   │       └── images.ts                    # Image serving from R2
-│   │
-│   ├── sandbox/                             # Runs inside container
-│   │   ├── agent-runner.ts                  # SDK orchestration
-│   │   ├── nano-banana-mcp.ts               # Image MCP (R2 paths)
-│   │   ├── orchestrator-prompt.ts           # System prompt (/storage/ paths)
-│   │   └── package.json                     # Container dependencies
-│   │
-│   ├── agent/                               # Copy of agent/ for container
-│   │   └── .claude/                         # (sync from root agent/)
-│   │
-│   ├── wrangler.jsonc                       # Cloudflare config
-│   ├── Dockerfile                           # Sandbox container image
-│   ├── schema.sql                           # D1 database schema
-│   └── package.json
-│
-├── client/                                  # React frontend
+│   │   ├── websocket-handler.ts
+│   │   ├── event-buffer.ts
+│   │   ├── ai-client.ts
+│   │   ├── session-manager.ts
+│   │   ├── nano-banana-mcp.ts
+│   │   ├── orchestrator-prompt.ts
+│   │   └── instrumentor.ts
+│   └── sessions/                   # Session JSON files
+├── creative-agent-cf/              # Cloudflare production
+│   ├── src/                        # Worker code
+│   ├── sandbox/                    # Container code
+│   └── agent/                      # Copy of agent/
+├── client/                         # React frontend
 │   ├── src/
-│   │   ├── App.tsx                          # Main app component
-│   │   ├── components/                      # UI components
-│   │   │   ├── PromptInput.tsx              # Input form + cancel button
-│   │   │   ├── ProgressDots.tsx             # Phase indicators
-│   │   │   ├── Terminal.tsx                 # Log output
-│   │   │   ├── ImageGrid.tsx                # Image gallery
-│   │   │   ├── ImageCard.tsx                # Individual image
-│   │   │   └── ImageLightbox.tsx            # Full-screen view
-│   │   ├── hooks/
-│   │   │   └── useWebSocket.ts              # WebSocket hook (cancel/pause/resume)
-│   │   ├── types/
-│   │   │   ├── index.ts                     # Shared types
-│   │   │   └── websocket.ts                 # WebSocket message types
-│   │   ├── store/
-│   │   │   └── index.ts                     # Zustand state
-│   │   └── api/
-│   │       └── config.ts                    # API configuration
-│   ├── package.json
-│   └── vite.config.ts                       # Includes WebSocket proxy
-│
-├── docs/                                    # Documentation
-│   ├── CREATIVE-AGENT-CF-REFERENCE.md       # CF quick reference
-│   ├── cloudflare-deployment-plan.md        # Deployment guide
-│   ├── cloudflare-agent-blueprint.md        # Reusable patterns
-│   ├── frontend-design-system.md            # UI design guide
-│   └── frontend-implementation-guide.md     # Frontend build guide
-│
-├── generated-images/                        # Image output (local, git-ignored)
-│   └── {sessionId}/
-│       └── {timestamp}_{index}_{prompt}.png
-│
-├── .env                                     # Environment variables
-└── ARCHITECTURE.md                          # This file
-```
-
----
-
-## API Endpoints
-
-### Endpoint Summary
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            API ENDPOINTS                                     │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  WEBSOCKET (PRIMARY - Real-time Streaming)                                  │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  WS   /ws                    Bidirectional WebSocket connection             │
-│       → generate             Start generation { prompt, sessionId? }        │
-│       → cancel               Abort current generation                       │
-│       → pause                Pause streaming                                │
-│       → resume               Resume streaming                               │
-│       → ping                 Keep-alive                                     │
-│                                                                             │
-│  REST ENDPOINTS (Fallback)                                                  │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  POST /generate              Campaign generation (non-streaming)            │
-│  GET  /health                Health check with config status                 │
-│                                                                             │
-│  SESSION ENDPOINTS                                                          │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  GET  /sessions              List all active sessions                        │
-│  GET  /sessions/:id          Get specific session stats                      │
-│  POST /sessions/:id/continue Resume existing session                         │
-│  POST /sessions/:id/fork     Create session variant (A/B testing)           │
-│  GET  /sessions/:id/family   Get session family tree                         │
-│                                                                             │
-│  IMAGE ENDPOINTS                                                            │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  GET  /images                List all generated images by session            │
-│  GET  /images/:sessionId/:filename   Serve specific image                    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### WebSocket /ws - Primary Interface (NEW)
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  WebSocket /ws                                                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  CONNECTION:                                                                │
-│  ws://localhost:3001/ws (dev)                                               │
-│  wss://your-domain.com/ws (production)                                      │
-│                                                                             │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│                                                                             │
-│  CLIENT → SERVER MESSAGES:                                                  │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  {                                                                   │   │
-│  │    "type": "generate",                                               │   │
-│  │    "prompt": "Create ads for https://example.com",                   │   │
-│  │    "sessionId": "optional-session-id"                                │   │
-│  │  }                                                                   │   │
-│  │                                                                      │   │
-│  │  { "type": "cancel" }     // Abort current generation               │   │
-│  │  { "type": "pause" }      // Pause streaming                        │   │
-│  │  { "type": "resume" }     // Resume streaming                       │   │
-│  │  { "type": "ping" }       // Keep-alive                             │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│                                                                             │
-│  SERVER → CLIENT MESSAGES:                                                  │
-│  ┌─────────────────────────────────────────────────────────────────────┐   │
-│  │  { "type": "ack", "message": "Connected to Creative Machine" }      │   │
-│  │  { "type": "phase", "phase": "research", "label": "Researching" }   │   │
-│  │  { "type": "tool_start", "tool": "WebFetch", "toolId": "..." }      │   │
-│  │  { "type": "tool_end", "toolId": "...", "success": true }           │   │
-│  │  { "type": "message", "text": "Analyzing brand..." }                │   │
-│  │  { "type": "image", "id": "...", "urlPath": "/images/...",          │   │
-│  │          "prompt": "...", "filename": "image.png" }                 │   │
-│  │  { "type": "complete", "sessionId": "...", "duration": 120000,      │   │
-│  │          "imageCount": 6, "message": "Complete in 120s" }           │   │
-│  │  { "type": "error", "error": "Error message" }                      │   │
-│  │  { "type": "pong" }       // Heartbeat response                     │   │
-│  └─────────────────────────────────────────────────────────────────────┘   │
-│                                                                             │
-│  FEATURES:                                                                  │
-│  - Auto-reconnect (max 5 attempts, exponential backoff)                    │
-│  - 30-second heartbeat keep-alive                                          │
-│  - Message buffering during pause                                          │
-│  - Graceful cancellation via AbortController                               │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### POST /generate - REST Endpoint (Fallback)
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  POST /generate                                                              │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  REQUEST:                                                                   │
-│  {                                                                          │
-│    "prompt": "Create ads for https://theratefinder.ca targeting renters",  │
-│    "sessionId": "optional-resume-session"                                   │
-│  }                                                                          │
-│                                                                             │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│                                                                             │
-│  RESPONSE:                                                                  │
-│  {                                                                          │
-│    "success": true,                                                         │
-│    "sessionId": "campaign-1733500000000",                                   │
-│    "prompt": "...",                                                         │
-│    "generatedAt": "2025-12-06T...",                                         │
-│    "response": {                                                            │
-│      "summary": "Final assistant message",                                  │
-│      "fullResponse": "All assistant messages",                              │
-│      "structuredData": null                                                 │
-│    },                                                                       │
-│    "sessionStats": {                                                        │
-│      "messageCount": 45,                                                    │
-│      "turnCount": 8                                                         │
-│    },                                                                       │
-│    "instrumentation": {                                                     │
-│      "campaignMetrics": { "totalCost_usd": 0.28, ... },                    │
-│      "timeline": [ ... ]                                                    │
-│    },                                                                       │
-│    "images": {                                                              │
-│      "storageLocation": "generated-images/campaign-xxx/",                   │
-│      "viewUrl": "http://localhost:3001/images/campaign-xxx",                │
-│      "listUrl": "http://localhost:3001/images"                              │
-│    }                                                                        │
-│  }                                                                          │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+│   │   ├── components/             # UI components
+│   │   ├── hooks/useWebSocket.ts   # WebSocket hook
+│   │   ├── store/                  # Zustand state
+│   │   └── types/                  # TypeScript types
+│   └── vite.config.ts
+├── generated-images/               # Image output (git-ignored)
+└── docs/                           # Documentation
 ```
 
 ---
@@ -1143,368 +407,60 @@ creative_agent/
 ## Session Management
 
 ```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                         SESSION LIFECYCLE                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│   1. CREATION                                                               │
-│      POST /generate (no sessionId)                                          │
-│      → sessionManager.getOrCreateSession()                                  │
-│      → new session: campaign-{timestamp}                                    │
-│      → Status: 'active', messages: []                                       │
-│                                                                             │
-│   2. SDK INITIALIZATION                                                     │
-│      → SDK returns: {type: 'system', subtype: 'init', session_id: '...'}   │
-│      → sessionManager.updateSdkSessionId()                                  │
-│                                                                             │
-│   3. MESSAGE ACCUMULATION                                                   │
-│      → Each SDK message → sessionManager.addMessage()                       │
-│      → Auto-save every 10 messages to ./sessions/{id}.json                  │
-│                                                                             │
-│   4. RESUMPTION (optional)                                                  │
-│      POST /sessions/{id}/continue                                           │
-│      → SDK continues with full context                                      │
-│                                                                             │
-│   5. FORKING (optional)                                                     │
-│      POST /sessions/{id}/fork                                               │
-│      → Creates new branch for A/B testing                                   │
-│      → metadata.forkedFrom = original session                               │
-│                                                                             │
-│   6. COMPLETION                                                             │
-│      → sessionManager.completeSession()                                     │
-│      → Status: 'completed', final save                                      │
-│                                                                             │
-│   7. CLEANUP (automatic)                                                    │
-│      → Every 1 hour: delete sessions > 24 hours old                         │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
+1. CREATE    → sessionManager.getOrCreateSession() → campaign-{timestamp}
+2. SDK INIT  → SDK returns session_id → sessionManager.updateSdkSessionId()
+3. MESSAGES  → Each SDK message → sessionManager.addMessage() → auto-save every 10
+4. RESUME    → POST /sessions/:id/continue → SDK continues with context
+5. FORK      → POST /sessions/:id/fork → Creates A/B variant
+6. COMPLETE  → sessionManager.completeSession() → status: 'completed'
+7. CLEANUP   → Every 1 hour: delete sessions > 24 hours old
 ```
 
 ---
 
 ## React Client
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                            REACT CLIENT                                      │
-│                              client/                                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  PURPOSE: Web UI for interacting with the Creative Agent API                │
-│                                                                             │
-│  STACK:                                                                     │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  React          ^18           UI framework                                  │
-│  Vite           ^5            Build tool                                    │
-│  Tailwind CSS   ^3            Styling                                       │
-│  Zustand        ^4            State management                              │
-│  TypeScript     ^5            Type safety                                   │
-│                                                                             │
-│  FEATURES:                                                                  │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  - Real-time WebSocket streaming with phase indicators                      │
-│  - Cancel generation mid-stream                                             │
-│  - Connection status indicator (green/amber/red)                            │
-│  - Auto-reconnect on disconnect (max 5 attempts)                            │
-│  - Terminal-style log output for trace events                               │
-│  - Image gallery with lightbox viewer                                       │
-│  - Progress tracking (Parse → Research → Hooks → Art → Images)             │
-│                                                                             │
-│  DESIGN SYSTEM:                                                             │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  Theme: "The Machine Room" - industrial control panel aesthetic             │
-│  Colors: Dark background, green/amber/red for connection status             │
-│  Typography: Monospace for terminal, sans-serif for UI                      │
-│  See: docs/frontend-design-system.md                                        │
-│                                                                             │
-│  COMPONENT HIERARCHY:                                                       │
-│  ┌────────────────────────────────────────────────────────────────────────┐│
-│  │  App.tsx                                                               ││
-│  │  ├── PromptInput      - URL input, generate + cancel buttons           ││
-│  │  │   └── Connection indicator (WS status: green/amber/red)             ││
-│  │  ├── ProgressDots     - Phase indicators (5 phases)                    ││
-│  │  ├── Terminal         - Scrolling log output                           ││
-│  │  ├── ImageGrid        - Generated images gallery                       ││
-│  │  │   └── ImageCard    - Individual image with hover state              ││
-│  │  └── ImageLightbox    - Full-screen image viewer                       ││
-│  └────────────────────────────────────────────────────────────────────────┘│
-│                                                                             │
-│  WEBSOCKET INTEGRATION (useWebSocket hook):                                 │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  1. Auto-connect to /ws on mount                                            │
-│  2. Send { type: "generate", prompt } to start                              │
-│  3. Receive real-time events: phase, tool_start, image, complete           │
-│  4. Send { type: "cancel" } to abort mid-generation                        │
-│  5. Auto-reconnect on disconnect (exponential backoff)                      │
-│  6. Update Zustand store with real-time state                               │
-│                                                                             │
-│  RUNNING:                                                                   │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  cd client                                                                  │
-│  npm run dev          # Development server (Vite)                           │
-│  npm run build        # Production build                                    │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+### State (Zustand)
+- `prompt`, `status` (idle/generating/complete/error)
+- `sessionId`, `phase`, `terminalLines[]`, `images[]`
+
+### Components
+| Component | Purpose |
+|-----------|---------|
+| `PromptInput` | Input form, cancel button, recovery banner |
+| `ProgressDots` | Phase indicators (parse → research → hooks → art → images → complete) |
+| `Terminal` | Log output with syntax highlighting |
+| `ImageGrid` | Image gallery with lightbox |
+
+### useWebSocket Hook
+- Auto-connect on mount with 500ms delay
+- Auto-reconnect (max 5 attempts, exponential backoff)
+- 25-second ping interval
+- Session recovery from localStorage on reconnect
 
 ---
 
 ## Technology Stack
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                          TECHNOLOGY STACK                                    │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  RUNTIME                                                                    │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  Node.js        v20+                                                        │
-│  TypeScript     v5.3+                                                       │
-│  tsx            v4.7+  (TypeScript execution)                               │
-│                                                                             │
-│  LOCAL SERVER DEPENDENCIES (server/)                                        │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  @anthropic-ai/claude-agent-sdk    ^0.1.54    Claude SDK for orchestration  │
-│  @fal-ai/client                    ^1.x       fal.ai Image Generation API   │
-│  express                           ^4.18.2    HTTP server                    │
-│  ws                                ^8.x       WebSocket server               │
-│  cors                              ^2.8.5     Cross-origin requests          │
-│  dotenv                            ^16.3.1    Environment variables          │
-│  zod                               ^3.22.4    Runtime type validation        │
-│                                                                             │
-│  CLOUDFLARE WORKER DEPENDENCIES (creative-agent-cf/)                        │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  @cloudflare/sandbox               ^0.6.3     Container orchestration        │
-│  wrangler                          ^4.53.0    Cloudflare CLI                 │
-│                                                                             │
-│  CLOUDFLARE SANDBOX DEPENDENCIES (creative-agent-cf/sandbox/)               │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  @anthropic-ai/claude-agent-sdk    ^0.1.62    Claude SDK (newer version)    │
-│  @fal-ai/client                    ^1.x       fal.ai Image Generation API   │
-│  zod                               ^3.22.4    Runtime type validation        │
-│  tsx                               ^4.7.0     TypeScript execution           │
-│                                                                             │
-│  REACT CLIENT DEPENDENCIES (client/)                                        │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  react                             ^18        UI framework                   │
-│  zustand                           ^4         State management               │
-│  vite                              ^5         Build tool                     │
-│  tailwindcss                       ^3         Styling                        │
-│                                                                             │
-│  ENVIRONMENT VARIABLES                                                      │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  ANTHROPIC_API_KEY                 Required   Claude API key                 │
-│  FAL_KEY                           Required   fal.ai image generation        │
-│  PORT                              Optional   Server port (default: 3001)    │
-│  CLAUDE_CODE_MAX_OUTPUT_TOKENS     Optional   Token limit (default: 16384)   │
-│                                                                             │
-│  CLOUDFLARE SECRETS (set via wrangler)                                      │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  ANTHROPIC_API_KEY                 Required   Claude API key                 │
-│  FAL_KEY                           Required   fal.ai image generation        │
-│  AWS_ACCESS_KEY_ID                 Required   R2 S3-compatible access        │
-│  AWS_SECRET_ACCESS_KEY             Required   R2 S3-compatible secret        │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Category | Technology |
+|----------|------------|
+| AI | Claude SDK 0.1.54, claude-opus-4-5-20251101 |
+| Image Gen | fal.ai Nano Banana Pro via MCP |
+| Server | Express 4.x, ws 8.x |
+| Client | React 19, Vite 7, Zustand, TailwindCSS |
+| Production | Cloudflare Workers, D1, R2 |
 
 ---
 
 ## Design Decisions
 
-### Why 1 Agent + 2 Skills (Not 2 Agents)?
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  DECISION: Single Research Agent + Hook/Art Skills                           │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  RATIONALE:                                                                 │
-│                                                                             │
-│  1. CLEAR SEPARATION                                                        │
-│     - Research Agent: EXTRACTS factual data (needs WebFetch tool)           │
-│     - Skills: TRANSFORM data into creative outputs (guidance only)          │
-│                                                                             │
-│  2. SKILLS ARE GUIDANCE, NOT EXECUTION                                      │
-│     - Skills provide frameworks/methodology                                 │
-│     - Orchestrator executes with skill guidance                             │
-│     - No tool permissions needed for creative transformation                │
-│                                                                             │
-│  3. SIMPLER ORCHESTRATION                                                   │
-│     - Only one subagent to spawn (research)                                │
-│     - Skills triggered in sequence by orchestrator                          │
-│     - Cleaner error handling and debugging                                  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Why Hook-First Methodology?
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  DECISION: Build hooks BEFORE visuals                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  RATIONALE:                                                                 │
-│                                                                             │
-│  Hook = 80% of ad performance                                               │
-│                                                                             │
-│  1. HOOKS STOP THE SCROLL                                                   │
-│     - The hook IS the ad; visuals support it                               │
-│     - Without a strong hook, great visuals don't matter                     │
-│                                                                             │
-│  2. DATA-DRIVEN                                                             │
-│     - Hooks mined from research ensure specificity                          │
-│     - Real numbers, real quotes, real pain points                           │
-│                                                                             │
-│  3. TESTABLE DIVERSITY                                                      │
-│     - 6 different hook types = 6 emotional triggers                        │
-│     - Learn which resonates with audience                                   │
-│                                                                             │
-│  4. COMPETITOR-PROOF                                                        │
-│     - Specific hooks can't be copied                                       │
-│     - Based on unique brand data                                            │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
-### Why 6 Concepts with Diversity Matrix?
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  DECISION: 6 concepts, each with different hook type                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  RATIONALE:                                                                 │
-│                                                                             │
-│  1. TEST DIFFERENT EMOTIONS                                                 │
-│     ┌────────────────┬─────────────────────────────────────────┐           │
-│     │ Stat/Data      │ Appeals to logical buyers (social proof)│           │
-│     │ Story/Result   │ Appeals to empathy-driven buyers        │           │
-│     │ FOMO/Urgency   │ Appeals to loss-averse buyers           │           │
-│     │ Curiosity      │ Appeals to intrigue-motivated buyers    │           │
-│     │ Call-out       │ Appeals to identity-driven buyers       │           │
-│     │ Contrast       │ Appeals to comparison shoppers          │           │
-│     └────────────────┴─────────────────────────────────────────┘           │
-│                                                                             │
-│  2. AVOID ECHO CHAMBER                                                      │
-│     - Without matrix, all concepts might use same hook type                │
-│     - Matrix forces creative diversity                                      │
-│                                                                             │
-│  3. OPTIMIZATION DATA                                                       │
-│     - Learn which emotional trigger resonates                               │
-│     - Inform future campaigns                                               │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Performance Benchmarks
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                       PERFORMANCE BENCHMARKS                                 │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  TIMING                                                                     │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  Total Campaign Generation     2-5 minutes                                  │
-│  Research Phase                1-2 minutes                                  │
-│  Hook Generation               30-60 seconds                                │
-│  Art Style + Prompts           20-40 seconds                                │
-│  Image Generation              60-120 seconds (6 images)                    │
-│                                                                             │
-│  COSTS (Estimated)                                                          │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  Full Campaign (6 images)      $0.15-$0.30                                  │
-│  Research Phase                $0.02-$0.05                                  │
-│  Creative Phase                $0.05-$0.10                                  │
-│  Image Generation              $0.05-$0.15                                  │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Deployment
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DEPLOYMENT                                         │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  LOCAL DEVELOPMENT (server/)                                                │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  cd server                                                                  │
-│  npm run dev                   # Hot reload with tsx watch                  │
-│  npm run start                 # Production mode                            │
-│                                                                             │
-│  Health Check: curl http://localhost:3001/health                            │
-│                                                                             │
-│  REACT CLIENT (client/)                                                     │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  cd client                                                                  │
-│  npm run dev                   # Vite dev server                            │
-│  npm run build                 # Production build                           │
-│                                                                             │
-│  CLOUDFLARE PRODUCTION (creative-agent-cf/)                                 │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  cd creative-agent-cf                                                       │
-│                                                                             │
-│  # First-time setup                                                         │
-│  npm run db:create             # Create D1 database                         │
-│  npm run db:init               # Run schema.sql                             │
-│  npm run r2:create             # Create R2 bucket                           │
-│                                                                             │
-│  # Set secrets                                                              │
-│  wrangler secret put ANTHROPIC_API_KEY                                      │
-│  wrangler secret put FAL_KEY                                                │
-│  wrangler secret put AWS_ACCESS_KEY_ID                                      │
-│  wrangler secret put AWS_SECRET_ACCESS_KEY                                  │
-│                                                                             │
-│  # Deploy                                                                   │
-│  npm run dev                   # Local dev with wrangler                    │
-│  npm run deploy                # Deploy to production                       │
-│  npm run tail                  # View production logs                       │
-│                                                                             │
-│  SYNCING AGENT DEFINITIONS                                                  │
-│  ─────────────────────────────────────────────────────────────────────────  │
-│  The agent/ directory at project root is the SOURCE OF TRUTH.               │
-│  When updating agents/skills, sync to Cloudflare:                           │
-│                                                                             │
-│  cp -r agent/.claude/* creative-agent-cf/agent/.claude/                    │
-│  cd creative-agent-cf && npm run deploy                                     │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
-
----
-
-## Quick Reference
-
-| Task | Command |
-|------|---------|
-| Local server | `cd server && npm run dev` |
-| React client | `cd client && npm run dev` |
-| Cloudflare dev | `cd creative-agent-cf && npm run dev` |
-| Deploy to production | `cd creative-agent-cf && npm run deploy` |
-| View CF logs | `cd creative-agent-cf && npm run tail` |
-| Sync agents to CF | `cp -r agent/.claude/* creative-agent-cf/agent/.claude/` |
-
----
-
-## Related Documentation
-
-- **Cloudflare Quick Reference:** `docs/CREATIVE-AGENT-CF-REFERENCE.md`
-- **Deployment Guide:** `docs/cloudflare-deployment-plan.md`
-- **Frontend Design:** `docs/frontend-design-system.md`
-- **Frontend Implementation:** `docs/frontend-implementation-guide.md`
-- **Blueprint (Reusable):** `docs/cloudflare-agent-blueprint.md`
-
----
-
-**Version:** 7.0
-**Last Updated:** January 2026
-**Architecture:** 1 Agent + 2 Skills + fal.ai MCP Image Generation + WebSocket Streaming
-**Deployments:** Local (Express + WebSocket) + Production (Cloudflare Workers)
+| Decision | Rationale |
+|----------|-----------|
+| 1 Agent + 2 Skills | Agents have tools, Skills provide guidance |
+| Hook-first methodology | Hooks = 80% of ad performance |
+| File-based communication | Simple, debuggable, no shared state |
+| WebSocket over SSE | Bidirectional control (cancel/pause/resume) |
+| Event buffering | Recovery without generation restart |
+| Session forking | A/B testing capability |
+| MCP for images | Proper tool interface, SDK integration |
+| In-memory buffer | Fast, sufficient for generation lifetime |

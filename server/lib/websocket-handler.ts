@@ -3,18 +3,22 @@ import { Server } from 'http';
 import { aiClient } from './ai-client.js';
 import { sessionManager } from './session-manager.js';
 import { SDKInstrumentor } from './instrumentor.js';
+import { appendEvent, getEventsSince, getLatestEventId, hasBuffer } from './event-buffer.js';
 
 // Client → Server message types
 interface ClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping';
+  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe';
   prompt?: string;
   sessionId?: string;
+  lastEventId?: number;
 }
 
 // Server → Client message types
 interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'complete' | 'error' | 'ack' | 'pong';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'complete' | 'error' | 'ack' | 'pong' | 'subscribed';
   timestamp: string;
+  // Event/Image ID (number for event tracking, string for image IDs)
+  id?: number | string;
   // Phase events
   phase?: string;
   label?: string;
@@ -27,7 +31,6 @@ interface ServerMessage {
   text?: string;
   message?: string;
   // Image events
-  id?: string;
   urlPath?: string;
   prompt?: string;
   filename?: string;
@@ -51,16 +54,43 @@ interface ConnectionState {
 
 const connections = new Map<WebSocket, ConnectionState>();
 
+// Track which WebSocket is subscribed to each session (for resilience)
+const sessionConnections = new Map<string, WebSocket | null>();
+
+// Track abort controllers per session (for cancel after reconnect)
+const sessionAbortControllers = new Map<string, AbortController>();
+
 function send(ws: WebSocket, message: ServerMessage) {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(message));
   }
 }
 
+/**
+ * Emit an event: buffer it AND send to connected client
+ * This enables replay on reconnect
+ */
+function emitEvent(sessionId: string, event: ServerMessage): number {
+  // Always buffer the event (even if no client connected)
+  const eventId = appendEvent(sessionId, event);
+
+  // Send to client if connected
+  const ws = sessionConnections.get(sessionId);
+  if (ws && ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ ...event, id: eventId }));
+  }
+
+  return eventId;
+}
+
 function broadcastToConnection(state: ConnectionState, message: ServerMessage) {
   if (state.isPaused) {
     state.messageBuffer.push(message);
+  } else if (state.sessionId) {
+    // Use emitEvent for resilience (buffers + sends)
+    emitEvent(state.sessionId, message);
   } else {
+    // No session yet, send directly
     send(state.ws, message);
   }
 }
@@ -221,6 +251,12 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   state.isPaused = false;
   state.messageBuffer = [];
 
+  // Register this WebSocket for the session (for resilience)
+  sessionConnections.set(sessionId, state.ws);
+
+  // Store abort controller by session (for cancel after reconnect)
+  sessionAbortControllers.set(sessionId, state.abortController);
+
   console.log(`🚀 WebSocket: Starting generation for session ${sessionId}`);
 
   // Send acknowledgment
@@ -322,19 +358,29 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     });
   } finally {
     state.abortController = null;
+    // Clean up session abort controller
+    if (sessionId) {
+      sessionAbortControllers.delete(sessionId);
+    }
   }
 }
 
 function handleCancel(state: ConnectionState) {
-  if (state.abortController) {
+  // Try session-based abort controller first (works after reconnect)
+  const sessionAbort = state.sessionId ? sessionAbortControllers.get(state.sessionId) : null;
+  const abortController = sessionAbort || state.abortController;
+
+  if (abortController) {
     console.log(`🛑 WebSocket: Cancelling generation for session ${state.sessionId}`);
-    state.abortController.abort();
+    abortController.abort();
 
     send(state.ws, {
       type: 'ack',
       timestamp: new Date().toISOString(),
       message: 'Cancel requested'
     });
+  } else {
+    console.log(`⚠️ WebSocket: No generation to cancel for session ${state.sessionId}`);
   }
 }
 
@@ -371,6 +417,62 @@ function handlePing(state: ConnectionState) {
     type: 'pong',
     timestamp: new Date().toISOString()
   });
+}
+
+function handleSubscribe(state: ConnectionState, sessionId?: string, lastEventId?: number) {
+  if (!sessionId) {
+    send(state.ws, {
+      type: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'Session ID required for subscribe'
+    });
+    return;
+  }
+
+  console.log(`[WS] Client subscribing to session ${sessionId}, lastEventId: ${lastEventId ?? 0}`);
+
+  // Check if this session exists/has events
+  if (!hasBuffer(sessionId)) {
+    send(state.ws, {
+      type: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'Session not found or expired'
+    });
+    return;
+  }
+
+  // Attach this WebSocket to the session
+  state.sessionId = sessionId;
+  sessionConnections.set(sessionId, state.ws);
+
+  // Link abort controller so cancel works after reconnect
+  const existingAbort = sessionAbortControllers.get(sessionId);
+  if (existingAbort) {
+    state.abortController = existingAbort;
+  }
+
+  // Replay missed events
+  const missedEvents = getEventsSince(sessionId, lastEventId ?? 0);
+  console.log(`[WS] Replaying ${missedEvents.length} missed events`);
+
+  for (const entry of missedEvents) {
+    send(state.ws, { ...entry.event, id: entry.id } as ServerMessage);
+  }
+
+  // Send subscription confirmation with current status
+  const isComplete = missedEvents.some(e =>
+    e.event.type === 'complete' || e.event.type === 'error'
+  );
+
+  send(state.ws, {
+    type: 'subscribed',
+    timestamp: new Date().toISOString(),
+    sessionId,
+    message: `Replayed ${missedEvents.length} events`,
+    success: true
+  } as ServerMessage);
+
+  console.log(`[WS] Client subscribed to session ${sessionId}, status: ${isComplete ? 'completed' : 'running'}`);
 }
 
 export function initWebSocket(server: Server): WebSocketServer {
@@ -435,6 +537,10 @@ export function initWebSocket(server: Server): WebSocketServer {
             handlePing(state);
             break;
 
+          case 'subscribe':
+            handleSubscribe(state, message.sessionId, message.lastEventId);
+            break;
+
           default:
             console.warn('⚠️ WebSocket: Unknown message type:', message.type);
         }
@@ -450,15 +556,20 @@ export function initWebSocket(server: Server): WebSocketServer {
 
     // Handle close
     ws.on('close', () => {
-      console.log('🔌 WebSocket: Client disconnected');
+      console.log(`🔌 WebSocket: Client disconnected from session ${state.sessionId ?? 'none'}`);
 
-      // Cleanup
+      // Cleanup heartbeat
       if (state.heartbeatInterval) {
         clearInterval(state.heartbeatInterval);
       }
-      if (state.abortController) {
-        state.abortController.abort();
+
+      // DO NOT abort generation - it continues in background
+      // Events will be buffered for when client reconnects
+      // Just clear the session's WebSocket reference
+      if (state.sessionId) {
+        sessionConnections.set(state.sessionId, null);
       }
+
       connections.delete(ws);
     });
 

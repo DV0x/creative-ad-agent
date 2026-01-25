@@ -3,7 +3,7 @@ import { useWebSocket } from '../hooks/useWebSocket';
 
 export function PromptInput() {
   const { prompt, setPrompt, status } = useAppStore();
-  const { generate, cancel, isConnected, connectionState } = useWebSocket();
+  const { generate, cancel, isConnected, connectionState, isRecovering } = useWebSocket();
   const isGenerating = status === 'generating';
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -22,6 +22,18 @@ export function PromptInput() {
 
   return (
     <form onSubmit={handleSubmit} className="w-full">
+      {/* Recovery banner */}
+      {isRecovering && (
+        <div className="mb-2 border border-terminal-amber/30 bg-terminal-amber/10 px-3 py-2">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 border-2 border-terminal-amber border-t-transparent rounded-full animate-spin" />
+            <span className="text-terminal-amber text-xs font-mono">
+              Reconnecting to your generation...
+            </span>
+          </div>
+        </div>
+      )}
+
       <div className="border border-border bg-surface">
         {/* Input header bar */}
         <div className="flex items-center justify-between px-3 py-2 border-b border-border">

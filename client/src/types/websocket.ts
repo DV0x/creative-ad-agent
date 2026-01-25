@@ -1,14 +1,17 @@
 // Client → Server message types
 export interface WSClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping';
+  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe';
   prompt?: string;
   sessionId?: string;
+  lastEventId?: number;
 }
 
 // Server → Client message types
 export interface WSServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'complete' | 'error' | 'ack' | 'pong';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'complete' | 'error' | 'ack' | 'pong' | 'subscribed';
   timestamp: string;
+  // Event ID (for resilience/recovery) - number for event tracking, string for image IDs
+  id?: number | string;
   // Phase events
   phase?: string;
   label?: string;
@@ -21,7 +24,6 @@ export interface WSServerMessage {
   text?: string;
   message?: string;
   // Image events
-  id?: string;
   urlPath?: string;
   prompt?: string;
   filename?: string;
@@ -40,6 +42,7 @@ export type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'r
 export interface UseWebSocketReturn {
   connectionState: WSConnectionState;
   isConnected: boolean;
+  isRecovering: boolean;
   generate: () => void;
   cancel: () => void;
   pause: () => void;
