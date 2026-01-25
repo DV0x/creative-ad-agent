@@ -1,9 +1,9 @@
 import { useAppStore } from '../store';
-import { useGenerate } from '../hooks/useGenerate';
+import { useWebSocket } from '../hooks/useWebSocket';
 
 export function PromptInput() {
   const { prompt, setPrompt, status } = useAppStore();
-  const { generate } = useGenerate();
+  const { generate, cancel, isConnected, connectionState } = useWebSocket();
   const isGenerating = status === 'generating';
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,11 +30,25 @@ export function PromptInput() {
             <span className="text-text-muted text-[10px] hidden sm:inline">//</span>
             <span className="text-text-muted text-[10px] tracking-wide hidden sm:inline">DIRECTIVE</span>
           </div>
-          <div className="flex items-center gap-1.5">
-            <div className={`w-1.5 h-1.5 rounded-full ${isGenerating ? 'bg-terminal-amber pulse-glow' : 'bg-border-bright'}`} />
-            <span className="text-text-muted text-[10px] uppercase tracking-wider">
-              {isGenerating ? 'RUN' : 'IDLE'}
-            </span>
+          <div className="flex items-center gap-2">
+            {/* Connection indicator */}
+            <div className="flex items-center gap-1">
+              <div className={`w-1.5 h-1.5 rounded-full ${
+                connectionState === 'connected' ? 'bg-terminal-green' :
+                connectionState === 'connecting' || connectionState === 'reconnecting' ? 'bg-terminal-amber pulse-glow' :
+                'bg-terminal-red'
+              }`} />
+              <span className="text-text-muted text-[10px] uppercase tracking-wider hidden sm:inline">
+                {connectionState === 'connected' ? 'WS' : connectionState === 'reconnecting' ? 'RETRY' : 'OFF'}
+              </span>
+            </div>
+            {/* Status indicator */}
+            <div className="flex items-center gap-1.5">
+              <div className={`w-1.5 h-1.5 rounded-full ${isGenerating ? 'bg-terminal-amber pulse-glow' : 'bg-border-bright'}`} />
+              <span className="text-text-muted text-[10px] uppercase tracking-wider">
+                {isGenerating ? 'RUN' : 'IDLE'}
+              </span>
+            </div>
           </div>
         </div>
 
@@ -61,33 +75,55 @@ export function PromptInput() {
           <span className="text-text-muted text-[10px] hidden sm:block">
             Style: brutalist, minimal, luxury
           </span>
-          <button
-            type="submit"
-            disabled={isGenerating || !prompt.trim()}
-            className="ml-auto px-4 py-1.5
-                       bg-accent text-void text-[10px] md:text-xs font-bold tracking-wider uppercase
-                       disabled:bg-border disabled:text-text-muted disabled:cursor-not-allowed
-                       hover:bg-text-primary hover:text-void
-                       transition-colors duration-150
-                       flex items-center gap-1.5"
-          >
-            {isGenerating ? (
-              <>
-                <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
-                  <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
-                <span>RUNNING</span>
-              </>
-            ) : (
-              <>
-                <span>EXECUTE</span>
+          <div className="ml-auto flex items-center gap-2">
+            {/* Cancel button - only show when generating */}
+            {isGenerating && (
+              <button
+                type="button"
+                onClick={cancel}
+                className="px-3 py-1.5
+                           bg-terminal-red/20 text-terminal-red text-[10px] md:text-xs font-bold tracking-wider uppercase
+                           hover:bg-terminal-red/30
+                           transition-colors duration-150
+                           flex items-center gap-1.5"
+              >
                 <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
+                  <rect x="6" y="6" width="12" height="12" />
                 </svg>
-              </>
+                <span>STOP</span>
+              </button>
             )}
-          </button>
+            {/* Execute button */}
+            <button
+              type="submit"
+              disabled={isGenerating || !prompt.trim() || !isConnected}
+              className="px-4 py-1.5
+                         bg-accent text-void text-[10px] md:text-xs font-bold tracking-wider uppercase
+                         disabled:bg-border disabled:text-text-muted disabled:cursor-not-allowed
+                         hover:bg-text-primary hover:text-void
+                         transition-colors duration-150
+                         flex items-center gap-1.5"
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="w-3 h-3 animate-spin" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" className="opacity-25" />
+                    <path fill="currentColor" className="opacity-75" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                  </svg>
+                  <span>RUNNING</span>
+                </>
+              ) : !isConnected ? (
+                <span>CONNECTING...</span>
+              ) : (
+                <>
+                  <span>EXECUTE</span>
+                  <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
         </div>
       </div>
     </form>

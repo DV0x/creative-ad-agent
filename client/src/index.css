@@ -33,6 +33,7 @@
   /* Mechanical greens for terminal */
   --color-terminal-green: #39ff14;
   --color-terminal-amber: #ffb000;
+  --color-terminal-red: #ff4444;
 }
 
 /* Base styles */

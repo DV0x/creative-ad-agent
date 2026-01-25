@@ -1,17 +1,23 @@
 import express from 'express';
 import cors from 'cors';
+import { createServer } from 'http';
 import { config } from 'dotenv';
 import { resolve } from 'path';
 import * as fs from 'fs';
 import { aiClient } from './lib/ai-client.js';
 import { sessionManager } from './lib/session-manager.js';
 import { SDKInstrumentor } from './lib/instrumentor.js';
+import { initWebSocket } from './lib/websocket-handler.js';
 
 // Load environment variables from root .env
 config({ path: resolve('../.env') });
 
 const app = express();
+const server = createServer(app);
 const PORT = process.env.PORT || 3001;
+
+// Initialize WebSocket server
+const wss = initWebSocket(server);
 
 // Middleware
 app.use(cors());
@@ -873,18 +879,26 @@ function extractSummary(messages: any[]): string {
   return content || 'No content';
 }
 
-// Start server
-app.listen(PORT, () => {
+// Start server with WebSocket support
+server.listen(PORT, () => {
   console.log(`
 ╔══════════════════════════════════════════════╗
 ║     Creative Ad Agent Server Running         ║
 ╠══════════════════════════════════════════════╣
 ║  🚀 Server: http://localhost:${PORT}           ║
+║  🔌 WebSocket: ws://localhost:${PORT}/ws       ║
 ║                                              ║
 ║  Core Endpoints:                             ║
 ║  📝 POST /test - Test query with sessions    ║
 ║  🎨 POST /generate - Natural language prompt ║
 ║  💚 GET /health - Health check               ║
+║                                              ║
+║  WebSocket Messages (Client → Server):       ║
+║  ⚡ generate - Start generation              ║
+║  🛑 cancel   - Abort current generation      ║
+║  ⏸️  pause    - Pause streaming               ║
+║  ▶️  resume   - Resume streaming              ║
+║  💓 ping     - Keep-alive                    ║
 ║                                              ║
 ║  Session Management:                         ║
 ║  📋 GET /sessions - List active sessions     ║
@@ -898,6 +912,8 @@ app.listen(PORT, () => {
 ║  📸 GET /images/:session/:file - Serve image ║
 ╠══════════════════════════════════════════════╣
 ║  Features Enabled:                           ║
+║  ✅ WebSocket Real-time Streaming            ║
+║  ✅ Cancel/Pause/Resume Support              ║
 ║  ✅ Natural Language Prompt Interface        ║
 ║  ✅ Automatic Workflow Orchestration         ║
 ║  ✅ Session Management & Forking             ║
@@ -912,10 +928,9 @@ app.listen(PORT, () => {
 ║  - Image Storage: ../generated-images        ║
 ╠══════════════════════════════════════════════╣
 ║  Usage Example:                              ║
-║  POST /generate                              ║
-║  { "prompt": "Create Instagram ads for      ║
-║     https://example.com targeting           ║
-║     millennials" }                           ║
+║  Connect to ws://localhost:${PORT}/ws          ║
+║  Send: { "type": "generate",                 ║
+║          "prompt": "Create Instagram ads..." }║
 ╚══════════════════════════════════════════════╝
   `);
 });

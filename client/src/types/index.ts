@@ -38,3 +38,6 @@ export interface SSEEvent {
   success?: boolean;
   error?: string;
 }
+
+// Re-export WebSocket types
+export type { WSClientMessage, WSServerMessage, WSConnectionState, UseWebSocketReturn } from './websocket';
