@@ -41,6 +41,12 @@ workspace/
 sessions/
 .claude/sessions/
 
+# Database
+server/data/
+
+# User uploads
+server/uploads/
+
 # Generated images (nano_banana MCP outputs)
 generated-images/
 
@@ -54,6 +60,9 @@ temp/
 
 # Local Claude Code config (personal subagents)
 /.claude/
+
+# MCP server config (contains account IDs)
+.mcp.json
 
 # Output/debug files
 output.md

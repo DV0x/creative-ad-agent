@@ -4,6 +4,7 @@ import { aiClient } from './ai-client.js';
 import { sessionManager } from './session-manager.js';
 import { SDKInstrumentor } from './instrumentor.js';
 import { appendEvent, getEventsSince, getLatestEventId, hasBuffer } from './event-buffer.js';
+import * as db from './db/index.js';
 
 // Client → Server message types
 interface ClientMessage {
@@ -13,9 +14,19 @@ interface ClientMessage {
   lastEventId?: number;
 }
 
+// Hook types for ad concepts
+type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
+
+// Map image index (1-6) to hook type
+const HOOK_TYPE_ORDER: HookType[] = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'];
+
+function getHookTypeForIndex(index: number): HookType {
+  return HOOK_TYPE_ORDER[index - 1] || 'stat';
+}
+
 // Server → Client message types
 interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'complete' | 'error' | 'ack' | 'pong' | 'subscribed';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'ack' | 'pong' | 'subscribed';
   timestamp: string;
   // Event/Image ID (number for event tracking, string for image IDs)
   id?: number | string;
@@ -34,18 +45,27 @@ interface ServerMessage {
   urlPath?: string;
   prompt?: string;
   filename?: string;
+  hookType?: HookType;
+  imageIndex?: number;
+  // File events
+  fileType?: 'research' | 'hooks' | 'prompts';
+  content?: string;
+  path?: string;
   // Error events
   error?: string;
   // Complete events
   sessionId?: string;
   duration?: number;
   imageCount?: number;
+  summary?: string;
 }
 
 // Connection state
 interface ConnectionState {
   ws: WebSocket;
   sessionId: string | null;
+  campaignId: string | null;  // Database campaign ID
+  userId: string;             // User ID (placeholder until auth)
   abortController: AbortController | null;
   isPaused: boolean;
   messageBuffer: ServerMessage[];
@@ -152,6 +172,43 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
             input: block.input
           });
 
+          // Detect file writes (Write tool with campaign files)
+          if (block.name === 'Write' && block.input?.file_path && block.input?.content) {
+            const filePath = block.input.file_path as string;
+            const content = block.input.content as string;
+
+            // Detect file type from path
+            let fileType: 'research' | 'hooks' | 'prompts' | null = null;
+            if (filePath.includes('research')) {
+              fileType = 'research';
+            } else if (filePath.includes('hook')) {
+              fileType = 'hooks';
+            } else if (filePath.includes('prompt')) {
+              fileType = 'prompts';
+            }
+
+            if (fileType) {
+              broadcastToConnection(state, {
+                type: 'file',
+                timestamp: new Date().toISOString(),
+                fileType,
+                content,
+                path: filePath,
+              });
+              console.log(`📄 File event: ${fileType} written to ${filePath}`);
+
+              // Persist to database
+              if (state.campaignId) {
+                try {
+                  db.updateCampaignFile(state.campaignId, fileType, content);
+                  console.log(`💾 DB: Saved ${fileType} for campaign ${state.campaignId}`);
+                } catch (dbError) {
+                  console.error(`❌ DB: Failed to save ${fileType}:`, dbError);
+                }
+              }
+            }
+          }
+
           // Detect phase from tool usage
           if (block.name === 'Task') {
             const agentType = block.input?.subagent_type;
@@ -221,15 +278,40 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
             // Extract images
             if (resultContent?.images && Array.isArray(resultContent.images)) {
               for (const img of resultContent.images) {
-                if (img.urlPath && !img.error) {
+                const imageUrl = img.urlPath || img.url; // Support both 'url' and 'urlPath'
+                if (imageUrl && !img.error) {
+                  // Extract image index from id (e.g., "image_1" -> 1)
+                  const imageIndex = typeof img.id === 'string'
+                    ? parseInt(img.id.replace('image_', ''), 10) || 1
+                    : 1;
+                  const hookType = img.hookType || getHookTypeForIndex(imageIndex);
+
                   broadcastToConnection(state, {
                     type: 'image',
                     timestamp: new Date().toISOString(),
                     id: img.id || `img-${Date.now()}`,
-                    urlPath: img.urlPath,
+                    urlPath: imageUrl,
                     prompt: img.prompt || '',
-                    filename: img.filename || ''
+                    filename: img.filename || '',
+                    hookType,
+                    imageIndex,
                   });
+
+                  // Persist to database
+                  if (state.campaignId) {
+                    try {
+                      db.addCampaignImage({
+                        campaignId: state.campaignId,
+                        imageIndex,
+                        hookType: hookType as db.HookType,
+                        prompt: img.prompt || undefined,
+                        filePath: imageUrl,
+                      });
+                      console.log(`💾 DB: Saved image ${imageIndex} (${hookType}) for campaign ${state.campaignId}`);
+                    } catch (dbError) {
+                      console.error(`❌ DB: Failed to save image:`, dbError);
+                    }
+                  }
                 }
               }
             }
@@ -286,6 +368,24 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       context: { userPrompt: prompt }
     });
 
+    // Create or get campaign in database
+    // Extract campaign name from prompt (use first 50 chars or "Untitled")
+    const campaignName = prompt.slice(0, 50).trim() || 'Untitled Campaign';
+    try {
+      // Check if campaign already exists for this session
+      let campaign = db.getCampaignBySessionId(sessionId);
+      if (!campaign) {
+        campaign = db.createCampaign(state.userId, campaignName, sessionId);
+        console.log(`💾 DB: Created campaign ${campaign.id} for session ${sessionId}`);
+      } else {
+        console.log(`💾 DB: Using existing campaign ${campaign.id} for session ${sessionId}`);
+      }
+      state.campaignId = campaign.id;
+    } catch (dbError) {
+      console.error('❌ DB: Failed to create campaign:', dbError);
+      // Continue without database - WebSocket still works
+    }
+
     // Initialize instrumentation
     const instrumentor = new SDKInstrumentor(sessionId, prompt, 'websocket');
 
@@ -334,18 +434,46 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
         label: 'Complete'
       });
 
+      // Generate summary message for assistant
+      const hookTypes = ['Stat Hook', 'Story Hook', 'FOMO Hook', 'Curiosity Hook', 'Call-out Hook', 'Contrast Hook'];
+      const generatedHooks = hookTypes.slice(0, imageCount);
+      const summary = imageCount > 0
+        ? `I created ${imageCount} ad concept${imageCount > 1 ? 's' : ''}:\n${generatedHooks.map(h => `• ${h}`).join('\n')}`
+        : 'Generation complete.';
+
       broadcastToConnection(state, {
         type: 'complete',
         timestamp: new Date().toISOString(),
         sessionId,
         duration,
         imageCount,
-        message: `Generation complete in ${(duration / 1000).toFixed(1)}s`
+        message: `Generation complete in ${(duration / 1000).toFixed(1)}s`,
+        summary,
       });
 
       console.log(`✅ WebSocket: Generation complete for session ${sessionId} (${duration}ms, ${imageCount} images)`);
+
+      // Update campaign status to complete
+      if (state.campaignId) {
+        try {
+          db.updateCampaignStatus(state.campaignId, 'complete');
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as complete`);
+        } catch (dbError) {
+          console.error('❌ DB: Failed to update campaign status:', dbError);
+        }
+      }
     } else {
       console.log(`🛑 WebSocket: Generation stopped for session ${sessionId} (cancelled after ${(duration / 1000).toFixed(1)}s)`);
+
+      // Update campaign status to cancelled
+      if (state.campaignId) {
+        try {
+          db.updateCampaignStatus(state.campaignId, 'cancelled');
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as cancelled`);
+        } catch (dbError) {
+          console.error('❌ DB: Failed to update campaign status:', dbError);
+        }
+      }
     }
 
   } catch (error: any) {
@@ -356,6 +484,16 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       timestamp: new Date().toISOString(),
       error: error.message || 'Unknown error occurred'
     });
+
+    // Update campaign status to error
+    if (state.campaignId) {
+      try {
+        db.updateCampaignStatus(state.campaignId, 'error');
+        console.log(`💾 DB: Campaign ${state.campaignId} marked as error`);
+      } catch (dbError) {
+        console.error('❌ DB: Failed to update campaign status:', dbError);
+      }
+    }
   } finally {
     state.abortController = null;
     // Clean up session abort controller
@@ -445,6 +583,17 @@ function handleSubscribe(state: ConnectionState, sessionId?: string, lastEventId
   state.sessionId = sessionId;
   sessionConnections.set(sessionId, state.ws);
 
+  // Link campaign if it exists in database
+  try {
+    const campaign = db.getCampaignBySessionId(sessionId);
+    if (campaign) {
+      state.campaignId = campaign.id;
+      console.log(`[WS] Linked to existing campaign ${campaign.id}`);
+    }
+  } catch (dbError) {
+    console.error('[WS] Failed to look up campaign:', dbError);
+  }
+
   // Link abort controller so cancel works after reconnect
   const existingAbort = sessionAbortControllers.get(sessionId);
   if (existingAbort) {
@@ -487,6 +636,8 @@ export function initWebSocket(server: Server): WebSocketServer {
     const state: ConnectionState = {
       ws,
       sessionId: null,
+      campaignId: null,
+      userId: 'anonymous',  // TODO: Extract from auth token when Clerk is integrated
       abortController: null,
       isPaused: false,
       messageBuffer: [],

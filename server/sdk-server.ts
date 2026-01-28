@@ -8,9 +8,16 @@ import { aiClient } from './lib/ai-client.js';
 import { sessionManager } from './lib/session-manager.js';
 import { SDKInstrumentor } from './lib/instrumentor.js';
 import { initWebSocket } from './lib/websocket-handler.js';
+import { initDatabase } from './lib/database.js';
+import { clerkAuth } from './lib/auth.js';
+import campaignRoutes from './routes/campaigns.js';
+import assetRoutes from './routes/assets.js';
 
 // Load environment variables from root .env
 config({ path: resolve('../.env') });
+
+// Initialize database
+initDatabase();
 
 const app = express();
 const server = createServer(app);
@@ -22,6 +29,11 @@ const wss = initWebSocket(server);
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(clerkAuth());
+
+// API Routes
+app.use('/api/campaigns', campaignRoutes);
+app.use('/api/assets', assetRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -834,7 +846,7 @@ app.get('/images', (req, res) => {
       .filter((file: string) => file.endsWith('.png'));
 
     imagesBySession[sessionId] = images.map((img: string) =>
-      `http://localhost:${PORT}/images/${sessionId}/${img}`
+      `/images/${sessionId}/${img}`
     );
   }
 
@@ -844,7 +856,7 @@ app.get('/images', (req, res) => {
 
   if (rootImages.length > 0) {
     imagesBySession['root'] = rootImages.map((img: string) =>
-      `http://localhost:${PORT}/images/${img}`
+      `/images/${img}`
     );
   }
 
@@ -888,6 +900,16 @@ server.listen(PORT, () => {
 ║  🚀 Server: http://localhost:${PORT}           ║
 ║  🔌 WebSocket: ws://localhost:${PORT}/ws       ║
 ║                                              ║
+║  REST API (Persistence):                     ║
+║  📂 GET/POST   /api/campaigns                ║
+║  📂 GET/PATCH  /api/campaigns/:id            ║
+║  📄 GET/PUT    /api/campaigns/:id/files/:type║
+║  🖼️  GET        /api/campaigns/:id/images     ║
+║  💬 GET/POST   /api/campaigns/:id/messages   ║
+║  📁 GET/POST   /api/assets/folders           ║
+║  📤 POST       /api/assets/upload            ║
+║  📥 GET        /api/assets/files/:id         ║
+║                                              ║
 ║  Core Endpoints:                             ║
 ║  📝 POST /test - Test query with sessions    ║
 ║  🎨 POST /generate - Natural language prompt ║
@@ -899,33 +921,22 @@ server.listen(PORT, () => {
 ║  ⏸️  pause    - Pause streaming               ║
 ║  ▶️  resume   - Resume streaming              ║
 ║  💓 ping     - Keep-alive                    ║
-║                                              ║
-║  Session Management:                         ║
-║  📋 GET /sessions - List active sessions     ║
-║  📊 GET /sessions/:id - Get session info     ║
-║  🔄 POST /sessions/:id/continue - Resume     ║
-║  🌿 POST /sessions/:id/fork - Fork variant   ║
-║  🌳 GET /sessions/:id/family - Session tree  ║
-║                                              ║
-║  Image Generation (nano_banana):             ║
-║  🖼️  GET /images - List all generated images  ║
-║  📸 GET /images/:session/:file - Serve image ║
 ╠══════════════════════════════════════════════╣
 ║  Features Enabled:                           ║
+║  ✅ SQLite Database Persistence              ║
+║  ✅ REST API for Campaigns & Assets          ║
 ║  ✅ WebSocket Real-time Streaming            ║
 ║  ✅ Cancel/Pause/Resume Support              ║
 ║  ✅ Natural Language Prompt Interface        ║
-║  ✅ Automatic Workflow Orchestration         ║
 ║  ✅ Session Management & Forking             ║
 ║  ✅ MCP Tools (nano_banana for images)       ║
-║  ✅ Multi-Agent System (3 specialists)       ║
 ║  ✅ Real-time Cost Tracking                  ║
 ╠══════════════════════════════════════════════╣
 ║  Environment:                                ║
 ║  - Anthropic API: ${process.env.ANTHROPIC_API_KEY ? '✅ Configured' : '❌ Missing'}         ║
-║  - Gemini API: ${process.env.GEMINI_API_KEY ? '✅ Configured' : '❌ Missing'}            ║
-║  - Session Storage: ./sessions               ║
-║  - Image Storage: ../generated-images        ║
+║  - Clerk Auth: ${process.env.CLERK_SECRET_KEY ? '✅ Configured' : '⚠️  Dev Mode (anonymous)'}     ║
+║  - Database: ./data/creative_agent.db        ║
+║  - Uploads: ./uploads                        ║
 ╠══════════════════════════════════════════════╣
 ║  Usage Example:                              ║
 ║  Connect to ws://localhost:${PORT}/ws          ║
