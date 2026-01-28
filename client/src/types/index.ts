@@ -1,43 +1,56 @@
-export type GenerationStatus = 'idle' | 'generating' | 'complete' | 'error';
+// Re-export all types from a single entry point
 
-export type Phase = 'parse' | 'research' | 'hooks' | 'art' | 'images' | 'complete';
+// Chat types (new chat-first UI)
+export type {
+  HookType,
+  ThinkingLineType,
+  ThinkingLine,
+  GenerationStatus,
+  GenerationState,
+  ImageReference,
+  FileReference,
+  ChatMessage,
+  CampaignStatus,
+  FilesReadyState,
+  GeneratedImage,
+  AppState,
+} from './chat';
 
-export const PHASES: Phase[] = ['parse', 'research', 'hooks', 'art', 'images', 'complete'];
+export {
+  HOOK_TYPE_ORDER,
+  HOOK_TYPE_LABELS,
+  getHookTypeForIndex,
+  getImageLabel,
+  getImageSubtitle,
+  createEmptyGenerationState,
+  createThinkingLine,
+} from './chat';
 
-export const PHASE_LABELS: Record<Phase, string> = {
-  parse: 'Parse',
-  research: 'Research',
-  hooks: 'Hooks',
-  art: 'Art',
-  images: 'Images',
-  complete: 'Done',
-};
+// WebSocket types
+export type {
+  WSClientMessage,
+  WSServerMessage,
+  WSPhaseEvent,
+  WSToolStartEvent,
+  WSToolEndEvent,
+  WSMessageEvent,
+  WSStatusEvent,
+  WSFileEvent,
+  WSImageEvent,
+  WSCompleteEvent,
+  WSErrorEvent,
+  WSAckEvent,
+  WSPongEvent,
+  WSSubscribedEvent,
+  WSConnectionState,
+  UseWebSocketReturn,
+} from './websocket';
 
-export interface TerminalLine {
-  id: string;
-  type: 'command' | 'output' | 'success' | 'error';
-  text: string;
-  timestamp: Date;
-}
-
-export interface GeneratedImage {
-  id: string;
-  url: string;
-  urlPath: string;
-  prompt: string;
-  filename: string;
-}
-
-export interface SSEEvent {
-  type: 'stdout' | 'stderr' | 'complete' | 'done' | 'error' | 'status';
-  data?: string;
-  message?: string;
-  sessionId: string;
-  timestamp: string;
-  exitCode?: number;
-  success?: boolean;
-  error?: string;
-}
-
-// Re-export WebSocket types
-export type { WSClientMessage, WSServerMessage, WSConnectionState, UseWebSocketReturn } from './websocket';
+export {
+  isPhaseEvent,
+  isToolStartEvent,
+  isFileEvent,
+  isImageEvent,
+  isCompleteEvent,
+  isErrorEvent,
+} from './websocket';

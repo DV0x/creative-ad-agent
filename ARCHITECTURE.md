@@ -1,6 +1,6 @@
 # Creative Ad Agent - System Architecture
 
-**Version:** 7.1 | **Updated:** January 2026 | **Status:** Production
+**Version:** 8.0 | **Updated:** January 2026 | **Status:** Production
 
 ---
 
@@ -391,15 +391,45 @@ creative_agent/
 │   ├── src/                        # Worker code
 │   ├── sandbox/                    # Container code
 │   └── agent/                      # Copy of agent/
-├── client/                         # React frontend
+├── client/                         # React frontend (V2)
 │   ├── src/
-│   │   ├── components/             # UI components
-│   │   ├── hooks/useWebSocket.ts   # WebSocket hook
-│   │   ├── store/                  # Zustand state
-│   │   └── types/                  # TypeScript types
-│   └── vite.config.ts
+│   │   ├── components/
+│   │   │   ├── layout/
+│   │   │   │   └── AppLayout.tsx   # Four-panel resizable workspace
+│   │   │   ├── chat/
+│   │   │   │   ├── ChatSidebar.tsx # Right sidebar chat + mentions
+│   │   │   │   └── MobileChatDrawer.tsx
+│   │   │   ├── assets/
+│   │   │   │   ├── AssetDrawer.tsx # Campaigns + Assets tree
+│   │   │   │   ├── AssetPreview.tsx # Image preview modal
+│   │   │   │   ├── FileUpload.tsx  # Drag & drop upload
+│   │   │   │   └── MobileAssetsDrawer.tsx
+│   │   │   ├── mentions/
+│   │   │   │   └── AssetMention.tsx # @ mention autocomplete
+│   │   │   ├── editor/
+│   │   │   │   ├── ContentEditor.tsx # Full-page TipTap
+│   │   │   │   └── FileEditor.tsx  # Resizable panel editor
+│   │   │   ├── ui/                 # shadcn components
+│   │   │   ├── EmptyState.tsx      # Landing page
+│   │   │   ├── GeneratingView.tsx  # Progress UI
+│   │   │   ├── ResultsView.tsx     # Image grid
+│   │   │   ├── ImageCard.tsx       # Image card with actions
+│   │   │   └── ChatBar.tsx         # Bottom chat bar
+│   │   ├── hooks/
+│   │   │   ├── useWebSocket.ts     # WebSocket + session recovery
+│   │   │   └── use-mobile.ts       # Mobile detection
+│   │   ├── store/
+│   │   │   └── index.ts            # Zustand store (campaigns, chat, assets)
+│   │   ├── lib/
+│   │   │   └── utils.ts            # Tailwind utilities
+│   │   ├── App.tsx                 # Root component
+│   │   └── index.css               # Studio Dark theme + TipTap styles
+│   ├── components.json             # shadcn configuration
+│   └── vite.config.ts              # Vite + Tailwind + proxy config
 ├── generated-images/               # Image output (git-ignored)
 └── docs/                           # Documentation
+    ├── DESIGN_REVIEW_V2.md         # Frontend design spec
+    └── ARCHITECTURE.md             # This file
 ```
 
 ---
@@ -418,25 +448,217 @@ creative_agent/
 
 ---
 
-## React Client
+## React Client (V2 - Campaign-Based Architecture)
 
-### State (Zustand)
-- `prompt`, `status` (idle/generating/complete/error)
-- `sessionId`, `phase`, `terminalLines[]`, `images[]`
+### Overview
 
-### Components
+The V2 frontend implements a **campaign-based creative studio** with a dark theme ("Studio Dark"), making user-generated images the hero. It features a four-panel resizable workspace with real-time WebSocket streaming.
+
+```
+┌──────────────┬─────────────────────┬──────────────┬──────────────┐
+│ Left Sidebar │    Main Content     │ File Editor  │ Chat Sidebar │
+│  (Assets)    │     (Images)        │  (optional)  │              │
+│  resizable   │                     │  resizable   │  resizable   │
+│  200-480px   │      flex-1         │  300-600px   │  200-480px   │
+└──────────────┴─────────────────────┴──────────────┴──────────────┘
+```
+
+### App States
+
+```typescript
+type AppState = 'empty' | 'generating' | 'results'
+type GeneratingPhase = 'research' | 'hooks' | 'visuals' | 'images'
+```
+
+**View Routing:**
+- `empty` → EmptyState (landing page, no sidebars)
+- `generating` → GeneratingView (progress UI with workspace)
+- `results` → ResultsView (campaign images with workspace)
+
+### Component Hierarchy
+
+```
+App.tsx
+├── AppLayout (layout/AppLayout.tsx) - Four-panel resizable workspace
+│   ├── LeftSidebar (campaigns + assets tree)
+│   │   └── AssetDrawer.tsx
+│   │       ├── CampaignsSection (expandable campaigns list)
+│   │       │   └── Campaign files (research, hooks, prompts)
+│   │       └── AssetsSection (folder/file tree)
+│   ├── MainContent
+│   │   ├── EmptyState.tsx (landing page with prompt input)
+│   │   ├── GeneratingView.tsx (progress dots, terminal, spinner)
+│   │   └── ResultsView.tsx (image grid)
+│   │       └── ImageCard.tsx (hover actions, prompt preview)
+│   ├── FileEditorPanel (optional, slides in from right)
+│   │   └── FileEditor.tsx (TipTap rich text editor)
+│   ├── RightSidebar
+│   │   └── ChatSidebar.tsx (@ mentions, message list)
+│   ├── MobileChatDrawer.tsx (bottom sheet)
+│   └── MobileAssetsDrawer.tsx (full-height drawer)
+```
+
+### State Management (Zustand Store)
+
+**Location:** `client/src/store/index.ts`
+
+```typescript
+interface Store {
+  // === App State ===
+  appState: AppState                    // 'empty' | 'generating' | 'results'
+
+  // === Campaigns ===
+  campaigns: Campaign[]
+  activeCampaignId: string | null
+  isCreatingCampaign: boolean
+
+  // === File Editor ===
+  activeFileType: CampaignFileType | null  // 'research' | 'hooks' | 'prompts'
+
+  // === Generation ===
+  generatingPhase: GeneratingPhase
+  prompt: string
+  terminalLines: TerminalLine[]
+  pendingImages: PendingImage[]
+  error: string | null
+
+  // === WebSocket ===
+  sessionId: string | null
+  connectionState: 'connecting' | 'connected' | 'disconnected' | 'reconnecting'
+  isRecovering: boolean
+
+  // === Chat ===
+  chatMessages: ChatMessage[]
+  chatExpanded: boolean
+
+  // === Assets ===
+  assetFolders: AssetFolder[]
+  selectedFolderId: string | null
+}
+```
+
+**Campaign Structure:**
+```typescript
+interface Campaign {
+  id: string
+  name: string
+  createdAt: Date
+  files: CampaignFile[]         // Always 3: research.md, hooks.md, prompts.md
+  images: GeneratedImage[]      // Generated ad images (typically 6)
+}
+
+interface CampaignFile {
+  type: 'research' | 'hooks' | 'prompts'
+  name: string
+  content: string               // Markdown content
+  lastModified: Date
+}
+```
+
+### Key Components
+
 | Component | Purpose |
 |-----------|---------|
-| `PromptInput` | Input form, cancel button, recovery banner |
-| `ProgressDots` | Phase indicators (parse → research → hooks → art → images → complete) |
-| `Terminal` | Log output with syntax highlighting |
-| `ImageGrid` | Image gallery with lightbox |
+| **EmptyState** | Landing page with gradient mesh background, prompt input, recent campaigns |
+| **GeneratingView** | Spinner with glow, phase progress dots, terminal output (last 10 lines) |
+| **ResultsView** | Responsive image grid (1/2/3 cols), campaign header, save/share buttons |
+| **ImageCard** | Aspect-square image, skeleton loading, hover overlay with regenerate/download |
+| **FileEditorPanel** | TipTap editor, auto-save (1s debounce), undo/redo, slide-in animation |
+| **ChatSidebar** | Message list, @ mention picker, typing indicator |
+| **AssetDrawer** | Two sections: Campaigns + Assets, inline rename, expand/collapse |
+
+### @ Mention System
+
+In chat, users can reference campaign files and assets:
+
+```
+@research    → Campaign research file
+@hooks       → Campaign hooks file
+@prompts     → Campaign prompts file
+@Brand Kit   → Asset folder
+@logo.png    → Individual asset file
+```
+
+Features:
+- Type `@` to trigger autocomplete dropdown
+- Keyboard navigation (↑↓ Enter Escape)
+- Filter by typing after `@`
+- Selected items appear as removable tag chips
 
 ### useWebSocket Hook
+
+**Location:** `client/src/hooks/useWebSocket.ts`
+
+**Connection Management:**
 - Auto-connect on mount with 500ms delay
-- Auto-reconnect (max 5 attempts, exponential backoff)
-- 25-second ping interval
+- Auto-reconnect (max 5 attempts, exponential backoff: 2s × attempt)
+- 25-second ping interval for heartbeat
 - Session recovery from localStorage on reconnect
+
+**Phase Mapping (Backend → UI):**
+```typescript
+BACKEND_TO_UI_PHASE = {
+  'parse': 'research',
+  'research': 'research',
+  'hooks': 'hooks',
+  'art': 'visuals',
+  'images': 'images'
+}
+```
+
+**Session Persistence:**
+```typescript
+localStorage['creative-agent:activeSession'] = { sessionId, prompt, startedAt }
+localStorage['creative-agent:lastEventId:{sessionId}'] = 150
+```
+
+### Generation Flow
+
+```
+1. User enters prompt → clicks Create
+   └─ generate() from useWebSocket
+   └─ Create UUID sessionId
+   └─ Save to localStorage
+   └─ Send: { type: 'generate', prompt, sessionId }
+
+2. Server streams events
+   └─ phase → setGeneratingPhase() + addTerminalLine()
+   └─ tool_start/end → addTerminalLine()
+   └─ image → addPendingImage()
+   └─ message → addTerminalLine()
+
+3. Generation complete
+   └─ handleComplete() creates campaign
+   └─ Converts pendingImages → GeneratedImage[]
+   └─ Creates campaign files from templates
+   └─ completeGeneration(name, files, images)
+   └─ Switch to 'results' view
+```
+
+### Design System (Studio Dark)
+
+```css
+--color-bg-base: #0f0f0f          /* Main background */
+--color-bg-raised: #171717        /* Elevated surfaces */
+--color-bg-elevated: #1f1f1f      /* Highest elevation */
+
+--color-text-primary: #f5f5f5     /* Primary text */
+--color-text-secondary: #a3a3a3   /* Secondary text */
+
+--color-accent: #3b82f6           /* Electric blue */
+--color-pop: #f97316              /* Coral orange */
+```
+
+**Animations:**
+- `mesh-float` - Gradient blob floating on landing page
+- `dot-pulse` - Progress indicator pulse
+- `slideUp/In/Left` - Entrance animations
+- `glow-pulse` - Focus/active glow effects
+
+### Keyboard Shortcuts
+
+- `Cmd+[` - Toggle left sidebar (Assets/Campaigns)
+- `Cmd+]` - Toggle right sidebar (Chat)
 
 ---
 
@@ -447,8 +669,76 @@ creative_agent/
 | AI | Claude SDK 0.1.54, claude-opus-4-5-20251101 |
 | Image Gen | fal.ai Nano Banana Pro via MCP |
 | Server | Express 4.x, ws 8.x |
-| Client | React 19, Vite 7, Zustand, TailwindCSS |
+| Client | React 19.2, Vite 7.2, TypeScript 5.9 |
+| State | Zustand 5.0 (single store) |
+| Styling | Tailwind CSS 4.1 + shadcn/ui + Radix UI |
+| Editor | TipTap (rich text markdown) |
+| Icons | Lucide React |
 | Production | Cloudflare Workers, D1, R2 |
+
+---
+
+## Frontend-Backend Data Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                       END-TO-END DATA FLOW                              │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  CLIENT (React)                    SERVER (Express)                     │
+│  ┌────────────────┐               ┌─────────────────────────────────┐  │
+│  │ EmptyState     │               │  sdk-server.ts                  │  │
+│  │ - User input   │  WebSocket    │  ┌────────────────────────────┐ │  │
+│  │ - generate()   │──────────────►│  │ websocket-handler.ts       │ │  │
+│  └────────────────┘               │  │ - Message routing          │ │  │
+│                                   │  │ - Event buffering          │ │  │
+│  ┌────────────────┐               │  └────────────┬───────────────┘ │  │
+│  │ GeneratingView │               │               │                 │  │
+│  │ - Progress UI  │◄──────────────│               ▼                 │  │
+│  │ - Terminal     │   Events:     │  ┌────────────────────────────┐ │  │
+│  │ - Phase dots   │   phase       │  │ ai-client.ts               │ │  │
+│  └────────────────┘   tool_start  │  │ - Claude SDK query         │ │  │
+│                       image       │  │ - Session management       │ │  │
+│  ┌────────────────┐   complete    │  └────────────┬───────────────┘ │  │
+│  │ ResultsView    │               │               │                 │  │
+│  │ - Image grid   │               │               ▼                 │  │
+│  │ - Campaign     │               │  ┌────────────────────────────┐ │  │
+│  └────────────────┘               │  │ ORCHESTRATOR AGENT         │ │  │
+│                                   │  │ - Task(research)           │ │  │
+│  ┌────────────────┐               │  │ - Skill(hook-methodology)  │ │  │
+│  │ Zustand Store  │               │  │ - Skill(art-style)         │ │  │
+│  │ - campaigns[]  │               │  │ - MCP(nano-banana)         │ │  │
+│  │ - pendingImages│               │  └────────────┬───────────────┘ │  │
+│  │ - terminalLines│               │               │                 │  │
+│  └────────────────┘               │               ▼                 │  │
+│                                   │  ┌────────────────────────────┐ │  │
+│                                   │  │ generated-images/          │ │  │
+│                                   │  │ {sessionId}/*.png          │ │  │
+│                                   │  └────────────────────────────┘ │  │
+│                                   └─────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+### Message Flow Example
+
+```
+CLIENT                              SERVER
+  │
+  ├─→ { type: 'generate', prompt: 'nike.com', sessionId: 'uuid' }
+  │                                 ←─ { type: 'ack', sessionId }
+  │                                 ←─ { type: 'phase', phase: 'research' }
+  │                                 ←─ { type: 'tool_start', tool: 'Task[Explore]' }
+  │                                 ←─ { type: 'message', text: 'Analyzing...' }
+  │                                 ←─ { type: 'phase', phase: 'hooks' }
+  │                                 ←─ { type: 'tool_start', tool: 'Skill[hook-methodology]' }
+  │                                 ←─ { type: 'phase', phase: 'images' }
+  │                                 ←─ { type: 'image', urlPath: '/images/uuid/1.png' }
+  │                                 ←─ { type: 'image', urlPath: '/images/uuid/2.png' }
+  │                                 ←─ ... (6 images total)
+  │                                 ←─ { type: 'complete', duration: 45000, imageCount: 6 }
+  │
+  └─ Store: completeGeneration() → creates Campaign from pending data
+```
 
 ---
 
@@ -464,3 +754,47 @@ creative_agent/
 | Session forking | A/B testing capability |
 | MCP for images | Proper tool interface, SDK integration |
 | In-memory buffer | Fast, sufficient for generation lifetime |
+| Campaign-based UI | Persistence, history, organized workflow |
+| Studio Dark theme | Makes images hero, signals creative tool |
+| Zustand single store | Simple state, no prop drilling |
+| TipTap editor | Rich editing without reinventing markdown |
+| @ mentions | Familiar pattern (Cursor/Claude Code style) |
+| Resizable panels | Professional feel, user preference |
+
+---
+
+## Quick Start
+
+### Development
+
+```bash
+# Terminal 1: Start backend
+cd server
+npm install
+npm run dev          # Express + WebSocket on :3001
+
+# Terminal 2: Start frontend
+cd client
+npm install
+npm run dev          # Vite dev server on :5173
+```
+
+**URLs:**
+- Frontend: http://localhost:5173
+- Backend: http://localhost:3001
+- WebSocket: ws://localhost:5173/ws (proxied)
+- Images: http://localhost:5173/images/:sessionId/:filename
+
+### Environment
+
+```bash
+# Required: Claude API key (server/.env or environment)
+ANTHROPIC_API_KEY=sk-ant-...
+
+# Required: fal.ai API key for image generation
+FAL_KEY=...
+```
+
+---
+
+*Last updated: January 28, 2026 - V8.0 with Campaign-Based Frontend Architecture*

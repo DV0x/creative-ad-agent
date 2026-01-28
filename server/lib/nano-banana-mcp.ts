@@ -94,6 +94,14 @@ const resolutionEnum = z.enum(['1K', '2K', '4K']);
 // Output format options
 const outputFormatEnum = z.enum(['jpeg', 'png', 'webp']);
 
+// Hook types for ad concepts (matches client types)
+type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
+const HOOK_TYPE_ORDER: HookType[] = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'];
+
+function getHookTypeForIndex(index: number): HookType {
+  return HOOK_TYPE_ORDER[index - 1] || 'stat';
+}
+
 /**
  * Create and export the nano_banana MCP server with fal.ai
  */
@@ -252,11 +260,14 @@ export const nanoBananaMcpServer = createSdkMcpServer({
               const fileSize = await downloadImage(image.url, filepath);
               console.log(`   💾 Saved: ${filename} (${Math.round(fileSize / 1024)}KB)`);
 
-              // Construct local URL
-              const url = `http://localhost:${process.env.PORT || 3001}/images/${args.sessionId ? args.sessionId + '/' : ''}${filename}`;
+              // Construct relative URL (works with Vite proxy in dev, and directly in production)
+              const url = `/images/${args.sessionId ? args.sessionId + '/' : ''}${filename}`;
 
+              const imageIndex = i + 1;
               results.push({
-                id: `image_${i + 1}`,
+                id: `image_${imageIndex}`,
+                imageIndex,
+                hookType: getHookTypeForIndex(imageIndex),
                 filename: filename,
                 url: url,
                 originalUrl: image.url,

@@ -1,38 +1,154 @@
-// Client → Server message types
+import type { HookType } from './chat';
+
+// ============================================
+// Client → Server Messages
+// ============================================
+
 export interface WSClientMessage {
   type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe';
   prompt?: string;
   sessionId?: string;
   lastEventId?: number;
+  // Image references for follow-up messages
+  imageRefs?: number[];
 }
 
-// Server → Client message types
-export interface WSServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'complete' | 'error' | 'ack' | 'pong' | 'subscribed';
+// ============================================
+// Server → Client Messages (Base)
+// ============================================
+
+interface WSBaseMessage {
   timestamp: string;
-  // Event ID (for resilience/recovery) - number for event tracking, string for image IDs
-  id?: number | string;
-  // Phase events
-  phase?: string;
+  // Event ID for resilience/recovery
+  id?: number;
+}
+
+// ============================================
+// Specific Event Types
+// ============================================
+
+export interface WSPhaseEvent extends WSBaseMessage {
+  type: 'phase';
+  phase: string;
   label?: string;
-  // Tool events
-  tool?: string;
+}
+
+export interface WSToolStartEvent extends WSBaseMessage {
+  type: 'tool_start';
+  tool: string;
   toolId?: string;
-  input?: any;
+  input?: Record<string, unknown>;
+}
+
+export interface WSToolEndEvent extends WSBaseMessage {
+  type: 'tool_end';
+  toolId?: string;
   success?: boolean;
-  // Message events
-  text?: string;
-  message?: string;
-  // Image events
-  urlPath?: string;
-  prompt?: string;
+}
+
+export interface WSMessageEvent extends WSBaseMessage {
+  type: 'message';
+  text: string;
+}
+
+export interface WSStatusEvent extends WSBaseMessage {
+  type: 'status';
+  message: string;
+  success?: boolean;
+}
+
+// New: File event for syncing campaign files from backend
+export interface WSFileEvent extends WSBaseMessage {
+  type: 'file';
+  fileType: 'research' | 'hooks' | 'prompts';
+  content: string;
+  path: string;
+}
+
+// Updated: Image event with hookType and imageIndex
+export interface WSImageEvent extends WSBaseMessage {
+  type: 'image';
+  imageId: string; // Unique image identifier (separate from event id)
+  urlPath: string;
+  prompt: string;
   filename?: string;
-  // Error events
-  error?: string;
-  // Complete events
+  hookType: HookType;
+  imageIndex: number; // 1-6
+}
+
+// Updated: Complete event with summary for assistant message
+export interface WSCompleteEvent extends WSBaseMessage {
+  type: 'complete';
+  message?: string;
+  summary: string; // Final assistant message content
   sessionId?: string;
   duration?: number;
   imageCount?: number;
+}
+
+export interface WSErrorEvent extends WSBaseMessage {
+  type: 'error';
+  error: string;
+}
+
+export interface WSAckEvent extends WSBaseMessage {
+  type: 'ack';
+  message?: string;
+}
+
+export interface WSPongEvent extends WSBaseMessage {
+  type: 'pong';
+}
+
+export interface WSSubscribedEvent extends WSBaseMessage {
+  type: 'subscribed';
+  sessionId: string;
+}
+
+// ============================================
+// Union Type for All Server Messages
+// ============================================
+
+export type WSServerMessage =
+  | WSPhaseEvent
+  | WSToolStartEvent
+  | WSToolEndEvent
+  | WSMessageEvent
+  | WSStatusEvent
+  | WSFileEvent
+  | WSImageEvent
+  | WSCompleteEvent
+  | WSErrorEvent
+  | WSAckEvent
+  | WSPongEvent
+  | WSSubscribedEvent;
+
+// ============================================
+// Type Guards
+// ============================================
+
+export function isPhaseEvent(msg: WSServerMessage): msg is WSPhaseEvent {
+  return msg.type === 'phase';
+}
+
+export function isToolStartEvent(msg: WSServerMessage): msg is WSToolStartEvent {
+  return msg.type === 'tool_start';
+}
+
+export function isFileEvent(msg: WSServerMessage): msg is WSFileEvent {
+  return msg.type === 'file';
+}
+
+export function isImageEvent(msg: WSServerMessage): msg is WSImageEvent {
+  return msg.type === 'image';
+}
+
+export function isCompleteEvent(msg: WSServerMessage): msg is WSCompleteEvent {
+  return msg.type === 'complete';
+}
+
+export function isErrorEvent(msg: WSServerMessage): msg is WSErrorEvent {
+  return msg.type === 'error';
 }
 
 // WebSocket connection state

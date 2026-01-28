@@ -1,7 +1,9 @@
-import { useEffect, useRef, useCallback, useState } from 'react';
-import { useAppStore } from '../store';
-import type { WSClientMessage, WSServerMessage, WSConnectionState, UseWebSocketReturn } from '../types/websocket';
-import type { Phase } from '../types';
+import { useEffect, useRef, useCallback } from 'react';
+import { useStore } from '../store';
+import type { WSClientMessage, WSServerMessage, WSConnectionState } from '../types/websocket';
+import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEvent, isErrorEvent } from '../types/websocket';
+import { getHookTypeForIndex } from '../types/chat';
+import type { ThinkingLineType } from '../types/chat';
 
 // WebSocket URL - always use current host so Vite proxy can handle it in dev
 const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
@@ -17,15 +19,25 @@ const STORAGE_KEYS = {
 };
 
 // Session persistence helpers
-function saveActiveSession(sessionId: string, prompt: string): void {
+function saveActiveSession(sessionId: string, prompt: string, campaignId: string, messageId: string): void {
   localStorage.setItem(STORAGE_KEYS.ACTIVE_SESSION, JSON.stringify({
     sessionId,
     prompt,
+    campaignId,
+    messageId,
     startedAt: Date.now()
   }));
 }
 
-function getActiveSession(): { sessionId: string; prompt: string; startedAt: number } | null {
+interface SavedSession {
+  sessionId: string;
+  prompt: string;
+  campaignId: string;
+  messageId: string;
+  startedAt: number;
+}
+
+function getActiveSession(): SavedSession | null {
   try {
     const saved = localStorage.getItem(STORAGE_KEYS.ACTIVE_SESSION);
     return saved ? JSON.parse(saved) : null;
@@ -51,16 +63,45 @@ function getLastEventId(sessionId: string): number {
   return saved ? parseInt(saved, 10) : 0;
 }
 
+// Extract campaign name from prompt (e.g., "nike.com" -> "Nike")
+function extractCampaignName(prompt: string): string {
+  const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
+  if (domainMatch) {
+    const name = domainMatch[1];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  const firstWord = prompt.split(/\s+/)[0] || 'Campaign';
+  return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+}
+
+export interface UseWebSocketReturn {
+  connectionState: WSConnectionState;
+  isConnected: boolean;
+  isRecovering: boolean;
+  generate: () => void;
+  cancel: () => void;
+}
+
 export function useWebSocket(): UseWebSocketReturn {
   const {
     prompt,
-    startGeneration,
-    setPhase,
-    addTerminalLine,
-    addImage,
-    setComplete,
+    connectionState,
+    isRecovering,
+    generatingCampaignId,
+    currentGeneratingMessageId,
+    setConnectionState,
+    setIsRecovering,
     setError,
-  } = useAppStore();
+    startGeneration,
+    completeGeneration,
+    cancelGeneration,
+    failGeneration,
+    addThinkingLine,
+    addImageToCampaign,
+    updateCampaignFile,
+    incrementCompletedImages,
+    setAppState,
+  } = useStore();
 
   const wsRef = useRef<WebSocket | null>(null);
   const reconnectAttemptsRef = useRef(0);
@@ -68,9 +109,24 @@ export function useWebSocket(): UseWebSocketReturn {
   const pingIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const lastEventIdRef = useRef<number>(0);
+  const promptRef = useRef<string>('');
 
-  const [connectionState, setConnectionState] = useState<WSConnectionState>('disconnected');
-  const [isRecovering, setIsRecovering] = useState(false);
+  // Track current generation context
+  const campaignIdRef = useRef<string | null>(null);
+  const messageIdRef = useRef<string | null>(null);
+
+  // Keep refs in sync with store
+  useEffect(() => {
+    promptRef.current = prompt;
+  }, [prompt]);
+
+  useEffect(() => {
+    campaignIdRef.current = generatingCampaignId;
+  }, [generatingCampaignId]);
+
+  useEffect(() => {
+    messageIdRef.current = currentGeneratingMessageId;
+  }, [currentGeneratingMessageId]);
 
   // Send message helper
   const sendMessage = useCallback((message: WSClientMessage) => {
@@ -81,16 +137,27 @@ export function useWebSocket(): UseWebSocketReturn {
     return false;
   }, []);
 
+  // Add a thinking line to the current generating message
+  const addThinking = useCallback((type: ThinkingLineType, text: string, indent: number = 0) => {
+    const messageId = messageIdRef.current;
+    if (messageId) {
+      addThinkingLine(messageId, { type, text, indent });
+    }
+  }, [addThinkingLine]);
+
   // Handle incoming messages
   const handleMessage = useCallback((event: MessageEvent) => {
     try {
       const message: WSServerMessage = JSON.parse(event.data);
 
-      // Track event ID for recovery (only numeric IDs from event buffer)
+      // Track event ID for recovery
       if (typeof message.id === 'number' && sessionIdRef.current) {
         lastEventIdRef.current = message.id;
         saveLastEventId(sessionIdRef.current, message.id);
       }
+
+      const campaignId = campaignIdRef.current;
+      const messageId = messageIdRef.current;
 
       switch (message.type) {
         case 'subscribed':
@@ -99,114 +166,128 @@ export function useWebSocket(): UseWebSocketReturn {
           return;
 
         case 'phase':
-          if (message.phase) {
-            setPhase(message.phase as Phase);
-            addTerminalLine({
-              type: 'command',
-              text: `$ phase: ${message.label || message.phase}`
-            });
+          if (isPhaseEvent(message) && messageId) {
+            addThinking('phase', message.label || message.phase, 0);
           }
           break;
 
         case 'tool_start':
-          if (message.tool) {
-            // Show tool name, with agent type for Task tool
+          if (isToolStartEvent(message) && messageId) {
             let toolText = message.tool;
             if (message.tool === 'Task' && message.input?.subagent_type) {
               toolText = `Task [${message.input.subagent_type}]`;
             } else if (message.tool === 'Skill' && message.input?.skill) {
               toolText = `Skill [${message.input.skill}]`;
             }
-            addTerminalLine({
-              type: 'command',
-              text: `$ ${toolText}`
-            });
+            addThinking('tool', toolText, 1);
           }
           break;
 
         case 'tool_end':
-          // Silent - don't clutter terminal
+          // Silent - tool completion doesn't need a line
           break;
 
         case 'message':
-          if (message.text) {
-            addTerminalLine({
-              type: 'output',
-              text: message.text.slice(0, 150)
-            });
+          if (message.type === 'message' && 'text' in message && message.text && messageId) {
+            // Truncate long messages for the thinking display
+            const text = message.text.length > 100 ? message.text.slice(0, 100) + '...' : message.text;
+            addThinking('result', text, 1);
           }
           break;
 
         case 'status':
-          if (message.message) {
+          if (message.type === 'status' && 'message' in message && message.message) {
             // Handle cancellation status
-            if (message.message.toLowerCase().includes('cancelled')) {
-              setComplete(); // Reset to idle state
-              addTerminalLine({
-                type: 'output',
-                text: 'Generation cancelled'
-              });
-            } else {
-              addTerminalLine({
-                type: message.success ? 'success' : 'output',
-                text: message.message
-              });
+            if (message.message.toLowerCase().includes('cancelled') && campaignId && messageId) {
+              cancelGeneration(campaignId, messageId);
+              clearActiveSession();
             }
           }
           break;
 
+        case 'file':
+          // New: Handle file content from backend
+          if (isFileEvent(message) && campaignId) {
+            console.log('WebSocket: Received file event:', message.fileType);
+            updateCampaignFile(campaignId, message.fileType, message.content);
+            addThinking('result', `Created ${message.fileType}.md`, 1);
+          }
+          break;
+
         case 'image':
-          if (message.id && message.urlPath) {
-            addImage({
-              id: String(message.id),
+          if (isImageEvent(message) && campaignId && messageId) {
+            console.log('WebSocket: Received image event:', message.imageIndex);
+
+            // Add image to campaign
+            addImageToCampaign(campaignId, {
+              id: message.imageIndex,
               url: message.urlPath,
-              urlPath: message.urlPath,
-              prompt: message.prompt || '',
-              filename: message.filename || ''
+              prompt: message.prompt,
+              hookType: message.hookType || getHookTypeForIndex(message.imageIndex),
+              version: 1,
             });
-            addTerminalLine({
-              type: 'success',
-              text: `Image generated: ${message.filename || 'image'}`
-            });
+
+            // Update progress
+            incrementCompletedImages(messageId);
+            addThinking('progress', `Image ${message.imageIndex}/6 generated`, 1);
           }
           break;
 
         case 'complete':
-          setComplete();
-          clearActiveSession();
-          addTerminalLine({
-            type: 'success',
-            text: message.message || 'Generation complete!'
-          });
-          break;
+          if (isCompleteEvent(message) && campaignId && messageId) {
+            console.log('WebSocket: Received complete event');
+            addThinking('success', 'Complete', 0);
 
-        case 'error':
-          setError(message.error || 'Unknown error');
-          clearActiveSession();
-          addTerminalLine({
-            type: 'error',
-            text: message.error || 'Unknown error'
-          });
-          break;
+            const summary = message.summary ||
+              `Created 6 ad concepts. You can edit the hooks and prompts in the sidebar, or select images to regenerate them.`;
 
-        case 'ack':
-          // Acknowledgment - log if interesting
-          if (message.message && !message.message.includes('Connected')) {
-            console.log('WebSocket ack:', message.message);
+            completeGeneration(campaignId, messageId, summary);
+            clearActiveSession();
+            sessionIdRef.current = null;
           }
           break;
 
+        case 'error':
+          if (isErrorEvent(message)) {
+            const errorMsg = message.error || 'Unknown error';
+            console.error('WebSocket: Error event:', errorMsg);
+
+            if (campaignId && messageId) {
+              addThinking('error', errorMsg, 0);
+              failGeneration(campaignId, messageId, errorMsg);
+            } else {
+              setError(errorMsg);
+            }
+            clearActiveSession();
+          }
+          break;
+
+        case 'ack':
+          // Acknowledgment - silent
+          break;
+
         case 'pong':
-          // Heartbeat response - ignore
+          // Heartbeat response - silent
           break;
 
         default:
-          console.log('Unknown WebSocket message type:', message.type);
+          // All known types are handled above
+          console.log('Unknown WebSocket message type:', (message as { type: string }).type);
       }
     } catch (error) {
       console.error('Failed to parse WebSocket message:', error);
     }
-  }, [setPhase, addTerminalLine, addImage, setComplete, setError]);
+  }, [
+    setIsRecovering,
+    addThinking,
+    cancelGeneration,
+    updateCampaignFile,
+    addImageToCampaign,
+    incrementCompletedImages,
+    completeGeneration,
+    failGeneration,
+    setError,
+  ]);
 
   // Connect to WebSocket
   const connect = useCallback(() => {
@@ -238,13 +319,13 @@ export function useWebSocket(): UseWebSocketReturn {
           console.log(`WebSocket: Recovering session ${savedSession.sessionId}`);
           setIsRecovering(true);
           sessionIdRef.current = savedSession.sessionId;
+          campaignIdRef.current = savedSession.campaignId;
+          messageIdRef.current = savedSession.messageId;
 
-          // Restore generation state in store
-          startGeneration(savedSession.sessionId);
-          addTerminalLine({
-            type: 'command',
-            text: `$ recovering session ${savedSession.sessionId.slice(0, 8)}...`
-          });
+          // Restore app state
+          setAppState('workspace');
+
+          addThinking('phase', `Recovering session...`, 0);
 
           // Subscribe to the existing session
           ws.send(JSON.stringify({
@@ -262,7 +343,6 @@ export function useWebSocket(): UseWebSocketReturn {
         setConnectionState('disconnected');
         wsRef.current = null;
 
-        // Clear ping interval
         if (pingIntervalRef.current) {
           clearInterval(pingIntervalRef.current);
           pingIntervalRef.current = null;
@@ -283,15 +363,13 @@ export function useWebSocket(): UseWebSocketReturn {
       };
 
       ws.onerror = () => {
-        // Error details are not available in browser WebSocket API
-        // The close event will fire after this with more info
         console.log('WebSocket: Connection error (server may be unavailable)');
       };
     } catch (error) {
       console.error('WebSocket: Failed to create connection', error);
       setConnectionState('disconnected');
     }
-  }, [handleMessage, sendMessage]);
+  }, [handleMessage, sendMessage, setConnectionState, setIsRecovering, setAppState, addThinking]);
 
   // Disconnect
   const disconnect = useCallback(() => {
@@ -311,63 +389,57 @@ export function useWebSocket(): UseWebSocketReturn {
     }
 
     setConnectionState('disconnected');
-  }, []);
+  }, [setConnectionState]);
 
   // Generate action
   const generate = useCallback(() => {
-    if (!prompt.trim()) return;
+    if (!promptRef.current.trim()) return;
 
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
 
+    // Extract campaign name and start generation
+    const campaignName = extractCampaignName(promptRef.current);
+    const { campaignId, messageId } = startGeneration(sessionId, campaignName);
+
+    campaignIdRef.current = campaignId;
+    messageIdRef.current = messageId;
+
     // Persist session for recovery
-    saveActiveSession(sessionId, prompt);
+    saveActiveSession(sessionId, promptRef.current, campaignId, messageId);
 
-    startGeneration(sessionId);
-
-    addTerminalLine({
-      type: 'command',
-      text: `$ starting session ${sessionId.slice(0, 8)}...`
-    });
+    // Add initial thinking line
+    addThinking('phase', `Starting generation for ${campaignName}...`, 0);
 
     const sent = sendMessage({
       type: 'generate',
-      prompt,
+      prompt: promptRef.current,
       sessionId
     });
 
     if (!sent) {
-      setError('WebSocket not connected');
+      failGeneration(campaignId, messageId, 'WebSocket not connected');
       clearActiveSession();
-      addTerminalLine({
-        type: 'error',
-        text: 'WebSocket not connected - please refresh'
-      });
     }
-  }, [prompt, startGeneration, addTerminalLine, sendMessage, setError]);
+  }, [startGeneration, sendMessage, failGeneration, addThinking]);
 
   // Cancel action
   const cancel = useCallback(() => {
+    const campaignId = campaignIdRef.current;
+    const messageId = messageIdRef.current;
+
     sendMessage({ type: 'cancel' });
+
+    if (campaignId && messageId) {
+      addThinking('error', 'Cancelling...', 0);
+      cancelGeneration(campaignId, messageId);
+    }
+
     clearActiveSession();
-    addTerminalLine({
-      type: 'command',
-      text: '$ cancelling...'
-    });
-  }, [sendMessage, addTerminalLine]);
+  }, [sendMessage, cancelGeneration, addThinking]);
 
-  // Pause action
-  const pause = useCallback(() => {
-    sendMessage({ type: 'pause' });
-  }, [sendMessage]);
-
-  // Resume action
-  const resume = useCallback(() => {
-    sendMessage({ type: 'resume' });
-  }, [sendMessage]);
-
-  // Auto-connect on mount with small delay to let server initialize
+  // Auto-connect on mount
   useEffect(() => {
     const timeout = setTimeout(() => {
       connect();
@@ -385,7 +457,5 @@ export function useWebSocket(): UseWebSocketReturn {
     isRecovering,
     generate,
     cancel,
-    pause,
-    resume
   };
 }
