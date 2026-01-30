@@ -11,6 +11,7 @@ import {
 import { ThinkingBlock } from '@/components/chat/ThinkingBlock'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { useStore, type ChatMessage, type CampaignFileType } from '@/store'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import { cn } from '@/lib/utils'
 
 interface MobileChatDrawerProps {
@@ -20,15 +21,20 @@ interface MobileChatDrawerProps {
 
 export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) {
   const {
-    chatMessages,
+    getActiveChatMessages,
     addChatMessage,
     getActiveCampaign,
+    activeCampaignId,
+    isCreatingCampaign,
+    setPrompt,
     currentGeneratingMessageId,
   } = useStore()
+  const { isConnected, generate, cancel } = useWebSocket()
   const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const activeCampaign = getActiveCampaign()
+  const chatMessages = getActiveChatMessages()
   const isGenerating = !!currentGeneratingMessageId
 
   // Auto-scroll to bottom when new messages arrive
@@ -44,7 +50,16 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
     assetRefs: string[]
     imageRefs: { imageId: number }[]
   }) => {
-    addChatMessage({
+    // When creating a new campaign, trigger generation via WebSocket
+    if (isCreatingCampaign && message.content.trim() && isConnected) {
+      setPrompt(message.content.trim())
+      setTimeout(() => generate(), 0)
+      return
+    }
+
+    if (!activeCampaignId) return
+
+    addChatMessage(activeCampaignId, {
       role: 'user',
       content: message.content,
       fileRefs: message.fileRefs,
@@ -55,6 +70,8 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
     setIsTyping(true)
 
     setTimeout(() => {
+      if (!activeCampaignId) return
+
       let response = "I'll help you with that. What specific changes would you like me to make to the creatives?"
 
       if (message.imageRefs.length > 0) {
@@ -72,7 +89,7 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
         response = `I'll reference the ${fileDescriptions.join(' and ')} from "${activeCampaign.name}" to help with your request.`
       }
 
-      addChatMessage({
+      addChatMessage(activeCampaignId, {
         role: 'assistant',
         content: response,
         fileRefs: [],
@@ -83,7 +100,7 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
   }
 
   const handleCancel = () => {
-    console.log('Cancel generation')
+    cancel()
   }
 
   const showEmptyState = chatMessages.length === 0
@@ -93,7 +110,9 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
       <DrawerContent className="bg-bg-raised border-border max-h-[85vh]">
         <DrawerHeader className="border-b border-border pb-3">
           <div className="flex items-center justify-between">
-            <DrawerTitle className="text-text-primary">Chat</DrawerTitle>
+            <DrawerTitle className="text-text-primary">
+              {isCreatingCampaign ? 'New Campaign' : 'Chat'}
+            </DrawerTitle>
             <DrawerClose asChild>
               <Button variant="ghost" size="icon-xs">
                 <X className="w-4 h-4" />

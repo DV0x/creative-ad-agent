@@ -4,19 +4,25 @@ import { ScrollArea } from '@/components/ui/scroll-area'
 import { ThinkingBlock } from '@/components/chat/ThinkingBlock'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { useStore, type CampaignFileType, type ChatMessage } from '@/store'
+import { useWebSocket } from '@/hooks/useWebSocket'
 import { cn } from '@/lib/utils'
 
 export function ChatSidebar() {
   const {
-    chatMessages,
+    getActiveChatMessages,
     addChatMessage,
     getActiveCampaign,
+    activeCampaignId,
+    isCreatingCampaign,
+    setPrompt,
     currentGeneratingMessageId,
   } = useStore()
+  const { isConnected, generate, cancel } = useWebSocket()
   const [isTyping, setIsTyping] = useState(false)
   const scrollRef = useRef<HTMLDivElement>(null)
 
   const activeCampaign = getActiveCampaign()
+  const chatMessages = getActiveChatMessages()
   const isGenerating = !!currentGeneratingMessageId
 
   // Auto-scroll to bottom when new messages arrive
@@ -32,8 +38,19 @@ export function ChatSidebar() {
     assetRefs: string[]
     imageRefs: { imageId: number }[]
   }) => {
-    // Add user message
-    addChatMessage({
+    // When creating a new campaign, trigger generation via WebSocket
+    if (isCreatingCampaign && message.content.trim() && isConnected) {
+      setPrompt(message.content.trim())
+      // generate() reads from promptRef which syncs from store.prompt
+      // Use setTimeout to ensure the store update propagates to the ref
+      setTimeout(() => generate(), 0)
+      return
+    }
+
+    if (!activeCampaignId) return
+
+    // Add user message to existing campaign
+    addChatMessage(activeCampaignId, {
       role: 'user',
       content: message.content,
       fileRefs: message.fileRefs,
@@ -45,6 +62,8 @@ export function ChatSidebar() {
 
     // Simulate assistant response (will be replaced by actual WebSocket handling)
     setTimeout(() => {
+      if (!activeCampaignId) return
+
       let response = "I'll help you with that. What specific changes would you like me to make to the creatives?"
 
       if (message.imageRefs.length > 0) {
@@ -62,7 +81,7 @@ export function ChatSidebar() {
         response = `I'll reference the ${fileDescriptions.join(' and ')} from "${activeCampaign.name}" to help with your request.`
       }
 
-      addChatMessage({
+      addChatMessage(activeCampaignId, {
         role: 'assistant',
         content: response,
         fileRefs: [],
@@ -73,8 +92,7 @@ export function ChatSidebar() {
   }
 
   const handleCancel = () => {
-    // TODO: Implement cancel via WebSocket
-    console.log('Cancel generation')
+    cancel()
   }
 
   const showEmptyState = chatMessages.length === 0
@@ -89,10 +107,12 @@ export function ChatSidebar() {
               <Sparkles className="w-5 h-5 text-accent" />
             </div>
             <p className="text-sm text-text-secondary mb-1">
-              Start creating
+              {isCreatingCampaign ? 'New campaign' : 'Start creating'}
             </p>
             <p className="text-xs text-text-muted">
-              Enter a prompt to generate ad creatives
+              {isCreatingCampaign
+                ? 'Enter a website URL or describe a business below'
+                : 'Enter a prompt to generate ad creatives'}
             </p>
           </div>
         ) : (

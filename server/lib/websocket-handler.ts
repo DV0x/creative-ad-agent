@@ -264,11 +264,13 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
               });
             }
           } else if (block.name === 'mcp__nano-banana__generate_ad_images') {
+            const promptCount = Array.isArray(block.input?.prompts) ? block.input.prompts.length : undefined;
             broadcastToConnection(state, {
               type: 'phase',
               timestamp: new Date().toISOString(),
               phase: 'images',
-              label: 'Generating Images'
+              label: 'Generating Images',
+              imageCount: promptCount,
             });
           }
         }

@@ -1,8 +1,9 @@
-import { Download, Share2, ArrowLeft, FolderIcon, ImageIcon, MessageSquare, X } from 'lucide-react'
+import { Download, Share2, ArrowLeft, FolderIcon, ImageIcon, MessageSquare, X, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageCard, ImageCardSkeleton } from '@/components/ImageCard'
 import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
+import { useWebSocket } from '@/hooks/useWebSocket'
 
 export function ResultsView() {
   const {
@@ -11,12 +12,40 @@ export function ResultsView() {
     selectedImageIds,
     toggleImageSelection,
     clearImageSelection,
+    generationExpectedImages,
   } = useStore()
   const { setMobileDrawerOpen, setMobileAssetsOpen } = useSidebars()
+  const { connectionState, resume } = useWebSocket()
 
   const campaign = getActiveCampaign()
   const isGenerating = campaign?.status === 'generating'
+  const isIncomplete = campaign?.status === 'incomplete'
   const hasSelection = selectedImageIds.length > 0
+
+  // Handle resume for incomplete campaigns
+  const handleResume = () => {
+    if (!campaign) return
+
+    // Build resume prompt from existing campaign files
+    const researchFile = campaign.files.find(f => f.type === 'research')
+    const hooksFile = campaign.files.find(f => f.type === 'hooks')
+    const promptsFile = campaign.files.find(f => f.type === 'prompts')
+
+    // Create a resume prompt with context
+    const resumePrompt = `RESUME GENERATION for campaign "${campaign.name}".
+
+Existing context:
+${researchFile?.content ? `\n## Research:\n${researchFile.content.slice(0, 2000)}` : ''}
+${hooksFile?.content ? `\n## Hooks:\n${hooksFile.content.slice(0, 2000)}` : ''}
+${promptsFile?.content ? `\n## Prompts:\n${promptsFile.content.slice(0, 2000)}` : ''}
+
+Images already generated: ${campaign.images.length}
+Missing images: ${Math.max(0, generationExpectedImages - campaign.images.length)}
+
+Please continue from where we left off and complete the remaining images.`
+
+    resume(campaign.id, resumePrompt)
+  }
 
   const handleMobileChatClick = () => {
     setMobileDrawerOpen(true)
@@ -72,6 +101,18 @@ export function ResultsView() {
                 </button>
               </div>
             )}
+            {/* Resume button for incomplete campaigns */}
+            {isIncomplete && (
+              <Button
+                variant="glow"
+                size="sm"
+                onClick={handleResume}
+                disabled={connectionState !== 'connected'}
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span className="hidden sm:inline">Resume</span>
+              </Button>
+            )}
             <Button variant="outline" size="sm">
               <Download className="w-4 h-4" />
               <span className="hidden sm:inline">Save All</span>
@@ -102,8 +143,8 @@ export function ResultsView() {
                 />
               ))}
               {/* Show skeleton cards for remaining images during generation */}
-              {isGenerating && campaign.images.length < 6 && (
-                Array.from({ length: 6 - campaign.images.length }).map((_, i) => (
+              {isGenerating && campaign.images.length < generationExpectedImages && (
+                Array.from({ length: generationExpectedImages - campaign.images.length }).map((_, i) => (
                   <ImageCardSkeleton key={`skeleton-${i}`} index={campaign.images.length + i + 1} />
                 ))
               )}

@@ -4,9 +4,10 @@ import type { WSClientMessage, WSServerMessage, WSConnectionState } from '../typ
 import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEvent, isErrorEvent } from '../types/websocket';
 import { getHookTypeForIndex } from '../types/chat';
 import type { ThinkingLineType } from '../types/chat';
+import { getAuthToken } from '../lib/api';
 
 // WebSocket URL - always use current host so Vite proxy can handle it in dev
-const WS_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
+const WS_BASE_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 2000;
@@ -80,6 +81,7 @@ export interface UseWebSocketReturn {
   isRecovering: boolean;
   generate: () => void;
   cancel: () => void;
+  resume: (campaignId: string, resumePrompt: string) => void;
 }
 
 export function useWebSocket(): UseWebSocketReturn {
@@ -93,13 +95,19 @@ export function useWebSocket(): UseWebSocketReturn {
     setIsRecovering,
     setError,
     startGeneration,
+    resumeGeneration,
+    reconstructForRecovery,
+    cleanupFailedRecovery,
     completeGeneration,
     cancelGeneration,
     failGeneration,
     addThinkingLine,
     addImageToCampaign,
     updateCampaignFile,
+    replaceCampaignId,
     incrementCompletedImages,
+    setGenerationExpectedImages,
+    generationExpectedImages,
     setAppState,
   } = useStore();
 
@@ -168,6 +176,10 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'phase':
           if (isPhaseEvent(message) && messageId) {
             addThinking('phase', message.label || message.phase, 0);
+            // When images phase starts, the server includes the expected image count
+            if (message.phase === 'images' && message.imageCount) {
+              setGenerationExpectedImages(message.imageCount);
+            }
           }
           break;
 
@@ -229,7 +241,8 @@ export function useWebSocket(): UseWebSocketReturn {
 
             // Update progress
             incrementCompletedImages(messageId);
-            addThinking('progress', `Image ${message.imageIndex}/6 generated`, 1);
+            const expected = useStore.getState().generationExpectedImages;
+            addThinking('progress', `Image ${message.imageIndex}/${expected} generated`, 1);
           }
           break;
 
@@ -238,8 +251,9 @@ export function useWebSocket(): UseWebSocketReturn {
             console.log('WebSocket: Received complete event');
             addThinking('success', 'Complete', 0);
 
+            const imgCount = message.imageCount || useStore.getState().generationExpectedImages;
             const summary = message.summary ||
-              `Created 6 ad concepts. You can edit the hooks and prompts in the sidebar, or select images to regenerate them.`;
+              `Created ${imgCount} ad concept${imgCount !== 1 ? 's' : ''}. You can edit the hooks and prompts in the sidebar, or select images to regenerate them.`;
 
             completeGeneration(campaignId, messageId, summary);
             clearActiveSession();
@@ -252,6 +266,17 @@ export function useWebSocket(): UseWebSocketReturn {
             const errorMsg = message.error || 'Unknown error';
             console.error('WebSocket: Error event:', errorMsg);
 
+            // Stale session from a previous run — clean up silently
+            if (errorMsg.includes('Session not found') || errorMsg.includes('expired')) {
+              console.log('WebSocket: Stale session detected, cleaning up');
+              clearActiveSession();
+              cleanupFailedRecovery();
+              sessionIdRef.current = null;
+              campaignIdRef.current = null;
+              messageIdRef.current = null;
+              break;
+            }
+
             if (campaignId && messageId) {
               addThinking('error', errorMsg, 0);
               failGeneration(campaignId, messageId, errorMsg);
@@ -263,7 +288,25 @@ export function useWebSocket(): UseWebSocketReturn {
           break;
 
         case 'ack':
-          // Acknowledgment - silent
+          // Server sends the real DB campaign ID — adopt it so all
+          // subsequent API calls (file saves, renames, etc.) use the
+          // correct ID that actually exists in the database.
+          if ('campaignId' in message && message.campaignId) {
+            const serverCampaignId = message.campaignId as string;
+            const localCampaignId = campaignIdRef.current;
+
+            if (localCampaignId && localCampaignId !== serverCampaignId) {
+              console.log(`WebSocket: Replacing local campaign ID ${localCampaignId} → ${serverCampaignId}`);
+              replaceCampaignId(localCampaignId, serverCampaignId);
+              campaignIdRef.current = serverCampaignId;
+
+              // Update localStorage session with the real campaign ID
+              const session = getActiveSession();
+              if (session) {
+                saveActiveSession(session.sessionId, session.prompt, serverCampaignId, session.messageId);
+              }
+            }
+          }
           break;
 
         case 'pong':
@@ -286,21 +329,35 @@ export function useWebSocket(): UseWebSocketReturn {
     incrementCompletedImages,
     completeGeneration,
     failGeneration,
+    cleanupFailedRecovery,
     setError,
+    replaceCampaignId,
   ]);
 
   // Connect to WebSocket
-  const connect = useCallback(() => {
+  const connect = useCallback(async () => {
     if (wsRef.current?.readyState === WebSocket.OPEN ||
         wsRef.current?.readyState === WebSocket.CONNECTING) {
       return;
     }
 
     setConnectionState('connecting');
-    console.log('WebSocket: Connecting to', WS_URL);
+
+    // Include auth token as query parameter so the server can identify the user
+    let wsUrl = WS_BASE_URL;
+    try {
+      const token = await getAuthToken();
+      if (token) {
+        wsUrl = `${WS_BASE_URL}?token=${encodeURIComponent(token)}`;
+      }
+    } catch {
+      // Continue without token (dev mode)
+    }
+
+    console.log('WebSocket: Connecting to', WS_BASE_URL);
 
     try {
-      const ws = new WebSocket(WS_URL);
+      const ws = new WebSocket(wsUrl);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -319,19 +376,25 @@ export function useWebSocket(): UseWebSocketReturn {
           console.log(`WebSocket: Recovering session ${savedSession.sessionId}`);
           setIsRecovering(true);
           sessionIdRef.current = savedSession.sessionId;
-          campaignIdRef.current = savedSession.campaignId;
-          messageIdRef.current = savedSession.messageId;
 
-          // Restore app state
-          setAppState('workspace');
+          // Reconstruct chat messages (user prompt + assistant with thinking block)
+          // so replayed events have a message to attach to
+          const { messageId } = reconstructForRecovery(
+            savedSession.sessionId,
+            savedSession.prompt,
+            savedSession.campaignId
+          );
+          campaignIdRef.current = savedSession.campaignId;
+          messageIdRef.current = messageId;
 
           addThinking('phase', `Recovering session...`, 0);
 
-          // Subscribe to the existing session
+          // Subscribe with lastEventId=0 to replay ALL events from buffer
+          // so the thinking block gets fully reconstructed
           ws.send(JSON.stringify({
             type: 'subscribe',
             sessionId: savedSession.sessionId,
-            lastEventId: getLastEventId(savedSession.sessionId)
+            lastEventId: 0
           }));
         }
       };
@@ -369,7 +432,7 @@ export function useWebSocket(): UseWebSocketReturn {
       console.error('WebSocket: Failed to create connection', error);
       setConnectionState('disconnected');
     }
-  }, [handleMessage, sendMessage, setConnectionState, setIsRecovering, setAppState, addThinking]);
+  }, [handleMessage, sendMessage, setConnectionState, setIsRecovering, setAppState, addThinking, reconstructForRecovery]);
 
   // Disconnect
   const disconnect = useCallback(() => {
@@ -439,6 +502,37 @@ export function useWebSocket(): UseWebSocketReturn {
     clearActiveSession();
   }, [sendMessage, cancelGeneration, addThinking]);
 
+  // Resume action - restart generation for an incomplete campaign
+  const resume = useCallback((campaignId: string, resumePrompt: string) => {
+    if (!resumePrompt.trim()) return;
+
+    const sessionId = crypto.randomUUID();
+    sessionIdRef.current = sessionId;
+    lastEventIdRef.current = 0;
+
+    // Use existing campaign, update status to generating
+    campaignIdRef.current = campaignId;
+    const { messageId } = resumeGeneration(sessionId, campaignId);
+    messageIdRef.current = messageId;
+
+    // Persist session for recovery
+    saveActiveSession(sessionId, resumePrompt, campaignId, messageId);
+
+    // Add initial thinking line
+    addThinking('phase', 'Resuming generation...', 0);
+
+    const sent = sendMessage({
+      type: 'generate',
+      prompt: resumePrompt,
+      sessionId
+    });
+
+    if (!sent) {
+      failGeneration(campaignId, messageId, 'WebSocket not connected');
+      clearActiveSession();
+    }
+  }, [resumeGeneration, sendMessage, failGeneration, addThinking]);
+
   // Auto-connect on mount
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -457,5 +551,6 @@ export function useWebSocket(): UseWebSocketReturn {
     isRecovering,
     generate,
     cancel,
+    resume,
   };
 }

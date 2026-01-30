@@ -31,6 +31,7 @@ export interface WSPhaseEvent extends WSBaseMessage {
   type: 'phase';
   phase: string;
   label?: string;
+  imageCount?: number;
 }
 
 export interface WSToolStartEvent extends WSBaseMessage {
@@ -94,6 +95,8 @@ export interface WSErrorEvent extends WSBaseMessage {
 export interface WSAckEvent extends WSBaseMessage {
   type: 'ack';
   message?: string;
+  sessionId?: string;
+  campaignId?: string;
 }
 
 export interface WSPongEvent extends WSBaseMessage {

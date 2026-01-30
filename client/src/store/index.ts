@@ -14,6 +14,7 @@ import {
   createEmptyGenerationState,
   createThinkingLine,
 } from '../types/chat'
+import { campaignsApi, assetsApi } from '../lib/api'
 
 // ============================================
 // Types
@@ -83,6 +84,7 @@ interface Store {
   addCampaign: (name: string, status?: CampaignStatus) => string
   removeCampaign: (id: string) => void
   renameCampaign: (id: string, name: string) => void
+  replaceCampaignId: (oldId: string, newId: string) => void
 
   // Campaign Updates
   updateCampaignStatus: (campaignId: string, status: CampaignStatus) => void
@@ -107,31 +109,39 @@ interface Store {
   // Generation
   prompt: string
   setPrompt: (prompt: string) => void
+  pendingGeneration: boolean
+  setPendingGeneration: (pending: boolean) => void
 
   // WebSocket state
   sessionId: string | null
   connectionState: WSConnectionState
   isRecovering: boolean
   error: string | null
+  generationExpectedImages: number
 
   // WebSocket actions
   setSessionId: (id: string | null) => void
   setConnectionState: (state: WSConnectionState) => void
   setIsRecovering: (recovering: boolean) => void
   setError: (error: string | null) => void
+  setGenerationExpectedImages: (count: number) => void
 
   // Generation flow
   startGeneration: (sessionId: string, campaignName: string) => { campaignId: string; messageId: string }
+  resumeGeneration: (sessionId: string, campaignId: string) => { messageId: string }
+  reconstructForRecovery: (sessionId: string, prompt: string, campaignId: string) => { messageId: string }
+  cleanupFailedRecovery: () => void
   completeGeneration: (campaignId: string, messageId: string, summary: string) => void
   cancelGeneration: (campaignId: string, messageId: string) => void
   failGeneration: (campaignId: string, messageId: string, error: string) => void
 
-  // Chat
-  chatMessages: ChatMessage[]
+  // Chat (per-campaign)
+  chatMessages: Record<string, ChatMessage[]>
   chatExpanded: boolean
   currentGeneratingMessageId: string | null
-  addChatMessage: (message: Omit<ChatMessage, 'id' | 'timestamp'>) => string
-  clearChatMessages: () => void
+  getActiveChatMessages: () => ChatMessage[]
+  addChatMessage: (campaignId: string, message: Omit<ChatMessage, 'id' | 'timestamp' | 'campaignId'>) => string
+  clearChatMessages: (campaignId?: string) => void
   setChatExpanded: (expanded: boolean) => void
 
   // Chat message updates
@@ -156,130 +166,28 @@ interface Store {
   addFileToFolder: (folderId: string, file: Omit<AssetFile, 'id' | 'folderId' | 'createdAt'>) => void
   removeFile: (fileId: string) => void
 
+  // Async API-synced actions
+  deleteCampaignAsync: (id: string) => Promise<void>
+  renameCampaignAsync: (id: string, name: string) => Promise<void>
+  saveFileAsync: (campaignId: string, fileType: CampaignFileType, content: string) => Promise<void>
+  createFolderAsync: (name: string) => Promise<string>
+  deleteFolderAsync: (id: string) => Promise<void>
+  renameFolderAsync: (id: string, name: string) => Promise<void>
+  deleteFileAsync: (fileId: string) => Promise<void>
+
+  // Data Loading
+  dataLoading: boolean
+  setDataLoading: (loading: boolean) => void
+
+  // Bulk setters for API sync
+  setCampaigns: (campaigns: Campaign[]) => void
+  setAssetFolders: (folders: AssetFolder[]) => void
+  setChatMessages: (messages: Record<string, ChatMessage[]>) => void
+
   // Reset
   reset: () => void
 }
 
-// ============================================
-// Demo Data
-// ============================================
-
-const DEMO_CAMPAIGNS: Campaign[] = [
-  {
-    id: 'campaign-nike',
-    name: 'Nike',
-    createdAt: new Date('2025-01-26'),
-    status: 'complete',
-    filesReady: { research: true, hooks: true, prompts: true },
-    files: [
-      {
-        type: 'research',
-        name: 'research.md',
-        content: `# Brand Research
-
-**Brand Name:** Nike
-
-**Tagline:** Just Do It
-
-**Tone:** Bold, athletic, aspirational
-
-## Color Palette
-- Primary: \`#111111\`
-- Secondary: \`#ffffff\`
-- Accent: \`#ff6b00\`
-
-## Target Audience
-Athletes, fitness enthusiasts, people who aspire to be more active.
-`,
-        lastModified: new Date('2025-01-26')
-      },
-      {
-        type: 'hooks',
-        name: 'hooks.md',
-        content: `# Ad Hooks for Nike
-
-## 1. Stat Hook
-847 athletes switched to Nike Air in Q4
-
-## 2. Story Hook
-How Maria went from couch to marathon in 6 months
-
-## 3. FOMO Hook
-Limited drop: Air Max 2024 sells out in 3 hours
-
-## 4. Curiosity Hook
-The secret Nike doesn't advertise
-
-## 5. Call-out Hook
-For runners tired of "good enough"
-
-## 6. Contrast Hook
-While other brands add cushion, Nike engineered flight
-`,
-        lastModified: new Date('2025-01-26')
-      },
-      {
-        type: 'prompts',
-        name: 'prompts.md',
-        content: `# Image Prompts for Nike
-
-## Image 1 - Stat Visual
-Soft brutalism clay render, athletic scene with statistics overlay
-
-## Image 2 - Story Visual
-Runner crossing finish line, emotional moment
-
-## Image 3 - FOMO Visual
-Limited edition sneakers on pedestal, dramatic lighting
-
-## Image 4 - Curiosity Visual
-Mysterious athletic silhouette
-
-## Image 5 - Call-out Visual
-Confident athlete in action pose
-
-## Image 6 - Contrast Visual
-Side by side shoe comparison
-`,
-        lastModified: new Date('2025-01-26')
-      }
-    ],
-    images: [
-      { id: 1, url: 'https://picsum.photos/seed/nike1/400/400', prompt: 'Athletic scene with statistics', hookType: 'stat', version: 1 },
-      { id: 2, url: 'https://picsum.photos/seed/nike2/400/400', prompt: 'Runner crossing finish line', hookType: 'story', version: 1 },
-      { id: 3, url: 'https://picsum.photos/seed/nike3/400/400', prompt: 'Limited edition sneakers', hookType: 'fomo', version: 1 },
-      { id: 4, url: 'https://picsum.photos/seed/nike4/400/400', prompt: 'Mysterious silhouette', hookType: 'curiosity', version: 1 },
-      { id: 5, url: 'https://picsum.photos/seed/nike5/400/400', prompt: 'Athlete in action', hookType: 'callout', version: 1 },
-      { id: 6, url: 'https://picsum.photos/seed/nike6/400/400', prompt: 'Shoe comparison', hookType: 'contrast', version: 1 },
-    ]
-  }
-]
-
-const DEMO_FOLDERS: AssetFolder[] = [
-  {
-    id: 'folder-1',
-    name: 'Brand Kit',
-    createdAt: new Date('2025-01-20'),
-    files: [
-      { id: 'file-1', name: 'logo.png', url: 'https://picsum.photos/seed/logo/200', type: 'image', folderId: 'folder-1', createdAt: new Date('2025-01-20') },
-    ]
-  }
-]
-
-const DEMO_MESSAGES: ChatMessage[] = [
-  {
-    id: 'msg-1',
-    role: 'user',
-    content: 'Create ads for nike.com',
-    timestamp: new Date('2025-01-26T10:00:00'),
-  },
-  {
-    id: 'msg-2',
-    role: 'assistant',
-    content: "I created 6 ad concepts for Nike:\n• Stat Hook\n• Story Hook\n• FOMO Hook\n• Curiosity Hook\n• Call-out Hook\n• Contrast Hook",
-    timestamp: new Date('2025-01-26T10:00:30'),
-  }
-]
 
 // ============================================
 // Helper
@@ -299,7 +207,7 @@ export const useStore = create<Store>((set, get) => ({
   setAppState: (appState) => set({ appState }),
 
   // Campaigns
-  campaigns: DEMO_CAMPAIGNS,
+  campaigns: [],
   activeCampaignId: null,
   isCreatingCampaign: false,
   generatingCampaignId: null,
@@ -351,15 +259,31 @@ export const useStore = create<Store>((set, get) => ({
     return id
   },
 
-  removeCampaign: (id) => set((state) => ({
-    campaigns: state.campaigns.filter(c => c.id !== id),
-    activeCampaignId: state.activeCampaignId === id ? null : state.activeCampaignId,
-    generatingCampaignId: state.generatingCampaignId === id ? null : state.generatingCampaignId,
-  })),
+  removeCampaign: (id) => set((state) => {
+    const { [id]: _, ...remainingMessages } = state.chatMessages
+    return {
+      campaigns: state.campaigns.filter(c => c.id !== id),
+      activeCampaignId: state.activeCampaignId === id ? null : state.activeCampaignId,
+      generatingCampaignId: state.generatingCampaignId === id ? null : state.generatingCampaignId,
+      chatMessages: remainingMessages,
+    }
+  }),
 
   renameCampaign: (id, name) => set((state) => ({
     campaigns: state.campaigns.map(c => c.id === id ? { ...c, name } : c)
   })),
+
+  replaceCampaignId: (oldId, newId) => set((state) => {
+    const { [oldId]: oldMessages, ...restMessages } = state.chatMessages
+    return {
+      campaigns: state.campaigns.map(c => c.id === oldId ? { ...c, id: newId } : c),
+      activeCampaignId: state.activeCampaignId === oldId ? newId : state.activeCampaignId,
+      generatingCampaignId: state.generatingCampaignId === oldId ? newId : state.generatingCampaignId,
+      chatMessages: oldMessages
+        ? { ...restMessages, [newId]: oldMessages.map(m => ({ ...m, campaignId: newId })) }
+        : state.chatMessages,
+    }
+  }),
 
   // Campaign Updates
   updateCampaignStatus: (campaignId, status) => set((state) => ({
@@ -457,17 +381,39 @@ export const useStore = create<Store>((set, get) => ({
   // Generation
   prompt: '',
   setPrompt: (prompt) => set({ prompt }),
+  pendingGeneration: false,
+  setPendingGeneration: (pendingGeneration) => set({ pendingGeneration }),
 
   // WebSocket state
   sessionId: null,
   connectionState: 'disconnected',
   isRecovering: false,
   error: null,
+  generationExpectedImages: 6,
 
   setSessionId: (sessionId) => set({ sessionId }),
   setConnectionState: (connectionState) => set({ connectionState }),
   setIsRecovering: (isRecovering) => set({ isRecovering }),
   setError: (error) => set({ error }),
+  setGenerationExpectedImages: (count) => {
+    const messageId = get().currentGeneratingMessageId
+    const cid = get().generatingCampaignId
+    set((state) => {
+      const updated: Partial<Store> = { generationExpectedImages: count }
+      // Also update the generating message's expectedImages for ThinkingBlock
+      if (messageId && cid) {
+        updated.chatMessages = {
+          ...state.chatMessages,
+          [cid]: (state.chatMessages[cid] || []).map(msg =>
+            msg.id === messageId && msg.generation
+              ? { ...msg, generation: { ...msg.generation, expectedImages: count } }
+              : msg
+          )
+        }
+      }
+      return updated
+    })
+  },
 
   // Generation flow
   startGeneration: (sessionId, campaignName) => {
@@ -475,18 +421,141 @@ export const useStore = create<Store>((set, get) => ({
     const userMessageId = generateId('msg')
     const assistantMessageId = generateId('msg')
 
+    // Parse expected image count from user prompt (e.g. "Create 2 ads..." or "Create two ads...")
+    const prompt = get().prompt
+    const wordToNum: Record<string, number> = {
+      one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
+      single: 1, couple: 2, few: 3, a: 1, an: 1,
+    }
+    let expectedFromPrompt = 6
+    const digitMatch = prompt.match(/(\d+)\s*(?:ads?|images?|creatives?|concepts?|visuals?)/i)
+    if (digitMatch) {
+      expectedFromPrompt = Math.min(Math.max(parseInt(digitMatch[1], 10), 1), 6)
+    } else {
+      const wordMatch = prompt.match(/\b(one|two|three|four|five|six|single|couple|few|an?)\b\s*(?:ads?|images?|creatives?|concepts?|visuals?)/i)
+      if (wordMatch) {
+        expectedFromPrompt = wordToNum[wordMatch[1].toLowerCase()] || 6
+      }
+    }
+
+    set((state) => ({
+      sessionId,
+      error: null,
+      generationExpectedImages: expectedFromPrompt,
+      currentGeneratingMessageId: assistantMessageId,
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: [
+          ...(state.chatMessages[campaignId] || []),
+          { id: userMessageId, campaignId, role: 'user' as const, content: state.prompt, timestamp: new Date() },
+          { id: assistantMessageId, campaignId, role: 'assistant' as const, content: '', timestamp: new Date(), generation: createEmptyGenerationState(expectedFromPrompt) }
+        ]
+      }
+    }))
+
+    return { campaignId, messageId: assistantMessageId }
+  },
+
+  resumeGeneration: (sessionId, campaignId) => {
+    const campaign = get().campaigns.find(c => c.id === campaignId)
+    const existingImages = campaign?.images.length || 0
+
+    // Derive expected count from prompts file if available
+    let expectedTotal = get().generationExpectedImages
+    const promptsFile = campaign?.files.find(f => f.type === 'prompts')
+    if (promptsFile?.content) {
+      try {
+        const prompts = JSON.parse(promptsFile.content)
+        if (Array.isArray(prompts) && prompts.length > 0) expectedTotal = prompts.length
+      } catch { /* keep default */ }
+    }
+    const remainingImages = Math.max(0, expectedTotal - existingImages)
+
+    const userMessageId = generateId('msg')
+    const assistantMessageId = generateId('msg')
+
     set((state) => ({
       sessionId,
       error: null,
       currentGeneratingMessageId: assistantMessageId,
-      chatMessages: [
+      generatingCampaignId: campaignId,
+      activeCampaignId: campaignId,
+      appState: 'workspace',
+      generationExpectedImages: expectedTotal,
+      campaigns: state.campaigns.map(c =>
+        c.id === campaignId ? { ...c, status: 'generating' as CampaignStatus } : c
+      ),
+      chatMessages: {
         ...state.chatMessages,
-        { id: userMessageId, role: 'user', content: state.prompt, timestamp: new Date() },
-        { id: assistantMessageId, role: 'assistant', content: '', timestamp: new Date(), generation: createEmptyGenerationState(6) }
-      ]
+        [campaignId]: [
+          ...(state.chatMessages[campaignId] || []),
+          { id: userMessageId, campaignId, role: 'user' as const, content: 'Resume generation', timestamp: new Date() },
+          { id: assistantMessageId, campaignId, role: 'assistant' as const, content: '', timestamp: new Date(), generation: createEmptyGenerationState(remainingImages) }
+        ]
+      }
     }))
 
-    return { campaignId, messageId: assistantMessageId }
+    return { messageId: assistantMessageId }
+  },
+
+  reconstructForRecovery: (sessionId, prompt, campaignId) => {
+    const campaign = get().campaigns.find(c => c.id === campaignId)
+    const existingImages = campaign?.images.length || 0
+
+    // Derive expected count from prompts file if available
+    let expectedTotal = get().generationExpectedImages
+    const promptsFile = campaign?.files.find(f => f.type === 'prompts')
+    if (promptsFile?.content) {
+      try {
+        const prompts = JSON.parse(promptsFile.content)
+        if (Array.isArray(prompts) && prompts.length > 0) expectedTotal = prompts.length
+      } catch { /* keep default */ }
+    }
+    const expectedImages = Math.max(1, expectedTotal - existingImages)
+
+    const userMessageId = generateId('msg')
+    const assistantMessageId = generateId('msg')
+
+    set((state) => ({
+      sessionId,
+      error: null,
+      generatingCampaignId: campaignId,
+      activeCampaignId: campaignId,
+      currentGeneratingMessageId: assistantMessageId,
+      appState: 'workspace',
+      campaigns: state.campaigns.map(c =>
+        c.id === campaignId ? { ...c, status: 'generating' as CampaignStatus } : c
+      ),
+      // Replace this campaign's messages only — previous are stale after refresh
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: [
+          { id: userMessageId, campaignId, role: 'user' as const, content: prompt, timestamp: new Date() },
+          { id: assistantMessageId, campaignId, role: 'assistant' as const, content: '', timestamp: new Date(), generation: createEmptyGenerationState(expectedImages) }
+        ]
+      }
+    }))
+
+    return { messageId: assistantMessageId }
+  },
+
+  cleanupFailedRecovery: () => {
+    const cid = get().generatingCampaignId
+    set((state) => {
+      const updatedMessages = { ...state.chatMessages }
+      if (cid) {
+        delete updatedMessages[cid]
+      }
+      return {
+        generatingCampaignId: null,
+        sessionId: null,
+        currentGeneratingMessageId: null,
+        isRecovering: false,
+        error: null,
+        generationExpectedImages: 6,
+        chatMessages: updatedMessages,
+      }
+    })
   },
 
   completeGeneration: (campaignId, messageId, summary) => {
@@ -497,17 +566,21 @@ export const useStore = create<Store>((set, get) => ({
       generatingCampaignId: null,
       sessionId: null,
       currentGeneratingMessageId: null,
-      chatMessages: state.chatMessages.map(msg =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              content: summary,
-              generation: msg.generation
-                ? { ...msg.generation, status: 'complete' as const, thinkingExpanded: false }
-                : undefined
-            }
-          : msg
-      )
+      generationExpectedImages: 6,
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: summary,
+                generation: msg.generation
+                  ? { ...msg.generation, status: 'complete' as const, thinkingExpanded: false }
+                  : undefined
+              }
+            : msg
+        )
+      }
     }))
   },
 
@@ -519,17 +592,21 @@ export const useStore = create<Store>((set, get) => ({
       generatingCampaignId: null,
       sessionId: null,
       currentGeneratingMessageId: null,
-      chatMessages: state.chatMessages.map(msg =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              content: 'Generation was cancelled.',
-              generation: msg.generation
-                ? { ...msg.generation, status: 'cancelled' as const, thinkingExpanded: false }
-                : undefined
-            }
-          : msg
-      )
+      generationExpectedImages: 6,
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: 'Generation was cancelled.',
+                generation: msg.generation
+                  ? { ...msg.generation, status: 'cancelled' as const, thinkingExpanded: false }
+                  : undefined
+              }
+            : msg
+        )
+      }
     }))
   },
 
@@ -541,94 +618,161 @@ export const useStore = create<Store>((set, get) => ({
       generatingCampaignId: null,
       sessionId: null,
       currentGeneratingMessageId: null,
+      generationExpectedImages: 6,
       error,
-      chatMessages: state.chatMessages.map(msg =>
-        msg.id === messageId
-          ? {
-              ...msg,
-              content: `Error: ${error}`,
-              generation: msg.generation
-                ? { ...msg.generation, status: 'error' as const, thinkingExpanded: true }
-                : undefined
-            }
-          : msg
-      )
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
+          msg.id === messageId
+            ? {
+                ...msg,
+                content: `Error: ${error}`,
+                generation: msg.generation
+                  ? { ...msg.generation, status: 'error' as const, thinkingExpanded: true }
+                  : undefined
+              }
+            : msg
+        )
+      }
     }))
   },
 
-  // Chat
-  chatMessages: DEMO_MESSAGES,
+  // Chat (per-campaign)
+  chatMessages: {},
   chatExpanded: false,
   currentGeneratingMessageId: null,
 
-  addChatMessage: (message) => {
+  getActiveChatMessages: () => {
+    const state = get()
+    if (!state.activeCampaignId) return []
+    return state.chatMessages[state.activeCampaignId] || []
+  },
+
+  addChatMessage: (campaignId, message) => {
     const id = generateId('msg')
     set((state) => ({
-      chatMessages: [...state.chatMessages, { ...message, id, timestamp: new Date() }]
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: [...(state.chatMessages[campaignId] || []), { ...message, id, campaignId, timestamp: new Date() }]
+      }
     }))
     return id
   },
 
-  clearChatMessages: () => set({ chatMessages: [] }),
+  clearChatMessages: (campaignId) => {
+    if (campaignId) {
+      set((state) => {
+        const updated = { ...state.chatMessages }
+        delete updated[campaignId]
+        return { chatMessages: updated }
+      })
+    } else {
+      set({ chatMessages: {} })
+    }
+  },
   setChatExpanded: (chatExpanded) => set({ chatExpanded }),
 
-  // Chat message updates
-  addThinkingLine: (messageId, line) => set((state) => ({
-    chatMessages: state.chatMessages.map(msg =>
-      msg.id === messageId && msg.generation
-        ? {
-            ...msg,
-            generation: {
-              ...msg.generation,
-              thinkingLines: [...msg.generation.thinkingLines, createThinkingLine(line.type, line.text, line.indent)]
-            }
-          }
-        : msg
-    )
-  })),
+  // Chat message updates (scoped to generating campaign)
+  addThinkingLine: (messageId, line) => set((state) => {
+    const cid = state.generatingCampaignId
+    if (!cid) return state
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [cid]: (state.chatMessages[cid] || []).map(msg =>
+          msg.id === messageId && msg.generation
+            ? {
+                ...msg,
+                generation: {
+                  ...msg.generation,
+                  thinkingLines: [...msg.generation.thinkingLines, createThinkingLine(line.type, line.text, line.indent)]
+                }
+              }
+            : msg
+        )
+      }
+    }
+  }),
 
-  updateMessageGeneration: (messageId, update) => set((state) => ({
-    chatMessages: state.chatMessages.map(msg =>
-      msg.id === messageId && msg.generation
-        ? { ...msg, generation: { ...msg.generation, ...update } }
-        : msg
-    )
-  })),
+  updateMessageGeneration: (messageId, update) => set((state) => {
+    const cid = state.generatingCampaignId || state.activeCampaignId
+    if (!cid) return state
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [cid]: (state.chatMessages[cid] || []).map(msg =>
+          msg.id === messageId && msg.generation
+            ? { ...msg, generation: { ...msg.generation, ...update } }
+            : msg
+        )
+      }
+    }
+  }),
 
-  collapseThinking: (messageId) => set((state) => ({
-    chatMessages: state.chatMessages.map(msg =>
-      msg.id === messageId && msg.generation
-        ? { ...msg, generation: { ...msg.generation, thinkingExpanded: false } }
-        : msg
-    )
-  })),
+  collapseThinking: (messageId) => set((state) => {
+    const cid = state.generatingCampaignId || state.activeCampaignId
+    if (!cid) return state
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [cid]: (state.chatMessages[cid] || []).map(msg =>
+          msg.id === messageId && msg.generation
+            ? { ...msg, generation: { ...msg.generation, thinkingExpanded: false } }
+            : msg
+        )
+      }
+    }
+  }),
 
-  toggleThinking: (messageId) => set((state) => ({
-    chatMessages: state.chatMessages.map(msg =>
-      msg.id === messageId && msg.generation
-        ? { ...msg, generation: { ...msg.generation, thinkingExpanded: !msg.generation.thinkingExpanded } }
-        : msg
-    )
-  })),
+  toggleThinking: (messageId) => set((state) => {
+    const cid = state.generatingCampaignId || state.activeCampaignId
+    if (!cid) return state
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [cid]: (state.chatMessages[cid] || []).map(msg =>
+          msg.id === messageId && msg.generation
+            ? { ...msg, generation: { ...msg.generation, thinkingExpanded: !msg.generation.thinkingExpanded } }
+            : msg
+        )
+      }
+    }
+  }),
 
-  setMessageContent: (messageId, content) => set((state) => ({
-    chatMessages: state.chatMessages.map(msg => msg.id === messageId ? { ...msg, content } : msg)
-  })),
+  setMessageContent: (messageId, content) => set((state) => {
+    const cid = state.generatingCampaignId || state.activeCampaignId
+    if (!cid) return state
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [cid]: (state.chatMessages[cid] || []).map(msg =>
+          msg.id === messageId ? { ...msg, content } : msg
+        )
+      }
+    }
+  }),
 
-  incrementCompletedImages: (messageId) => set((state) => ({
-    chatMessages: state.chatMessages.map(msg =>
-      msg.id === messageId && msg.generation
-        ? { ...msg, generation: { ...msg.generation, completedImages: msg.generation.completedImages + 1 } }
-        : msg
-    )
-  })),
+  incrementCompletedImages: (messageId) => set((state) => {
+    const cid = state.generatingCampaignId
+    if (!cid) return state
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [cid]: (state.chatMessages[cid] || []).map(msg =>
+          msg.id === messageId && msg.generation
+            ? { ...msg, generation: { ...msg.generation, completedImages: msg.generation.completedImages + 1 } }
+            : msg
+        )
+      }
+    }
+  }),
 
   // Edit Panel
   editTab: 'research',
   setEditTab: (editTab) => set({ editTab }),
 
   // Assets
-  assetFolders: DEMO_FOLDERS,
+  assetFolders: [],
   selectedFolderId: null,
   setSelectedFolderId: (selectedFolderId) => set({ selectedFolderId }),
 
@@ -660,18 +804,108 @@ export const useStore = create<Store>((set, get) => ({
     }))
   })),
 
+  // Async API-synced actions
+  deleteCampaignAsync: async (id) => {
+    // Optimistic update
+    get().removeCampaign(id)
+    try {
+      await campaignsApi.delete(id)
+    } catch (error) {
+      console.error('Failed to delete campaign:', error)
+      // Could revert here, but for now just log
+    }
+  },
+
+  renameCampaignAsync: async (id, name) => {
+    // Optimistic update
+    get().renameCampaign(id, name)
+    try {
+      await campaignsApi.update(id, { name })
+    } catch (error) {
+      console.error('Failed to rename campaign:', error)
+    }
+  },
+
+  saveFileAsync: async (campaignId, fileType, content) => {
+    // Note: Local state is updated separately via updateFileContent
+    // This just syncs to API
+    try {
+      await campaignsApi.updateFile(campaignId, fileType, content)
+    } catch (error) {
+      console.error('Failed to save file:', error)
+    }
+  },
+
+  createFolderAsync: async (name) => {
+    try {
+      const folder = await assetsApi.createFolder(name)
+      set((state) => ({
+        assetFolders: [...state.assetFolders, folder]
+      }))
+      return folder.id
+    } catch (error) {
+      console.error('Failed to create folder:', error)
+      // Fallback to local-only
+      const id = generateId('folder')
+      get().addFolder(name)
+      return id
+    }
+  },
+
+  deleteFolderAsync: async (id) => {
+    // Optimistic update
+    get().removeFolder(id)
+    try {
+      await assetsApi.deleteFolder(id)
+    } catch (error) {
+      console.error('Failed to delete folder:', error)
+    }
+  },
+
+  renameFolderAsync: async (id, name) => {
+    // Optimistic update
+    get().renameFolder(id, name)
+    try {
+      await assetsApi.renameFolder(id, name)
+    } catch (error) {
+      console.error('Failed to rename folder:', error)
+    }
+  },
+
+  deleteFileAsync: async (fileId) => {
+    // Optimistic update
+    get().removeFile(fileId)
+    try {
+      await assetsApi.deleteFile(fileId)
+    } catch (error) {
+      console.error('Failed to delete file:', error)
+    }
+  },
+
+  // Data Loading
+  dataLoading: false,
+  setDataLoading: (dataLoading) => set({ dataLoading }),
+
+  // Bulk setters for API sync
+  setCampaigns: (campaigns) => set({ campaigns }),
+  setAssetFolders: (assetFolders) => set({ assetFolders }),
+  setChatMessages: (chatMessages: Record<string, ChatMessage[]>) => set({ chatMessages }),
+
   // Reset
   reset: () => set({
     appState: 'landing',
     prompt: '',
+    pendingGeneration: false,
     activeCampaignId: null,
     activeFileType: null,
-    chatMessages: [],
+    chatMessages: {},
     selectedFolderId: null,
     sessionId: null,
     error: null,
     selectedImageIds: [],
     generatingCampaignId: null,
     currentGeneratingMessageId: null,
+    generationExpectedImages: 6,
+    dataLoading: false,
   })
 }))
