@@ -1,10 +1,11 @@
 import { WebSocketServer, WebSocket } from 'ws';
-import { Server } from 'http';
+import { Server, IncomingMessage } from 'http';
 import { aiClient } from './ai-client.js';
 import { sessionManager } from './session-manager.js';
 import { SDKInstrumentor } from './instrumentor.js';
 import { appendEvent, getEventsSince, getLatestEventId, hasBuffer } from './event-buffer.js';
 import * as db from './db/index.js';
+import { verifyWebSocketToken, IS_CLERK_CONFIGURED } from './auth.js';
 
 // Client → Server message types
 interface ClientMessage {
@@ -58,6 +59,8 @@ interface ServerMessage {
   duration?: number;
   imageCount?: number;
   summary?: string;
+  // Ack events
+  campaignId?: string;
 }
 
 // Connection state
@@ -79,6 +82,29 @@ const sessionConnections = new Map<string, WebSocket | null>();
 
 // Track abort controllers per session (for cancel after reconnect)
 const sessionAbortControllers = new Map<string, AbortController>();
+
+/**
+ * Check if an agent is currently running for a session
+ * Used by the status endpoint to determine if generation is still active
+ */
+export function isAgentRunning(sessionId: string): boolean {
+  return sessionAbortControllers.has(sessionId);
+}
+
+/**
+ * Abort a running generation by session ID.
+ * Used when a campaign is deleted while generation is in progress.
+ * Returns true if an active generation was aborted.
+ */
+export function abortSession(sessionId: string): boolean {
+  const controller = sessionAbortControllers.get(sessionId);
+  if (controller) {
+    console.log(`🛑 Aborting generation for session ${sessionId} (campaign deleted)`);
+    controller.abort();
+    return true;
+  }
+  return false;
+}
 
 function send(ws: WebSocket, message: ServerMessage) {
   if (ws.readyState === WebSocket.OPEN) {
@@ -341,12 +367,44 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
   console.log(`🚀 WebSocket: Starting generation for session ${sessionId}`);
 
-  // Send acknowledgment
+  // Create or get campaign in database BEFORE sending ack
+  // so the client receives the real DB campaign ID immediately.
+  // DB operations are synchronous (better-sqlite3).
+  const campaignName = prompt.slice(0, 50).trim() || 'Untitled Campaign';
+  try {
+    let campaign = db.getCampaignBySessionId(sessionId);
+    if (!campaign) {
+      campaign = db.createCampaign(state.userId, campaignName, sessionId);
+      console.log(`💾 DB: Created campaign ${campaign.id} for session ${sessionId}`);
+    } else {
+      console.log(`💾 DB: Using existing campaign ${campaign.id} for session ${sessionId}`);
+    }
+    state.campaignId = campaign.id;
+
+    // Persist user message (prompt) to DB
+    try {
+      db.addMessage({
+        campaignId: campaign.id,
+        role: 'user',
+        content: prompt,
+      });
+      console.log(`💾 DB: Saved user message for campaign ${campaign.id}`);
+    } catch (msgError) {
+      console.error('❌ DB: Failed to save user message:', msgError);
+    }
+  } catch (dbError) {
+    console.error('❌ DB: Failed to create campaign:', dbError);
+    // Continue without database - WebSocket still works
+  }
+
+  // Send acknowledgment with the DB campaign ID so the client
+  // can replace its local placeholder ID with the real one.
   send(state.ws, {
     type: 'ack',
     timestamp: new Date().toISOString(),
     message: 'Generation started',
-    sessionId
+    sessionId,
+    campaignId: state.campaignId || undefined,
   });
 
   // Send initial phase
@@ -368,29 +426,12 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       context: { userPrompt: prompt }
     });
 
-    // Create or get campaign in database
-    // Extract campaign name from prompt (use first 50 chars or "Untitled")
-    const campaignName = prompt.slice(0, 50).trim() || 'Untitled Campaign';
-    try {
-      // Check if campaign already exists for this session
-      let campaign = db.getCampaignBySessionId(sessionId);
-      if (!campaign) {
-        campaign = db.createCampaign(state.userId, campaignName, sessionId);
-        console.log(`💾 DB: Created campaign ${campaign.id} for session ${sessionId}`);
-      } else {
-        console.log(`💾 DB: Using existing campaign ${campaign.id} for session ${sessionId}`);
-      }
-      state.campaignId = campaign.id;
-    } catch (dbError) {
-      console.error('❌ DB: Failed to create campaign:', dbError);
-      // Continue without database - WebSocket still works
-    }
-
     // Initialize instrumentation
     const instrumentor = new SDKInstrumentor(sessionId, prompt, 'websocket');
 
-    // Process SDK stream
-    for await (const result of aiClient.queryWithSession(prompt, sessionId)) {
+    // Process SDK stream — pass the handler's abort controller so cancel
+    // actually terminates the SDK query (including long-running tool calls)
+    for await (const result of aiClient.queryWithSession(prompt, sessionId, undefined, undefined, state.abortController!)) {
       // Check for cancellation
       if (state.abortController?.signal.aborted) {
         wasCancelled = true;
@@ -435,8 +476,11 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       });
 
       // Generate summary message for assistant
-      const hookTypes = ['Stat Hook', 'Story Hook', 'FOMO Hook', 'Curiosity Hook', 'Call-out Hook', 'Contrast Hook'];
-      const generatedHooks = hookTypes.slice(0, imageCount);
+      const hookTypeLabels: Record<HookType, string> = {
+        stat: 'Stat Hook', story: 'Story Hook', fomo: 'FOMO Hook',
+        curiosity: 'Curiosity Hook', callout: 'Call-out Hook', contrast: 'Contrast Hook'
+      };
+      const generatedHooks = HOOK_TYPE_ORDER.slice(0, imageCount).map(h => hookTypeLabels[h]);
       const summary = imageCount > 0
         ? `I created ${imageCount} ad concept${imageCount > 1 ? 's' : ''}:\n${generatedHooks.map(h => `• ${h}`).join('\n')}`
         : 'Generation complete.';
@@ -453,11 +497,16 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
       console.log(`✅ WebSocket: Generation complete for session ${sessionId} (${duration}ms, ${imageCount} images)`);
 
-      // Update campaign status to complete
+      // Update campaign status and save assistant message
       if (state.campaignId) {
         try {
           db.updateCampaignStatus(state.campaignId, 'complete');
-          console.log(`💾 DB: Campaign ${state.campaignId} marked as complete`);
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: summary,
+          });
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as complete, summary saved`);
         } catch (dbError) {
           console.error('❌ DB: Failed to update campaign status:', dbError);
         }
@@ -465,10 +514,15 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     } else {
       console.log(`🛑 WebSocket: Generation stopped for session ${sessionId} (cancelled after ${(duration / 1000).toFixed(1)}s)`);
 
-      // Update campaign status to cancelled
+      // Update campaign status and save cancel message
       if (state.campaignId) {
         try {
           db.updateCampaignStatus(state.campaignId, 'cancelled');
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: 'Generation was cancelled.',
+          });
           console.log(`💾 DB: Campaign ${state.campaignId} marked as cancelled`);
         } catch (dbError) {
           console.error('❌ DB: Failed to update campaign status:', dbError);
@@ -485,10 +539,15 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       error: error.message || 'Unknown error occurred'
     });
 
-    // Update campaign status to error
+    // Update campaign status and save error message
     if (state.campaignId) {
       try {
         db.updateCampaignStatus(state.campaignId, 'error');
+        db.addMessage({
+          campaignId: state.campaignId,
+          role: 'assistant',
+          content: `Error: ${error.message || 'Unknown error occurred'}`,
+        });
         console.log(`💾 DB: Campaign ${state.campaignId} marked as error`);
       } catch (dbError) {
         console.error('❌ DB: Failed to update campaign status:', dbError);
@@ -629,15 +688,34 @@ export function initWebSocket(server: Server): WebSocketServer {
 
   console.log('🔌 WebSocket server initialized on /ws');
 
-  wss.on('connection', (ws: WebSocket) => {
-    console.log('🔗 WebSocket: Client connected');
+  wss.on('connection', async (ws: WebSocket, req: IncomingMessage) => {
+    // Extract and verify user ID from auth token in query parameter
+    let userId = 'anonymous';
+    try {
+      const url = new URL(req.url || '', `http://${req.headers.host}`);
+      const token = url.searchParams.get('token');
+
+      const verified = await verifyWebSocketToken(token);
+
+      if (verified === null) {
+        // Production: invalid token → reject connection
+        send(ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Authentication failed' });
+        ws.close(4401, 'Authentication failed');
+        return;
+      }
+
+      userId = verified;
+      console.log(`🔗 WebSocket: Client connected (user: ${userId})`);
+    } catch {
+      console.log('🔗 WebSocket: Client connected (auth error, using anonymous)');
+    }
 
     // Initialize connection state
     const state: ConnectionState = {
       ws,
       sessionId: null,
       campaignId: null,
-      userId: 'anonymous',  // TODO: Extract from auth token when Clerk is integrated
+      userId,
       abortController: null,
       isPaused: false,
       messageBuffer: [],

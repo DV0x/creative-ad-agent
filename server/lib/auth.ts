@@ -1,4 +1,4 @@
-import { clerkMiddleware, getAuth, requireAuth } from '@clerk/express';
+import { clerkMiddleware, getAuth, requireAuth, verifyToken } from '@clerk/express';
 import { Request, Response, NextFunction } from 'express';
 
 // Check if Clerk is configured
@@ -68,6 +68,26 @@ export function authOptional(req: Request, _res: Response, next: NextFunction) {
     req.userId = 'anonymous';
   }
   next();
+}
+
+/**
+ * Verify a JWT token for WebSocket connections.
+ * Production: Clerk signature verification via JWKS.
+ * Dev mode: returns 'anonymous'.
+ * Returns null on verification failure (caller decides to reject or fallback).
+ */
+export async function verifyWebSocketToken(token: string | null): Promise<string | null> {
+  if (!IS_CLERK_CONFIGURED || !token) return 'anonymous';
+
+  try {
+    const payload = await verifyToken(token, {
+      secretKey: CLERK_SECRET_KEY!,
+    });
+    return payload.sub || 'anonymous';
+  } catch (err) {
+    console.warn('WebSocket: JWT verification failed:', (err as Error).message);
+    return null;
+  }
 }
 
 export { IS_CLERK_CONFIGURED };
