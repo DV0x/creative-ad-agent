@@ -1,10 +1,11 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ArrowRight, Sparkles, FolderIcon, Wifi, WifiOff } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { useWebSocket } from '@/hooks/useWebSocket'
+import { useRequireAuth } from '@/contexts/AuthContext'
 
 const EXAMPLES = [
   'nike.com - focus on sustainability',
@@ -13,17 +14,38 @@ const EXAMPLES = [
 ]
 
 export function EmptyState() {
-  const { prompt, setPrompt, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState } = useStore()
+  const { prompt, setPrompt, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration } = useStore()
   const { setMobileDrawerOpen, setMobileAssetsOpen } = useSidebars()
   const { isConnected, generate, connectionState } = useWebSocket()
+  const { requireAuth } = useRequireAuth()
   const [inputFocused, setInputFocused] = useState(false)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (prompt.trim() && isConnected) {
-      generate()
+      // Save prompt before auth redirect (survives page reload)
+      sessionStorage.setItem('creative-agent:pendingPrompt', prompt)
+      // Require auth before generating
+      requireAuth(() => {
+        // Already signed in — clear saved prompt and generate immediately
+        sessionStorage.removeItem('creative-agent:pendingPrompt')
+        generate(prompt.trim())
+      })
     }
   }
+
+  // Auto-generate when returning from auth redirect with a pending prompt
+  useEffect(() => {
+    if (pendingGeneration && isConnected) {
+      setPendingGeneration(false)
+      // prompt may be empty after a redirect — fall back to sessionStorage
+      const savedPrompt = sessionStorage.getItem('creative-agent:pendingPrompt') || prompt
+      if (savedPrompt.trim()) {
+        sessionStorage.removeItem('creative-agent:pendingPrompt')
+        generate(savedPrompt.trim())
+      }
+    }
+  }, [pendingGeneration, isConnected, setPendingGeneration, generate, prompt])
 
   const handleExample = (example: string) => {
     setPrompt(example)
@@ -46,7 +68,7 @@ export function EmptyState() {
   const recentCampaigns = campaigns.slice(0, 3)
 
   return (
-    <div className="h-full flex flex-col items-center justify-center px-4 py-12 bg-bg-base overflow-auto relative">
+    <div className="h-full flex flex-col items-center justify-center px-4 py-12 pt-20 bg-bg-base overflow-auto relative">
       {/* Gradient mesh background */}
       <div className="gradient-mesh" aria-hidden="true">
         <div className="gradient-mesh-blob" />

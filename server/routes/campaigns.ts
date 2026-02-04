@@ -1,6 +1,8 @@
 import { Router, Request, Response } from 'express';
 import { authRequired, getUserId } from '../lib/auth.js';
 import * as db from '../lib/db/index.js';
+import { isAgentRunning, abortSession } from '../lib/websocket-handler.js';
+import { hasBuffer } from '../lib/event-buffer.js';
 
 const router = Router();
 
@@ -157,6 +159,11 @@ router.delete('/:id', (req: Request, res: Response) => {
         success: false,
         error: 'Campaign not found',
       });
+    }
+
+    // If this campaign has an active generation, abort it first
+    if (campaign.session_id) {
+      abortSession(campaign.session_id);
     }
 
     db.deleteCampaign(id);
@@ -399,6 +406,7 @@ router.post('/:id/messages', (req: Request, res: Response) => {
 /**
  * GET /api/campaigns/:id/status
  * Check if agent is running for this campaign
+ * Returns actual agent state, not just DB status
  */
 router.get('/:id/status', (req: Request, res: Response) => {
   try {
@@ -413,14 +421,29 @@ router.get('/:id/status', (req: Request, res: Response) => {
       });
     }
 
-    // Check if generation is in progress
-    const isAgentRunning = campaign.status === 'generating';
+    // Check if agent is actually running (not just DB status)
+    let agentRunning = false;
+    let hasEventBuffer = false;
+    let currentStatus = campaign.status;
+
+    if (campaign.session_id) {
+      agentRunning = isAgentRunning(campaign.session_id);
+      hasEventBuffer = hasBuffer(campaign.session_id);
+
+      // If DB says generating but agent isn't running, mark as incomplete
+      if (campaign.status === 'generating' && !agentRunning) {
+        db.updateCampaignStatus(id, 'incomplete');
+        currentStatus = 'incomplete';
+        console.log(`📋 Campaign ${id} marked as incomplete (agent stopped)`);
+      }
+    }
 
     res.json({
       success: true,
-      status: campaign.status,
+      status: currentStatus,
       sessionId: campaign.session_id,
-      isAgentRunning,
+      isAgentRunning: agentRunning,
+      hasEventBuffer,
     });
   } catch (error: any) {
     console.error('Error fetching status:', error);

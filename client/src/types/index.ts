@@ -3,10 +3,6 @@
 // Chat types (new chat-first UI)
 export type {
   HookType,
-  ThinkingLineType,
-  ThinkingLine,
-  GenerationStatus,
-  GenerationState,
   ImageReference,
   FileReference,
   ChatMessage,
@@ -14,6 +10,11 @@ export type {
   FilesReadyState,
   GeneratedImage,
   AppState,
+  MessageBlock,
+  TextBlockData,
+  ThinkingBlockData,
+  StatusBlockData,
+  ThinkingChild,
 } from './chat';
 
 export {
@@ -22,8 +23,6 @@ export {
   getHookTypeForIndex,
   getImageLabel,
   getImageSubtitle,
-  createEmptyGenerationState,
-  createThinkingLine,
 } from './chat';
 
 // WebSocket types

@@ -1,8 +1,8 @@
 # Codebase Reference
 
-**Last updated:** January 30, 2026
+**Last updated:** February 3, 2026
 **Branch:** `new-ui`
-**Status:** Phases A-D complete. Phase E (polish/testing) pending.
+**Status:** Phases A-D complete. Chat Chunks A, B & C (C.1-C.9) complete. C.10 (@mention file context) deferred. Testing in progress.
 
 Load this file at session start to get full codebase context without reading individual source files.
 
@@ -66,7 +66,7 @@ cd client && npm run dev
 │   ├─ Right:  ChatSidebar / MobileChatDrawer                 │
 │   └─ Panel:  FileEditor (TipTap rich text, auto-save)       │
 │                                                             │
-│ State: Zustand store (845 lines)                            │
+│ State: Zustand store (941 lines)                            │
 │ WS:    websocket-manager singleton + useWebSocket hook      │
 │ API:   lib/api.ts (320 lines)                               │
 ├─────────────────────────────────────────────────────────────┤
@@ -81,8 +81,9 @@ cd client && npm run dev
 │   ├─ Image serving: /images/:sessionId/:filename            │
 │   └─ Clerk auth middleware (global)                         │
 │                                                             │
-│ websocket-handler.ts (831 lines)                            │
-│   ├─ Client msgs: generate, cancel, pause, resume, subscribe│
+│ websocket-handler.ts (~1100 lines)                          │
+│   ├─ Client msgs: generate, cancel, pause, resume,          │
+│   │               subscribe, follow_up                       │
 │   ├─ Server msgs: phase, tool_start, message, file, image,  │
 │   │               complete, error, ack, subscribed           │
 │   ├─ DB writes: campaigns, files, images, messages           │
@@ -108,15 +109,17 @@ cd client && npm run dev
 | File | Lines | Key Exports | Purpose |
 |------|-------|-------------|---------|
 | `sdk-server.ts` | 947 | Express app, HTTP server | Main server: routes, WS init, image serving, instrumentation |
-| `lib/websocket-handler.ts` | 831 | `initWebSocket()`, `isAgentRunning()`, `abortSession()` | WS message handling, generation streaming, DB persistence |
-| `lib/ai-client.ts` | 496 | `AIClient` class | Claude SDK: `queryWithSession()`, `queryWithSessionFork()`, MCP setup |
+| `lib/websocket-handler.ts` | ~1100 | `initWebSocket()`, `isAgentRunning()`, `abortSession()` | WS message handling, generation + follow-up streaming, DB persistence, concurrency guard |
+| `lib/ai-client.ts` | ~480 | `AIClient` class | Claude SDK: `queryWithSession(prompt, sessionId?, metadata?, attachments?, abortController?, resumeSdkSessionId?)`, `queryWithSessionFork()`, MCP setup, dual AbortController pattern (doneController for lifecycle, abortController for cancellation). The 6th param `resumeSdkSessionId` allows direct SDK session resume bypassing SessionManager. |
 | `lib/orchestrator-prompt.ts` | 77 | `ORCHESTRATOR_PROMPT` | System prompt for 4-step pipeline |
-| `lib/database.ts` | 153 | `db`, `initDatabase()`, `generateId()` | SQLite connection, schema creation, ID generation |
+| `lib/session-manager.ts` | ~340 | `sessionManager` | SDK session lifecycle: create, persist to JSON, fork, cleanup (used by sdk-server, ai-client, websocket-handler) |
+| `lib/instrumentor.ts` | ~150 | `SDKInstrumentor` | Cost/token tracking per generation (used by sdk-server, websocket-handler) |
+| `lib/database.ts` | ~160 | `db`, `initDatabase()`, `generateId()` | SQLite connection, schema creation, migrations, ID generation |
 | `lib/image-events.ts` | 35 | `imageEvents`, `registerMcpSession()`, `resolveWsSessionId()` | EventEmitter side-channel for real-time image notifications from MCP tool, with MCP↔WS session ID mapping |
-| `lib/event-buffer.ts` | 124 | `appendEvent()`, `getEventsSince()`, `hasBuffer()` | In-memory event storage (1000 max, 40-min TTL) |
+| `lib/event-buffer.ts` | ~126 | `appendEvent()`, `getEventsSince()`, `hasBuffer()` | In-memory event storage (1000 max, 40-min TTL, resets on activity) |
 | `lib/auth.ts` | 74 | `clerkAuth()`, `authRequired`, `getUserId()` | Clerk middleware, dev mode anonymous fallback |
 | `lib/db/index.ts` | 68 | barrel re-exports | Exports all DB operations + types |
-| `lib/db/campaigns.ts` | 105 | `getCampaignsByUser()`, `createCampaign()`, `getCampaignBySessionId()` | Campaign CRUD, session linking |
+| `lib/db/campaigns.ts` | ~115 | `getCampaignsByUser()`, `createCampaign()`, `getCampaignBySessionId()`, `updateSdkSessionId()`, `getSdkSessionId()` | Campaign CRUD, session linking, SDK session persistence |
 | `lib/db/files.ts` | 63 | `getCampaignFiles()`, `updateCampaignFile()`, `areAllFilesReady()` | Campaign file CRUD (research/hooks/prompts) |
 | `lib/db/images.ts` | 89 | `addCampaignImage()`, `getLatestCampaignImages()`, `getImageCount()` | Image CRUD with versioning |
 | `lib/db/messages.ts` | 78 | `addMessage()`, `getMessages()`, `getLastAssistantMessage()` | Chat message CRUD |
@@ -131,21 +134,33 @@ cd client && npm run dev
 |------|-------|-------------|---------|
 | `src/App.tsx` | 271 | `App`, `AppContent` | Root: auth flow, data loading, recovery orchestration |
 | `src/main.tsx` | 26 | — | Entry: ClerkProvider wrapper or dev bypass |
-| `src/store/index.ts` | 845 | `useStore` | Zustand: campaigns, chat, generation, assets, async API actions |
+| `src/store/index.ts` | ~970 | `useStore` | Zustand: campaigns, chat, generation, follow-up, block actions, assets, async API actions |
 | `src/lib/websocket-manager.ts` | 210 | `subscribe()`, `unsubscribe()`, `connect()`, `sendMessage()` | Module-level WS singleton: one connection per tab, connectionGeneration staleness guard, subscriberCount ref counting |
-| `src/hooks/useWebSocket.ts` | 310 | `useWebSocket()` | Thin wrapper over WS manager: message handling, session recovery, localStorage persistence, generate/cancel/resume actions |
+| `src/hooks/useWebSocket.ts` | ~385 | `useWebSocket()` | Thin wrapper over WS manager: message handling via block actions, session recovery, localStorage persistence, generate(prompt)/cancel/resume/followUp(campaignId,prompt) actions. Subscribes to only `connectionState` + `isRecovering`; all store actions read via `getState()` inside callbacks. |
 | `src/lib/api.ts` | 320 | `campaignsApi`, `assetsApi`, `setTokenGetter()` | REST client with Clerk token injection, type transformers |
 | `src/lib/auth.ts` | 10 | `IS_AUTH_ENABLED`, `isDevMode()` | Clerk key detection |
 | `src/contexts/AuthContext.tsx` | 87 | `AuthProvider`, `useRequireAuth()` | Auth context with `requireAuth()` callback + sign-in modal |
-| `src/types/chat.ts` | 148 | `ChatMessage`, `GenerationState`, `ThinkingLine`, `CampaignStatus` | Type definitions + helper functions |
+| `src/types/chat.ts` | 135 | `ChatMessage`, `MessageBlock`, `ThinkingBlockData`, `ThinkingChild`, `CampaignStatus` | Type definitions + helper functions |
 | `src/types/websocket.ts` | 169 | `WSClientMessage`, `WSServerMessage`, type guards | WS protocol types |
 | `src/components/layout/AppLayout.tsx` | 426 | `AppLayout`, sidebar context | Resizable sidebars (200-480px), mobile drawers, keyboard shortcuts |
-| `src/components/chat/ChatSidebar.tsx` | 216 | `ChatSidebar` | Chat messages + thinking block, auto-scroll |
-| `src/components/chat/MobileChatDrawer.tsx` | 239 | `MobileChatDrawer` | Mobile chat via Radix Drawer (85vh) |
+| `src/components/chat/ChatSidebar.tsx` | ~89 | `ChatSidebar` | Chat sidebar with message history. Routes new campaigns to `generate()`, existing campaigns to `followUp()`. No fake typing — real AI responses. |
+| `src/components/chat/ChatMessage.tsx` | 90 | `ChatMessage` | Individual message renderer: blocks → BlockRenderer, plain text fallback for DB-loaded messages |
+| `src/components/chat/ChatInput.tsx` | 137 | `ChatInput` | Chat input with @mention support and image chip attachments |
+| `src/components/chat/blocks/BlockRenderer.tsx` | 32 | `BlockRenderer` | Routes `MessageBlock[]` to correct component (TextBlock, ThinkingBlock, StatusBlock) |
+| `src/components/chat/blocks/ThinkingBlock.tsx` | 184 | `ThinkingBlock` | Collapsible thinking block with extended children kinds (phase, tool, text, status, progress, error) and image counter |
+| `src/components/chat/blocks/TextBlock.tsx` | 17 | `TextBlock` | Message bubble for final summary text |
+| `src/components/chat/blocks/StatusBlock.tsx` | 34 | `StatusBlock` | Small pill/chip with info/success/error variants |
+| `src/components/chat/ImageChip.tsx` | 100 | `ImageChip` | Compact image thumbnail chip with hook type badge |
+| `src/components/chat/MobileChatDrawer.tsx` | 220 | `MobileChatDrawer` | Mobile chat via Radix Drawer (85vh), uses BlockRenderer |
 | `src/components/ResultsView.tsx` | 200 | `ResultsView` | Image grid (1-3 cols), selection, resume button |
 | `src/components/EmptyState.tsx` | 220 | `EmptyState` | Landing: prompt input, examples, recent campaigns |
 | `src/components/editor/FileEditor.tsx` | 287 | `FileEditorPanel` | TipTap editor, 1s debounce auto-save, undo/redo |
-| `src/components/assets/AssetDrawer.tsx` | 641 | `AssetDrawer`, `CampaignsSection`, `AssetsSection` | Campaign list, asset folders, file upload/preview |
+| `src/components/assets/AssetDrawer.tsx` | 640 | `AssetDrawer`, `CampaignsSection`, `AssetsSection` | Campaign list, asset folders, file upload/preview |
+| `src/components/assets/AssetPreview.tsx` | 149 | `AssetPreview`, `useAssetPreview` | Image/file preview dialog with delete and download |
+| `src/components/assets/FileUpload.tsx` | 343 | `FileUpload` | Drag-and-drop file upload dialog with folder selection |
+| `src/components/assets/MobileAssetsDrawer.tsx` | 42 | `MobileAssetsDrawer` | Mobile drawer wrapper for AssetDrawer |
+| `src/components/mentions/AssetMention.tsx` | 463 | `AssetMention` | @mention autocomplete picker with folder/file/image search and keyboard nav |
+| `src/components/ImageCard.tsx` | 187 | `ImageCard` | Generated image card with hook type label and download |
 | `src/components/auth/SignIn.tsx` | 44 | `SignIn` | Clerk sign-in with dark theme |
 | `src/components/auth/UserMenu.tsx` | 41 | `UserMenu` | Clerk UserButton wrapper |
 | `src/components/layout/LandingHeader.tsx` | 52 | `LandingHeader` | Fixed header with logo + auth controls |
@@ -165,6 +180,7 @@ campaigns
   name          TEXT NOT NULL    -- Campaign display name
   status        TEXT DEFAULT 'generating'  -- generating|complete|incomplete|error|cancelled
   session_id    TEXT             -- WebSocket session ID for reconnection
+  sdk_session_id TEXT            -- Claude SDK session ID for follow-up resume
   created_at    DATETIME
   updated_at    DATETIME         -- trigger-updated
 
@@ -287,6 +303,9 @@ asset_files
 
 // Reconnect to existing session (recovery)
 { type: 'subscribe', sessionId: string, lastEventId: number }
+
+// Follow-up message on existing campaign
+{ type: 'follow_up', prompt: string, campaignId: string }
 ```
 
 ### Server → Client Messages
@@ -310,7 +329,7 @@ asset_files
 { type: 'file', fileType: 'research'|'hooks'|'prompts', content: string, eventId: number }
 
 // Image generated
-{ type: 'image', url: string, prompt: string, hookType: HookType,
+{ type: 'image', urlPath: string, prompt: string, hookType: HookType,
   imageIndex: number, eventId: number }
 
 // Generation complete
@@ -340,7 +359,7 @@ asset_files
 
 ## State Management (Zustand)
 
-**File:** `client/src/store/index.ts` (845 lines)
+**File:** `client/src/store/index.ts` (~970 lines)
 
 ### Core State
 
@@ -381,23 +400,29 @@ dataLoaded: boolean
 ### Key Actions
 
 **Generation lifecycle:**
-- `startGeneration(sessionId, prompt, campaignName)` → creates campaign + user/assistant messages
-- `resumeGeneration(campaignId, sessionId)` → sets up for resumed generation
+- `startGeneration(sessionId, campaignName, prompt)` → creates campaign + user/assistant messages (prompt passed directly, not read from state)
+- `resumeGeneration(sessionId, campaignId)` → sets up for resumed generation
 - `reconstructForRecovery(sessionId, prompt, campaignId)` → rebuilds chat state from localStorage (REPLACES messages, not append)
-- `completeGeneration(summary)` → updates status, sets summary on assistant message
-- `cancelGeneration()` → marks cancelled
-- `failGeneration(error)` → marks error
+- `completeGeneration(campaignId, messageId, summary)` → updates status, sets summary on assistant message
+- `cancelGeneration(campaignId, messageId)` → marks cancelled
+- `failGeneration(campaignId, messageId, error)` → marks error
 - `cleanupFailedRecovery()` → clears generation state without changing campaigns/appState
+- `startFollowUp(campaignId, prompt)` → atomic: creates user + assistant messages, sets generatingCampaignId + currentGeneratingMessageId in single `set()` call
 
-**Thinking block:**
-- `addThinking(type, text, indent?)` → adds line to current generating message
-- Types: `phase`, `tool`, `result`, `progress`, `error`, `success`
+**Block actions (all take explicit `campaignId` — never read from `state.generatingCampaignId`):**
+- `appendTextBlock(campaignId, messageId, text)` → appends to last text block or creates new one
+- `openThinkingBlock(campaignId, messageId, label)` → opens a new collapsible thinking block
+- `addThinkingChild(campaignId, messageId, { kind, text, variant? })` → adds child to active thinking block (kinds: phase, tool, result, progress, error, text, status)
+- `closeThinkingBlock(campaignId, messageId, status)` → closes thinking block as 'complete' or 'error', auto-collapses
+- `updateThinkingImages(campaignId, messageId, imageIndex)` → increments completedImages counter in thinking block
+- `addStatusBlock(campaignId, messageId, text, variant)` → adds info/success/error status chip
+- `toggleBlockExpanded(campaignId, messageId, blockId)` → toggle thinking block expand/collapse
+- `appendMessageContent(campaignId, messageId, text)` → appends text to message.content (for DB persistence)
 
 **Campaign management:**
 - `replaceCampaignId(tempId, realId)` → swaps client-generated ID for server DB ID
 - `updateCampaignFile(campaignId, fileType, content)` → updates file in store
 - `addImageToCampaign(campaignId, image)` → adds image to campaign
-- `incrementCompletedImages()` → updates generation progress counter
 
 **Async API actions (optimistic update + API call):**
 - `deleteCampaignAsync(id)` → DELETE /api/campaigns/:id
@@ -629,17 +654,50 @@ connect() awaits storedTokenGetter() → opens WebSocket with JWT
 - 25-second heartbeat ping from client, 30-second from server
 - On reconnect: checks localStorage for active session, subscribes if found
 
-### Abort Controller Chain
+### SDK Stream Lifecycle (Dual AbortController Pattern)
 
-Fixed in Bug #3: the WebSocket handler's `AbortController` is passed into `ai-client.ts` `queryWithSession()` so aborting the handler's controller terminates the SDK query (including during long MCP tool calls).
+The Claude SDK spawns a CLI subprocess. Communication flows through stdin (input) and stdout (output). The prompt generator (async generator) feeds user messages to stdin via the SDK's `streamInput()`. The SDK only closes stdin (`endInput()`) after the generator returns — if the generator stays alive, stdin stays open.
+
+**Why stdin must stay open:** The MCP bridge (nano-banana image generation) sends tool responses back to the CLI via stdin. If stdin closes mid-generation, the CLI can't receive MCP results → "MCP connection issues."
+
+**Why the generator must eventually close:** The SDK yields a `result` message when the CLI finishes. But the CLI won't exit until stdin closes. If the generator never returns → stdin never closes → CLI never exits → the `for await` loop hangs forever → **deadlock.**
+
+**Solution: two separate AbortControllers with different jobs.**
 
 ```
-handleCancel() → abortController.abort()
-                      ↓
-              ai-client uses same controller
-                      ↓
-              SDK query terminates
+doneController (lifecycle)           abortController (cancellation)
+  created in ai-client.ts             passed from websocket-handler.ts
+  signal → prompt generator            passed to SDK options
+  "generation finished, close up"      "user cancelled, kill process"
 ```
+
+**Flow:**
+
+```
+1. Generator yields user message → awaits doneSignal
+2. stdin stays open → MCP bridge works for entire generation
+3. CLI finishes all turns (research → hooks → images)
+4. CLI sends 'result' via stdout
+5. readMessages() yields 'result' to our for-await loop
+6. ai-client detects message.type === 'result' → doneController.abort()
+7. Generator resolves → returns → streamInput() calls endInput()
+8. stdin closes → CLI exits → loop exits naturally
+9. websocket-handler sends 'complete' to frontend
+```
+
+**Cancellation flow (separate path):**
+
+```
+handleCancel() → state.abortController.abort()
+                      ↓
+              SDK kills CLI subprocess (via spawn signal)
+                      ↓
+              readMessages() ends → for-await throws AbortError
+                      ↓
+              finally block: doneController.abort() (cleanup)
+```
+
+**Files:** `server/lib/ai-client.ts` (createPromptGenerator, queryWithSession), `server/lib/websocket-handler.ts` (handleGenerate, handleCancel)
 
 ### Real-Time Image Streaming (Bug 4 Fix)
 
@@ -658,6 +716,35 @@ MCP saves image to disk → imageEvents.emit('image-saved', metadata)
 **Deduplication:** Both the EventEmitter (primary, immediate) and SDK stream `tool_result` (fallback, batched) can deliver images. A per-generation `processedImageIndices` Set ensures each image is only persisted and broadcast once.
 
 **Files:** `server/lib/image-events.ts`, `server/lib/nano-banana-mcp.ts`, `server/lib/websocket-handler.ts`
+
+### Follow-Up Chat (Chunk C)
+
+After initial generation, users can send follow-up messages to the AI about an existing campaign. The flow:
+
+```
+Client: ChatSidebar → followUp(campaignId, prompt)
+  → store.startFollowUp() (atomic: user + assistant messages, set generating state)
+  → store.openThinkingBlock()
+  → wsManager.sendMessage({ type: 'follow_up', prompt, campaignId })
+
+Server: handleFollowUp(state, prompt, campaignId)
+  → getCampaignById(campaignId, userId)     // auth check
+  → getSdkSessionId(campaignId)              // from SQLite
+  → aiClient.queryWithSession(prompt, wsSessionId)  // SDK auto-resumes via JSONL history
+  → processSDKMessage() loop                 // same as handleGenerate
+  → broadcastToConnection({ type: 'complete' })
+
+Client: handleMessage receives events normally
+  → addThinkingChild / appendTextBlock / completeGeneration
+```
+
+**Concurrency guard:** `ConnectionState.isGenerating` prevents overlapping `generate` + `follow_up` calls. Both handlers check and set it; both reset in `finally`.
+
+**SDK session resume:** `sdk_session_id` is captured from the SDK's `system/init` message during initial generation (C.2) and persisted to SQLite. On follow-up, `handleFollowUp` retrieves the `sdk_session_id` from the database and passes it directly to `queryWithSession` as the 6th parameter (`resumeSdkSessionId`). This bypasses the in-memory SessionManager lookup (which uses different internal session IDs) and ensures the SDK receives `{ resume: sdkSessionId }` → SDK reads JSONL history from `~/.claude/projects/{slug}/{sdkSessionId}.jsonl` and appends new messages to the same file. Each campaign has exactly one SDK session ID that persists across all follow-ups.
+
+**Phase detection:** Text-based phase detection was removed (C.4) to prevent false positives when the AI *discusses* research/hooks/images during follow-ups. Phase events now only come from explicit tool invocations.
+
+**Known limitation (testing):** The AI doesn't have automatic access to campaign file content (research.md, hooks.md, prompts.json) during follow-ups — it tries to Glob for them on disk. C.10 (deferred) will inject file context from the DB into the prompt server-side.
 
 ### Type Transformers (API ↔ Store)
 
@@ -696,14 +783,29 @@ transformMessage(apiMessage) → StoreChatMessage
 | 5 | Cancel doesn't stop fal.ai requests | Low | Won't fix | Inherent limitation of external API calls; mitigated by Bug 4 fix |
 | 6 | Anonymous WS connection on page load | Low | Fixed | Auth-gated connection: `connectWithAuth()` called only after `isLoaded && isSignedIn`; `subscribe()` does ref counting only |
 | 7 | Images vanish on page refresh | High | Fixed | `ApiImage` interface had wrong field names (`url` vs `file_path`); fixed in `client/src/lib/api.ts` |
+| 8 | SDK stream deadlock (generation never completes) | Critical | Fixed | Prompt generator blocked forever with `await new Promise(() => {})`, preventing SDK from closing stdin. Fixed with dual AbortController: `doneController` signals generator to close when `result` received; separate from SDK `abortController` for user cancellation. See "SDK Stream Lifecycle" in Key Implementation Patterns. |
+| 9 | MCP "connection issues" (images not generating) | Critical | Fixed | Prompt generator returning immediately caused SDK's 60s `streamCloseTimeout` to fire, closing stdin before MCP tools completed. Fixed by same dual AbortController — generator stays alive until `result`, keeping stdin open for MCP bridge. |
+| 10 | Follow-up has no context (hasResume: false) | Critical | Fixed | `handleFollowUp` retrieved `sdkSessionId` from DB but never passed it to SDK. `queryWithSession` created new sessions each time because SessionManager uses different internal IDs. Fixed by adding 6th param `resumeSdkSessionId` to `queryWithSession` — DB value now passed directly, bypassing SessionManager lookup. |
 
 ---
 
 ## Remaining Work
 
+### Chat Implementation
+
+See `docs/CHAT_IMPLEMENTATION_PLAN.md` for full details.
+
+- [x] **Chunk A** — Bug fixes (prompt race, store event drops, re-render storm, duplicate component)
+- [x] **Chunk B** — Block-based message display (TextBlock, ThinkingBlock, StatusBlock)
+- [x] **Chunk C** (C.1–C.9) — Real follow-up chat with AI (SDK session resume, `follow_up` WS message, concurrency guard)
+- [ ] **Chunk C.10** — @mention file context injection (deferred to polish)
+
 ### Phase E: Polish & Testing (Pending)
 
 **Testing checklist:**
+- [x] Prompt reaches server correctly every time
+- [x] Generation runs to completion with all events visible
+- [x] "Single ad" shows 1 image placeholder (dynamic expected count)
 - [ ] Refresh preserves data (create → refresh → still visible)
 - [ ] Reconnect during generation (refresh mid-gen → auto-reconnects)
 - [ ] Incomplete detection (restart server → campaign shows incomplete)
@@ -725,7 +827,10 @@ transformMessage(apiMessage) → StoreChatMessage
 | In-memory event buffer | Durable Objects | Survives server restart |
 | Express + ws | Workers + DO WebSocket | DO handles WS natively |
 | Clerk `@clerk/express` | Clerk `@clerk/backend` | `verifyToken()` instead of middleware |
+| SDK JSONL files (`~/.claude/projects/`) | Cloudflare R2 | Sync on container shutdown (SIGTERM), hydrate before follow-up |
+
+**SDK Session Persistence (R2):** Cloudflare Containers have ephemeral disk — JSONL files are wiped when container sleeps. Solution: persist to R2 on shutdown (15-min grace period after SIGTERM), hydrate from R2 before follow-up calls. See `docs/R2_SESSION_PERSISTENCE.md` for implementation plan.
 
 ---
 
-*This document supersedes SESSION_CONTEXT_2026-01-28.md for codebase context loading.*
+*This is the single source of truth for codebase context. ARCHITECTURE.md has been removed.*

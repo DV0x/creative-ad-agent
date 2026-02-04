@@ -1,4 +1,4 @@
-# Bug Report — Generation Flow (2026-01-30)
+ # Bug Report — Generation Flow (2026-01-30)
 
 **Branch:** `new-ui`
 **Test:** Fresh DB, authenticated user, prompt "create two ads for theratefinder.ca", refresh mid-generation, cancel during image generation.

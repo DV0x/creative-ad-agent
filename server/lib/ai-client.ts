@@ -188,20 +188,27 @@ export class AIClient {
   }
 
   /**
-   * Create async generator for SDK prompt (required for MCP servers and advanced features)
+   * Create async generator for SDK prompt.
    *
-   * CRITICAL: For MCP tools with long execution times (like Gemini API calls), the generator
-   * must stay alive during tool execution. If the generator closes before the tool completes,
-   * the SDK will throw "Tool permission stream closed before response received".
+   * Yields the user message, then keeps the generator alive until signaled.
+   * This is necessary because the SDK's streamInput() only calls endInput()
+   * (closing stdin to the CLI subprocess) after the generator returns.
+   * If the generator returns too early, stdin closes and the MCP bridge dies
+   * — the CLI can no longer receive MCP tool responses.
+   *
+   * The doneSignal is a SEPARATE AbortController from the SDK's own abort
+   * controller (which kills the subprocess). This separation is critical:
+   * - doneSignal: "generation finished, generator can close" (lifecycle)
+   * - SDK abortController: "user cancelled, kill the process" (cancellation)
    *
    * @param promptText - The user prompt text
    * @param attachments - Optional attachments (images, etc.)
-   * @param signal - Optional abort signal to close the generator
+   * @param doneSignal - Signaled when the SDK yields 'result', letting the generator close
    */
   private async *createPromptGenerator(
     promptText: string,
     attachments?: Array<{ type: string; source: any }>,
-    signal?: AbortSignal
+    doneSignal?: AbortSignal
   ) {
     const content = attachments && attachments.length > 0
       ? [{ type: "text", text: promptText }, ...attachments]
@@ -214,24 +221,17 @@ export class AIClient {
         content
       },
       parent_tool_use_id: null
-    } as any; // Type assertion - SDK will handle session_id and uuid
+    } as any;
 
-    // CRITICAL FIX for MCP tools with long execution times:
-    // Keep the generator alive while tools are executing. The SDK needs this stream
-    // to remain open during MCP tool calls. Without this, long-running tools (>1s)
-    // will fail with "Tool permission stream closed before response received" error.
-    //
-    // The SDK will naturally break out of this loop when the query completes.
-    // The abort signal provides a way to explicitly close the generator if needed.
-    if (signal) {
-      await new Promise<void>((resolve) => {
-        signal.addEventListener('abort', () => resolve());
-      });
-    } else {
-      // Fallback: keep alive indefinitely (SDK will close when query completes)
-      await new Promise<void>(() => {
-        // Never resolves - SDK closes the generator when done
-      });
+    // Keep generator alive until the query completes. This holds stdin open
+    // so the MCP bridge can send tool responses back to the CLI subprocess.
+    // The caller signals doneSignal when it receives the 'result' message.
+    if (doneSignal) {
+      if (!doneSignal.aborted) {
+        await new Promise<void>(resolve => {
+          doneSignal.addEventListener('abort', () => resolve(), { once: true });
+        });
+      }
     }
   }
 
@@ -246,13 +246,9 @@ export class AIClient {
     options: Partial<Options> = {},
     attachments?: Array<{ type: string; source: any }>
   ) {
-    // Create abort controller for generator lifecycle management
-    const abortController = new AbortController();
-
     const queryOptions = {
       ...this.defaultOptions,
       ...options,
-      abortController  // Pass to SDK for proper cleanup
     };
 
     console.log('🚀 Starting SDK query with options:', {
@@ -264,25 +260,16 @@ export class AIClient {
       skillsEnabled: queryOptions.allowedTools?.includes('Skill')
     });
 
-    try {
-      // Stream messages from SDK using async generator (required for MCP servers)
-      // Generator will stay alive during tool execution (critical for MCP tools)
-      const promptGenerator = this.createPromptGenerator(
-        prompt,
-        attachments,
-        abortController.signal
-      );
+    const doneController = new AbortController();
+    const promptGenerator = this.createPromptGenerator(prompt, attachments, doneController.signal);
 
+    try {
       for await (const message of query({ prompt: promptGenerator, options: queryOptions })) {
+        if (message.type === 'result') doneController.abort();
         yield message;
       }
-
-      // Clean up: abort the generator when query completes
-      abortController.abort();
-    } catch (error) {
-      abortController.abort();
-      console.error('❌ SDK query error:', error);
-      throw error;
+    } finally {
+      doneController.abort();
     }
   }
 
@@ -323,21 +310,27 @@ export class AIClient {
     prompt: string,
     sessionId?: string,
     metadata?: any,
-    attachments?: Array<{ type: string; source: any }>
+    attachments?: Array<{ type: string; source: any }>,
+    externalAbortController?: AbortController,
+    resumeSdkSessionId?: string
   ) {
     // Get or create session
     const session = await this.sessionManager.getOrCreateSession(sessionId, metadata);
 
-    // Get resume options if session has SDK session ID
-    const resumeOptions = this.sessionManager.getResumeOptions(session.id);
+    // Use explicit resume SDK session ID if provided (e.g., from DB for follow-ups),
+    // otherwise look up from session manager's in-memory map
+    const resumeOptions = resumeSdkSessionId
+      ? { resume: resumeSdkSessionId }
+      : this.sessionManager.getResumeOptions(session.id);
 
-    // Create abort controller for generator lifecycle management
-    const abortController = new AbortController();
+    // External abort controller enables caller-driven cancellation (e.g., user clicks cancel).
+    // Passed to SDK options so aborting kills the CLI subprocess.
+    const abortController = externalAbortController || new AbortController();
 
     const queryOptions = {
       ...this.defaultOptions,
       ...resumeOptions,
-      abortController  // Pass to SDK for proper cleanup
+      abortController
     };
 
     console.log(`🔄 Query with session ${session.id}`, {
@@ -346,15 +339,10 @@ export class AIClient {
     });
 
     let sdkSessionIdCaptured = false;
+    const doneController = new AbortController();
 
     try {
-      // Use async generator for session-aware queries (required for MCP servers)
-      // Generator will stay alive during tool execution (critical for MCP tools)
-      const promptGenerator = this.createPromptGenerator(
-        prompt,
-        attachments,
-        abortController.signal
-      );
+      const promptGenerator = this.createPromptGenerator(prompt, attachments, doneController.signal);
 
       for await (const message of query({ prompt: promptGenerator, options: queryOptions })) {
         // Capture SDK session ID from init message
@@ -363,24 +351,26 @@ export class AIClient {
           sdkSessionIdCaptured = true;
         }
 
-        // Add message to session history
+        // Signal generator to close when result arrives — this lets
+        // streamInput() proceed to endInput() and cleanly shut down.
+        if (message.type === 'result') doneController.abort();
+
         await this.sessionManager.addMessage(session.id, message);
 
-        // Return both message and session info
         yield { message, sessionId: session.id };
       }
 
-      // Clean up: abort the generator when query completes
-      abortController.abort();
-
-      // Mark session as completed if it was a one-shot query
       if (metadata?.oneShot) {
         await this.sessionManager.completeSession(session.id);
       }
-    } catch (error) {
-      abortController.abort();
-      console.error(`❌ Query error for session ${session.id}:`, error);
+    } catch (error: any) {
+      const isAbort = error.name === 'AbortError' || abortController.signal.aborted;
+      if (!isAbort) {
+        console.error(`❌ Query error for session ${session.id}:`, error);
+      }
       throw error;
+    } finally {
+      doneController.abort();
     }
   }
 
@@ -436,40 +426,29 @@ export class AIClient {
 
     console.log(`🌿 Forking session ${baseSessionId} -> ${forkSession.id}`);
 
-    // Create abort controller for generator lifecycle management
-    const abortController = new AbortController();
-
-    // Build query options with forkSession flag
     const queryOptions = {
       ...this.defaultOptions,
-      resume: baseSession.sdkSessionId,  // Resume from base session
-      forkSession: true,  // Create a branch
-      abortController  // Pass to SDK for proper cleanup
+      resume: baseSession.sdkSessionId,
+      forkSession: true,
     };
 
     let sdkSessionIdCaptured = false;
+    const doneController = new AbortController();
 
     try {
-      // Use async generator for forked session
-      // Generator will stay alive during tool execution (critical for MCP tools)
-      const promptGenerator = this.createPromptGenerator(
-        prompt,
-        attachments,
-        abortController.signal
-      );
+      const promptGenerator = this.createPromptGenerator(prompt, attachments, doneController.signal);
 
       for await (const message of query({ prompt: promptGenerator, options: queryOptions })) {
-        // Capture SDK session ID for the forked session
         if (message.type === 'system' && message.subtype === 'init' && message.session_id && !sdkSessionIdCaptured) {
           await this.sessionManager.updateSdkSessionId(forkSession.id, message.session_id);
           sdkSessionIdCaptured = true;
           console.log(`🌿 Fork created with SDK session: ${message.session_id}`);
         }
 
-        // Add message to forked session history
+        if (message.type === 'result') doneController.abort();
+
         await this.sessionManager.addMessage(forkSession.id, message);
 
-        // Return both message and the forked session ID
         yield {
           message,
           sessionId: forkSession.id,
@@ -478,14 +457,12 @@ export class AIClient {
         };
       }
 
-      // Clean up: abort the generator when query completes
-      abortController.abort();
-
       console.log(`✅ Fork completed: ${forkSession.id}`);
     } catch (error) {
-      abortController.abort();
       console.error(`❌ Fork error for session ${forkSession.id}:`, error);
       throw error;
+    } finally {
+      doneController.abort();
     }
   }
 }

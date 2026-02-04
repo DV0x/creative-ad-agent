@@ -1,8 +1,8 @@
 # Chat-First Creative Studio - Implementation Plan
 
 **Created:** January 28, 2026
-**Last Updated:** January 28, 2026
-**Status:** Phases 1-9 Complete, Phase 10 (Testing) Remaining
+**Last Updated:** January 29, 2026
+**Status:** Phases 1-9 Complete, Phase 10 In Progress, Phase 11 (Bug Fixes) Complete
 
 ---
 
@@ -32,7 +32,8 @@ Landing → GeneratingView → Results     Landing → Workspace (chat + images)
 | Phase 7 | WebSocket Hook Updates | ✅ Complete |
 | Phase 8 | Landing Page Updates | ✅ Complete |
 | Phase 9 | Cleanup | ✅ Complete |
-| Phase 10 | Testing & Polish | Not Started |
+| Phase 10 | Testing & Polish | In Progress |
+| Phase 11 | Bug Fixes (Bugs 1-5) | ✅ Complete |
 
 ---
 
@@ -213,7 +214,7 @@ Landing → GeneratingView → Results     Landing → Workspace (chat + images)
 - [ ] Selection clears after send
 
 ### 10.3 Edge Cases
-- [ ] Cancel during generation
+- [ ] Cancel during generation (see Bug 3 — still open)
 - [ ] Disconnect/reconnect recovery
 - [ ] Error handling
 
@@ -221,6 +222,81 @@ Landing → GeneratingView → Results     Landing → Workspace (chat + images)
 - [ ] Animations (thinking expand/collapse)
 - [ ] Skeleton → image transition
 - [ ] Mobile responsive
+
+---
+
+## Phase 11: Bug Fixes ✅
+
+Bugs found during Phase 10 testing. See `docs/BUGS.md` for original reports.
+
+### 11.1 Bug 1: Chat history lost on refresh ✅
+**Severity:** High | **Fixed by:** Three-layer persistence model
+
+See `docs/CHAT_PERSISTENCE_ARCHITECTURE.md` for full architecture.
+
+**Summary:** Messages were never written to the DB during generation, and never loaded from DB on refresh. Fixed with:
+- **Server** (`websocket-handler.ts`): Writes user message on generation start, assistant message on complete/cancel/error
+- **Client** (`App.tsx`): Loads messages from `campaignsApi.get()` response into Zustand
+- **Recovery**: Event buffer replay reconstructs thinking block mid-generation
+
+### 11.2 Bug 2: Prompt lost after login redirect ✅
+**Severity:** Medium | **Root cause:** Clerk sign-in reloads the page, wiping Zustand
+
+**Fix:** sessionStorage bridge + auto-generate after auth
+
+**Files changed:**
+- `client/src/store/index.ts` — Added `pendingGeneration` flag and `setPendingGeneration` setter
+- `client/src/components/EmptyState.tsx` — Saves prompt to `sessionStorage` before `requireAuth()`. Added `useEffect` to auto-call `generate()` when `pendingGeneration` + `isConnected`
+- `client/src/App.tsx` — After sign-in + data loaded, detects pending prompt from `sessionStorage`, restores to store, sets `pendingGeneration`
+- `client/src/components/layout/AppLayout.tsx` — Auto-opens chat sidebar (desktop: `rightOpen`, mobile: `mobileDrawerOpen`) when entering workspace with active generation
+
+**Flow after fix:**
+1. User types prompt → clicks Create → prompt saved to `sessionStorage`
+2. Clerk sign-in → page reloads
+3. App loads → auth confirmed → data loads from API
+4. Pending prompt detected → restored to store → `pendingGeneration = true`
+5. EmptyState auto-generates → workspace opens → chat drawer opens
+
+### 11.3 Bug 3: Cancel does not stop generation
+**Severity:** High | **Status:** Open
+
+Two disconnected `AbortController`s: the WebSocket handler's and the SDK's. Cancel aborts the handler's controller, but the SDK has its own. Long-running tool calls (e.g., image generation) block the abort check.
+
+**Affected files:**
+- `server/lib/websocket-handler.ts` — cancel handler
+- `server/lib/ai-client.ts` — `queryWithSession()` creates its own abort controller
+
+### 11.4 Bug 4: API 400 errors on file save / campaign rename ✅
+**Severity:** Medium | **Root cause:** Two independent issues
+
+**Issue 1 — Campaign ID mismatch (structural fix):**
+
+Client and server created campaigns independently with different ID formats:
+- Client: `campaign-{timestamp}-{random}` (Zustand `generateId()`)
+- Server: `campaign_{base36ts}{base36rand}` (DB `generateId()`)
+
+Any REST API call from the client using the client-generated ID would 404 because the server DB had a different ID. They were only linked by `sessionId`, not `campaignId`.
+
+**Fix:** Server sends DB campaign ID in the WebSocket `ack` message. Client adopts it immediately.
+
+**Files changed:**
+- `server/lib/websocket-handler.ts` — Moved campaign DB creation before `ack` message. Ack now includes `campaignId`
+- `client/src/types/websocket.ts` — Added `campaignId` and `sessionId` to `WSAckEvent`
+- `client/src/store/index.ts` — Added `replaceCampaignId(oldId, newId)` that atomically updates the campaign `id`, `activeCampaignId`, and `generatingCampaignId`
+- `client/src/hooks/useWebSocket.ts` — `ack` handler extracts server campaign ID, calls `replaceCampaignId`, updates `campaignIdRef` and localStorage session
+
+**Issue 2 — tsx watch crash (see Bug 5):**
+Server was temporarily unavailable during hot-reload, returning 400/502 via Vite proxy.
+
+### 11.5 Bug 5: iconv-lite module error during tsx watch ✅
+**Severity:** Low (dev only) | **Root cause:** `tsx watch` monitoring SQLite DB files
+
+SQLite database (`server/data/creative_agent.db`) is inside the watch directory. Every DB write (campaign CRUD, file saves, image persistence) triggers hot-reload via WAL journal files (`.db-wal`, `.db-shm`). During reload, `iconv-lite` fails to resolve, crashing the server.
+
+**Fix:** Added `--ignore` flags to the dev script.
+
+**File changed:**
+- `server/package.json` — `"dev": "tsx watch --ignore='./data/**' --ignore='./sessions/**' --ignore='./generated-images/**' ..."`
 
 ---
 
@@ -238,11 +314,15 @@ Landing → GeneratingView → Results     Landing → Workspace (chat + images)
 ### Modified Files
 | File | Changes |
 |------|---------|
-| `server/lib/websocket-handler.ts` | File events, hookType in images, summary |
+| `server/lib/websocket-handler.ts` | File events, hookType in images, summary, message persistence (Bug 1), campaign ID in ack (Bug 4) |
 | `server/lib/nano-banana-mcp.ts` | hookType and imageIndex in results |
-| `client/src/store/index.ts` | Major refactor for chat-first |
-| `client/src/types/websocket.ts` | New event types |
-| `client/src/hooks/useWebSocket.ts` | Event handling refactor |
+| `server/package.json` | `--ignore` flags for tsx watch (Bug 5) |
+| `client/src/store/index.ts` | Major refactor for chat-first, `pendingGeneration` flag (Bug 2), `replaceCampaignId` (Bug 4) |
+| `client/src/types/websocket.ts` | New event types, `campaignId` on WSAckEvent (Bug 4) |
+| `client/src/hooks/useWebSocket.ts` | Event handling refactor, ack handler adopts server campaign ID (Bug 4) |
+| `client/src/App.tsx` | Data loading, message loading (Bug 1), pending prompt restore after auth (Bug 2) |
+| `client/src/components/EmptyState.tsx` | sessionStorage prompt save, auto-generate after auth (Bug 2) |
+| `client/src/components/layout/AppLayout.tsx` | Auto-open chat drawer on generation start (Bug 2) |
 | `client/src/components/chat/ChatSidebar.tsx` | Uses ChatInput, ThinkingBlock |
 | `client/src/components/chat/MobileChatDrawer.tsx` | Uses ChatInput, ThinkingBlock |
 | `client/src/components/mentions/AssetMention.tsx` | Campaign images |
@@ -256,13 +336,18 @@ Landing → GeneratingView → Results     Landing → Workspace (chat + images)
 
 ---
 
+## Open Issues
+
+- **Bug 3: Cancel does not stop generation** — Two disconnected abort controllers. Needs the handler to pass its signal into `aiClient.queryWithSession()`.
+
+---
+
 ## Future Enhancements
 
 - Save All / Share buttons in workspace header
 - Backend handling of imageRefs for actual regeneration
 - Cloud storage with Cloudflare D1/R2
-- User authentication
 
 ---
 
-*Last updated: January 28, 2026*
+*Last updated: January 29, 2026*

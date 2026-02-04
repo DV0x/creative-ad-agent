@@ -22,6 +22,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { useStore, type AssetFolder, type AssetFile, type Campaign, type CampaignFileType } from '@/store'
+import { useSidebars } from '@/components/layout/AppLayout'
 import { cn } from '@/lib/utils'
 import { FileUpload } from './FileUpload'
 import { AssetPreview, useAssetPreview } from './AssetPreview'
@@ -63,6 +64,8 @@ export function AssetDrawer() {
 
 function CampaignsSection() {
   const { campaigns, activeCampaignId, isCreatingCampaign, setActiveCampaignId, setIsCreatingCampaign, setAppState } = useStore()
+  const { setRightOpen, setMobileDrawerOpen } = useSidebars()
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
 
   const handleCampaignClick = (campaignId: string) => {
     setActiveCampaignId(campaignId)
@@ -71,7 +74,12 @@ function CampaignsSection() {
 
   const handleNewCampaign = () => {
     setIsCreatingCampaign(true)
-    setAppState('landing')
+    // Stay in workspace and open the chat sidebar for prompt input
+    if (isMobile) {
+      setMobileDrawerOpen(true)
+    } else {
+      setRightOpen(true)
+    }
   }
 
   return (
@@ -131,7 +139,7 @@ interface CampaignItemProps {
 }
 
 function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
-  const { activeFileType, setActiveFileType, removeCampaign, renameCampaign } = useStore()
+  const { activeFileType, setActiveFileType, deleteCampaignAsync, renameCampaignAsync } = useStore()
   const [isOpen, setIsOpen] = useState(isActive)
   const [showActions, setShowActions] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
@@ -162,7 +170,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
 
   const handleRenameSubmit = () => {
     if (renamingValue.trim() && renamingValue !== campaign.name) {
-      renameCampaign(campaign.id, renamingValue.trim())
+      renameCampaignAsync(campaign.id, renamingValue.trim())
     }
     setIsRenaming(false)
   }
@@ -278,7 +286,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
               size="icon-xs"
               onClick={(e) => {
                 e.stopPropagation()
-                removeCampaign(campaign.id)
+                deleteCampaignAsync(campaign.id)
               }}
               className="h-5 w-5 text-text-muted hover:text-error"
               title="Delete campaign"
@@ -332,15 +340,15 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
     assetFolders,
     selectedFolderId,
     setSelectedFolderId,
-    addFolder,
-    removeFolder
+    createFolderAsync,
+    deleteFolderAsync
   } = useStore()
   const [isCreating, setIsCreating] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
 
-  const handleCreateFolder = () => {
+  const handleCreateFolder = async () => {
     if (newFolderName.trim()) {
-      addFolder(newFolderName.trim())
+      await createFolderAsync(newFolderName.trim())
       setNewFolderName('')
       setIsCreating(false)
     }
@@ -403,7 +411,7 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
             onSelect={() => setSelectedFolderId(
               selectedFolderId === folder.id ? null : folder.id
             )}
-            onDelete={() => removeFolder(folder.id)}
+            onDelete={() => deleteFolderAsync(folder.id)}
             onPreviewFile={onPreviewFile}
           />
         ))}
@@ -440,7 +448,7 @@ interface FolderItemProps {
 }
 
 function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: FolderItemProps) {
-  const { renameFolder } = useStore()
+  const { renameFolderAsync } = useStore()
   const [isOpen, setIsOpen] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
@@ -450,7 +458,7 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
 
   const handleRenameSubmit = () => {
     if (renamingValue.trim() && renamingValue !== folder.name) {
-      renameFolder(folder.id, renamingValue.trim())
+      renameFolderAsync(folder.id, renamingValue.trim())
     }
     setIsRenaming(false)
   }
@@ -589,7 +597,7 @@ interface AssetFileItemProps {
 }
 
 function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
-  const { removeFile } = useStore()
+  const { deleteFileAsync } = useStore()
   const [showActions, setShowActions] = useState(false)
 
   const Icon = file.type === 'image' ? ImageIcon : FileIcon
@@ -620,7 +628,7 @@ function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
           size="icon-xs"
           onClick={(e) => {
             e.stopPropagation()
-            removeFile(file.id)
+            deleteFileAsync(file.id)
           }}
           className="h-5 w-5 text-text-muted hover:text-error"
         >

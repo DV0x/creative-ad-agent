@@ -5,9 +5,10 @@ import type { HookType } from './chat';
 // ============================================
 
 export interface WSClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe';
+  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe' | 'follow_up';
   prompt?: string;
   sessionId?: string;
+  campaignId?: string;
   lastEventId?: number;
   // Image references for follow-up messages
   imageRefs?: number[];

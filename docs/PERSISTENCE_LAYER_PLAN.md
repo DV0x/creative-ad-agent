@@ -1,7 +1,7 @@
 # Persistence Layer Implementation Plan
 
 **Created:** January 28, 2026
-**Status:** Phases A & B Complete - Ready for Phase C (Frontend Integration)
+**Status:** Phases A, B & C Complete + Auth & Cancel Bug Fixes — Ready for Phase D (Resume Generation)
 
 ---
 
@@ -198,7 +198,7 @@ Authorization: Bearer <clerk_jwt_token>
 | GET | `/api/campaigns/:id` | Get full campaign (files, images, messages) | - | `{ campaign, files, images, messages }` |
 | POST | `/api/campaigns` | Create new campaign | `{ name }` | `{ campaign }` |
 | PATCH | `/api/campaigns/:id` | Update campaign | `{ name?, status? }` | `{ campaign }` |
-| DELETE | `/api/campaigns/:id` | Delete campaign | - | `{ success: true }` |
+| DELETE | `/api/campaigns/:id` | Delete campaign (aborts active generation) | - | `{ success: true }` |
 
 ### Campaign Files
 
@@ -431,140 +431,114 @@ export function getUserId(req: Request): string {
 
 ---
 
-### Phase C: Frontend Integration
+### Phase C: Frontend Integration ✅ COMPLETE
 
-#### C1: Set Up Clerk
+#### C1: Set Up Clerk ✅
 
-**Files to create/modify:**
-- `client/src/lib/clerk.ts` - Clerk configuration
-- `client/src/main.tsx` - Wrap app in ClerkProvider
-- `client/src/components/auth/SignIn.tsx` - Sign in page
-- `client/src/components/auth/UserMenu.tsx` - User button in header
-
-**Tasks:**
-- [ ] Install `@clerk/clerk-react` package
-- [ ] Add VITE_CLERK_PUBLISHABLE_KEY to .env
-- [ ] Create ClerkProvider wrapper
-- [ ] Add SignIn component
-- [ ] Add UserButton to header
-- [ ] Protect routes (redirect to sign-in if not authenticated)
-
-#### C2: API Client
-
-**Files to create:**
-- `client/src/api/client.ts` - API client with auth
-
-```typescript
-// client/src/api/client.ts
-import { useAuth } from '@clerk/clerk-react';
-
-async function fetchWithAuth(url: string, options: RequestInit = {}) {
-  const { getToken } = useAuth();
-  const token = await getToken();
-
-  return fetch(url, {
-    ...options,
-    headers: {
-      ...options.headers,
-      'Authorization': `Bearer ${token}`,
-      'Content-Type': 'application/json',
-    },
-  });
-}
-
-export const api = {
-  // Campaigns
-  getCampaigns: () => fetchWithAuth('/api/campaigns').then(r => r.json()),
-  getCampaign: (id: string) => fetchWithAuth(`/api/campaigns/${id}`).then(r => r.json()),
-  createCampaign: (name: string) => fetchWithAuth('/api/campaigns', {
-    method: 'POST',
-    body: JSON.stringify({ name }),
-  }).then(r => r.json()),
-  // ... etc
-};
-```
+**Files created/modified:**
+- `client/src/lib/auth.ts` - Dev mode detection, Clerk key export
+- `client/src/contexts/AuthContext.tsx` - Auth context with requireAuth()
+- `client/src/main.tsx` - ClerkProvider wrapper (dev bypass)
+- `client/src/components/auth/SignIn.tsx` - Sign in page (dark theme)
+- `client/src/components/auth/UserMenu.tsx` - User avatar in sidebar
+- `client/src/components/layout/LandingHeader.tsx` - Header with login button
 
 **Tasks:**
-- [ ] Create API client with Clerk token injection
-- [ ] Add all campaign API methods
-- [ ] Add all assets API methods
-- [ ] Add error handling
+- [x] Install `@clerk/clerk-react` package
+- [x] Add VITE_CLERK_PUBLISHABLE_KEY to .env
+- [x] Create ClerkProvider wrapper (with dev mode bypass)
+- [x] Add SignIn component with dark theme styling
+- [x] Add UserButton to sidebar header
+- [x] Soft-gate auth (login prompt on "Create" click, not page block)
 
-#### C3: Load Data on Mount
+#### C2: API Client ✅
 
-**Files to modify:**
+**Files created:**
+- `client/src/lib/api.ts` - API client with auth token injection
+
+**Implementation:**
+- `setTokenGetter()` - Called by App.tsx to inject Clerk's getToken
+- `apiFetch()` - Base fetch with automatic Authorization header
+- `campaignsApi` - list, get, create, update, delete, updateFile
+- `assetsApi` - listFolders, createFolder, renameFolder, deleteFolder, getFiles, deleteFile
+- Type transformers: API snake_case → store camelCase
+
+**Tasks:**
+- [x] Create API client with Clerk token injection
+- [x] Add all campaign API methods
+- [x] Add all assets API methods
+- [x] Add error handling
+
+#### C3: Load Data on Mount ✅
+
+**Files modified:**
 - `client/src/App.tsx` - Load campaigns on mount
-- `client/src/store/index.ts` - Add loading actions
+- `client/src/store/index.ts` - Added bulk setters
 
-**Flow:**
+**Auth Flow (soft-gate):**
 ```
-App mounts
+User visits app
     │
-    ├── Check: Is user signed in?
-    │     │
-    │     ├── No → Show sign-in page
-    │     │
-    │     └── Yes → Continue
-    │
-    ├── Call: GET /api/campaigns
-    │
-    ├── Store: setCampaigns(response.campaigns)
-    │
-    ├── Call: GET /api/assets/folders
-    │
-    ├── Store: setAssetFolders(response.folders)
-    │
-    └── Show: Landing page (or last campaign if stored)
+    └── Landing page always shown (no auth gate)
+          ├── Header with "Log in" button
+          ├── User can enter prompt
+          └── Clicks "Create" → requireAuth() checks
+                │
+                ├── Signed in → Generate
+                └── Not signed in → Clerk modal → then generate
 ```
+
+**Bug Fixes (January 29, 2026):**
+- **Token race condition:** `AuthenticatedApp` now uses a ref-based token getter so the auth token is always current when child effects fire (fixed in `App.tsx`)
+- **Lost requireAuth callback:** `ClerkAuthProvider` stores the callback in a ref and executes it on `isSignedIn` transition (`false → true`), so the "Create" button flow works with modal sign-in (fixed in `AuthContext.tsx`)
+- **Silent API error on landing:** Error display no longer gated behind `showWorkspace`, so landing page users see load errors and can retry (fixed in `App.tsx`)
 
 **Tasks:**
-- [ ] Add `loadCampaigns` action to store
-- [ ] Add `loadAssetFolders` action to store
-- [ ] Call API on app mount
-- [ ] Show loading state while fetching
-- [ ] Handle errors
+- [x] Add `setCampaigns` bulk setter to store
+- [x] Add `setAssetFolders` bulk setter to store
+- [x] Call API on app mount (when signed in)
+- [x] Show loading state while fetching
+- [x] Handle errors with retry button
+- [x] Fix token race condition after modal sign-in
+- [x] Fix requireAuth callback lost on modal sign-in
+- [x] Show API errors on landing page (not just workspace)
 
-#### C4: Sync Store Changes to API
+#### C4: Sync Store Changes to API ✅
 
-**Files to modify:**
-- `client/src/store/index.ts` - Add API calls to actions
+**Files modified:**
+- `client/src/store/index.ts` - Added async API actions
+- `client/src/components/assets/AssetDrawer.tsx` - Use async actions
+- `client/src/components/editor/FileEditor.tsx` - Sync edits to API
 
-**Example:**
+**Async Store Actions:**
 ```typescript
-// Before (memory only)
-addCampaign: (name) => {
-  const id = generateId('campaign');
-  set(state => ({ campaigns: [...state.campaigns, { id, name, ... }] }));
-  return id;
-}
-
-// After (synced with API)
-addCampaign: async (name) => {
-  const response = await api.createCampaign(name);
-  set(state => ({ campaigns: [...state.campaigns, response.campaign] }));
-  return response.campaign.id;
-}
+deleteCampaignAsync(id)           // DELETE /api/campaigns/:id
+renameCampaignAsync(id, name)     // PATCH /api/campaigns/:id
+saveFileAsync(id, type, content)  // PUT /api/campaigns/:id/files/:type
+createFolderAsync(name)           // POST /api/assets/folders
+deleteFolderAsync(id)             // DELETE /api/assets/folders/:id
+renameFolderAsync(id, name)       // PATCH /api/assets/folders/:id
+deleteFileAsync(fileId)           // DELETE /api/assets/files/:id
 ```
 
 **Tasks:**
-- [ ] Update `addCampaign` to call API
-- [ ] Update `removeCampaign` to call API
-- [ ] Update `renameCampaign` to call API
-- [ ] Update `updateFileContent` to call API
-- [ ] Update asset folder actions to call API
-- [ ] Handle optimistic updates vs wait for API
+- [x] Add `deleteCampaignAsync` (optimistic + API)
+- [x] Add `renameCampaignAsync` (optimistic + API)
+- [x] Add `saveFileAsync` (debounced API sync)
+- [x] Add async asset folder actions
+- [x] Handle optimistic updates
 
-#### C5: Remove Demo Data
+#### C5: Remove Demo Data ✅
 
-**Files to modify:**
-- `client/src/store/index.ts` - Remove DEMO_CAMPAIGNS, DEMO_FOLDERS, DEMO_MESSAGES
+**Files modified:**
+- `client/src/store/index.ts` - Removed demo constants
 
 **Tasks:**
-- [ ] Remove DEMO_CAMPAIGNS constant
-- [ ] Remove DEMO_FOLDERS constant
-- [ ] Remove DEMO_MESSAGES constant
-- [ ] Initialize state as empty arrays
-- [ ] Load real data from API on mount
+- [x] Remove DEMO_CAMPAIGNS constant
+- [x] Remove DEMO_FOLDERS constant
+- [x] Remove DEMO_MESSAGES constant
+- [x] Initialize state as empty arrays
+- [x] Load real data from API on mount
 
 ---
 
@@ -670,9 +644,12 @@ Load campaign from API
 
 | File | Purpose |
 |------|---------|
-| `client/src/api/client.ts` | API client with auth |
-| `client/src/components/auth/SignIn.tsx` | Sign-in page |
-| `client/src/components/auth/UserMenu.tsx` | User menu component |
+| `client/src/lib/auth.ts` | Dev mode detection, Clerk key |
+| `client/src/lib/api.ts` | API client with token injection |
+| `client/src/contexts/AuthContext.tsx` | Auth context with requireAuth() |
+| `client/src/components/auth/SignIn.tsx` | Sign-in page (dark theme) |
+| `client/src/components/auth/UserMenu.tsx` | User avatar component |
+| `client/src/components/layout/LandingHeader.tsx` | Header with login button |
 
 ### Modified Files (Backend)
 
@@ -686,10 +663,14 @@ Load campaign from API
 
 | File | Changes |
 |------|---------|
-| `client/src/main.tsx` | Wrap in ClerkProvider |
-| `client/src/App.tsx` | Load data on mount, auth check |
-| `client/src/store/index.ts` | Remove demo data, add API sync |
-| `client/src/hooks/useWebSocket.ts` | Add reconnect logic |
+| `client/vite.config.ts` | Added /api proxy |
+| `client/src/main.tsx` | ClerkProvider wrapper (dev bypass) |
+| `client/src/App.tsx` | Auth flow, data loading from API |
+| `client/src/store/index.ts` | Remove demo data, add async API actions |
+| `client/src/components/layout/AppLayout.tsx` | Added UserMenu to sidebar |
+| `client/src/components/assets/AssetDrawer.tsx` | Use async API actions |
+| `client/src/components/editor/FileEditor.tsx` | Sync edits to API |
+| `client/src/hooks/useWebSocket.ts` | (Phase D: add reconnect logic) |
 | `client/package.json` | Add @clerk/clerk-react |
 
 ---
@@ -777,26 +758,41 @@ const payload = await verifyToken(token, { secretKey: env.CLERK_SECRET_KEY });
 ### Completed
 - [x] **Phase A** - Database layer (SQLite + data access)
 - [x] **Phase B** - REST API (Clerk auth + endpoints)
+- [x] **Phase C** - Frontend integration (Clerk auth, API client, sync store)
+- [x] **Bug Fixes** - Auth flow (token race, requireAuth callback, landing errors) + Cancel generation (shared abort controller, delete aborts active generation)
 
 ### Up Next
-1. **Set up Clerk account** - Create app at clerk.com, enable Google + Email
-2. **Get API keys** - Add `CLERK_SECRET_KEY` to server `.env`, `VITE_CLERK_PUBLISHABLE_KEY` to client `.env`
-3. **Phase C** - Frontend integration (API client, load on mount, sync store)
-4. **Phase D** - Resume generation (reconnect logic)
-5. **Phase E** - Polish & testing
-6. **Deploy to Cloudflare** - When ready for production
+1. **Phase D** - Resume generation (reconnect to in-progress campaigns)
+2. **Phase E** - Polish & testing
+3. **Deploy to Cloudflare** - When ready for production
+
+### Bug Fixes Summary (January 29, 2026)
+
+**Auth / Login Flow (3 fixes):**
+- `client/src/App.tsx` — Ref-based token getter in `AuthenticatedApp` eliminates parent/child effect race condition; error display on landing page no longer gated behind workspace
+- `client/src/contexts/AuthContext.tsx` — `ClerkAuthProvider` stores `requireAuth` callback in a ref and executes on sign-in transition
+
+**Cancel Generation (3 fixes):**
+- `server/lib/ai-client.ts` — `queryWithSession()` accepts external `AbortController` so SDK shares caller's abort signal
+- `server/lib/websocket-handler.ts` — Passes handler's abort controller to SDK; new `abortSession()` export
+- `server/routes/campaigns.ts` — DELETE endpoint calls `abortSession()` before deleting campaign
+
+See `docs/BUGS.md` for full details (Bugs 2 & 3).
 
 ### To Continue Next Session
 ```
 Read @docs/SESSION_CONTEXT_2026-01-28.md and @docs/PERSISTENCE_LAYER_PLAN.md
 
-Start Phase C: Frontend Integration
-- Install @clerk/clerk-react
-- Create API client with auth
-- Load campaigns on mount
-- Sync store to API
+Current status: Phases A, B & C complete + auth & cancel bug fixes.
+Next: Implement Phase D (resume generation on reconnect).
+
+Key tasks:
+1. Check campaign status on load
+2. If status=generating, reconnect WebSocket with sessionId
+3. Replay missed events from event buffer
+4. Add "Resume" button for incomplete campaigns
 ```
 
 ---
 
-*Last updated: January 28, 2026 (Phases A & B complete)*
+*Last updated: January 29, 2026 (Phases A, B & C complete + auth & cancel bug fixes)*

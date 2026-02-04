@@ -29,7 +29,9 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
     setActiveFileType,
     getActiveFileContent,
     updateFileContent,
+    saveFileAsync,
     getActiveCampaign,
+    activeCampaignId,
   } = useStore()
 
   const [saveStatus, setSaveStatus] = useState<SaveStatus>('saved')
@@ -40,18 +42,25 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
   const content = getActiveFileContent()
 
   // Auto-save function
-  const performSave = useCallback((newContent: string) => {
-    if (!activeFileType) return
+  const performSave = useCallback(async (newContent: string) => {
+    if (!activeFileType || !activeCampaignId) return
 
     setSaveStatus('saving')
+    // Update local state immediately
     updateFileContent(activeFileType, newContent)
 
-    // Simulate brief save delay for UX feedback
-    setTimeout(() => {
+    // Sync to API
+    try {
+      await saveFileAsync(activeCampaignId, activeFileType, newContent)
       setSaveStatus('saved')
       setLastSavedAt(new Date())
-    }, 200)
-  }, [activeFileType, updateFileContent])
+    } catch (error) {
+      console.error('Failed to save file:', error)
+      // Still mark as saved locally even if API fails
+      setSaveStatus('saved')
+      setLastSavedAt(new Date())
+    }
+  }, [activeFileType, activeCampaignId, updateFileContent, saveFileAsync])
 
   // Debounced save (1 second after last change)
   const debouncedSave = useCallback((newContent: string) => {

@@ -1,5 +1,5 @@
 import { cn } from '@/lib/utils'
-import { ThinkingBlock } from './ThinkingBlock'
+import { BlockRenderer } from './blocks/BlockRenderer'
 import { useStore } from '@/store'
 import type { ChatMessage as ChatMessageType } from '@/types/chat'
 
@@ -8,12 +8,14 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const { toggleThinking } = useStore()
+  const { toggleBlockExpanded } = useStore()
   const isUser = message.role === 'user'
-  const hasGeneration = message.generation !== undefined
+  const hasBlocks = message.blocks && message.blocks.length > 0
 
-  const handleToggleThinking = () => {
-    toggleThinking(message.id)
+  const handleToggleBlock = (blockId: string) => {
+    if (message.campaignId) {
+      toggleBlockExpanded(message.campaignId, message.id, blockId)
+    }
   }
 
   return (
@@ -30,7 +32,6 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {/* User message content */}
         {isUser && (
           <>
-            {/* Show file/asset refs if any */}
             {message.fileRefs && message.fileRefs.length > 0 && (
               <div className="flex flex-wrap gap-1 mb-1">
                 {message.fileRefs.map((ref, i) => (
@@ -59,49 +60,19 @@ export function ChatMessage({ message }: ChatMessageProps) {
           </>
         )}
 
-        {/* Assistant message with optional thinking block */}
+        {/* Assistant message */}
         {!isUser && (
           <div className="space-y-2">
-            {/* Thinking block for generation */}
-            {hasGeneration && message.generation && (
-              <ThinkingBlock
-                lines={message.generation.thinkingLines}
-                expanded={message.generation.thinkingExpanded}
-                onToggle={handleToggleThinking}
-                status={message.generation.status}
-                completedImages={message.generation.completedImages}
-                expectedImages={message.generation.expectedImages}
-              />
-            )}
-
-            {/* Message content */}
-            {message.content && (
-              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2">
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
-              </div>
-            )}
-
-            {/* Show typing indicator if generating with no content yet */}
-            {hasGeneration &&
-              message.generation?.status === 'generating' &&
-              !message.content && (
-                <div className="flex items-center gap-2 text-text-muted px-1">
-                  <div className="flex gap-1">
-                    <span
-                      className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"
-                      style={{ animationDelay: '0ms' }}
-                    />
-                    <span
-                      className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"
-                      style={{ animationDelay: '150ms' }}
-                    />
-                    <span
-                      className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse"
-                      style={{ animationDelay: '300ms' }}
-                    />
-                  </div>
+            {hasBlocks ? (
+              <BlockRenderer blocks={message.blocks!} onToggleThinking={handleToggleBlock} />
+            ) : (
+              /* Plain text content (DB-loaded historical messages) */
+              message.content && (
+                <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2">
+                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
                 </div>
-              )}
+              )
+            )}
           </div>
         )}
       </div>

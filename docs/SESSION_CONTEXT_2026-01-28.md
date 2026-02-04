@@ -2,7 +2,7 @@
 
 **Date:** January 28, 2026
 **Goal:** Transform wizard-style flow into chat-first experience
-**Status:** Persistence Layer - Phases A & B Complete, Ready for Phase C
+**Status:** Persistence Layer - Phases A, B, C & D Complete, Ready for Phase E
 
 ---
 
@@ -26,20 +26,26 @@ cd client && npm run dev
 ┌─────────────────────────────────────────────────────────────┐
 │                        FRONTEND                              │
 ├─────────────────────────────────────────────────────────────┤
+│  LandingHeader                                               │
+│    └─ Logo + Login button (Clerk SignInButton)              │
+│                                                              │
 │  EmptyState (Landing)                                        │
 │    └─ User enters prompt → clicks Create                     │
+│    └─ requireAuth() → shows Clerk modal if not signed in    │
 │    └─ Calls generate() from useWebSocket                     │
 │                                                              │
 │  Workspace (After Create)                                    │
 │    ├─ ResultsView: Image grid with selection                 │
 │    ├─ ChatSidebar: Messages + ThinkingBlock + ChatInput      │
-│    └─ EditPanel: Research/Hooks/Prompts editor               │
+│    ├─ EditPanel: Research/Hooks/Prompts editor (API sync)    │
+│    └─ UserMenu: Clerk UserButton in sidebar header           │
 ├─────────────────────────────────────────────────────────────┤
-│                     REST API (NEW)                           │
+│                     REST API CLIENT                          │
 ├─────────────────────────────────────────────────────────────┤
-│  /api/campaigns     - CRUD for campaigns                     │
-│  /api/campaigns/:id - Full campaign with files/images/msgs   │
-│  /api/assets        - Folder and file management             │
+│  client/src/lib/api.ts                                       │
+│    • campaignsApi: list, get, create, update, delete, files  │
+│    • assetsApi: folders CRUD, files CRUD                     │
+│    • Auto token injection via Clerk getToken()               │
 ├─────────────────────────────────────────────────────────────┤
 │                        WEBSOCKET                             │
 ├─────────────────────────────────────────────────────────────┤
@@ -140,46 +146,98 @@ asset_files      - folder_id, name, file_path, file_type, size
 
 ---
 
-### Phase C: Frontend Integration - NOT STARTED
+### Phase C: Frontend Integration ✅ COMPLETE
 
-**To Do:**
-- [ ] Install `@clerk/clerk-react`
-- [ ] Create `client/src/api/client.ts` with token injection
-- [ ] Wrap app in ClerkProvider
-- [ ] Add SignIn component and UserMenu
-- [ ] Load campaigns on mount: `GET /api/campaigns`
-- [ ] Load assets on mount: `GET /api/assets/folders`
-- [ ] Sync store actions to API calls
-- [ ] Remove DEMO_CAMPAIGNS/DEMO_FOLDERS from store
+**Installed:**
+- `@clerk/clerk-react`
+
+**Created Files:**
+| File | Purpose |
+|------|---------|
+| `client/src/lib/auth.ts` | Dev mode detection, Clerk key export |
+| `client/src/lib/api.ts` | API client with token injection |
+| `client/src/contexts/AuthContext.tsx` | Auth context with requireAuth() |
+| `client/src/components/auth/SignIn.tsx` | Clerk sign-in page (dark theme) |
+| `client/src/components/auth/UserMenu.tsx` | User avatar in sidebar header |
+| `client/src/components/layout/LandingHeader.tsx` | Header with login button |
+
+**Modified Files:**
+| File | Changes |
+|------|---------|
+| `client/vite.config.ts` | Added `/api` proxy to backend |
+| `client/src/main.tsx` | ClerkProvider wrapper (dev bypass) |
+| `client/src/App.tsx` | Auth flow, data loading from API |
+| `client/src/store/index.ts` | Removed demo data, added async API actions |
+| `client/src/components/layout/AppLayout.tsx` | Added UserMenu |
+| `client/src/components/assets/AssetDrawer.tsx` | Use async API actions |
+| `client/src/components/editor/FileEditor.tsx` | Sync edits to API |
+
+**Auth Flow:**
+```
+User visits app
+    │
+    └── Landing Page (always shown)
+          ├── Header with "Log in" button (or avatar if signed in)
+          ├── Prompt input + "Create" button
+          └── Recent campaigns (if any, loaded from API)
+
+User clicks "Create"
+    │
+    ├── Signed in? → Generate campaign
+    └── Not signed in? → Clerk sign-in modal → then generate
+
+User clicks "Log in" in header
+    └── Clerk sign-in modal
+```
+
+**Store Async Actions:**
+- `deleteCampaignAsync(id)` - DELETE /api/campaigns/:id
+- `renameCampaignAsync(id, name)` - PATCH /api/campaigns/:id
+- `saveFileAsync(campaignId, fileType, content)` - PUT /api/campaigns/:id/files/:type
+- `createFolderAsync(name)` - POST /api/assets/folders
+- `deleteFolderAsync(id)` - DELETE /api/assets/folders/:id
+- `renameFolderAsync(id, name)` - PATCH /api/assets/folders/:id
+- `deleteFileAsync(fileId)` - DELETE /api/assets/files/:id
 
 ---
 
-### Phase D: Resume Generation - NOT STARTED
+### Phase D: Resume Generation ✅ COMPLETE
 
-**To Do:**
-- [ ] On load, check campaign status
-- [ ] If `generating`, reconnect WebSocket with sessionId
-- [ ] Replay missed events
-- [ ] Handle `agentStopped` response
-- [ ] Add "Resume" button for incomplete campaigns
-
----
-
-### Phase E: Polish & Testing - NOT STARTED
-
-**To Do:**
-- [ ] Error handling and toasts
-- [ ] Loading states and skeletons
-- [ ] Test: refresh preserves data
-- [ ] Test: reconnect during generation
-- [ ] Test: auth flow with Clerk
+**Implemented:**
+- [x] Added `incomplete` status to CampaignStatus type
+- [x] `isAgentRunning()` function exported from websocket-handler
+- [x] Enhanced `/api/campaigns/:id/status` with actual agent check
+- [x] `getStatus()` API client method
+- [x] Recovery logic on app load (checks generating campaigns)
+- [x] `resume()` function in useWebSocket hook
+- [x] `resumeGeneration()` in store
+- [x] Resume button UI in ResultsView for incomplete campaigns
 
 ---
 
-## Key Files (Updated)
+### Phase E: Polish & Testing - PENDING
+
+**Manual Testing Checklist:**
+- [ ] Refresh preserves data (create campaign → refresh → still visible)
+- [ ] Reconnect during generation (refresh mid-generation → auto-reconnects)
+- [ ] Incomplete detection (restart server → campaign shows incomplete)
+- [ ] Resume functionality (click Resume → generation restarts)
+- [ ] Auth flow with Clerk (sign out → sign in → data preserved)
+
+**Polish Tasks (Optional):**
+- [ ] Error handling toasts
+- [ ] Loading state skeletons
+- [ ] Retry logic for API failures
+
+---
+
+## Key Files
 
 | Area | File | Purpose |
 |------|------|---------|
+| **Auth** | `client/src/lib/auth.ts` | Dev mode detection |
+| **Auth** | `client/src/contexts/AuthContext.tsx` | requireAuth() hook |
+| **API** | `client/src/lib/api.ts` | REST client with auth |
 | **Database** | `server/lib/database.ts` | SQLite init and schema |
 | **Database** | `server/lib/db/index.ts` | Data access exports |
 | **Auth** | `server/lib/auth.ts` | Clerk middleware |
@@ -187,22 +245,23 @@ asset_files      - folder_id, name, file_path, file_type, size
 | **Routes** | `server/routes/assets.ts` | Asset REST API |
 | **WebSocket** | `server/lib/websocket-handler.ts` | Events + DB writes |
 | **Types** | `client/src/types/chat.ts` | Chat, campaign, image types |
-| **Store** | `client/src/store/index.ts` | Frontend state |
+| **Store** | `client/src/store/index.ts` | Frontend state + async actions |
 | **Hook** | `client/src/hooks/useWebSocket.ts` | WebSocket connection |
 
 ---
 
 ## Environment Variables
 
-**Backend (.env):**
+**Backend (server/.env):**
 ```
-ANTHROPIC_API_KEY=sk-...      # Required
-CLERK_SECRET_KEY=sk_...       # Optional (dev mode if missing)
+GEMINI_API_KEY=...            # Required for AI
+CLERK_SECRET_KEY=sk_test_...  # Required for auth (optional in dev)
+PORT=3001
 ```
 
-**Frontend (.env):**
+**Frontend (client/.env):**
 ```
-VITE_CLERK_PUBLISHABLE_KEY=pk_...  # Needed for Phase C
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...  # Required for auth
 ```
 
 ---
@@ -212,17 +271,17 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_...  # Needed for Phase C
 ```
 Read @docs/SESSION_CONTEXT_2026-01-28.md
 
-Current status: Phases A & B complete (database + REST API).
-Next: Implement Phase C (frontend integration with Clerk + API client).
+Current status: Phases A, B, C & D complete.
+Next: Implement Phase E (polish & testing).
 
 Key tasks:
-1. Install @clerk/clerk-react in client
-2. Create API client with auth token
-3. Load campaigns from API on mount
-4. Sync store changes to API
-5. Remove demo data
+1. Error handling and toasts
+2. Loading states and skeletons
+3. Test: refresh preserves data
+4. Test: reconnect during generation
+5. Test: auth flow with Clerk
 ```
 
 ---
 
-*Last updated: January 28, 2026 (Phases A & B complete)*
+*Last updated: January 28, 2026 (Phases A, B, C & D complete)*

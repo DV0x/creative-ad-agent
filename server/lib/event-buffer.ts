@@ -52,6 +52,9 @@ export function getOrCreateBuffer(sessionId: string): EventBuffer {
 export function appendEvent(sessionId: string, event: BufferableEvent): number {
   const buffer = getOrCreateBuffer(sessionId);
 
+  // Reset TTL on each append (keeps buffer alive during active follow-ups)
+  buffer.createdAt = Date.now();
+
   const bufferedEvent: BufferedEvent = {
     id: buffer.nextId++,
     event,

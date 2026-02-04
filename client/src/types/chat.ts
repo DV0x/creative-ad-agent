@@ -18,31 +18,44 @@ export const HOOK_TYPE_LABELS: Record<HookType, string> = {
 };
 
 // ============================================
-// Thinking Block Types
+// Block Types (for structured message rendering)
 // ============================================
 
-export type ThinkingLineType = 'phase' | 'tool' | 'result' | 'progress' | 'error' | 'success';
+export type MessageBlock =
+  | TextBlockData
+  | ThinkingBlockData
+  | StatusBlockData;
 
-export interface ThinkingLine {
+export interface TextBlockData {
+  type: 'text';
   id: string;
-  type: ThinkingLineType;
-  text: string;
-  indent: number; // 0 for phase, 1 for tool/result
-  timestamp: Date;
+  content: string; // Accumulated text (grows during streaming)
 }
 
-// ============================================
-// Generation State (within a chat message)
-// ============================================
-
-export type GenerationStatus = 'generating' | 'complete' | 'error' | 'cancelled';
-
-export interface GenerationState {
-  status: GenerationStatus;
-  thinkingLines: ThinkingLine[];
-  thinkingExpanded: boolean;
-  expectedImages: number; // Usually 6
+export interface ThinkingBlockData {
+  type: 'thinking';
+  id: string;
+  label: string; // Phase label (e.g., "Researching")
+  status: 'active' | 'complete' | 'error';
+  expanded: boolean;
+  children: ThinkingChild[];
   completedImages: number;
+  expectedImages: number;
+}
+
+export interface ThinkingChild {
+  id: string;
+  kind: 'phase' | 'tool' | 'result' | 'progress' | 'error' | 'text' | 'status';
+  text: string;
+  timestamp: Date;
+  variant?: 'info' | 'success' | 'error'; // For 'status' kind
+}
+
+export interface StatusBlockData {
+  type: 'status';
+  id: string;
+  text: string; // e.g., "research.md created", "6 images generated"
+  variant: 'info' | 'success' | 'error';
 }
 
 // ============================================
@@ -60,6 +73,7 @@ export interface FileReference {
 
 export interface ChatMessage {
   id: string;
+  campaignId?: string; // Links message to its campaign
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
@@ -69,15 +83,15 @@ export interface ChatMessage {
   fileRefs?: FileReference[];
   assetRefs?: string[]; // Asset folder IDs
 
-  // Generation state (only for assistant messages during generation)
-  generation?: GenerationState;
+  // Structured content blocks (only during live generation, ephemeral)
+  blocks?: MessageBlock[];
 }
 
 // ============================================
 // Campaign Status Types
 // ============================================
 
-export type CampaignStatus = 'generating' | 'complete' | 'error' | 'cancelled';
+export type CampaignStatus = 'generating' | 'complete' | 'incomplete' | 'error' | 'cancelled';
 
 export interface FilesReadyState {
   research: boolean;
@@ -119,28 +133,3 @@ export function getImageSubtitle(hookType: HookType): string {
   return HOOK_TYPE_LABELS[hookType];
 }
 
-// Create an empty generation state for new assistant messages
-export function createEmptyGenerationState(expectedImages: number = 6): GenerationState {
-  return {
-    status: 'generating',
-    thinkingLines: [],
-    thinkingExpanded: true,
-    expectedImages,
-    completedImages: 0,
-  };
-}
-
-// Create a new thinking line with auto-generated ID
-export function createThinkingLine(
-  type: ThinkingLineType,
-  text: string,
-  indent: number = 0
-): ThinkingLine {
-  return {
-    id: `think-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    type,
-    text,
-    indent,
-    timestamp: new Date(),
-  };
-}

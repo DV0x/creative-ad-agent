@@ -13,6 +13,7 @@ import { AssetDrawer } from '@/components/assets/AssetDrawer'
 import { MobileAssetsDrawer } from '@/components/assets/MobileAssetsDrawer'
 import { MobileChatDrawer } from '@/components/chat/MobileChatDrawer'
 import { FileEditorPanel } from '@/components/editor/FileEditor'
+import { UserMenu } from '@/components/auth/UserMenu'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useStore } from '@/store'
 
@@ -39,6 +40,7 @@ interface SidebarState {
   mobileAssetsOpen: boolean
   toggleLeft: () => void
   toggleRight: () => void
+  setRightOpen: (open: boolean) => void
   setMobileDrawerOpen: (open: boolean) => void
   setMobileAssetsOpen: (open: boolean) => void
 }
@@ -84,11 +86,23 @@ export function AppLayout({ children }: AppLayoutProps) {
   // Get state from store
   const activeFileType = useStore(state => state.activeFileType)
   const appState = useStore(state => state.appState)
+  const generatingCampaignId = useStore(state => state.generatingCampaignId)
 
   const isEditorOpen = activeFileType !== null
 
   // Show workspace (sidebars) when in workspace mode
   const isWorkspace = appState === 'workspace'
+
+  // Auto-open chat drawer when entering workspace with active generation
+  React.useEffect(() => {
+    if (isWorkspace && generatingCampaignId) {
+      if (isMobile) {
+        setMobileDrawerOpen(true)
+      } else {
+        setRightOpen(true)
+      }
+    }
+  }, [isWorkspace, generatingCampaignId, isMobile])
 
   const toggleLeft = React.useCallback(() => {
     if (isMobile) {
@@ -175,7 +189,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, [toggleLeft, toggleRight])
 
   const contextValue = React.useMemo(
-    () => ({ leftOpen, rightOpen, leftWidth, rightWidth, mobileDrawerOpen, mobileAssetsOpen, toggleLeft, toggleRight, setMobileDrawerOpen, setMobileAssetsOpen }),
+    () => ({ leftOpen, rightOpen, leftWidth, rightWidth, mobileDrawerOpen, mobileAssetsOpen, toggleLeft, toggleRight, setRightOpen, setMobileDrawerOpen, setMobileAssetsOpen }),
     [leftOpen, rightOpen, leftWidth, rightWidth, mobileDrawerOpen, mobileAssetsOpen, toggleLeft, toggleRight]
   )
 
@@ -339,7 +353,10 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
           </TooltipContent>
         </Tooltip>
         {open && (
-          <span className="text-sm font-medium text-text-secondary">Chat</span>
+          <>
+            <span className="text-sm font-medium text-text-secondary">Chat</span>
+            <UserMenu />
+          </>
         )}
       </div>
 

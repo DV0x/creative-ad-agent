@@ -6,6 +6,7 @@ export interface Campaign {
   name: string;
   status: 'generating' | 'complete' | 'incomplete' | 'error' | 'cancelled';
   session_id: string | null;
+  sdk_session_id: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -92,6 +93,15 @@ export function deleteCampaign(id: string): void {
     DELETE FROM campaigns
     WHERE id = ?
   `).run(id);
+}
+
+export function updateSdkSessionId(campaignId: string, sdkSessionId: string): void {
+  db.prepare('UPDATE campaigns SET sdk_session_id = ? WHERE id = ?').run(sdkSessionId, campaignId);
+}
+
+export function getSdkSessionId(campaignId: string): string | null {
+  const row = db.prepare('SELECT sdk_session_id FROM campaigns WHERE id = ?').get(campaignId) as any;
+  return row?.sdk_session_id || null;
 }
 
 export function getRecentCampaigns(userId: string, limit = 10): Campaign[] {

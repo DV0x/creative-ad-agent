@@ -4,6 +4,7 @@ import { z } from 'zod';
 import * as fs from 'fs';
 import * as path from 'path';
 import { fileURLToPath } from 'url';
+import { imageEvents } from './image-events.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -283,6 +284,19 @@ export const nanoBananaMcpServer = createSdkMcpServer({
                 mode: mode,
                 description: data.description || '',
               });
+
+              // Emit real-time notification for immediate DB persistence + WS broadcast
+              if (args.sessionId) {
+                imageEvents.emit('image-saved', {
+                  sessionId: args.sessionId,
+                  imageIndex,
+                  hookType: getHookTypeForIndex(imageIndex),
+                  prompt: prompt,
+                  filename: filename,
+                  urlPath: url,
+                  id: `image_${imageIndex}`,
+                });
+              }
 
               console.log(`   ✅ Image ${i + 1} complete`);
 

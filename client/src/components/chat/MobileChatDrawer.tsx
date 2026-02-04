@@ -8,7 +8,7 @@ import {
   DrawerTitle,
   DrawerClose,
 } from '@/components/ui/drawer'
-import { ThinkingBlock } from '@/components/chat/ThinkingBlock'
+import { BlockRenderer } from '@/components/chat/blocks/BlockRenderer'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { useStore, type ChatMessage, type CampaignFileType } from '@/store'
 import { useWebSocket } from '@/hooks/useWebSocket'
@@ -174,12 +174,14 @@ interface MobileChatMessageProps {
 }
 
 function MobileChatMessage({ message }: MobileChatMessageProps) {
-  const { toggleThinking } = useStore()
+  const { toggleBlockExpanded } = useStore()
   const isUser = message.role === 'user'
-  const hasGeneration = message.generation !== undefined
+  const hasBlocks = message.blocks && message.blocks.length > 0
 
-  const handleToggleThinking = () => {
-    toggleThinking(message.id)
+  const handleToggleBlock = (blockId: string) => {
+    if (message.campaignId) {
+      toggleBlockExpanded(message.campaignId, message.id, blockId)
+    }
   }
 
   return (
@@ -194,34 +196,14 @@ function MobileChatMessage({ message }: MobileChatMessageProps) {
       {/* Assistant messages */}
       {!isUser && (
         <div className="max-w-[85%] space-y-2">
-          {/* Thinking block for generation messages */}
-          {hasGeneration && message.generation && (
-            <ThinkingBlock
-              lines={message.generation.thinkingLines}
-              expanded={message.generation.thinkingExpanded}
-              onToggle={handleToggleThinking}
-              status={message.generation.status}
-              completedImages={message.generation.completedImages}
-              expectedImages={message.generation.expectedImages}
-            />
-          )}
-
-          {/* Message content (only show if there's content) */}
-          {message.content && (
-            <div className="px-3 py-2 rounded-lg text-sm bg-bg-elevated text-text-secondary border border-border rounded-bl-sm">
-              <p className="whitespace-pre-wrap break-words">{message.content}</p>
-            </div>
-          )}
-
-          {/* Typing indicator when generating but no content yet */}
-          {hasGeneration && message.generation?.status === 'generating' && !message.content && (
-            <div className="px-3 py-2 text-text-muted text-sm">
-              <span className="inline-flex items-center gap-1">
-                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" />
-                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
-                <span className="w-1.5 h-1.5 bg-accent rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
-              </span>
-            </div>
+          {hasBlocks ? (
+            <BlockRenderer blocks={message.blocks!} onToggleThinking={handleToggleBlock} />
+          ) : (
+            message.content && (
+              <div className="px-3 py-2 rounded-lg text-sm bg-bg-elevated text-text-secondary border border-border rounded-bl-sm">
+                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              </div>
+            )
           )}
         </div>
       )}

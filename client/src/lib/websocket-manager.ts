@@ -54,11 +54,16 @@ export function setCallbacks(cbs: {
 
 /**
  * Called when a useWebSocket hook mounts.
- * Only does ref counting — does NOT trigger connection.
- * Connection is triggered separately by connectWithAuth().
+ * Increments ref count. If auth is already ready and the socket
+ * is not connected, triggers a reconnect (handles server restarts,
+ * HMR reloads, and timing races).
  */
 export function subscribe(): void {
   subscriberCount++;
+  // connect() has internal guards for OPEN/CONNECTING state
+  if (authReady) {
+    connect();
+  }
 }
 
 /**

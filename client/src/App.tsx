@@ -65,8 +65,9 @@ function AppContent() {
           campaignsList.map(async (campaign) => {
             try {
               const { campaign: full, messages } = await campaignsApi.get(campaign.id)
-              // Collect messages from completed/cancelled/error campaigns
-              if (messages.length > 0 && campaign.status !== 'generating') {
+              // Collect messages from all campaigns that have them.
+              // Active generations will overwrite via reconstructForRecovery.
+              if (messages.length > 0) {
                 messagesByCampaign[campaign.id] = messages
               }
               return full
@@ -163,9 +164,10 @@ function AppContent() {
           setAppState('workspace')
           // WebSocket will auto-connect and recover via useWebSocket
         } else if (statusInfo.status === 'incomplete' || !statusInfo.isAgentRunning) {
-          // Agent stopped - update local state
+          // Agent stopped - update local state AND database
           console.log(`⚠️ Campaign ${campaign.id} marked as incomplete (agent stopped)`)
           updateCampaignStatus(campaign.id, 'incomplete')
+          campaignsApi.update(campaign.id, { status: 'incomplete' }).catch(console.error)
         }
       } catch (err) {
         console.error('Failed to check campaign status:', err)

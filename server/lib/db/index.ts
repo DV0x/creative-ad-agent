@@ -12,6 +12,8 @@ export {
   updateCampaignName,
   deleteCampaign,
   getRecentCampaigns,
+  updateSdkSessionId,
+  getSdkSessionId,
   type Campaign,
 } from './campaigns.js';
 

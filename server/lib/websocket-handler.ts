@@ -6,12 +6,14 @@ import { SDKInstrumentor } from './instrumentor.js';
 import { appendEvent, getEventsSince, getLatestEventId, hasBuffer } from './event-buffer.js';
 import * as db from './db/index.js';
 import { verifyWebSocketToken, IS_CLERK_CONFIGURED } from './auth.js';
+import { imageEvents, ImageSavedEvent, registerMcpSession, resolveWsSessionId, unregisterByWsSession } from './image-events.js';
 
 // Client → Server message types
 interface ClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe';
+  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe' | 'follow_up';
   prompt?: string;
   sessionId?: string;
+  campaignId?: string;
   lastEventId?: number;
 }
 
@@ -70,6 +72,7 @@ interface ConnectionState {
   campaignId: string | null;  // Database campaign ID
   userId: string;             // User ID (placeholder until auth)
   abortController: AbortController | null;
+  isGenerating: boolean;
   isPaused: boolean;
   messageBuffer: ServerMessage[];
   heartbeatInterval: NodeJS.Timeout | null;
@@ -141,30 +144,22 @@ function broadcastToConnection(state: ConnectionState, message: ServerMessage) {
   }
 }
 
-// Detect phase from SDK message content
-function detectPhaseFromMessage(text: string): { phase: string; label: string } | null {
-  const lower = text.toLowerCase();
-
-  if (lower.includes('research') || lower.includes('analyzing') || lower.includes('webpage')) {
-    return { phase: 'research', label: 'Researching' };
-  }
-  if (lower.includes('hook') || lower.includes('headline') || lower.includes('copy')) {
-    return { phase: 'hooks', label: 'Generating Hooks' };
-  }
-  if (lower.includes('visual') || lower.includes('art') || lower.includes('style') || lower.includes('prompt')) {
-    return { phase: 'art', label: 'Creating Art Direction' };
-  }
-  if (lower.includes('image') || lower.includes('generat') || lower.includes('nano_banana')) {
-    return { phase: 'images', label: 'Generating Images' };
-  }
-
-  return null;
-}
-
 // Process SDK messages and convert to WebSocket events
-function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor) {
+function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor, processedImageIndices?: Set<number>) {
   // Process for instrumentation
   instrumentor.processMessage(message);
+
+  // Capture SDK session ID for follow-up resume (C.2)
+  if (message.type === 'system' && message.subtype === 'init' && message.session_id) {
+    if (state.campaignId) {
+      try {
+        db.updateSdkSessionId(state.campaignId, message.session_id);
+        console.log(`💾 DB: Saved SDK session ID ${message.session_id} for campaign ${state.campaignId}`);
+      } catch (dbError) {
+        console.error('❌ DB: Failed to save SDK session ID:', dbError);
+      }
+    }
+  }
 
   if (message.type === 'assistant') {
     const content = message.message?.content;
@@ -175,19 +170,8 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
           broadcastToConnection(state, {
             type: 'message',
             timestamp: new Date().toISOString(),
-            text: block.text.slice(0, 200) // Truncate for terminal display
+            text: block.text
           });
-
-          // Detect phase changes from text content
-          const phaseInfo = detectPhaseFromMessage(block.text);
-          if (phaseInfo) {
-            broadcastToConnection(state, {
-              type: 'phase',
-              timestamp: new Date().toISOString(),
-              phase: phaseInfo.phase,
-              label: phaseInfo.label
-            });
-          }
         } else if (block.type === 'tool_use') {
           // Send tool start event
           broadcastToConnection(state, {
@@ -197,6 +181,12 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
             toolId: block.id,
             input: block.input
           });
+
+          // Register MCP sessionId mapping when image generation tool is called
+          if (block.name === 'mcp__nano-banana__generate_ad_images' && block.input?.sessionId && state.sessionId) {
+            registerMcpSession(block.input.sessionId, state.sessionId);
+            console.log(`[ImageEvent] Mapped MCP sessionId "${block.input.sessionId}" → WS sessionId "${state.sessionId}"`);
+          }
 
           // Detect file writes (Write tool with campaign files)
           if (block.name === 'Write' && block.input?.file_path && block.input?.content) {
@@ -314,6 +304,13 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
                     : 1;
                   const hookType = img.hookType || getHookTypeForIndex(imageIndex);
 
+                  // Dedup: skip if already handled by real-time EventEmitter path
+                  if (processedImageIndices?.has(imageIndex)) {
+                    console.log(`[SDK Stream] Skipping duplicate image ${imageIndex} (already processed via EventEmitter)`);
+                    continue;
+                  }
+                  processedImageIndices?.add(imageIndex);
+
                   broadcastToConnection(state, {
                     type: 'image',
                     timestamp: new Date().toISOString(),
@@ -335,7 +332,7 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
                         prompt: img.prompt || undefined,
                         filePath: imageUrl,
                       });
-                      console.log(`💾 DB: Saved image ${imageIndex} (${hookType}) for campaign ${state.campaignId}`);
+                      console.log(`💾 DB: Saved image ${imageIndex} (${hookType}) for campaign ${state.campaignId} [via SDK stream fallback]`);
                     } catch (dbError) {
                       console.error(`❌ DB: Failed to save image:`, dbError);
                     }
@@ -355,6 +352,16 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
 }
 
 async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string) {
+  if (state.isGenerating) {
+    send(state.ws, {
+      type: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'A generation is already in progress. Please wait or cancel first.'
+    });
+    return;
+  }
+  state.isGenerating = true;
+
   const sessionId = requestedSessionId || `ws-${Date.now()}`;
   state.sessionId = sessionId;
   state.abortController = new AbortController();
@@ -362,6 +369,12 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   state.messageBuffer = [];
 
   // Register this WebSocket for the session (for resilience)
+  // Close any previous connection for this session first
+  const previousGenWs = sessionConnections.get(sessionId);
+  if (previousGenWs && previousGenWs !== state.ws && previousGenWs.readyState === WebSocket.OPEN) {
+    console.log(`[WS] Closing previous connection for session ${sessionId} (new generate)`);
+    previousGenWs.close(4001, 'Replaced by new connection');
+  }
   sessionConnections.set(sessionId, state.ws);
 
   // Store abort controller by session (for cancel after reconnect)
@@ -421,6 +434,49 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   let imageCount = 0;
   let wasCancelled = false;
 
+  // Real-time image event handling (Bug 4 fix)
+  const processedImageIndices = new Set<number>();
+  let generationCompleted = false;
+
+  const onImageSaved = (event: ImageSavedEvent) => {
+    const wsId = resolveWsSessionId(event.sessionId) || event.sessionId;
+    if (wsId !== sessionId) return;
+    if (processedImageIndices.has(event.imageIndex)) return;
+    processedImageIndices.add(event.imageIndex);
+
+    console.log(`[ImageEvent] Real-time image ${event.imageIndex} for session ${sessionId}`);
+
+    broadcastToConnection(state, {
+      type: 'image',
+      timestamp: new Date().toISOString(),
+      id: event.id,
+      urlPath: event.urlPath,
+      prompt: event.prompt,
+      filename: event.filename,
+      hookType: event.hookType as HookType,
+      imageIndex: event.imageIndex,
+    });
+
+    if (state.campaignId) {
+      try {
+        db.addCampaignImage({
+          campaignId: state.campaignId,
+          imageIndex: event.imageIndex,
+          hookType: event.hookType as db.HookType,
+          prompt: event.prompt || undefined,
+          filePath: event.urlPath,
+        });
+        console.log(`💾 DB: Saved image ${event.imageIndex} (${event.hookType}) for campaign ${state.campaignId} [via EventEmitter]`);
+      } catch (dbError) {
+        console.error(`❌ DB: Failed to save image via EventEmitter:`, dbError);
+      }
+    }
+
+    imageCount++;
+  };
+
+  imageEvents.on('image-saved', onImageSaved);
+
   try {
     // Initialize session
     await sessionManager.getOrCreateSession(sessionId, {
@@ -434,8 +490,8 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     // Process SDK stream — pass the handler's abort controller so cancel
     // actually terminates the SDK query (including long-running tool calls)
     for await (const result of aiClient.queryWithSession(prompt, sessionId, undefined, undefined, state.abortController!)) {
-      // Check for cancellation
-      if (state.abortController?.signal.aborted) {
+      // Check for cancellation (only if we haven't already completed)
+      if (state.abortController?.signal.aborted && !generationCompleted) {
         wasCancelled = true;
         console.log(`⚠️ WebSocket: Generation cancelled for session ${sessionId}`);
         broadcastToConnection(state, {
@@ -447,9 +503,9 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       }
 
       const { message } = result;
-      processSDKMessage(message, state, instrumentor);
+      processSDKMessage(message, state, instrumentor, processedImageIndices);
 
-      // Count images
+      // Count images (only those not already counted by EventEmitter path)
       if (message.type === 'user') {
         const content = message.message?.content;
         if (Array.isArray(content)) {
@@ -458,9 +514,68 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
               try {
                 let rc = block.content;
                 if (typeof rc === 'string') rc = JSON.parse(rc);
-                if (rc?.images?.length) imageCount += rc.images.length;
+                if (rc?.images?.length) {
+                  for (const img of rc.images) {
+                    const idx = typeof img.id === 'string'
+                      ? parseInt(img.id.replace('image_', ''), 10) || 1
+                      : 1;
+                    if (!processedImageIndices.has(idx)) {
+                      imageCount++;
+                    }
+                  }
+                }
               } catch { /* ignore */ }
             }
+          }
+        }
+      }
+
+      // SDK 'result' message = conversation finished.
+      // Send completion immediately for responsive UX. The for-await loop
+      // will exit naturally after this (no more messages from the SDK).
+      if (message.type === 'result' && !generationCompleted && !wasCancelled) {
+        generationCompleted = true;
+        const duration = Date.now() - startTime;
+
+        broadcastToConnection(state, {
+          type: 'phase',
+          timestamp: new Date().toISOString(),
+          phase: 'complete',
+          label: 'Complete'
+        });
+
+        const hookTypeLabels: Record<HookType, string> = {
+          stat: 'Stat Hook', story: 'Story Hook', fomo: 'FOMO Hook',
+          curiosity: 'Curiosity Hook', callout: 'Call-out Hook', contrast: 'Contrast Hook'
+        };
+        const generatedHooks = HOOK_TYPE_ORDER.slice(0, imageCount).map(h => hookTypeLabels[h]);
+        const summary = imageCount > 0
+          ? `I created ${imageCount} ad concept${imageCount > 1 ? 's' : ''}:\n${generatedHooks.map(h => `• ${h}`).join('\n')}`
+          : 'Generation complete.';
+
+        broadcastToConnection(state, {
+          type: 'complete',
+          timestamp: new Date().toISOString(),
+          sessionId,
+          duration,
+          imageCount,
+          message: `Generation complete in ${(duration / 1000).toFixed(1)}s`,
+          summary,
+        });
+
+        console.log(`✅ WebSocket: Generation complete for session ${sessionId} (${duration}ms, ${imageCount} images)`);
+
+        if (state.campaignId) {
+          try {
+            db.updateCampaignStatus(state.campaignId, 'complete');
+            db.addMessage({
+              campaignId: state.campaignId,
+              role: 'assistant',
+              content: summary,
+            });
+            console.log(`💾 DB: Campaign ${state.campaignId} marked as complete, summary saved`);
+          } catch (dbError) {
+            console.error('❌ DB: Failed to update campaign status:', dbError);
           }
         }
       }
@@ -468,8 +583,8 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
     const duration = Date.now() - startTime;
 
-    // Only send completion if not cancelled
-    if (!wasCancelled) {
+    // Only send completion if not cancelled AND not already completed inline
+    if (!wasCancelled && !generationCompleted) {
       broadcastToConnection(state, {
         type: 'phase',
         timestamp: new Date().toISOString(),
@@ -513,7 +628,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
           console.error('❌ DB: Failed to update campaign status:', dbError);
         }
       }
-    } else {
+    } else if (wasCancelled && !generationCompleted) {
       console.log(`🛑 WebSocket: Generation stopped for session ${sessionId} (cancelled after ${(duration / 1000).toFixed(1)}s)`);
 
       // Update campaign status and save cancel message
@@ -531,35 +646,258 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
         }
       }
     }
+    // If generationCompleted: already handled inline, nothing to do here
 
   } catch (error: any) {
-    console.error(`❌ WebSocket: Generation error for session ${sessionId}:`, error);
+    // If generation already completed inline, the abort was intentional cleanup
+    if (generationCompleted) {
+      // Fall through to finally block for cleanup
+      return;
+    }
 
-    broadcastToConnection(state, {
-      type: 'error',
-      timestamp: new Date().toISOString(),
-      error: error.message || 'Unknown error occurred'
-    });
+    // AbortError means the user cancelled — treat as cancellation, not error
+    const isAbort = error.name === 'AbortError' || state.abortController?.signal.aborted;
 
-    // Update campaign status and save error message
-    if (state.campaignId) {
-      try {
-        db.updateCampaignStatus(state.campaignId, 'error');
-        db.addMessage({
-          campaignId: state.campaignId,
-          role: 'assistant',
-          content: `Error: ${error.message || 'Unknown error occurred'}`,
-        });
-        console.log(`💾 DB: Campaign ${state.campaignId} marked as error`);
-      } catch (dbError) {
-        console.error('❌ DB: Failed to update campaign status:', dbError);
+    if (isAbort) {
+      const duration = Date.now() - startTime;
+      console.log(`🛑 WebSocket: Generation cancelled (via AbortError) for session ${sessionId} (${(duration / 1000).toFixed(1)}s)`);
+
+      broadcastToConnection(state, {
+        type: 'status',
+        timestamp: new Date().toISOString(),
+        message: 'Generation cancelled'
+      });
+
+      if (state.campaignId) {
+        try {
+          db.updateCampaignStatus(state.campaignId, 'cancelled');
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: 'Generation was cancelled.',
+          });
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as cancelled`);
+        } catch (dbError) {
+          console.error('❌ DB: Failed to update campaign status:', dbError);
+        }
+      }
+    } else {
+      console.error(`❌ WebSocket: Generation error for session ${sessionId}:`, error);
+
+      broadcastToConnection(state, {
+        type: 'error',
+        timestamp: new Date().toISOString(),
+        error: error.message || 'Unknown error occurred'
+      });
+
+      if (state.campaignId) {
+        try {
+          db.updateCampaignStatus(state.campaignId, 'error');
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: `Error: ${error.message || 'Unknown error occurred'}`,
+          });
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as error`);
+        } catch (dbError) {
+          console.error('❌ DB: Failed to update campaign status:', dbError);
+        }
       }
     }
   } finally {
+    state.isGenerating = false;
+    imageEvents.removeListener('image-saved', onImageSaved);
+    unregisterByWsSession(sessionId);
     state.abortController = null;
-    // Clean up session abort controller
     if (sessionId) {
       sessionAbortControllers.delete(sessionId);
+    }
+  }
+}
+
+async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string) {
+  // Concurrency guard — reject if already processing
+  if (state.isGenerating) {
+    send(state.ws, {
+      type: 'error',
+      timestamp: new Date().toISOString(),
+      error: 'A generation is already in progress. Please wait or cancel first.'
+    });
+    return;
+  }
+  state.isGenerating = true;
+
+  // Track the session ID set by THIS invocation so the finally block
+  // only cleans up what we created.
+  let localSessionId: string | null = null;
+  let onImageSaved: ((event: ImageSavedEvent) => void) | null = null;
+
+  try {
+    // 1. Look up campaign and SDK session ID
+    const campaign = db.getCampaignById(campaignId, state.userId);
+    if (!campaign) {
+      send(state.ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Campaign not found' });
+      return;
+    }
+
+    const sdkSessionId = db.getSdkSessionId(campaignId);
+    if (!sdkSessionId) {
+      send(state.ws, { type: 'error', timestamp: new Date().toISOString(), error: 'No SDK session found for this campaign' });
+      return;
+    }
+
+    const wsSessionId = campaign.session_id!;
+    localSessionId = wsSessionId;
+
+    // 2. Set up connection state
+    state.sessionId = wsSessionId;
+    state.campaignId = campaignId;
+    state.abortController = new AbortController();
+    sessionAbortControllers.set(wsSessionId, state.abortController);
+
+    // Register this WebSocket for the session
+    const previousWs = sessionConnections.get(wsSessionId);
+    if (previousWs && previousWs !== state.ws && previousWs.readyState === WebSocket.OPEN) {
+      previousWs.close(4001, 'Replaced by new connection');
+    }
+    sessionConnections.set(wsSessionId, state.ws);
+
+    // 3. Persist user message to DB
+    db.addMessage({ campaignId, role: 'user', content: prompt });
+
+    // 4. Update campaign status
+    db.updateCampaignStatus(campaignId, 'generating');
+
+    // 5. Send ack to client
+    emitEvent(wsSessionId, {
+      type: 'ack',
+      timestamp: new Date().toISOString(),
+      sessionId: wsSessionId,
+      campaignId,
+    });
+
+    console.log(`💬 WebSocket: Starting follow-up for campaign ${campaignId}, session ${wsSessionId}`);
+
+    // 6. Register image event listener (same pattern as handleGenerate)
+    const processedImageIndices = new Set<number>();
+    let imageCount = 0;
+
+    onImageSaved = (event: ImageSavedEvent) => {
+      const wsId = resolveWsSessionId(event.sessionId) || event.sessionId;
+      if (wsId !== wsSessionId) return;
+      if (processedImageIndices.has(event.imageIndex)) return;
+      processedImageIndices.add(event.imageIndex);
+
+      broadcastToConnection(state, {
+        type: 'image',
+        timestamp: new Date().toISOString(),
+        id: event.id,
+        urlPath: event.urlPath,
+        prompt: event.prompt,
+        filename: event.filename,
+        hookType: event.hookType as HookType,
+        imageIndex: event.imageIndex,
+      });
+
+      if (state.campaignId) {
+        try {
+          db.addCampaignImage({
+            campaignId: state.campaignId,
+            imageIndex: event.imageIndex,
+            hookType: event.hookType as db.HookType,
+            prompt: event.prompt || undefined,
+            filePath: event.urlPath,
+          });
+        } catch (dbError) {
+          console.error('DB: Failed to save image via EventEmitter:', dbError);
+        }
+      }
+      imageCount++;
+    };
+
+    imageEvents.on('image-saved', onImageSaved);
+
+    // 7. Initialize instrumentation
+    const instrumentor = new SDKInstrumentor(wsSessionId, prompt, 'websocket');
+
+    // 8. Call AI with resume (reuses existing session history)
+    let generationCompleted = false;
+    let wasCancelled = false;
+    const startTime = Date.now();
+
+    for await (const result of aiClient.queryWithSession(
+      prompt,
+      wsSessionId,
+      undefined,
+      undefined,
+      state.abortController,
+      sdkSessionId
+    )) {
+      if (state.abortController?.signal.aborted && !generationCompleted) {
+        wasCancelled = true;
+        break;
+      }
+
+      const { message } = result;
+      processSDKMessage(message, state, instrumentor, processedImageIndices);
+
+      if (message.type === 'result' && !generationCompleted && !wasCancelled) {
+        generationCompleted = true;
+        const duration = Date.now() - startTime;
+        const summary = 'Follow-up completed.';
+
+        broadcastToConnection(state, {
+          type: 'complete',
+          timestamp: new Date().toISOString(),
+          sessionId: wsSessionId,
+          duration,
+          imageCount,
+          message: `Follow-up complete in ${(duration / 1000).toFixed(1)}s`,
+          summary,
+        });
+
+        if (state.campaignId) {
+          db.updateCampaignStatus(state.campaignId, 'complete');
+          db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: summary });
+        }
+
+        console.log(`✅ WebSocket: Follow-up complete for campaign ${campaignId} (${duration}ms)`);
+      }
+    }
+
+    // Handle cancellation (if cancelled but no error thrown)
+    if (wasCancelled && !generationCompleted && state.campaignId) {
+      db.updateCampaignStatus(state.campaignId, 'cancelled');
+      db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: 'Follow-up was cancelled.' });
+      console.log(`🛑 WebSocket: Follow-up cancelled for campaign ${campaignId}`);
+    }
+
+  } catch (err) {
+    const isAbort = (err instanceof Error && err.name === 'AbortError') || state.abortController?.signal.aborted;
+
+    if (isAbort) {
+      if (state.campaignId) {
+        db.updateCampaignStatus(state.campaignId, 'cancelled');
+        db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: 'Follow-up was cancelled.' });
+      }
+    } else {
+      const errorMsg = err instanceof Error ? err.message : 'Unknown error';
+      broadcastToConnection(state, { type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
+      if (state.campaignId) {
+        db.updateCampaignStatus(state.campaignId, 'error');
+        db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: `Error: ${errorMsg}` });
+      }
+      console.error(`❌ WebSocket: Follow-up error for campaign ${campaignId}:`, err);
+    }
+  } finally {
+    state.isGenerating = false;
+    if (localSessionId) {
+      sessionAbortControllers.delete(localSessionId);
+      unregisterByWsSession(localSessionId);
+    }
+    state.abortController = null;
+    if (onImageSaved) {
+      imageEvents.removeListener('image-saved', onImageSaved);
     }
   }
 }
@@ -641,6 +979,12 @@ function handleSubscribe(state: ConnectionState, sessionId?: string, lastEventId
   }
 
   // Attach this WebSocket to the session
+  // Close any previous connection for this session first
+  const previousSubWs = sessionConnections.get(sessionId);
+  if (previousSubWs && previousSubWs !== state.ws && previousSubWs.readyState === WebSocket.OPEN) {
+    console.log(`[WS] Closing previous connection for session ${sessionId} (replaced by new subscriber)`);
+    previousSubWs.close(4001, 'Replaced by new connection');
+  }
   state.sessionId = sessionId;
   sessionConnections.set(sessionId, state.ws);
 
@@ -719,6 +1063,7 @@ export function initWebSocket(server: Server): WebSocketServer {
       campaignId: null,
       userId,
       abortController: null,
+      isGenerating: false,
       isPaused: false,
       messageBuffer: [],
       heartbeatInterval: null
@@ -772,6 +1117,12 @@ export function initWebSocket(server: Server): WebSocketServer {
             handleSubscribe(state, message.sessionId, message.lastEventId);
             break;
 
+          case 'follow_up':
+            if (message.prompt && message.campaignId) {
+              handleFollowUp(state, message.prompt, message.campaignId);
+            }
+            break;
+
           default:
             console.warn('⚠️ WebSocket: Unknown message type:', message.type);
         }
@@ -796,9 +1147,14 @@ export function initWebSocket(server: Server): WebSocketServer {
 
       // DO NOT abort generation - it continues in background
       // Events will be buffered for when client reconnects
-      // Just clear the session's WebSocket reference
+      // Only clear the session's WebSocket reference if THIS socket is still the active one.
+      // A newer connection may have already replaced us via handleSubscribe.
       if (state.sessionId) {
-        sessionConnections.set(state.sessionId, null);
+        if (sessionConnections.get(state.sessionId) === ws) {
+          sessionConnections.set(state.sessionId, null);
+        } else {
+          console.log(`[WS] Stale close for session ${state.sessionId} — newer connection active, skipping nullify`);
+        }
       }
 
       connections.delete(ws);

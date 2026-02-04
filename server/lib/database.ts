@@ -24,6 +24,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   name TEXT NOT NULL,
   status TEXT DEFAULT 'generating' CHECK (status IN ('generating', 'complete', 'incomplete', 'error', 'cancelled')),
   session_id TEXT,
+  sdk_session_id TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -135,6 +136,14 @@ export function initDatabase(): void {
 
   // Run schema creation (IF NOT EXISTS makes this idempotent)
   db.exec(SCHEMA_SQL);
+
+  // Migration: add sdk_session_id column for existing databases
+  try {
+    db.exec(`ALTER TABLE campaigns ADD COLUMN sdk_session_id TEXT`);
+  } catch { /* column already exists */ }
+
+  // Index must be created after migration (column may not exist when SCHEMA_SQL runs)
+  db.exec(`CREATE INDEX IF NOT EXISTS idx_campaigns_sdk_session_id ON campaigns(sdk_session_id)`);
 
   console.log('✅ Database initialized at:', DB_PATH);
 }

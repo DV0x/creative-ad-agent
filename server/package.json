@@ -6,7 +6,7 @@
   "main": "sdk-server.js",
   "scripts": {
     "start": "tsx --env-file=../.env sdk-server.ts",
-    "dev": "tsx watch --env-file=../.env sdk-server.ts",
+    "dev": "tsx watch --ignore='./data/**' --ignore='./sessions/**' --ignore='./generated-images/**' --env-file=../.env sdk-server.ts",
     "test": "tsx --env-file=../.env test-agent.ts"
   },
   "dependencies": {

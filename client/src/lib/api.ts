@@ -1,0 +1,319 @@
+// API client with authentication support
+import { IS_AUTH_ENABLED } from './auth';
+import type { Campaign, CampaignFile, CampaignFileType, AssetFolder, AssetFile } from '@/store';
+import type { ChatMessage, CampaignStatus, FilesReadyState, HookType } from '@/types/chat';
+
+// Token getter that can be set by the ClerkProvider wrapper
+let tokenGetter: (() => Promise<string | null>) | null = null;
+
+export function setTokenGetter(getter: () => Promise<string | null>) {
+  tokenGetter = getter;
+}
+
+export async function getAuthToken(): Promise<string | null> {
+  if (!IS_AUTH_ENABLED || !tokenGetter) return null;
+  return tokenGetter();
+}
+
+// Base fetch function with auth
+async function apiFetch<T>(
+  path: string,
+  options: RequestInit = {}
+): Promise<T> {
+  const headers: HeadersInit = {
+    'Content-Type': 'application/json',
+    ...options.headers,
+  };
+
+  // Add auth token if available
+  if (IS_AUTH_ENABLED && tokenGetter) {
+    const token = await tokenGetter();
+    if (token) {
+      (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+    }
+  }
+
+  const response = await fetch(`/api${path}`, {
+    ...options,
+    headers,
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ error: 'Request failed' }));
+    throw new Error(error.error || `HTTP ${response.status}`);
+  }
+
+  return response.json();
+}
+
+// ============================================
+// Type Transformers (API snake_case -> store camelCase)
+// ============================================
+
+interface ApiCampaign {
+  id: string;
+  user_id: string;
+  name: string;
+  status: CampaignStatus;
+  session_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiCampaignFile {
+  id: string;
+  campaign_id: string;
+  file_type: CampaignFileType;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}
+
+interface ApiImage {
+  id: number;
+  campaign_id: string;
+  image_index: number;
+  hook_type: HookType;
+  prompt: string;
+  file_path: string;
+  version: number;
+  created_at: string;
+}
+
+interface ApiMessage {
+  id: string;
+  campaign_id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  image_refs: string | null;
+  file_refs: string | null;
+  created_at: string;
+}
+
+interface ApiFolder {
+  id: string;
+  user_id: string;
+  name: string;
+  created_at: string;
+  updated_at: string;
+  fileCount?: number;
+}
+
+interface ApiAssetFile {
+  id: string;
+  folder_id: string;
+  name: string;
+  file_path: string;
+  file_type: 'image' | 'document' | 'other';
+  size: number | null;
+  created_at: string;
+}
+
+function transformCampaign(
+  api: ApiCampaign,
+  files: ApiCampaignFile[],
+  images: ApiImage[],
+  _messages: ApiMessage[]
+): Campaign {
+  // Build filesReady state from which files have content
+  const filesReady: FilesReadyState = {
+    research: false,
+    hooks: false,
+    prompts: false,
+  };
+
+  const campaignFiles: CampaignFile[] = (['research', 'hooks', 'prompts'] as CampaignFileType[]).map(type => {
+    const file = files.find(f => f.file_type === type);
+    const content = file?.content || '';
+    if (content.trim()) {
+      filesReady[type] = true;
+    }
+    return {
+      type,
+      name: `${type}.md`,
+      content,
+      lastModified: file ? new Date(file.updated_at) : new Date(api.created_at),
+    };
+  });
+
+  return {
+    id: api.id,
+    name: api.name,
+    createdAt: new Date(api.created_at),
+    status: api.status,
+    filesReady,
+    files: campaignFiles,
+    images: images.map(img => ({
+      id: img.id,
+      url: img.file_path,
+      prompt: img.prompt,
+      hookType: img.hook_type,
+      version: img.version,
+    })),
+  };
+}
+
+function transformFolder(api: ApiFolder, files: ApiAssetFile[] = []): AssetFolder {
+  return {
+    id: api.id,
+    name: api.name,
+    createdAt: new Date(api.created_at),
+    files: files.map(f => ({
+      id: f.id,
+      name: f.name,
+      url: `/api/assets/files/${f.id}`,
+      type: f.file_type,
+      folderId: f.folder_id,
+      size: f.size || undefined,
+      createdAt: new Date(f.created_at),
+    })),
+  };
+}
+
+function transformMessage(api: ApiMessage): ChatMessage {
+  return {
+    id: api.id,
+    campaignId: api.campaign_id,
+    role: api.role,
+    content: api.content,
+    timestamp: new Date(api.created_at),
+  };
+}
+
+// ============================================
+// Campaigns API
+// ============================================
+
+export const campaignsApi = {
+  async list(): Promise<Campaign[]> {
+    const response = await apiFetch<{ success: boolean; campaigns: ApiCampaign[] }>('/campaigns');
+    // Return minimal campaign data (full data loaded on select)
+    return response.campaigns.map(c => transformCampaign(c, [], [], []));
+  },
+
+  async get(id: string): Promise<{
+    campaign: Campaign;
+    messages: ChatMessage[];
+  }> {
+    const response = await apiFetch<{
+      success: boolean;
+      campaign: ApiCampaign;
+      files: ApiCampaignFile[];
+      images: ApiImage[];
+      messages: ApiMessage[];
+    }>(`/campaigns/${id}`);
+
+    return {
+      campaign: transformCampaign(
+        response.campaign,
+        response.files,
+        response.images,
+        response.messages
+      ),
+      messages: response.messages.map(transformMessage),
+    };
+  },
+
+  async create(name: string, sessionId?: string): Promise<Campaign> {
+    const response = await apiFetch<{ success: boolean; campaign: ApiCampaign }>('/campaigns', {
+      method: 'POST',
+      body: JSON.stringify({ name, sessionId }),
+    });
+    return transformCampaign(response.campaign, [], [], []);
+  },
+
+  async update(id: string, data: { name?: string; status?: CampaignStatus }): Promise<Campaign> {
+    const response = await apiFetch<{ success: boolean; campaign: ApiCampaign }>(`/campaigns/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+    return transformCampaign(response.campaign, [], [], []);
+  },
+
+  async delete(id: string): Promise<void> {
+    await apiFetch<{ success: boolean }>(`/campaigns/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async updateFile(id: string, fileType: CampaignFileType, content: string): Promise<void> {
+    await apiFetch<{ success: boolean }>(`/campaigns/${id}/files/${fileType}`, {
+      method: 'PUT',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  async getStatus(id: string): Promise<{
+    status: CampaignStatus;
+    sessionId: string | null;
+    isAgentRunning: boolean;
+    hasEventBuffer: boolean;
+  }> {
+    const response = await apiFetch<{
+      success: boolean;
+      status: CampaignStatus;
+      sessionId: string | null;
+      isAgentRunning: boolean;
+      hasEventBuffer: boolean;
+    }>(`/campaigns/${id}/status`);
+
+    return {
+      status: response.status,
+      sessionId: response.sessionId,
+      isAgentRunning: response.isAgentRunning,
+      hasEventBuffer: response.hasEventBuffer,
+    };
+  },
+};
+
+// ============================================
+// Assets API
+// ============================================
+
+export const assetsApi = {
+  async listFolders(): Promise<AssetFolder[]> {
+    const response = await apiFetch<{ success: boolean; folders: ApiFolder[] }>('/assets/folders');
+    return response.folders.map(f => transformFolder(f));
+  },
+
+  async createFolder(name: string): Promise<AssetFolder> {
+    const response = await apiFetch<{ success: boolean; folder: ApiFolder }>('/assets/folders', {
+      method: 'POST',
+      body: JSON.stringify({ name }),
+    });
+    return transformFolder(response.folder);
+  },
+
+  async renameFolder(id: string, name: string): Promise<AssetFolder> {
+    const response = await apiFetch<{ success: boolean; folder: ApiFolder }>(`/assets/folders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ name }),
+    });
+    return transformFolder(response.folder);
+  },
+
+  async deleteFolder(id: string): Promise<void> {
+    await apiFetch<{ success: boolean }>(`/assets/folders/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
+  async getFiles(folderId: string): Promise<AssetFile[]> {
+    const response = await apiFetch<{ success: boolean; files: ApiAssetFile[] }>(`/assets/folders/${folderId}/files`);
+    return response.files.map(f => ({
+      id: f.id,
+      name: f.name,
+      url: `/api/assets/files/${f.id}`,
+      type: f.file_type,
+      folderId: f.folder_id,
+      size: f.size || undefined,
+      createdAt: new Date(f.created_at),
+    }));
+  },
+
+  async deleteFile(id: string): Promise<void> {
+    await apiFetch<{ success: boolean }>(`/assets/files/${id}`, {
+      method: 'DELETE',
+    });
+  },
+};
