@@ -1,8 +1,8 @@
 # Codebase Reference
 
-**Last updated:** February 3, 2026
+**Last updated:** February 5, 2026
 **Branch:** `new-ui`
-**Status:** Phases A-D complete. Chat Chunks A, B & C (C.1-C.9) complete. C.10 (@mention file context) deferred. Testing in progress.
+**Status:** Phases A-D complete. Chat Chunks A, B & C (C.1-C.9) complete. C.10 (@mention file context) deferred. Message persistence complete. Testing in progress.
 
 Load this file at session start to get full codebase context without reading individual source files.
 
@@ -109,7 +109,7 @@ cd client && npm run dev
 | File | Lines | Key Exports | Purpose |
 |------|-------|-------------|---------|
 | `sdk-server.ts` | 947 | Express app, HTTP server | Main server: routes, WS init, image serving, instrumentation |
-| `lib/websocket-handler.ts` | ~1100 | `initWebSocket()`, `isAgentRunning()`, `abortSession()` | WS message handling, generation + follow-up streaming, DB persistence, concurrency guard |
+| `lib/websocket-handler.ts` | ~1300 | `initWebSocket()`, `isAgentRunning()`, `abortSession()`, `BlockBuilder`, `TextAccumulator` | WS message handling, generation + follow-up streaming, DB persistence, concurrency guard, server-side block building for message persistence |
 | `lib/ai-client.ts` | ~480 | `AIClient` class | Claude SDK: `queryWithSession(prompt, sessionId?, metadata?, attachments?, abortController?, resumeSdkSessionId?)`, `queryWithSessionFork()`, MCP setup, dual AbortController pattern (doneController for lifecycle, abortController for cancellation). The 6th param `resumeSdkSessionId` allows direct SDK session resume bypassing SessionManager. |
 | `lib/orchestrator-prompt.ts` | 77 | `ORCHESTRATOR_PROMPT` | System prompt for 4-step pipeline |
 | `lib/session-manager.ts` | ~340 | `sessionManager` | SDK session lifecycle: create, persist to JSON, fork, cleanup (used by sdk-server, ai-client, websocket-handler) |
@@ -122,7 +122,7 @@ cd client && npm run dev
 | `lib/db/campaigns.ts` | ~115 | `getCampaignsByUser()`, `createCampaign()`, `getCampaignBySessionId()`, `updateSdkSessionId()`, `getSdkSessionId()` | Campaign CRUD, session linking, SDK session persistence |
 | `lib/db/files.ts` | 63 | `getCampaignFiles()`, `updateCampaignFile()`, `areAllFilesReady()` | Campaign file CRUD (research/hooks/prompts) |
 | `lib/db/images.ts` | 89 | `addCampaignImage()`, `getLatestCampaignImages()`, `getImageCount()` | Image CRUD with versioning |
-| `lib/db/messages.ts` | 78 | `addMessage()`, `getMessages()`, `getLastAssistantMessage()` | Chat message CRUD |
+| `lib/db/messages.ts` | ~120 | `addMessage()`, `getMessages()`, `getLastAssistantMessage()`, `MessageBlock`, `ThinkingBlockData`, `TextBlockData`, `StatusBlockData` | Chat message CRUD with block types for thinking/text/status persistence |
 | `lib/db/assets.ts` | 113 | folder + file CRUD functions | Asset folders and files management |
 | `routes/campaigns.ts` | 458 | Express Router | 11 endpoints: campaigns, files, images, messages, status |
 | `routes/assets.ts` | 397 | Express Router | 8 endpoints: folders, files, upload (multer, 10MB) |
@@ -137,7 +137,7 @@ cd client && npm run dev
 | `src/store/index.ts` | ~970 | `useStore` | Zustand: campaigns, chat, generation, follow-up, block actions, assets, async API actions |
 | `src/lib/websocket-manager.ts` | 210 | `subscribe()`, `unsubscribe()`, `connect()`, `sendMessage()` | Module-level WS singleton: one connection per tab, connectionGeneration staleness guard, subscriberCount ref counting |
 | `src/hooks/useWebSocket.ts` | ~385 | `useWebSocket()` | Thin wrapper over WS manager: message handling via block actions, session recovery, localStorage persistence, generate(prompt)/cancel/resume/followUp(campaignId,prompt) actions. Subscribes to only `connectionState` + `isRecovering`; all store actions read via `getState()` inside callbacks. |
-| `src/lib/api.ts` | 320 | `campaignsApi`, `assetsApi`, `setTokenGetter()` | REST client with Clerk token injection, type transformers |
+| `src/lib/api.ts` | ~350 | `campaignsApi`, `assetsApi`, `setTokenGetter()` | REST client with Clerk token injection, type transformers, block parsing in `transformMessage()` |
 | `src/lib/auth.ts` | 10 | `IS_AUTH_ENABLED`, `isDevMode()` | Clerk key detection |
 | `src/contexts/AuthContext.tsx` | 87 | `AuthProvider`, `useRequireAuth()` | Auth context with `requireAuth()` callback + sign-in modal |
 | `src/types/chat.ts` | 135 | `ChatMessage`, `MessageBlock`, `ThinkingBlockData`, `ThinkingChild`, `CampaignStatus` | Type definitions + helper functions |
@@ -211,6 +211,7 @@ messages
   content       TEXT NOT NULL
   image_refs    TEXT             -- JSON array (unused)
   file_refs     TEXT             -- JSON array (unused)
+  blocks        TEXT             -- JSON array of MessageBlock (thinking blocks, text blocks, status blocks)
   created_at    DATETIME
 
 asset_folders
@@ -758,6 +759,50 @@ transformFolder(apiFolder) → StoreFolder
 transformMessage(apiMessage) → StoreChatMessage
 ```
 
+### Message & Block Persistence
+
+AI responses and thinking blocks now persist to the database for display after page refresh.
+
+**Server-side (websocket-handler.ts):**
+
+- `TextAccumulator`: Captures AI text during streaming. The accumulated text is saved to the `content` field when the assistant message is written to DB.
+- `BlockBuilder`: Constructs thinking blocks (phases, tools, progress) during generation. Mirrors client-side block structure so it renders correctly after refresh.
+
+```typescript
+// BlockBuilder methods
+openThinkingBlock(label, expectedImages)  // Start a new thinking block
+addThinkingChild(kind, text, variant?)    // Add tool/phase/status children
+incrementCompletedImages()                 // Track image progress
+closeThinkingBlock(status)                 // Close with 'complete' or 'error'
+addTextBlock(content)                      // Add final summary text
+getBlocks()                                // Returns blocks array (filters empty)
+```
+
+**Client-side (api.ts):**
+
+`transformMessage()` parses the `blocks` JSON field and:
+- Converts timestamps from ISO strings to Date objects
+- Sets thinking blocks to collapsed by default after refresh
+
+**Database:**
+
+The `messages.blocks` column stores a JSON array of `MessageBlock` objects (thinking, text, status types).
+
+### Image Placeholder Detection
+
+`parseExpectedImageCount(prompt)` determines how many image placeholders to show:
+
+```typescript
+// Explicit count: "3 ads", "two images" → use that count
+// URL or generation keywords → 6 (default for generation)
+// Simple chat ("hi") → 0 (no placeholders)
+
+const hasUrl = /https?:\/\/|www\.|\.com|\.org|\.net|\.io/i.test(prompt)
+const hasGenerationKeywords = /\b(generate|create|make|build|design|campaign|brand|website|business)\b/i.test(prompt)
+```
+
+The server also sends `imageCount` in the `phase: 'images'` event, which updates `generationExpectedImages` when the MCP tool is invoked.
+
 ---
 
 ## Known Bugs & Fixes
@@ -786,6 +831,10 @@ transformMessage(apiMessage) → StoreChatMessage
 | 8 | SDK stream deadlock (generation never completes) | Critical | Fixed | Prompt generator blocked forever with `await new Promise(() => {})`, preventing SDK from closing stdin. Fixed with dual AbortController: `doneController` signals generator to close when `result` received; separate from SDK `abortController` for user cancellation. See "SDK Stream Lifecycle" in Key Implementation Patterns. |
 | 9 | MCP "connection issues" (images not generating) | Critical | Fixed | Prompt generator returning immediately caused SDK's 60s `streamCloseTimeout` to fire, closing stdin before MCP tools completed. Fixed by same dual AbortController — generator stays alive until `result`, keeping stdin open for MCP bridge. |
 | 10 | Follow-up has no context (hasResume: false) | Critical | Fixed | `handleFollowUp` retrieved `sdkSessionId` from DB but never passed it to SDK. `queryWithSession` created new sessions each time because SessionManager uses different internal IDs. Fixed by adding 6th param `resumeSdkSessionId` to `queryWithSession` — DB value now passed directly, bypassing SessionManager lookup. |
+| 11 | AI responses show generic text after refresh | High | Fixed | AI text responses were broadcast via WebSocket but never accumulated for DB storage. Only hardcoded summaries were saved. Fixed by adding `TextAccumulator` to capture streamed text and save to `messages.content`. |
+| 12 | Thinking blocks lost on refresh | High | Fixed | Collapsible workflow blocks (phases, tools, progress) weren't persisted. Added `BlockBuilder` class to construct blocks server-side, `blocks` column to messages table, and parsing in `transformMessage()`. |
+| 13 | ThinkingBlock shows "Thinking" instead of phase label | Low | Fixed | Hardcoded label in `ThinkingBlock.tsx`. Fixed to use `block.label` for actual phase names ("Researching", "Generating Hooks", etc.). |
+| 14 | 6 image placeholders shown for simple chat messages | Medium | Fixed | `parseExpectedImageCount` defaulted to 6 for all prompts. Updated to detect generation requests (URLs, keywords) vs simple chat. Simple messages like "hi" now show 0 placeholders. |
 
 ---
 
@@ -806,7 +855,8 @@ See `docs/CHAT_IMPLEMENTATION_PLAN.md` for full details.
 - [x] Prompt reaches server correctly every time
 - [x] Generation runs to completion with all events visible
 - [x] "Single ad" shows 1 image placeholder (dynamic expected count)
-- [ ] Refresh preserves data (create → refresh → still visible)
+- [x] Refresh preserves data (create → refresh → still visible) — AI text and thinking blocks now persist
+- [x] Simple chat ("hi") shows no image placeholders
 - [ ] Reconnect during generation (refresh mid-gen → auto-reconnects)
 - [ ] Incomplete detection (restart server → campaign shows incomplete)
 - [ ] Resume functionality (click Resume → generation restarts)
