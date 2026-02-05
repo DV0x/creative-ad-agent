@@ -144,8 +144,121 @@ function broadcastToConnection(state: ConnectionState, message: ServerMessage) {
   }
 }
 
+// Accumulator for AI text content (for DB persistence)
+interface TextAccumulator {
+  text: string;
+}
+
+/**
+ * BlockBuilder: Builds the blocks array during streaming for DB persistence.
+ * Mirrors the client-side block structure so it can be rendered after refresh.
+ */
+class BlockBuilder {
+  private blocks: db.MessageBlock[] = [];
+  private currentThinkingBlock: db.ThinkingBlockData | null = null;
+  private idCounter = 0;
+
+  private generateId(): string {
+    return `block_${Date.now()}_${++this.idCounter}`;
+  }
+
+  /** Open a new thinking block (e.g., when a phase starts) */
+  openThinkingBlock(label: string, expectedImages: number = 0): void {
+    // Close any existing thinking block first
+    if (this.currentThinkingBlock) {
+      this.closeThinkingBlock('complete');
+    }
+
+    this.currentThinkingBlock = {
+      type: 'thinking',
+      id: this.generateId(),
+      label,
+      status: 'active',
+      expanded: false,  // Collapsed by default when persisted
+      children: [],
+      completedImages: 0,
+      expectedImages,
+    };
+    this.blocks.push(this.currentThinkingBlock);
+  }
+
+  /** Add a child to the current thinking block */
+  addThinkingChild(kind: db.ThinkingChild['kind'], text: string, variant?: 'info' | 'success' | 'error'): void {
+    if (!this.currentThinkingBlock) {
+      // Auto-open a thinking block if none exists
+      this.openThinkingBlock('Processing');
+    }
+
+    this.currentThinkingBlock!.children.push({
+      id: this.generateId(),
+      kind,
+      text,
+      timestamp: new Date().toISOString(),
+      variant,
+    });
+  }
+
+  /** Update expected images count */
+  setExpectedImages(count: number): void {
+    if (this.currentThinkingBlock) {
+      this.currentThinkingBlock.expectedImages = count;
+    }
+  }
+
+  /** Increment completed images count */
+  incrementCompletedImages(): void {
+    if (this.currentThinkingBlock) {
+      this.currentThinkingBlock.completedImages++;
+    }
+  }
+
+  /** Close the current thinking block */
+  closeThinkingBlock(status: 'complete' | 'error'): void {
+    if (this.currentThinkingBlock) {
+      this.currentThinkingBlock.status = status;
+      this.currentThinkingBlock = null;
+    }
+  }
+
+  /** Add a text block (for the final summary) */
+  addTextBlock(content: string): void {
+    if (content.trim()) {
+      this.blocks.push({
+        type: 'text',
+        id: this.generateId(),
+        content,
+      });
+    }
+  }
+
+  /** Add a status block */
+  addStatusBlock(text: string, variant: 'info' | 'success' | 'error'): void {
+    this.blocks.push({
+      type: 'status',
+      id: this.generateId(),
+      text,
+      variant,
+    });
+  }
+
+  /** Get the final blocks array for persistence */
+  getBlocks(): db.MessageBlock[] {
+    // Close any open thinking block
+    if (this.currentThinkingBlock) {
+      this.closeThinkingBlock('complete');
+    }
+    // Filter out empty thinking blocks (no children and no images)
+    return this.blocks.filter(block => {
+      if (block.type === 'thinking') {
+        return block.children.length > 0 || block.completedImages > 0;
+      }
+      return true;
+    });
+  }
+}
+
 // Process SDK messages and convert to WebSocket events
-function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor, processedImageIndices?: Set<number>) {
+function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor, processedImageIndices?: Set<number>, textAccumulator?: TextAccumulator, blockBuilder?: BlockBuilder) {
   // Process for instrumentation
   instrumentor.processMessage(message);
 
@@ -166,6 +279,10 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
     if (Array.isArray(content)) {
       for (const block of content) {
         if (block.type === 'text' && block.text) {
+          // Accumulate text for DB persistence
+          if (textAccumulator) {
+            textAccumulator.text += (textAccumulator.text ? '\n' : '') + block.text;
+          }
           // Send text message
           broadcastToConnection(state, {
             type: 'message',
@@ -181,6 +298,23 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
             toolId: block.id,
             input: block.input
           });
+
+          // Add tool to block builder with friendly names
+          if (blockBuilder) {
+            const toolDisplayNames: Record<string, string> = {
+              'WebFetch': 'Fetching webpage',
+              'WebSearch': 'Searching the web',
+              'Read': 'Reading file',
+              'Write': 'Writing file',
+              'Task': 'Running agent',
+              'Skill': 'Using skill',
+              'Glob': 'Finding files',
+              'Grep': 'Searching code',
+              'mcp__nano-banana__generate_ad_images': 'Generating images',
+            };
+            const displayName = toolDisplayNames[block.name] || block.name;
+            blockBuilder.addThinkingChild('tool', displayName);
+          }
 
           // Register MCP sessionId mapping when image generation tool is called
           if (block.name === 'mcp__nano-banana__generate_ad_images' && block.input?.sessionId && state.sessionId) {
@@ -213,6 +347,11 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
               });
               console.log(`📄 File event: ${fileType} written to ${filePath}`);
 
+              // Add file creation to block builder
+              if (blockBuilder) {
+                blockBuilder.addThinkingChild('status', `${fileType}.md created`, 'success');
+              }
+
               // Persist to database
               if (state.campaignId) {
                 try {
@@ -235,6 +374,10 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
                 phase: 'research',
                 label: 'Researching'
               });
+              // Open a thinking block for research phase
+              if (blockBuilder) {
+                blockBuilder.openThinkingBlock('Researching');
+              }
             }
           } else if (block.name === 'Skill') {
             const skillName = block.input?.skill;
@@ -245,6 +388,9 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
                 phase: 'hooks',
                 label: 'Generating Hooks'
               });
+              if (blockBuilder) {
+                blockBuilder.openThinkingBlock('Generating Hooks');
+              }
             } else if (skillName === 'art-style') {
               broadcastToConnection(state, {
                 type: 'phase',
@@ -252,6 +398,9 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
                 phase: 'art',
                 label: 'Creating Art Direction'
               });
+              if (blockBuilder) {
+                blockBuilder.openThinkingBlock('Creating Art Direction');
+              }
             }
           } else if (block.name === 'mcp__nano-banana__generate_ad_images') {
             const promptCount = Array.isArray(block.input?.prompts) ? block.input.prompts.length : undefined;
@@ -262,6 +411,9 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
               label: 'Generating Images',
               imageCount: promptCount,
             });
+            if (blockBuilder) {
+              blockBuilder.openThinkingBlock('Generating Images', promptCount || 0);
+            }
           }
         }
       }
@@ -438,6 +590,13 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   const processedImageIndices = new Set<number>();
   let generationCompleted = false;
 
+  // Accumulate AI text for DB persistence
+  const textAccumulator: TextAccumulator = { text: '' };
+
+  // Build blocks for DB persistence
+  const blockBuilder = new BlockBuilder();
+  blockBuilder.openThinkingBlock('Parsing Request');
+
   const onImageSaved = (event: ImageSavedEvent) => {
     const wsId = resolveWsSessionId(event.sessionId) || event.sessionId;
     if (wsId !== sessionId) return;
@@ -472,6 +631,8 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       }
     }
 
+    // Track image completion in block builder
+    blockBuilder.incrementCompletedImages();
     imageCount++;
   };
 
@@ -503,7 +664,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       }
 
       const { message } = result;
-      processSDKMessage(message, state, instrumentor, processedImageIndices);
+      processSDKMessage(message, state, instrumentor, processedImageIndices, textAccumulator, blockBuilder);
 
       // Count images (only those not already counted by EventEmitter path)
       if (message.type === 'user') {
@@ -549,9 +710,11 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
           curiosity: 'Curiosity Hook', callout: 'Call-out Hook', contrast: 'Contrast Hook'
         };
         const generatedHooks = HOOK_TYPE_ORDER.slice(0, imageCount).map(h => hookTypeLabels[h]);
-        const summary = imageCount > 0
+        const fallbackSummary = imageCount > 0
           ? `I created ${imageCount} ad concept${imageCount > 1 ? 's' : ''}:\n${generatedHooks.map(h => `• ${h}`).join('\n')}`
           : 'Generation complete.';
+        // Use accumulated AI text if available, otherwise fallback
+        const summary = textAccumulator.text.trim() || fallbackSummary;
 
         broadcastToConnection(state, {
           type: 'complete',
@@ -568,12 +731,15 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
         if (state.campaignId) {
           try {
             db.updateCampaignStatus(state.campaignId, 'complete');
+            // Add text block for summary and get final blocks
+            blockBuilder.addTextBlock(summary);
             db.addMessage({
               campaignId: state.campaignId,
               role: 'assistant',
               content: summary,
+              blocks: blockBuilder.getBlocks(),
             });
-            console.log(`💾 DB: Campaign ${state.campaignId} marked as complete, summary saved`);
+            console.log(`💾 DB: Campaign ${state.campaignId} marked as complete, summary + blocks saved`);
           } catch (dbError) {
             console.error('❌ DB: Failed to update campaign status:', dbError);
           }
@@ -592,15 +758,17 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
         label: 'Complete'
       });
 
-      // Generate summary message for assistant
+      // Generate summary message for assistant (use accumulated text if available)
       const hookTypeLabels: Record<HookType, string> = {
         stat: 'Stat Hook', story: 'Story Hook', fomo: 'FOMO Hook',
         curiosity: 'Curiosity Hook', callout: 'Call-out Hook', contrast: 'Contrast Hook'
       };
       const generatedHooks = HOOK_TYPE_ORDER.slice(0, imageCount).map(h => hookTypeLabels[h]);
-      const summary = imageCount > 0
+      const fallbackSummary = imageCount > 0
         ? `I created ${imageCount} ad concept${imageCount > 1 ? 's' : ''}:\n${generatedHooks.map(h => `• ${h}`).join('\n')}`
         : 'Generation complete.';
+      // Use accumulated AI text if available, otherwise fallback
+      const summary = textAccumulator.text.trim() || fallbackSummary;
 
       broadcastToConnection(state, {
         type: 'complete',
@@ -618,12 +786,15 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       if (state.campaignId) {
         try {
           db.updateCampaignStatus(state.campaignId, 'complete');
+          // Add text block for summary and get final blocks
+          blockBuilder.addTextBlock(summary);
           db.addMessage({
             campaignId: state.campaignId,
             role: 'assistant',
             content: summary,
+            blocks: blockBuilder.getBlocks(),
           });
-          console.log(`💾 DB: Campaign ${state.campaignId} marked as complete, summary saved`);
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as complete, summary + blocks saved`);
         } catch (dbError) {
           console.error('❌ DB: Failed to update campaign status:', dbError);
         }
@@ -635,10 +806,13 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       if (state.campaignId) {
         try {
           db.updateCampaignStatus(state.campaignId, 'cancelled');
+          // Add status block for cancellation
+          blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
           db.addMessage({
             campaignId: state.campaignId,
             role: 'assistant',
             content: 'Generation was cancelled.',
+            blocks: blockBuilder.getBlocks(),
           });
           console.log(`💾 DB: Campaign ${state.campaignId} marked as cancelled`);
         } catch (dbError) {
@@ -671,10 +845,12 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       if (state.campaignId) {
         try {
           db.updateCampaignStatus(state.campaignId, 'cancelled');
+          blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
           db.addMessage({
             campaignId: state.campaignId,
             role: 'assistant',
             content: 'Generation was cancelled.',
+            blocks: blockBuilder.getBlocks(),
           });
           console.log(`💾 DB: Campaign ${state.campaignId} marked as cancelled`);
         } catch (dbError) {
@@ -692,11 +868,14 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
       if (state.campaignId) {
         try {
+          const errorMsg = `Error: ${error.message || 'Unknown error occurred'}`;
           db.updateCampaignStatus(state.campaignId, 'error');
+          blockBuilder.addStatusBlock(errorMsg, 'error');
           db.addMessage({
             campaignId: state.campaignId,
             role: 'assistant',
-            content: `Error: ${error.message || 'Unknown error occurred'}`,
+            content: errorMsg,
+            blocks: blockBuilder.getBlocks(),
           });
           console.log(`💾 DB: Campaign ${state.campaignId} marked as error`);
         } catch (dbError) {
@@ -731,6 +910,10 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
   // only cleans up what we created.
   let localSessionId: string | null = null;
   let onImageSaved: ((event: ImageSavedEvent) => void) | null = null;
+
+  // Build blocks for DB persistence (declared outside try for catch block access)
+  const blockBuilder = new BlockBuilder();
+  blockBuilder.openThinkingBlock('Processing Follow-up');
 
   try {
     // 1. Look up campaign and SDK session ID
@@ -782,6 +965,9 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     const processedImageIndices = new Set<number>();
     let imageCount = 0;
 
+    // Accumulate AI text for DB persistence
+    const textAccumulator: TextAccumulator = { text: '' };
+
     onImageSaved = (event: ImageSavedEvent) => {
       const wsId = resolveWsSessionId(event.sessionId) || event.sessionId;
       if (wsId !== wsSessionId) return;
@@ -812,6 +998,7 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
           console.error('DB: Failed to save image via EventEmitter:', dbError);
         }
       }
+      blockBuilder.incrementCompletedImages();
       imageCount++;
     };
 
@@ -839,12 +1026,13 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       }
 
       const { message } = result;
-      processSDKMessage(message, state, instrumentor, processedImageIndices);
+      processSDKMessage(message, state, instrumentor, processedImageIndices, textAccumulator, blockBuilder);
 
       if (message.type === 'result' && !generationCompleted && !wasCancelled) {
         generationCompleted = true;
         const duration = Date.now() - startTime;
-        const summary = 'Follow-up completed.';
+        // Use accumulated AI text if available, otherwise fallback
+        const summary = textAccumulator.text.trim() || 'Follow-up completed.';
 
         broadcastToConnection(state, {
           type: 'complete',
@@ -858,7 +1046,13 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
 
         if (state.campaignId) {
           db.updateCampaignStatus(state.campaignId, 'complete');
-          db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: summary });
+          blockBuilder.addTextBlock(summary);
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: summary,
+            blocks: blockBuilder.getBlocks(),
+          });
         }
 
         console.log(`✅ WebSocket: Follow-up complete for campaign ${campaignId} (${duration}ms)`);
@@ -868,7 +1062,13 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     // Handle cancellation (if cancelled but no error thrown)
     if (wasCancelled && !generationCompleted && state.campaignId) {
       db.updateCampaignStatus(state.campaignId, 'cancelled');
-      db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: 'Follow-up was cancelled.' });
+      blockBuilder.addStatusBlock('Follow-up was cancelled.', 'info');
+      db.addMessage({
+        campaignId: state.campaignId,
+        role: 'assistant',
+        content: 'Follow-up was cancelled.',
+        blocks: blockBuilder.getBlocks(),
+      });
       console.log(`🛑 WebSocket: Follow-up cancelled for campaign ${campaignId}`);
     }
 
@@ -878,14 +1078,26 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     if (isAbort) {
       if (state.campaignId) {
         db.updateCampaignStatus(state.campaignId, 'cancelled');
-        db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: 'Follow-up was cancelled.' });
+        blockBuilder.addStatusBlock('Follow-up was cancelled.', 'info');
+        db.addMessage({
+          campaignId: state.campaignId,
+          role: 'assistant',
+          content: 'Follow-up was cancelled.',
+          blocks: blockBuilder.getBlocks(),
+        });
       }
     } else {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       broadcastToConnection(state, { type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
       if (state.campaignId) {
         db.updateCampaignStatus(state.campaignId, 'error');
-        db.addMessage({ campaignId: state.campaignId, role: 'assistant', content: `Error: ${errorMsg}` });
+        blockBuilder.addStatusBlock(`Error: ${errorMsg}`, 'error');
+        db.addMessage({
+          campaignId: state.campaignId,
+          role: 'assistant',
+          content: `Error: ${errorMsg}`,
+          blocks: blockBuilder.getBlocks(),
+        });
       }
       console.error(`❌ WebSocket: Follow-up error for campaign ${campaignId}:`, err);
     }

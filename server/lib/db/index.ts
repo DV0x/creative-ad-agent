@@ -50,6 +50,11 @@ export {
   getLastAssistantMessage,
   type Message,
   type AddMessageInput,
+  type MessageBlock,
+  type TextBlockData,
+  type ThinkingBlockData,
+  type ThinkingChild,
+  type StatusBlockData,
 } from './messages.js';
 
 // Assets

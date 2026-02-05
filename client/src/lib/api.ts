@@ -87,6 +87,7 @@ interface ApiMessage {
   content: string;
   image_refs: string | null;
   file_refs: string | null;
+  blocks: string | null;  // JSON array of MessageBlock
   created_at: string;
 }
 
@@ -171,12 +172,38 @@ function transformFolder(api: ApiFolder, files: ApiAssetFile[] = []): AssetFolde
 }
 
 function transformMessage(api: ApiMessage): ChatMessage {
+  // Parse blocks if present
+  let blocks: ChatMessage['blocks'];
+  if (api.blocks) {
+    try {
+      const parsed = JSON.parse(api.blocks);
+      // Transform timestamps in thinking children from ISO strings to Date objects
+      blocks = parsed.map((block: any) => {
+        if (block.type === 'thinking' && block.children) {
+          return {
+            ...block,
+            // Ensure thinking blocks are collapsed when loaded from DB
+            expanded: false,
+            children: block.children.map((child: any) => ({
+              ...child,
+              timestamp: new Date(child.timestamp),
+            })),
+          };
+        }
+        return block;
+      });
+    } catch {
+      // Invalid JSON, ignore blocks
+    }
+  }
+
   return {
     id: api.id,
     campaignId: api.campaign_id,
     role: api.role,
     content: api.content,
     timestamp: new Date(api.created_at),
+    blocks,
   };
 }
 

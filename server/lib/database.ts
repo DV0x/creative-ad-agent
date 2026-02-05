@@ -145,6 +145,11 @@ export function initDatabase(): void {
   // Index must be created after migration (column may not exist when SCHEMA_SQL runs)
   db.exec(`CREATE INDEX IF NOT EXISTS idx_campaigns_sdk_session_id ON campaigns(sdk_session_id)`);
 
+  // Migration: add blocks column to messages for persisting thinking blocks
+  try {
+    db.exec(`ALTER TABLE messages ADD COLUMN blocks TEXT`);
+  } catch { /* column already exists */ }
+
   console.log('✅ Database initialized at:', DB_PATH);
 }
 

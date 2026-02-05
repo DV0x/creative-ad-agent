@@ -430,12 +430,13 @@ export const useStore = create<Store>((set, get) => ({
 
     const expectedFromPrompt = parseExpectedImageCount(prompt)
 
-    set(() => ({
+    set((state) => ({
       sessionId,
       error: null,
       generationExpectedImages: expectedFromPrompt,
       currentGeneratingMessageId: assistantMessageId,
       chatMessages: {
+        ...state.chatMessages,
         [campaignId]: [
           { id: userMessageId, campaignId, role: 'user' as const, content: prompt, timestamp: new Date() },
           { id: assistantMessageId, campaignId, role: 'assistant' as const, content: '', timestamp: new Date() }

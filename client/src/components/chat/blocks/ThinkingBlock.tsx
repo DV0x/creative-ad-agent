@@ -24,12 +24,13 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
     }
   }, [children.length, expanded])
 
-  // Header text
+  // Header text - use label if available, otherwise fallback
+  const label = block.label || 'Thinking'
   const headerText = isActive
-    ? 'Thinking...'
+    ? `${label}...`
     : isComplete
-      ? 'Thinking'
-      : 'Error'
+      ? label
+      : `${label} (Error)`
 
   // Progress indicator for images
   const progressText = isActive && expectedImages > 0
