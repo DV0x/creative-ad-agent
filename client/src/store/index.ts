@@ -211,6 +211,7 @@ function parseExpectedImageCount(prompt: string): number {
     one: 1, two: 2, three: 3, four: 4, five: 5, six: 6,
     single: 1, couple: 2, few: 3, a: 1, an: 1,
   }
+  // Check for explicit count like "3 ads" or "two images"
   const digitMatch = prompt.match(/(\d+)\s*(?:ads?|images?|creatives?|concepts?|visuals?)/i)
   if (digitMatch) {
     return Math.min(Math.max(parseInt(digitMatch[1], 10), 1), 6)
@@ -219,7 +220,14 @@ function parseExpectedImageCount(prompt: string): number {
   if (wordMatch) {
     return wordToNum[wordMatch[1].toLowerCase()] || 6
   }
-  return 6
+  // Check if this looks like an image generation request (has URL or generation keywords)
+  const hasUrl = /https?:\/\/|www\.|\.com|\.org|\.net|\.io/i.test(prompt)
+  const hasGenerationKeywords = /\b(generate|create|make|build|design|campaign|brand|website|business)\b/i.test(prompt)
+  if (hasUrl || hasGenerationKeywords) {
+    return 6  // Default to 6 for generation requests
+  }
+  // Simple chat message - no images expected
+  return 0
 }
 
 // ============================================
@@ -414,7 +422,7 @@ export const useStore = create<Store>((set, get) => ({
   connectionState: 'disconnected',
   isRecovering: false,
   error: null,
-  generationExpectedImages: 6,
+  generationExpectedImages: 0,
 
   setSessionId: (sessionId) => set({ sessionId }),
   setConnectionState: (connectionState) => set({ connectionState }),
@@ -544,7 +552,7 @@ export const useStore = create<Store>((set, get) => ({
         currentGeneratingMessageId: null,
         isRecovering: false,
         error: null,
-        generationExpectedImages: 6,
+        generationExpectedImages: 0,
         chatMessages: updatedMessages,
       }
     })
@@ -558,7 +566,7 @@ export const useStore = create<Store>((set, get) => ({
       generatingCampaignId: null,
       sessionId: null,
       currentGeneratingMessageId: null,
-      generationExpectedImages: 6,
+      generationExpectedImages: 0,
       chatMessages: {
         ...state.chatMessages,
         [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
@@ -576,7 +584,7 @@ export const useStore = create<Store>((set, get) => ({
       generatingCampaignId: null,
       sessionId: null,
       currentGeneratingMessageId: null,
-      generationExpectedImages: 6,
+      generationExpectedImages: 0,
       chatMessages: {
         ...state.chatMessages,
         [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
@@ -594,7 +602,7 @@ export const useStore = create<Store>((set, get) => ({
       generatingCampaignId: null,
       sessionId: null,
       currentGeneratingMessageId: null,
-      generationExpectedImages: 6,
+      generationExpectedImages: 0,
       error,
       chatMessages: {
         ...state.chatMessages,
@@ -969,7 +977,7 @@ export const useStore = create<Store>((set, get) => ({
     selectedImageIds: [],
     generatingCampaignId: null,
     currentGeneratingMessageId: null,
-    generationExpectedImages: 6,
+    generationExpectedImages: 0,
     dataLoading: false,
   })
 }))
