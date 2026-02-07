@@ -1,42 +1,42 @@
 import { useState } from 'react'
-import { RefreshCw, Download, Check } from 'lucide-react'
+import { Download, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import { HOOK_TYPE_LABELS, type HookType } from '@/types/chat'
 
 interface ImageCardProps {
   url: string
-  hookHeadline: string
   index: number
-  hookType?: HookType
   selected?: boolean
   onSelect?: () => void
+  onView?: () => void
   isLoading?: boolean
-  onRegenerate?: () => void
-  onDownload?: () => void
 }
 
 export function ImageCard({
   url,
-  hookHeadline,
   index,
-  hookType,
   selected = false,
   onSelect,
+  onView,
   isLoading = false,
-  onRegenerate,
-  onDownload,
 }: ImageCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
 
-  const hookLabel = hookType ? HOOK_TYPE_LABELS[hookType] : undefined
-  const imageLabel = `Image ${index}`
   const isSelectable = !!onSelect
 
   const handleClick = (e: React.MouseEvent) => {
-    // If clicking on a button, don't toggle selection
     if ((e.target as HTMLElement).closest('button')) return
-    onSelect?.()
+    onView?.()
+  }
+
+  const handleDownload = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `image-${index}.png`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
   }
 
   return (
@@ -65,7 +65,7 @@ export function ImageCard({
         {!isLoading && (
           <img
             src={url}
-            alt={hookHeadline}
+            alt={`Image ${index}`}
             className={cn(
               'w-full h-full object-cover transition-all duration-300',
               isImageLoaded ? 'opacity-100' : 'opacity-0',
@@ -77,7 +77,11 @@ export function ImageCard({
 
         {/* Selection checkbox */}
         {isSelectable && (
-          <div
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelect?.()
+            }}
             className={cn(
               'absolute top-3 left-3 transition-opacity duration-150',
               selected || isHovered ? 'opacity-100' : 'opacity-0'
@@ -93,82 +97,25 @@ export function ImageCard({
             >
               {selected && <Check className="w-4 h-4" />}
             </div>
-          </div>
+          </button>
         )}
 
-        {/* Image label badge */}
+        {/* Download button — hover only */}
         <div
           className={cn(
-            'absolute bottom-3 left-3 transition-opacity duration-150',
-            isHovered || selected ? 'opacity-100' : 'opacity-0'
-          )}
-        >
-          <span className="px-2 py-1 text-xs font-medium bg-bg-elevated/90 backdrop-blur-sm rounded-md border border-border text-text-secondary">
-            {imageLabel}
-          </span>
-        </div>
-
-        {/* Hook type label */}
-        {hookLabel && (
-          <div
-            className={cn(
-              'absolute bottom-3 right-3 transition-opacity duration-150',
-              isHovered || selected ? 'opacity-100' : 'opacity-0'
-            )}
-          >
-            <span className="px-2 py-1 text-xs font-medium bg-accent/90 backdrop-blur-sm rounded-md text-white">
-              {hookLabel}
-            </span>
-          </div>
-        )}
-
-        {/* Hover overlay */}
-        <div
-          className={cn(
-            'absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent transition-opacity',
+            'absolute top-3 right-3 transition-opacity duration-150',
             isHovered ? 'opacity-100' : 'opacity-0'
           )}
         >
-          {/* Actions */}
-          <div className="absolute top-3 right-3 flex gap-2">
-            {onRegenerate && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onRegenerate()
-                }}
-                className="w-8 h-8 rounded-full bg-bg-elevated/90 backdrop-blur-sm hover:bg-accent hover:text-white flex items-center justify-center transition-all duration-150 border border-border hover:border-accent hover:scale-110 active:scale-95"
-                title="Regenerate"
-              >
-                <RefreshCw className="w-4 h-4" />
-              </button>
-            )}
-            {onDownload && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation()
-                  onDownload()
-                }}
-                className="w-8 h-8 rounded-full bg-bg-elevated/90 backdrop-blur-sm hover:bg-accent hover:text-white flex items-center justify-center transition-all duration-150 border border-border hover:border-accent hover:scale-110 active:scale-95"
-                title="Download"
-              >
-                <Download className="w-4 h-4" />
-              </button>
-            )}
-          </div>
+          <button
+            onClick={handleDownload}
+            className="w-8 h-8 rounded-full bg-bg-elevated/90 backdrop-blur-sm hover:bg-accent hover:text-white flex items-center justify-center transition-all duration-150 border border-border hover:border-accent hover:scale-110 active:scale-95"
+            title="Download"
+          >
+            <Download className="w-4 h-4" />
+          </button>
         </div>
-      </div>
 
-      {/* Hook preview */}
-      <div
-        className={cn(
-          'px-4 py-3 border-t border-border bg-bg-raised/95 backdrop-blur-sm transition-all duration-200',
-          isHovered ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-        )}
-      >
-        <p className="text-sm text-text-secondary line-clamp-2 italic">
-          "{hookHeadline}"
-        </p>
       </div>
     </div>
   )

@@ -1,6 +1,8 @@
+import { useState, useCallback } from 'react'
 import { Download, FolderIcon, ImageIcon, MessageSquare, X, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageCard, ImageCardSkeleton } from '@/components/ImageCard'
+import { ImageLightbox } from '@/components/ImageLightbox'
 import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { formatCampaignName } from '@/lib/utils'
@@ -14,6 +16,19 @@ export function ResultsView() {
     clearImageSelection,
     generationExpectedImages,
   } = useStore()
+
+  // Lightbox state
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+
+  const openLightbox = useCallback((index: number) => {
+    setLightboxIndex(index)
+    setIsLightboxOpen(true)
+  }, [])
+
+  const closeLightbox = useCallback(() => {
+    setIsLightboxOpen(false)
+  }, [])
   const { setMobileDrawerOpen, setMobileAssetsOpen } = useSidebars()
   const { connectionState, resume } = useWebSocket()
 
@@ -125,11 +140,10 @@ Please continue from where we left off and complete the remaining images.`
                 <ImageCard
                   key={image.id}
                   url={image.url}
-                  hookHeadline={image.prompt}
                   index={index + 1}
-                  hookType={image.hookType}
                   selected={selectedImageIds.includes(image.id)}
                   onSelect={() => toggleImageSelection(image.id)}
+                  onView={() => openLightbox(index)}
                 />
               ))}
               {/* Show skeleton cards for remaining images during generation */}
@@ -186,6 +200,15 @@ Please continue from where we left off and complete the remaining images.`
           <span className="text-lg">💬</span>
         </Button>
       </div>
+
+      {/* Image lightbox */}
+      <ImageLightbox
+        images={campaign.images}
+        currentIndex={lightboxIndex}
+        isOpen={isLightboxOpen}
+        onClose={closeLightbox}
+        onNavigate={setLightboxIndex}
+      />
     </div>
   )
 }
