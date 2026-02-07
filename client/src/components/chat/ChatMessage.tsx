@@ -19,14 +19,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
   }
 
   return (
-    <div className={cn('flex flex-col gap-2', isUser && 'items-end')}>
+    <div className={cn('flex flex-col gap-1 min-w-0', isUser && 'items-end')}>
       {/* Main message bubble */}
       <div
         className={cn(
-          'max-w-[90%] rounded-lg text-sm',
+          'max-w-[90%] min-w-0 rounded-lg text-sm overflow-hidden',
           isUser
             ? 'bg-accent text-white rounded-br-sm px-3 py-2'
-            : 'rounded-bl-sm'
+            : 'w-full rounded-bl-sm'
         )}
       >
         {/* User message content */}
@@ -68,8 +68,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
             ) : (
               /* Plain text content (DB-loaded historical messages) */
               message.content && (
-                <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2">
-                  <p className="whitespace-pre-wrap break-words">{message.content}</p>
+                <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2 overflow-hidden">
+                  <p className="whitespace-pre-wrap break-words" style={{ overflowWrap: 'anywhere' }}>{message.content}</p>
                 </div>
               )
             )}

@@ -51,9 +51,9 @@ export function ChatSidebar() {
   const showEmptyState = chatMessages.length === 0
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full min-w-0 overflow-hidden">
       {/* Messages */}
-      <ScrollArea className="flex-1 px-3 py-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 min-h-0 px-3 py-4" ref={scrollRef}>
         {showEmptyState ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
             <div className="w-10 h-10 rounded-lg bg-bg-elevated flex items-center justify-center mb-3">

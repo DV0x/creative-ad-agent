@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   FolderIcon,
   FolderOpenIcon,
@@ -23,16 +23,23 @@ import {
 } from '@/components/ui/collapsible'
 import { useStore, type AssetFolder, type AssetFile, type Campaign, type CampaignFileType } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
-import { cn } from '@/lib/utils'
+import { cn, formatCampaignName } from '@/lib/utils'
 import { FileUpload } from './FileUpload'
 import { AssetPreview, useAssetPreview } from './AssetPreview'
+
+/** Map file type to a clean display label */
+const FILE_TYPE_LABELS: Record<CampaignFileType, string> = {
+  research: 'Research',
+  hooks: 'Hooks',
+  prompts: 'Prompts',
+}
 
 export function AssetDrawer() {
   const { previewFile, isPreviewOpen, openPreview, closePreview } = useAssetPreview()
 
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1">
+      <ScrollArea className="flex-1 min-h-0">
         {/* Campaigns Section */}
         <CampaignsSection />
 
@@ -101,7 +108,7 @@ function CampaignsSection() {
       </div>
 
       {/* Campaign List */}
-      <div className="space-y-0.5">
+      <div className="space-y-1">
         {/* New Campaign item (when creating) */}
         {isCreatingCampaign && (
           <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-accent/10 text-accent">
@@ -144,26 +151,32 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
   const [showActions, setShowActions] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [renamingValue, setRenamingValue] = useState(campaign.name)
+  const wasActive = useRef(isActive)
 
-  // Open when campaign becomes active
-  if (isActive && !isOpen) {
-    setIsOpen(true)
-  }
+  // Auto-expand only when isActive transitions false → true (e.g. selected from elsewhere)
+  useEffect(() => {
+    if (isActive && !wasActive.current) {
+      setIsOpen(true)
+    }
+    wasActive.current = isActive
+  }, [isActive])
 
   const handleFileClick = (fileType: CampaignFileType) => {
     onSelect() // Make this campaign active
     setActiveFileType(fileType)
   }
 
-  const handleToggle = (e: React.MouseEvent) => {
-    e.stopPropagation()
+  const handleToggle = () => {
     setIsOpen(!isOpen)
   }
 
   const handleSelect = () => {
-    onSelect()
-    // Auto-expand when selecting
-    if (!isOpen) {
+    if (isActive) {
+      // Already active — toggle expand/collapse
+      setIsOpen(!isOpen)
+    } else {
+      // Newly selected — select and expand
+      onSelect()
       setIsOpen(true)
     }
   }
@@ -179,14 +192,14 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
     if (e.key === 'Enter') {
       handleRenameSubmit()
     } else if (e.key === 'Escape') {
-      setRenamingValue(campaign.name)
+      setRenamingValue(formatCampaignName(campaign.name))
       setIsRenaming(false)
     }
   }
 
   const startRename = (e: React.MouseEvent) => {
     e.stopPropagation()
-    setRenamingValue(campaign.name)
+    setRenamingValue(formatCampaignName(campaign.name))
     setIsRenaming(true)
   }
 
@@ -215,7 +228,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
           variant="ghost"
           size="icon-xs"
           onClick={() => {
-            setRenamingValue(campaign.name)
+            setRenamingValue(formatCampaignName(campaign.name))
             setIsRenaming(false)
           }}
           className="h-5 w-5 text-text-muted"
@@ -229,31 +242,33 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
-        className="group relative"
+        className="group relative flex items-center"
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
+        {/* Chevron — independent click target, not nested in the row button */}
+        <button
+          onClick={handleToggle}
+          className="shrink-0 w-7 h-7 flex items-center justify-center rounded hover:bg-bg-elevated"
+        >
+          <ChevronRightIcon
+            className={cn(
+              'w-3.5 h-3.5 text-text-muted transition-transform duration-200',
+              isOpen && 'rotate-90'
+            )}
+          />
+        </button>
+
+        {/* Campaign name row */}
         <button
           onClick={handleSelect}
           onDoubleClick={startRename}
           className={cn(
-            'w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors',
+            'flex-1 min-w-0 flex items-center gap-2 px-1.5 py-2 rounded-md text-sm transition-colors',
             'hover:bg-bg-elevated',
             isActive && 'bg-accent/10 text-accent'
           )}
         >
-          {/* Chevron toggle - separate click handler */}
-          <span
-            onClick={handleToggle}
-            className="shrink-0 p-0.5 -m-0.5 rounded hover:bg-bg-elevated"
-          >
-            <ChevronRightIcon
-              className={cn(
-                'w-3 h-3 text-text-muted transition-transform duration-200',
-                isOpen && 'rotate-90'
-              )}
-            />
-          </span>
           <SparklesIcon className={cn(
             'w-4 h-4 shrink-0',
             isActive ? 'text-accent' : 'text-text-muted'
@@ -262,10 +277,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
             'flex-1 text-left truncate',
             isActive ? 'text-accent font-medium' : 'text-text-secondary'
           )}>
-            {campaign.name}
-          </span>
-          <span className="text-xs text-text-muted">
-            {campaign.images.length}
+            {formatCampaignName(campaign.name)}
           </span>
         </button>
 
@@ -317,7 +329,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
                 'flex-1 text-left truncate',
                 isActive && activeFileType === file.type ? 'text-accent' : 'text-text-muted'
               )}>
-                {file.name}
+                {FILE_TYPE_LABELS[file.type] ?? file.name}
               </span>
             </button>
           ))}

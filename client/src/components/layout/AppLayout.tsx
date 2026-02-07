@@ -196,7 +196,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delayDuration={0}>
-        <div className="flex min-h-screen w-full">
+        <div className="flex h-screen w-full overflow-hidden">
           {/* Left Sidebar - Assets (only in workspace) */}
           {isWorkspace && (
             <LeftSidebar
@@ -267,53 +267,44 @@ function LeftSidebar({ open, width, onToggle, onResizeStart, isResizing }: Sideb
     <aside
       data-state={open ? 'expanded' : 'collapsed'}
       className={cn(
-        'hidden md:flex flex-col bg-bg-raised border-r border-border relative',
+        'hidden md:flex flex-col bg-bg-raised border-r border-border relative overflow-hidden',
         !isResizing && 'transition-[width] duration-200 ease-out'
       )}
       style={{ width: open ? `${width}px` : `${SIDEBAR_COLLAPSED_WIDTH}px` }}
     >
       {/* Header */}
-      <div className="h-14 flex items-center justify-between px-3 border-b border-border">
+      <div className={cn(
+        'h-14 flex items-center px-3 border-b border-border',
+        open ? 'justify-between' : 'justify-center'
+      )}>
         {open && (
           <span className="text-sm font-medium text-text-secondary">Assets</span>
         )}
-        <Tooltip>
-          <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggle}
+          className="h-8 w-8 text-text-muted hover:text-text-primary"
+        >
+          <PanelLeftIcon className="h-4 w-4" />
+          <span className="sr-only">Toggle assets panel</span>
+        </Button>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        {open ? (
+          <AssetDrawer />
+        ) : (
+          <div className="flex flex-col items-center gap-2 pt-2">
             <Button
               variant="ghost"
               size="icon"
               onClick={onToggle}
               className="h-8 w-8 text-text-muted hover:text-text-primary"
             >
-              <PanelLeftIcon className="h-4 w-4" />
-              <span className="sr-only">Toggle assets panel</span>
+              <FolderIcon className="h-4 w-4" />
             </Button>
-          </TooltipTrigger>
-          <TooltipContent side="right">
-            {open ? 'Collapse' : 'Expand'} assets (Cmd+[)
-          </TooltipContent>
-        </Tooltip>
-      </div>
-
-      {/* Content */}
-      <div className="flex-1 overflow-hidden">
-        {open ? (
-          <AssetDrawer />
-        ) : (
-          <div className="flex flex-col items-center gap-2 pt-2 px-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onToggle}
-                  className="h-8 w-8 text-text-muted hover:text-text-primary"
-                >
-                  <FolderIcon className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="right">Assets</TooltipContent>
-            </Tooltip>
           </div>
         )}
       </div>
@@ -329,29 +320,25 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
     <aside
       data-state={open ? 'expanded' : 'collapsed'}
       className={cn(
-        'hidden md:flex flex-col bg-bg-raised border-l border-border relative',
+        'hidden md:flex flex-col bg-bg-raised border-l border-border relative overflow-hidden',
         !isResizing && 'transition-[width] duration-200 ease-out'
       )}
       style={{ width: open ? `${width}px` : `${SIDEBAR_COLLAPSED_WIDTH}px` }}
     >
       {/* Header */}
-      <div className="h-14 flex items-center justify-between px-3 border-b border-border">
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onToggle}
-              className="h-8 w-8 text-text-muted hover:text-text-primary"
-            >
-              <PanelRightIcon className="h-4 w-4" />
-              <span className="sr-only">Toggle chat panel</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent side="left">
-            {open ? 'Collapse' : 'Expand'} chat (Cmd+])
-          </TooltipContent>
-        </Tooltip>
+      <div className={cn(
+        'h-14 flex items-center px-3 border-b border-border',
+        open ? 'justify-between' : 'justify-center'
+      )}>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onToggle}
+          className="h-8 w-8 text-text-muted hover:text-text-primary"
+        >
+          <PanelRightIcon className="h-4 w-4" />
+          <span className="sr-only">Toggle chat panel</span>
+        </Button>
         {open && (
           <>
             <span className="text-sm font-medium text-text-secondary">Chat</span>
@@ -361,24 +348,19 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
       </div>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 min-h-0 min-w-0 flex flex-col overflow-hidden">
         {open ? (
           <ChatSidebar />
         ) : (
-          <div className="flex flex-col items-center gap-2 pt-2 px-2">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={onToggle}
-                  className="h-8 w-8 text-text-muted hover:text-text-primary"
-                >
-                  <MessageCircleIcon className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="left">Chat</TooltipContent>
-            </Tooltip>
+          <div className="flex flex-col items-center gap-2 pt-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onToggle}
+              className="h-8 w-8 text-text-muted hover:text-text-primary"
+            >
+              <MessageCircleIcon className="h-4 w-4" />
+            </Button>
           </div>
         )}
       </div>

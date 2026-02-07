@@ -1,14 +1,14 @@
-import { Download, Share2, ArrowLeft, FolderIcon, ImageIcon, MessageSquare, X, RefreshCw } from 'lucide-react'
+import { Download, FolderIcon, ImageIcon, MessageSquare, X, RefreshCw } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageCard, ImageCardSkeleton } from '@/components/ImageCard'
 import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
+import { formatCampaignName } from '@/lib/utils'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
 export function ResultsView() {
   const {
     getActiveCampaign,
-    reset,
     selectedImageIds,
     toggleImageSelection,
     clearImageSelection,
@@ -72,19 +72,11 @@ Please continue from where we left off and complete the remaining images.`
   return (
     <div className="h-screen flex flex-col bg-bg-base overflow-hidden">
       {/* Header */}
-      <header className="border-b border-border bg-bg-base/80 backdrop-blur-sm shrink-0 z-10">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={reset}
-              className="text-text-muted hover:text-text-primary transition-colors p-1 rounded hover:bg-bg-elevated"
-            >
-              <ArrowLeft className="w-4 h-4" />
-            </button>
-            <span className="text-text-primary font-medium">
-              {campaign.name}
-            </span>
-          </div>
+      <header className="h-14 border-b border-border bg-bg-base/80 backdrop-blur-sm shrink-0 z-10">
+        <div className="h-full px-4 flex items-center justify-between">
+          <span className="text-text-primary font-medium">
+            {formatCampaignName(campaign.name)}
+          </span>
           <div className="flex items-center gap-2">
             {/* Selection indicator */}
             {hasSelection && (
@@ -113,14 +105,12 @@ Please continue from where we left off and complete the remaining images.`
                 <span className="hidden sm:inline">Resume</span>
               </Button>
             )}
-            <Button variant="outline" size="sm">
-              <Download className="w-4 h-4" />
-              <span className="hidden sm:inline">Save All</span>
-            </Button>
-            <Button variant="outline" size="sm">
-              <Share2 className="w-4 h-4" />
-              <span className="hidden sm:inline">Share</span>
-            </Button>
+            {campaign.images.length > 0 && (
+              <Button variant="outline" size="sm">
+                <Download className="w-4 h-4" />
+                <span className="hidden sm:inline">Save All</span>
+              </Button>
+            )}
           </div>
         </div>
       </header>

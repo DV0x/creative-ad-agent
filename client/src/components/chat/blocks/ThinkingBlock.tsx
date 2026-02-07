@@ -41,7 +41,7 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
     <Collapsible open={expanded} onOpenChange={onToggle}>
       <div
         className={cn(
-          'rounded-lg border transition-colors duration-200',
+          'rounded-lg border transition-colors duration-200 overflow-hidden',
           isActive && 'border-accent/30 bg-accent/5',
           isComplete && 'border-border bg-bg-elevated/50',
           isError && 'border-red-500/30 bg-red-500/5',
