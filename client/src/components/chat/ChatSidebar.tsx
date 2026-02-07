@@ -14,16 +14,15 @@ export function ChatSidebar() {
     currentGeneratingMessageId,
   } = useStore()
   const { isConnected, generate, followUp, cancel } = useWebSocket()
-  const scrollRef = useRef<HTMLDivElement>(null)
+
+  const bottomRef = useRef<HTMLDivElement>(null)
 
   const chatMessages = getActiveChatMessages()
   const isGenerating = !!currentGeneratingMessageId
 
-  // Auto-scroll to bottom when new messages arrive
+  // Auto-scroll to bottom when new messages arrive or content changes
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight
-    }
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' })
   }, [chatMessages])
 
   const handleSubmit = (message: {
@@ -53,7 +52,7 @@ export function ChatSidebar() {
   return (
     <div className="flex flex-col h-full min-w-0 overflow-hidden">
       {/* Messages */}
-      <ScrollArea className="flex-1 min-h-0 px-3 py-4" ref={scrollRef}>
+      <ScrollArea className="flex-1 min-h-0 px-3 py-4">
         {showEmptyState ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4 py-8">
             <div className="w-10 h-10 rounded-lg bg-bg-elevated flex items-center justify-center mb-3">
@@ -73,6 +72,7 @@ export function ChatSidebar() {
             {chatMessages.map((msg) => (
               <ChatMessage key={msg.id} message={msg} />
             ))}
+            <div ref={bottomRef} />
           </div>
         )}
       </ScrollArea>
@@ -80,7 +80,6 @@ export function ChatSidebar() {
       {/* Input */}
       <ChatInput
         onSubmit={handleSubmit}
-        disabled={isGenerating}
         isGenerating={isGenerating}
         onCancel={handleCancel}
       />

@@ -133,6 +133,7 @@ interface Store {
   completeGeneration: (campaignId: string, messageId: string, summary: string) => void
   cancelGeneration: (campaignId: string, messageId: string) => void
   failGeneration: (campaignId: string, messageId: string, error: string) => void
+  isFollowUp: boolean
   startFollowUp: (campaignId: string, prompt: string) => { campaignId: string; messageId: string }
 
   // Chat (per-campaign)
@@ -244,6 +245,7 @@ export const useStore = create<Store>((set, get) => ({
   activeCampaignId: null,
   isCreatingCampaign: false,
   generatingCampaignId: null,
+  isFollowUp: false,
 
   setActiveCampaignId: (activeCampaignId) => set({
     activeCampaignId,
@@ -441,6 +443,7 @@ export const useStore = create<Store>((set, get) => ({
     set((state) => ({
       sessionId,
       error: null,
+      isFollowUp: false,
       generationExpectedImages: expectedFromPrompt,
       currentGeneratingMessageId: assistantMessageId,
       chatMessages: {
@@ -548,6 +551,7 @@ export const useStore = create<Store>((set, get) => ({
       }
       return {
         generatingCampaignId: null,
+        isFollowUp: false,
         sessionId: null,
         currentGeneratingMessageId: null,
         isRecovering: false,
@@ -564,6 +568,7 @@ export const useStore = create<Store>((set, get) => ({
         c.id === campaignId ? { ...c, status: 'complete' as CampaignStatus } : c
       ),
       generatingCampaignId: null,
+      isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
       generationExpectedImages: 0,
@@ -582,6 +587,7 @@ export const useStore = create<Store>((set, get) => ({
         c.id === campaignId ? { ...c, status: 'cancelled' as CampaignStatus } : c
       ),
       generatingCampaignId: null,
+      isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
       generationExpectedImages: 0,
@@ -600,6 +606,7 @@ export const useStore = create<Store>((set, get) => ({
         c.id === campaignId ? { ...c, status: 'error' as CampaignStatus } : c
       ),
       generatingCampaignId: null,
+      isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
       generationExpectedImages: 0,
@@ -619,6 +626,7 @@ export const useStore = create<Store>((set, get) => ({
 
     set((state) => ({
       generatingCampaignId: campaignId,
+      isFollowUp: true,
       currentGeneratingMessageId: assistantMessageId,
       chatMessages: {
         ...state.chatMessages,
@@ -976,6 +984,7 @@ export const useStore = create<Store>((set, get) => ({
     error: null,
     selectedImageIds: [],
     generatingCampaignId: null,
+    isFollowUp: false,
     currentGeneratingMessageId: null,
     generationExpectedImages: 0,
     dataLoading: false,

@@ -134,7 +134,11 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'message':
           if (message.type === 'message' && 'text' in message && message.text && campaignId && messageId) {
             store.appendMessageContent(campaignId, messageId, message.text);
-            store.appendTextBlock(campaignId, messageId, message.text);
+            // Only show message text in UI during follow-ups (actual AI response).
+            // During initial generation, thinking blocks already show workflow progress.
+            if (store.isFollowUp) {
+              store.appendTextBlock(campaignId, messageId, message.text);
+            }
           }
           break;
 
@@ -174,7 +178,11 @@ export function useWebSocket(): UseWebSocketReturn {
               `Created ${imgCount} ad concept${imgCount !== 1 ? 's' : ''}. You can edit the hooks and prompts in the sidebar, or select images to regenerate them.`;
 
             store.closeThinkingBlock(campaignId, messageId, 'complete');
-            store.appendTextBlock(campaignId, messageId, summary);
+            // Only add summary text block for initial generation (not follow-ups).
+            // Follow-ups already have the AI response in text blocks from message events.
+            if (!store.isFollowUp) {
+              store.appendTextBlock(campaignId, messageId, summary);
+            }
             store.completeGeneration(campaignId, messageId, summary);
             clearActiveSession();
             sessionIdRef.current = null;
