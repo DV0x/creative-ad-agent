@@ -1,6 +1,6 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import type { Options, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
-import { SessionManager } from './session-manager.js';
+import { SessionManager, type SessionInfo } from './session-manager.js';
 import { nanoBananaMcpServer } from './nano-banana-mcp.js';
 import { ORCHESTRATOR_SYSTEM_PROMPT } from './orchestrator-prompt.js';
 import { resolve } from 'path';
@@ -300,11 +300,9 @@ export class AIClient {
   }
 
   /**
-   * Session-aware query with automatic session management
-   * @param prompt - The user prompt
-   * @param sessionId - Optional session ID to resume
-   * @param metadata - Optional session metadata
-   * @param attachments - Optional attachments for multi-modal messages
+   * Session-aware query with automatic resume-failure fallback.
+   * If resume fails (e.g., stale/empty JSONL from a previously failed generation),
+   * catches the error and retries as a fresh session instead of crashing.
    */
   async *queryWithSession(
     prompt: string,
@@ -314,19 +312,43 @@ export class AIClient {
     externalAbortController?: AbortController,
     resumeSdkSessionId?: string
   ) {
-    // Get or create session
     const session = await this.sessionManager.getOrCreateSession(sessionId, metadata);
 
-    // Use explicit resume SDK session ID if provided (e.g., from DB for follow-ups),
-    // otherwise look up from session manager's in-memory map
     const resumeOptions = resumeSdkSessionId
       ? { resume: resumeSdkSessionId }
       : this.sessionManager.getResumeOptions(session.id);
 
-    // External abort controller enables caller-driven cancellation (e.g., user clicks cancel).
-    // Passed to SDK options so aborting kills the CLI subprocess.
     const abortController = externalAbortController || new AbortController();
 
+    // If we have a resume option, try it first with fallback to fresh session
+    if (resumeOptions.resume) {
+      try {
+        yield* this._executeQuery(prompt, session, resumeOptions, abortController, attachments, metadata);
+        return; // Resume succeeded
+      } catch (error: any) {
+        const isAbort = error.name === 'AbortError' || abortController.signal.aborted;
+        if (isAbort) throw error; // User cancelled — don't retry
+
+        console.warn(`⚠️ Resume failed for session ${session.id} (sdkSessionId: ${resumeOptions.resume}): ${error.message}`);
+        console.log(`🔄 Falling back to fresh session (no resume)`);
+      }
+    }
+
+    // Fresh session (no resume) — either resume wasn't available or it failed
+    yield* this._executeQuery(prompt, session, {}, abortController, attachments, metadata);
+  }
+
+  /**
+   * Internal: Execute a single SDK query attempt.
+   */
+  private async *_executeQuery(
+    prompt: string,
+    session: SessionInfo,
+    resumeOptions: { resume?: string },
+    abortController: AbortController,
+    attachments?: Array<{ type: string; source: any }>,
+    metadata?: any
+  ) {
     const queryOptions = {
       ...this.defaultOptions,
       ...resumeOptions,
@@ -345,14 +367,11 @@ export class AIClient {
       const promptGenerator = this.createPromptGenerator(prompt, attachments, doneController.signal);
 
       for await (const message of query({ prompt: promptGenerator, options: queryOptions })) {
-        // Capture SDK session ID from init message
         if (message.type === 'system' && message.subtype === 'init' && message.session_id && !sdkSessionIdCaptured) {
           await this.sessionManager.updateSdkSessionId(session.id, message.session_id);
           sdkSessionIdCaptured = true;
         }
 
-        // Signal generator to close when result arrives — this lets
-        // streamInput() proceed to endInput() and cleanly shut down.
         if (message.type === 'result') doneController.abort();
 
         await this.sessionManager.addMessage(session.id, message);

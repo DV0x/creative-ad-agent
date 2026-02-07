@@ -923,13 +923,22 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       return;
     }
 
-    const sdkSessionId = db.getSdkSessionId(campaignId);
+    // Get SDK session ID — skip resume for failed/cancelled campaigns
+    // (their JSONL files may be empty/invalid and would crash the CLI)
+    let sdkSessionId: string | null = null;
+    if (campaign.status !== 'error' && campaign.status !== 'cancelled') {
+      sdkSessionId = db.getSdkSessionId(campaignId);
+    }
     if (!sdkSessionId) {
-      send(state.ws, { type: 'error', timestamp: new Date().toISOString(), error: 'No SDK session found for this campaign' });
+      console.log(`⚠️ No valid SDK session for campaign ${campaignId} (status: ${campaign.status}) — will start fresh`);
+    }
+
+    if (!campaign.session_id) {
+      send(state.ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Campaign has no session' });
       return;
     }
 
-    const wsSessionId = campaign.session_id!;
+    const wsSessionId = campaign.session_id;
     localSessionId = wsSessionId;
 
     // 2. Set up connection state
@@ -1018,7 +1027,7 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       undefined,
       undefined,
       state.abortController,
-      sdkSessionId
+      sdkSessionId ?? undefined
     )) {
       if (state.abortController?.signal.aborted && !generationCompleted) {
         wasCancelled = true;
