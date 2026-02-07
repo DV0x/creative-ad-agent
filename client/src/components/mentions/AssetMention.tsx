@@ -34,6 +34,7 @@ interface AssetMentionProps {
   mentionedAssetFiles: AssetFile[]
   placeholder?: string
   className?: string
+  autoFocus?: boolean
   // Image selection is handled via the store (selectedImageIds)
   // No explicit props needed - component reads/writes to store directly
 }
@@ -48,7 +49,8 @@ export function AssetMention({
   mentionedFiles,
   mentionedAssetFiles,
   placeholder = 'Type a message... Use @ to mention files',
-  className
+  className,
+  autoFocus
 }: AssetMentionProps) {
   const {
     assetFolders,
@@ -66,6 +68,13 @@ export function AssetMention({
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
   const activeCampaign = getActiveCampaign()
+
+  // Auto-focus input when requested
+  useEffect(() => {
+    if (autoFocus) {
+      inputRef.current?.focus()
+    }
+  }, [autoFocus])
 
   // Build list of all mentionable items
   const getAllItems = useCallback((): MentionItem[] => {
@@ -383,7 +392,8 @@ export function AssetMention({
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="w-full px-3 py-2 bg-bg-elevated border border-border rounded-md text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:border-accent focus:ring-1 focus:ring-accent/25"
+        className="w-full py-1.5 bg-transparent border-none text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
+        style={{ outline: 'none', boxShadow: 'none' }}
       />
 
       {/* Dropdown */}

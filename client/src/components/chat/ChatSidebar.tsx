@@ -82,6 +82,7 @@ export function ChatSidebar() {
         onSubmit={handleSubmit}
         isGenerating={isGenerating}
         onCancel={handleCancel}
+        autoFocus={isCreatingCampaign}
       />
     </div>
   )

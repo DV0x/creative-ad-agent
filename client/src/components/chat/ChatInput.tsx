@@ -1,6 +1,5 @@
 import { useState } from 'react'
-import { Send, Square } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowUp, Square } from 'lucide-react'
 import { AssetMention } from '@/components/mentions/AssetMention'
 import { ImageChip } from '@/components/chat/ImageChip'
 import { useStore, type AssetFolder, type AssetFile, type CampaignFileType } from '@/store'
@@ -15,9 +14,10 @@ interface ChatInputProps {
   disabled?: boolean
   isGenerating?: boolean
   onCancel?: () => void
+  autoFocus?: boolean
 }
 
-export function ChatInput({ onSubmit, disabled, isGenerating, onCancel }: ChatInputProps) {
+export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocus }: ChatInputProps) {
   const {
     selectedImageIds,
     toggleImageSelection,
@@ -74,12 +74,18 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel }: ChatIn
     toggleImageSelection(imageId)
   }
 
+  const handleActionClick = () => {
+    if (isGenerating && onCancel) {
+      onCancel()
+    }
+  }
+
   return (
-    <div className="p-3 border-t border-border">
-      <form onSubmit={handleSubmit} className="space-y-2">
+    <div className="px-3 pb-3 pt-1">
+      <form onSubmit={handleSubmit}>
         {/* Selected images chips */}
         {selectedImages.length > 0 && (
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5 mb-2">
             {selectedImages.map(img => (
               <ImageChip
                 key={img.id}
@@ -92,44 +98,45 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel }: ChatIn
           </div>
         )}
 
-        {/* Message input with @ mentions */}
-        <AssetMention
-          value={message}
-          onChange={setMessage}
-          onFolderMention={setMentionedFolders}
-          onFileMention={setMentionedFiles}
-          onAssetFileMention={setMentionedAssetFiles}
-          mentionedFolders={mentionedFolders}
-          mentionedFiles={mentionedFiles}
-          mentionedAssetFiles={mentionedAssetFiles}
-          placeholder={selectedImages.length > 0
-            ? "Describe changes for selected images..."
-            : "Type a message..."
-          }
-        />
+        {/* Input container */}
+        <div className="relative flex items-end gap-2 rounded-xl border border-border bg-bg-elevated p-1.5 pl-3 transition-colors focus-within:border-border-emphasis">
+          {/* Message input with @ mentions */}
+          <div className="flex-1 min-w-0">
+            <AssetMention
+              value={message}
+              onChange={setMessage}
+              onFolderMention={setMentionedFolders}
+              onFileMention={setMentionedFiles}
+              onAssetFileMention={setMentionedAssetFiles}
+              mentionedFolders={mentionedFolders}
+              mentionedFiles={mentionedFiles}
+              mentionedAssetFiles={mentionedAssetFiles}
+              autoFocus={autoFocus}
+              placeholder={selectedImages.length > 0
+                ? "Describe changes for selected images..."
+                : "Type a message..."
+              }
+            />
+          </div>
 
-        {/* Action buttons */}
-        <div className="flex justify-end gap-2">
-          {isGenerating && onCancel && (
-            <Button
+          {/* Send / Stop button */}
+          {isGenerating ? (
+            <button
               type="button"
-              size="sm"
-              variant="outline"
-              onClick={onCancel}
+              onClick={handleActionClick}
+              className="flex-shrink-0 w-8 h-8 rounded-lg bg-text-primary flex items-center justify-center transition-colors hover:bg-text-secondary"
             >
-              <Square className="w-4 h-4" />
-              Cancel
-            </Button>
+              <Square className="w-3.5 h-3.5 text-bg-base fill-current" />
+            </button>
+          ) : (
+            <button
+              type="submit"
+              disabled={!hasContent || disabled}
+              className="flex-shrink-0 w-8 h-8 rounded-lg bg-text-primary flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed hover:bg-text-secondary"
+            >
+              <ArrowUp className="w-4 h-4 text-bg-base" strokeWidth={2.5} />
+            </button>
           )}
-          <Button
-            type="submit"
-            size="sm"
-            disabled={!hasContent || disabled}
-            variant="glow"
-          >
-            <Send className="w-4 h-4" />
-            {selectedImages.length > 0 ? 'Regenerate' : 'Send'}
-          </Button>
         </div>
       </form>
     </div>
