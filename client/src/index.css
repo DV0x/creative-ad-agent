@@ -1,5 +1,5 @@
 /* Import fonts - Studio Dark typography */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @import "tailwindcss";
 
@@ -9,7 +9,7 @@
 
 @theme {
   /* Typography */
-  --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
   /* Studio Dark - Background Layers */
@@ -27,20 +27,20 @@
   --color-border: #2a2a2a;
   --color-border-emphasis: #3a3a3a;
 
-  /* Accent - Electric Blue */
-  --color-accent: #3b82f6;
-  --color-accent-hover: #2563eb;
-  --color-accent-glow: rgba(59, 130, 246, 0.25);
+  /* Accent - Electric Coral */
+  --color-accent: #ff6b6b;
+  --color-accent-hover: #e85555;
+  --color-accent-glow: rgba(255, 107, 107, 0.25);
 
-  /* Pop - Coral/Orange */
-  --color-pop: #f97316;
-  --color-pop-hover: #ea580c;
+  /* Pop - Deep Blue */
+  --color-pop: #4361ee;
+  --color-pop-hover: #3651d4;
 
   /* Status Colors */
   --color-success: #22c55e;
   --color-warning: #eab308;
   --color-error: #ef4444;
-  --color-info: #8b5cf6;
+  --color-info: #7c8cf5;
 
   /* Semantic Aliases */
   --color-background: var(--color-bg-base);
@@ -87,7 +87,7 @@
   --card-foreground: 0 0% 96%;
   --popover: 0 0% 9%;
   --popover-foreground: 0 0% 96%;
-  --primary: 217 91% 60%;
+  --primary: 0 100% 71%;
   --primary-foreground: 0 0% 100%;
   --secondary: 0 0% 12%;
   --secondary-foreground: 0 0% 96%;
@@ -99,18 +99,18 @@
   --destructive-foreground: 0 0% 100%;
   --border: 0 0% 16%;
   --input: 0 0% 16%;
-  --ring: 217 91% 60%;
+  --ring: 0 100% 71%;
   --radius: 0.5rem;
 
   /* Sidebar - Dark theme */
   --sidebar: 0 0% 9%;
   --sidebar-foreground: 0 0% 96%;
-  --sidebar-primary: 217 91% 60%;
+  --sidebar-primary: 0 100% 71%;
   --sidebar-primary-foreground: 0 0% 100%;
   --sidebar-accent: 0 0% 12%;
   --sidebar-accent-foreground: 0 0% 96%;
   --sidebar-border: 0 0% 16%;
-  --sidebar-ring: 217 91% 60%;
+  --sidebar-ring: 0 100% 71%;
 }
 
 /* Theme inline for Tailwind */
@@ -396,7 +396,7 @@ body {
   border-radius: 50%;
   filter: blur(120px);
   opacity: 0.25;
-  background: radial-gradient(circle, #8b5cf6 0%, transparent 70%);
+  background: radial-gradient(circle, #4361ee 0%, transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);

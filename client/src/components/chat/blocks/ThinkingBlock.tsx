@@ -103,7 +103,7 @@ function StatusIcon({ status }: { status: ThinkingBlockData['status'] }) {
     case 'active':
       return <Loader2 className="h-3.5 w-3.5 text-accent animate-spin flex-shrink-0" />
     case 'complete':
-      return <CheckCircle2 className="h-3.5 w-3.5 text-green-500 flex-shrink-0" />
+      return <CheckCircle2 className="h-3.5 w-3.5 text-accent flex-shrink-0" />
     case 'error':
       return <AlertCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
   }
