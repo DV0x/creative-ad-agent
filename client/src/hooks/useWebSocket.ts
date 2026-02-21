@@ -277,7 +277,9 @@ export function useWebSocket(): UseWebSocketReturn {
       wsManager.sendMessage({
         type: 'subscribe',
         sessionId: savedSession.sessionId,
-        lastEventId: getLastEventId(savedSession.sessionId)
+        // Use in-memory ref, not localStorage: on page refresh ref is 0 (replay all),
+        // on WebSocket reconnect ref has the real last received ID (replay only missed)
+        lastEventId: lastEventIdRef.current
       });
 
       // Recovery timeout — if 'subscribed' never arrives, clear the stuck state

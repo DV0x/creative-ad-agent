@@ -107,6 +107,17 @@ export function abortSession(sessionId: string): boolean {
   return false;
 }
 
+// Extract campaign name from prompt (e.g., "nike.com" -> "Nike")
+function extractCampaignName(prompt: string): string {
+  const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
+  if (domainMatch) {
+    const name = domainMatch[1];
+    return name.charAt(0).toUpperCase() + name.slice(1);
+  }
+  const firstWord = prompt.split(/\s+/)[0] || 'Campaign';
+  return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+}
+
 function send(ws: WebSocket, message: ServerMessage) {
   if (ws.readyState === WebSocket.OPEN) {
     ws.send(JSON.stringify(message));
@@ -535,7 +546,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   // Create or get campaign in database BEFORE sending ack
   // so the client receives the real DB campaign ID immediately.
   // DB operations are synchronous (better-sqlite3).
-  const campaignName = prompt.slice(0, 50).trim() || 'Untitled Campaign';
+  const campaignName = extractCampaignName(prompt);
   try {
     let campaign = db.getCampaignBySessionId(sessionId);
     if (!campaign) {

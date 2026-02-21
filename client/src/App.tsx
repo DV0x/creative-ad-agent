@@ -79,11 +79,19 @@ function AppContent() {
 
         setCampaigns(fullCampaigns)
         setAssetFolders(foldersWithFiles)
-        // Load persisted messages (for post-generation refresh)
-        // Skip if recovery already populated chatMessages (active generation)
-        const hasActiveRecovery = localStorage.getItem('creative-agent:activeSession')
-        if (Object.keys(messagesByCampaign).length > 0 && !hasActiveRecovery) {
-          setChatMessages(messagesByCampaign)
+        // Load persisted messages for all campaigns.
+        // If there's an active recovery session, exclude only that campaign's messages
+        // so the live generation state isn't overwritten with stale DB data.
+        if (Object.keys(messagesByCampaign).length > 0) {
+          const activeSessionRaw = localStorage.getItem('creative-agent:activeSession')
+          const activeSession = activeSessionRaw ? JSON.parse(activeSessionRaw) : null
+          const activeCampaignId = activeSession?.campaignId
+          if (activeCampaignId) {
+            delete messagesByCampaign[activeCampaignId]
+          }
+          if (Object.keys(messagesByCampaign).length > 0) {
+            setChatMessages(messagesByCampaign)
+          }
         }
         setDataLoaded(true)
       } catch (err) {
