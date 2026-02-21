@@ -168,7 +168,7 @@ interface Store {
   addFolder: (name: string) => void
   removeFolder: (id: string) => void
   renameFolder: (id: string, name: string) => void
-  addFileToFolder: (folderId: string, file: Omit<AssetFile, 'id' | 'folderId' | 'createdAt'>) => void
+  addFileToFolder: (folderId: string, file: Omit<AssetFile, 'folderId'>) => void
   removeFile: (fileId: string) => void
 
   // Async API-synced actions
@@ -854,7 +854,7 @@ export const useStore = create<Store>((set, get) => ({
   addFileToFolder: (folderId, file) => set((state) => ({
     assetFolders: state.assetFolders.map(folder =>
       folder.id === folderId
-        ? { ...folder, files: [...folder.files, { ...file, id: generateId('file'), folderId, createdAt: new Date() }] }
+        ? { ...folder, files: [...folder.files, { ...file, folderId }] }
         : folder
     )
   })),

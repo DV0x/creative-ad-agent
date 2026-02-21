@@ -45,15 +45,17 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
     assetRefs: string[]
     imageRefs: { imageId: number }[]
   }) => {
+    const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
+
     // When creating a new campaign, trigger generation via WebSocket
     if (isCreatingCampaign && message.content.trim() && isConnected) {
-      generate(message.content.trim())
+      generate(message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined)
       return
     }
 
     // Existing campaign: send follow-up to AI
     if (activeCampaignId && message.content.trim()) {
-      followUp(activeCampaignId, message.content.trim())
+      followUp(activeCampaignId, message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined)
     }
   }
 

@@ -343,4 +343,42 @@ export const assetsApi = {
       method: 'DELETE',
     });
   },
+
+  async uploadFile(file: File, folderId: string): Promise<AssetFile> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('folderId', folderId);
+
+    const headers: HeadersInit = {};
+    if (IS_AUTH_ENABLED && tokenGetter) {
+      const token = await tokenGetter();
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
+
+    const response = await fetch('/api/assets/upload', {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({ error: 'Upload failed' }));
+      throw new Error(error.error || `HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    const f = data.file as ApiAssetFile;
+
+    return {
+      id: f.id,
+      name: f.name,
+      url: `/api/assets/files/${f.id}`,
+      type: f.file_type,
+      folderId: f.folder_id,
+      size: f.size || undefined,
+      createdAt: new Date(f.created_at),
+    };
+  },
 };

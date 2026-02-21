@@ -10,6 +10,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog'
 import { useStore } from '@/store'
+import { assetsApi } from '@/lib/api'
 import { cn } from '@/lib/utils'
 
 interface FileUploadProps {
@@ -34,12 +35,13 @@ function getFileType(mimeType: string): 'image' | 'document' | 'other' {
 }
 
 export function FileUpload({ className }: FileUploadProps) {
-  const { assetFolders, selectedFolderId, addFileToFolder, addFolder, setSelectedFolderId } = useStore()
+  const { assetFolders, selectedFolderId, addFileToFolder, createFolderAsync, setSelectedFolderId } = useStore()
 
   const [isOpen, setIsOpen] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
   const [files, setFiles] = useState<UploadFile[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [isUploading, setIsUploading] = useState(false)
   const [targetFolderId, setTargetFolderId] = useState<string | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -139,38 +141,50 @@ export function FileUpload({ className }: FileUploadProps) {
 
   const handleUpload = useCallback(async () => {
     if (files.length === 0) return
+    setIsUploading(true)
+    setError(null)
 
-    // If no target folder, create "Uploads" folder
-    let folderId = targetFolderId
-    if (!folderId) {
-      addFolder('Uploads')
-      // Get the newly created folder
-      const folders = useStore.getState().assetFolders
-      folderId = folders[folders.length - 1]?.id
-      if (folderId) {
+    try {
+      // If no target folder, create "Uploads" folder on server
+      let folderId = targetFolderId
+      if (!folderId) {
+        folderId = await createFolderAsync('Uploads')
         setSelectedFolderId(folderId)
       }
-    }
 
-    if (!folderId) {
-      setError('No folder selected')
-      return
-    }
+      if (!folderId) {
+        setError('No folder selected')
+        return
+      }
 
-    // Add files to folder
-    for (const uploadFile of files) {
-      addFileToFolder(folderId, {
-        name: uploadFile.name,
-        url: uploadFile.preview, // Using object URL for demo (in real app, would upload to server)
-        type: uploadFile.type,
-        size: uploadFile.size
-      })
-    }
+      // Upload each file to server
+      const errors: string[] = []
+      for (const uploadFile of files) {
+        try {
+          const assetFile = await assetsApi.uploadFile(uploadFile.file, folderId)
+          addFileToFolder(folderId, assetFile)
+        } catch (err: any) {
+          errors.push(`${uploadFile.name}: ${err.message || 'Upload failed'}`)
+        }
+      }
 
-    // Clean up and close
-    setFiles([])
-    setIsOpen(false)
-  }, [files, targetFolderId, addFileToFolder, addFolder, setSelectedFolderId])
+      // Revoke object URLs
+      for (const uploadFile of files) {
+        URL.revokeObjectURL(uploadFile.preview)
+      }
+
+      if (errors.length > 0) {
+        setError(errors.join('\n'))
+      } else {
+        setFiles([])
+        setIsOpen(false)
+      }
+    } catch (err: any) {
+      setError(err.message || 'Upload failed')
+    } finally {
+      setIsUploading(false)
+    }
+  }, [files, targetFolderId, addFileToFolder, createFolderAsync, setSelectedFolderId])
 
   return (
     <>
@@ -178,7 +192,7 @@ export function FileUpload({ className }: FileUploadProps) {
         variant="outline"
         className={cn('w-full', className)}
         size="sm"
-        onClick={() => setIsOpen(true)}
+        onClick={() => handleOpenChange(true)}
       >
         <UploadIcon className="w-4 h-4" />
         Upload Files
@@ -330,10 +344,10 @@ export function FileUpload({ className }: FileUploadProps) {
             </Button>
             <Button
               onClick={handleUpload}
-              disabled={files.length === 0}
+              disabled={files.length === 0 || isUploading}
             >
               <UploadIcon className="w-4 h-4" />
-              Upload {files.length > 0 && `(${files.length})`}
+              {isUploading ? 'Uploading...' : `Upload${files.length > 0 ? ` (${files.length})` : ''}`}
             </Button>
           </DialogFooter>
         </DialogContent>

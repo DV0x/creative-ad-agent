@@ -75,10 +75,10 @@ export interface UseWebSocketReturn {
   connectionState: WSConnectionState;
   isConnected: boolean;
   isRecovering: boolean;
-  generate: (prompt: string) => void;
+  generate: (prompt: string, assetFileIds?: string[]) => void;
   cancel: () => void;
   resume: (campaignId: string, resumePrompt: string) => void;
-  followUp: (campaignId: string, prompt: string) => void;
+  followUp: (campaignId: string, prompt: string, assetFileIds?: string[]) => void;
 }
 
 export function useWebSocket(): UseWebSocketReturn {
@@ -320,7 +320,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
   // ── Actions ────────────────────────────────────────────────
 
-  const generate = useCallback((prompt: string) => {
+  const generate = useCallback((prompt: string, assetFileIds?: string[]) => {
     if (!prompt.trim()) return;
 
     const store = useStore.getState();
@@ -338,7 +338,8 @@ export function useWebSocket(): UseWebSocketReturn {
     const sent = wsManager.sendMessage({
       type: 'generate',
       prompt,
-      sessionId
+      sessionId,
+      ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
     });
 
     if (!sent) {
@@ -388,7 +389,7 @@ export function useWebSocket(): UseWebSocketReturn {
     }
   }, []);
 
-  const followUp = useCallback((campaignId: string, prompt: string) => {
+  const followUp = useCallback((campaignId: string, prompt: string, assetFileIds?: string[]) => {
     if (!prompt.trim()) return;
 
     const store = useStore.getState();
@@ -400,6 +401,7 @@ export function useWebSocket(): UseWebSocketReturn {
       type: 'follow_up',
       prompt,
       campaignId,
+      ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
     });
 
     if (!sent) {

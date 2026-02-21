@@ -1,6 +1,6 @@
 # Creative Ad Agent — Architecture Document
 
-> Updated 2026-02-21. Covers the full system: client, server, agent ecosystem.
+> Updated 2026-02-21 (session 2). Covers the full system: client, server, agent ecosystem.
 
 ---
 
@@ -507,7 +507,9 @@ ChatMessage
 ### 5.7 Assets & Mentions
 
 **Assets Panel (`components/assets/AssetDrawer.tsx`):**
-- Folder tree with file upload
+- Two sections: Campaigns (collapsible) and Assets
+- Campaigns section header is clickable — collapses to single line with count badge, giving more room for assets
+- Folder tree with file upload (server-persisted via `POST /api/assets/upload`)
 - File preview and delete/rename
 
 **@ Mentions (`components/mentions/AssetMention.tsx`):**
@@ -533,7 +535,7 @@ ChatMessage
 - Base `apiFetch<T>()` adds auth headers + error handling
 - Type transformers: snake_case (server) → camelCase (client)
 - Campaigns API: list, get, create, update, delete, updateFile, getStatus
-- Assets API: listFolders, createFolder, renameFolder, deleteFolder, getFiles, deleteFile
+- Assets API: listFolders, createFolder, renameFolder, deleteFolder, getFiles, deleteFile, uploadFile
 
 ### 5.10 Styling
 
@@ -764,10 +766,21 @@ useWebSocket.followUp(campaignId, prompt)
 ### 7.4 Asset Upload & @ Mention
 
 ```
-User uploads file in AssetDrawer
+User clicks "Upload Files" in AssetDrawer
     │
-    ├── POST /api/assets/folders/:id/files (multipart)
-    └── store.addFileToFolder(folderId, file)
+    ├── FileUpload dialog opens → handleOpenChange() sets targetFolderId
+    ├── User drops/selects files → object URLs created for preview
+    ├── User clicks Upload → handleUpload()
+    │     ├── If no folder selected: createFolderAsync('Uploads') → server creates folder
+    │     ├── For each file: assetsApi.uploadFile(file, folderId)
+    │     │     ├── POST /api/assets/upload (FormData: file + folderId)
+    │     │     ├── Server: multer saves to /uploads/, db.addFile() persists metadata
+    │     │     └── Returns { id, name, file_path, file_type, size, created_at }
+    │     ├── store.addFileToFolder(folderId, serverFile) — uses server-generated ID
+    │     └── Revoke object URLs
+    │
+    ├── Files persist across refresh (SQLite + disk)
+    └── Server-generated file IDs (file_xxx) match what WebSocket expects
 
 User types @ in ChatInput
     │
@@ -775,8 +788,8 @@ User types @ in ChatInput
     ├── Sources: campaign images, campaign files, asset folders/files
     ├── User selects item → added as pill above input
     │
-    └── On submit: mentions prefixed to message content
-          e.g., "@research @brand-assets [Image 3] make the colors warmer"
+    └── On submit: assetFileIds sent over WebSocket
+          → Server resolves: DB lookup → disk read → base64 for Claude + fal.storage URL for MCP
 ```
 
 ---
@@ -854,64 +867,29 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 
 ## 9. Known Issues & Gaps
 
-### 9.1 Critical Bugs (Will Cause User-Visible Problems)
-
-| ID | Issue | Severity | Details |
-|----|-------|----------|---------|
-| **C1** | **Image regeneration — works but doesn't scale** | Deferred | @ mentions embed `[Image N]` in prompt text, agent understands via session resume. Structured `imageRefs` path is broken (dropped at every handoff) but not needed currently. Does not scale — session resume replays entire history. See §10.4 for stateless regen plan. |
-| **C2** | ~~`ack` not buffered~~ | Fixed | Changed `send()` to `emitEvent()` in `handleGenerate` so the `ack` (with server campaign ID) is buffered and replayed on reconnect. |
-| **C3** | ~~Image ID namespace collision~~ | Not a bug | Both paths (live: `useWebSocket.ts:170` and reload: `api.ts:148`) use `image_index` (1-6) as `GeneratedImage.id`. DB autoincrement PK is never exposed to the client. No namespace collision exists. |
-
-### 9.2 High Severity (Data Integrity / Reliability)
-
-| ID | Issue | Details |
-|----|-------|---------|
-| **H1** | ~~Event buffer memory leak~~ | Fixed | `clearBuffer(sessionId)` now called 60s after generation ends (in `finally` blocks of both `handleGenerate` and `handleFollowUp`). 60s grace period allows late reconnects to still replay. |
-| **H2** | ~~Recovery stuck state~~ | Fixed | Added 45s timeout in `useWebSocket.ts` `handleConnected`. If `subscribed` never arrives, clears `isRecovering` and removes stale session from localStorage. 45s covers worst-case reconnect (5 attempts × escalating delays ≈ 30s) + replay time. |
-| **H3** | ~~Silent stream end~~ | Fixed | Added fallback completion in `handleFollowUp`: if SDK stream ends without `result` message and wasn't cancelled, sends `complete` event with accumulated text/images, persists to DB. Matches existing fallback in `handleGenerate`. |
-| **H4** | ~~Recovery replays from 0~~ | Fixed | `subscribe` message now uses `lastEventIdRef.current` (in-memory). On page refresh ref is `0` (replays all events to rebuild UI). On WebSocket reconnect ref has the real last received ID (replays only missed events). Initial fix used localStorage which broke page refresh — corrected to use in-memory ref to distinguish the two cases. |
-
-### 9.2b Additional Bugs Found During Testing
-
-| ID | Issue | Details |
-|----|-------|---------|
-| **H5** | ~~Campaign name wrong after refresh~~ | Fixed | Server used `prompt.slice(0, 50)` as campaign name in DB. Client extracted a clean name via `extractCampaignName()` (e.g., "Iamchakra"), but on page reload the DB name (raw prompt) was displayed. Fixed by adding same `extractCampaignName()` logic to server's `handleGenerate`. |
-| **H6** | ~~All campaign messages hidden if active session exists~~ | Fixed | `App.tsx` skipped loading ALL campaign messages from DB when `localStorage['creative-agent:activeSession']` existed. Should only skip the active campaign's messages. Fixed to exclude only the recovering campaign's messages, loading all others normally. |
-
-### 9.3 Discrepancies
+### 9.1 Discrepancies
 
 | Issue | Details |
 |-------|---------|
-| ~~Default style mismatch~~ | Fixed. `orchestrator-prompt.ts` now says Anderson Clay Diorama as default, matching `art-style/SKILL.md`. |
 | **Hook type count** | Hook methodology defines **10** types, but MCP maps only **6** by index (`stat`, `story`, `fomo`, `curiosity`, `callout`, `contrast`). |
 | **Hook count** | Skill default is 3 hooks, orchestrator requests 6. |
 | **File paths in docs** | Some skill docs reference `/storage/` paths that don't match actual `agent/files/` paths. |
-| ~~`WSImageEvent.imageId`~~ | Removed. Stale `imageId: string` field cleaned from `types/websocket.ts`. Only `imageIndex` remains. |
-| ~~`UseWebSocketReturn` type~~ | Removed stale duplicate from `types/websocket.ts`. Canonical version lives in `useWebSocket.ts` with correct signatures. |
-| ~~`WSClientMessage.imageRefs`~~ | Removed. Stale `imageRefs?: number[]` cleaned from `types/websocket.ts`. |
 | **`ApiFolder.updated_at`** | Client type expects it but DB `asset_folders` table has no `updated_at` column — returns null. |
 
-### 9.4 Dead Code
+### 9.2 Dead Code
 
 | Item | Location | Notes |
 |------|----------|-------|
-| ~~`clearBuffer()`~~ | `server/lib/event-buffer.ts:105` | Now called from both `handleGenerate` and `handleFollowUp` finally blocks (H1 fix) |
-| ~~`UseWebSocketReturn`~~ | `client/src/types/websocket.ts` | Removed stale duplicate. Canonical type lives in `useWebSocket.ts`. |
-| ~~`pause`/`resume` WS~~ | `types/websocket.ts` + `websocket-handler.ts` | Removed from both sides: `handlePause`, `handleResume`, `isPaused`, `messageBuffer`, case handlers, and type unions. |
-| ~~`isPaused` buffer path~~ | `websocket-handler.ts` | Removed along with pause/resume cleanup. `broadcastToConnection` simplified. |
-| ~~`addStatusBlock`~~ | `store/index.ts` | Removed action and type declaration. |
 | `SavedSession.messageId` | `useWebSocket.ts:17` | Saved to localStorage but never read during recovery. |
-| ~~`MobileChatDrawer` mocks~~ | `components/chat/MobileChatDrawer.tsx` | Replaced mock `setTimeout` responses with real `followUp()` call. Removed `isTyping` state, `addChatMessage`, `setPrompt`. |
-| File upload | `components/assets/FileUpload.tsx` | Uses object URLs — no actual server upload (stub/demo only). |
 
-### 9.5 Race Conditions
+### 9.3 Race Conditions
 
 | ID | Risk | Details |
 |----|------|---------|
 | **R1** | **Campaign ID window** | Between `startGeneration` (local ID) and `replaceCampaignId` (server ID via `ack`), any API call using the local ID will 404. |
 | **R2** | **Dual image event path** | Images arrive via EventEmitter (real-time) AND SDK `tool_result`. Deduplication via `processedImageIndices` Set works in-memory, but DB may get version 2 orphan rows. |
 
-### 9.6 Security / Production Hardening
+### 9.4 Security / Production Hardening
 
 | Issue | Details |
 |-------|---------|
@@ -931,23 +909,13 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 
 | Feature | Status | What's Missing |
 |---------|--------|---------------|
-| **Image regeneration** | Works via text path | @ mentions embed `[Image N]` in prompt text, agent understands via session resume. Structured `imageRefs` path is broken (dropped at every handoff) but not needed currently. **Does not scale** — session resume replays entire history. See §10.4 for stateless regen plan. |
-| **Image download** | Partially works | `ImageCard` and `ImageLightbox` use `<a download>` which works for same-origin `/images/` URLs. Batch download toolbar button has no `onClick` handler. |
-| **Batch operations** | Selection UI works | Toolbar shows count but Download button has no handler. No bulk download/delete/export API. |
-| **File upload** | Stub only | Uses object URLs. No actual server upload — "in real app, would upload to server" comment in code. |
-| **Follow-up image generation** | Untested | Follow-ups can chat but generating NEW images in follow-ups needs more testing. |
+| **Image regeneration** | Works via text path | @ mentions embed `[Image N]` in prompt text, agent understands via session resume. **Does not scale** — see §10.4 for stateless regen plan. |
 
-### 10.2 Bugs to Fix (Priority Order)
+### 10.2 Bugs to Fix
 
-1. ~~**Fix image ID namespace**~~ — Not a bug. Both paths already use `image_index` consistently.
-2. ~~**Buffer the `ack` event**~~ — Fixed. Changed `send()` to `emitEvent()` in `handleGenerate`.
-3. **Wire up image regeneration** — Deferred to Phase 2 (§10.4). Current text-based path works via session resume.
-4. ~~**Fix recovery replay**~~ — Fixed. `subscribe` uses `lastEventIdRef.current` (0 on refresh, real value on reconnect).
-5. ~~**Add recovery timeout**~~ — Fixed. 45s timeout clears `isRecovering` if `subscribed` never arrives.
-6. ~~**Handle stream end without result**~~ — Fixed. Fallback `complete` event in `handleFollowUp`.
-7. ~~**Call `clearBuffer()`**~~ — Fixed. Called with 60s delay in both `handleGenerate` and `handleFollowUp` finally blocks.
-8. ~~**Campaign name mismatch on refresh**~~ — Fixed. Server now uses `extractCampaignName()` matching client logic.
-9. ~~**All messages hidden during recovery**~~ — Fixed. `App.tsx` now only skips the active campaign's messages, not all.
+1. **Wire up image regeneration** — Deferred to Phase 2 (§10.4). Current text-based path works via session resume.
+2. **R1: Campaign ID window** — File saves can 404 between local ID creation and server `ack`. See §9.3.
+3. **R2: Dual image event path** — DB can get orphan version rows from EventEmitter + SDK tool_result race. See §9.3.
 
 ### 10.3 Suggested Improvements
 
@@ -991,8 +959,4 @@ ASSET LAYER      — DB is the source of truth, not the conversation
 
 ### 10.5 Cleanup
 
-- ~~Remove dead `UseWebSocketReturn` type from `types/websocket.ts`~~ — Done
-- ~~Remove `pause`/`resume` handlers from both client and server~~ — Done
-- ~~Remove stale mock responses from `MobileChatDrawer`~~ — Done, replaced with real `followUp()` call
-- ~~Align default style between orchestrator prompt and art-style SKILL.md~~ — Done
 - Commit untracked docs in `docs/`

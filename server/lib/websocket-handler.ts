@@ -1,5 +1,10 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server, IncomingMessage } from 'http';
+import { readFileSync } from 'fs';
+import { readFile } from 'fs/promises';
+import { resolve, extname, dirname, basename } from 'path';
+import { fileURLToPath } from 'url';
+import { fal } from '@fal-ai/client';
 import { aiClient } from './ai-client.js';
 import { sessionManager } from './session-manager.js';
 import { SDKInstrumentor } from './instrumentor.js';
@@ -15,6 +20,92 @@ interface ClientMessage {
   sessionId?: string;
   campaignId?: string;
   lastEventId?: number;
+  assetFileIds?: string[];
+}
+
+// ── Asset attachment resolution ────────────────────────────────
+
+const __filename_ws = fileURLToPath(import.meta.url);
+const __dirname_ws = dirname(__filename_ws);
+const UPLOADS_DIR = resolve(__dirname_ws, '../../uploads');
+
+const EXT_TO_MEDIA_TYPE: Record<string, string> = {
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.gif': 'image/gif',
+  '.webp': 'image/webp',
+};
+
+interface ResolvedAssets {
+  attachments: Array<{ type: string; source: { type: string; media_type: string; data: string } }>;
+  referenceUrls: string[];
+}
+
+async function resolveAssetAttachments(assetFileIds: string[]): Promise<ResolvedAssets> {
+  const attachments: ResolvedAssets['attachments'] = [];
+  const referenceUrls: string[] = [];
+
+  // Configure fal.ai client for storage uploads
+  const falKey = process.env.FAL_KEY;
+  const canUploadToFal = !!falKey;
+  if (canUploadToFal) {
+    fal.config({ credentials: falKey });
+  }
+
+  for (const fileId of assetFileIds) {
+    const assetFile = db.getFile(fileId);
+    if (!assetFile) {
+      console.warn(`⚠️ Asset file not found: ${fileId}`);
+      continue;
+    }
+
+    if (assetFile.file_type !== 'image') {
+      console.log(`⏭️ Skipping non-image asset: ${fileId} (type: ${assetFile.file_type})`);
+      continue;
+    }
+
+    const ext = extname(assetFile.file_path).toLowerCase();
+    const mediaType = EXT_TO_MEDIA_TYPE[ext];
+    if (!mediaType) {
+      console.warn(`⚠️ Unsupported image extension: ${ext} for file ${fileId}`);
+      continue;
+    }
+
+    const fullPath = resolve(UPLOADS_DIR, assetFile.file_path);
+    try {
+      const fileBuffer = await readFile(fullPath);
+
+      // Base64 attachment for Claude to see the image
+      attachments.push({
+        type: 'image',
+        source: {
+          type: 'base64',
+          media_type: mediaType,
+          data: fileBuffer.toString('base64'),
+        },
+      });
+
+      // Upload to fal.ai storage for public URL (used by MCP referenceImageUrls)
+      if (canUploadToFal) {
+        try {
+          const file = new File([fileBuffer], basename(assetFile.file_path), { type: mediaType });
+          const publicUrl = await fal.storage.upload(file);
+          referenceUrls.push(publicUrl);
+          console.log(`🖼️ Resolved asset: ${assetFile.name} (${mediaType}, ${(fileBuffer.length / 1024).toFixed(1)}KB) → ${publicUrl}`);
+        } catch (uploadErr) {
+          console.error(`⚠️ fal.ai upload failed for ${assetFile.name}, image visible to agent but not usable as reference:`, uploadErr);
+          console.log(`🖼️ Resolved asset (base64 only): ${assetFile.name} (${mediaType}, ${(fileBuffer.length / 1024).toFixed(1)}KB)`);
+        }
+      } else {
+        console.log(`🖼️ Resolved asset (base64 only, no FAL_KEY): ${assetFile.name} (${mediaType}, ${(fileBuffer.length / 1024).toFixed(1)}KB)`);
+      }
+    } catch (err) {
+      console.error(`❌ Failed to read asset file ${fullPath}:`, err);
+    }
+  }
+
+  return { attachments, referenceUrls };
 }
 
 // Hook types for ad concepts
@@ -514,7 +605,7 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
   }
 }
 
-async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string) {
+async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[]) {
   if (state.isGenerating) {
     send(state.ws, {
       type: 'error',
@@ -661,9 +752,20 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     // Initialize instrumentation
     const instrumentor = new SDKInstrumentor(sessionId, prompt, 'websocket');
 
+    // Resolve asset file attachments for multimodal input + fal.ai public URLs
+    let resolvedAttachments: ResolvedAssets['attachments'] | undefined;
+    let aiPrompt = prompt;
+    if (assetFileIds && assetFileIds.length > 0) {
+      const resolved = await resolveAssetAttachments(assetFileIds);
+      resolvedAttachments = resolved.attachments.length > 0 ? resolved.attachments : undefined;
+      if (resolved.referenceUrls.length > 0) {
+        aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${resolved.referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
+      }
+    }
+
     // Process SDK stream — pass the handler's abort controller so cancel
     // actually terminates the SDK query (including long-running tool calls)
-    for await (const result of aiClient.queryWithSession(prompt, sessionId, undefined, undefined, state.abortController!)) {
+    for await (const result of aiClient.queryWithSession(aiPrompt, sessionId, undefined, resolvedAttachments, state.abortController!)) {
       // Check for cancellation (only if we haven't already completed)
       if (state.abortController?.signal.aborted && !generationCompleted) {
         wasCancelled = true;
@@ -886,7 +988,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   }
 }
 
-async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string) {
+async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string, assetFileIds?: string[]) {
   // Concurrency guard — reject if already processing
   if (state.isGenerating) {
     send(state.ws, {
@@ -1013,16 +1115,26 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     // 7. Initialize instrumentation
     const instrumentor = new SDKInstrumentor(wsSessionId, prompt, 'websocket');
 
-    // 8. Call AI with resume (reuses existing session history)
+    // 8. Resolve asset attachments and call AI with resume
+    let resolvedAttachments: ResolvedAssets['attachments'] | undefined;
+    let aiPrompt = prompt;
+    if (assetFileIds && assetFileIds.length > 0) {
+      const resolved = await resolveAssetAttachments(assetFileIds);
+      resolvedAttachments = resolved.attachments.length > 0 ? resolved.attachments : undefined;
+      if (resolved.referenceUrls.length > 0) {
+        aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${resolved.referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
+      }
+    }
+
     let generationCompleted = false;
     let wasCancelled = false;
     const startTime = Date.now();
 
     for await (const result of aiClient.queryWithSession(
-      prompt,
+      aiPrompt,
       wsSessionId,
       undefined,
-      undefined,
+      resolvedAttachments,
       state.abortController,
       sdkSessionId ?? undefined
     )) {
@@ -1141,10 +1253,11 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
   } finally {
     state.isGenerating = false;
     if (localSessionId) {
-      sessionAbortControllers.delete(localSessionId);
-      unregisterByWsSession(localSessionId);
+      const sid = localSessionId;
+      sessionAbortControllers.delete(sid);
+      unregisterByWsSession(sid);
       // Clear event buffer after grace period (allows late reconnects to replay)
-      setTimeout(() => clearBuffer(localSessionId), 60_000);
+      setTimeout(() => clearBuffer(sid), 60_000);
     }
     state.abortController = null;
     if (onImageSaved) {
@@ -1314,7 +1427,7 @@ export function initWebSocket(server: Server): WebSocketServer {
         switch (message.type) {
           case 'generate':
             if (message.prompt) {
-              handleGenerate(state, message.prompt, message.sessionId);
+              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds);
             }
             break;
 
@@ -1332,7 +1445,7 @@ export function initWebSocket(server: Server): WebSocketServer {
 
           case 'follow_up':
             if (message.prompt && message.campaignId) {
-              handleFollowUp(state, message.prompt, message.campaignId);
+              handleFollowUp(state, message.prompt, message.campaignId, message.assetFileIds);
             }
             break;
 

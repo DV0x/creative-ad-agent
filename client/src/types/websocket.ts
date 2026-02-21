@@ -10,6 +10,7 @@ export interface WSClientMessage {
   sessionId?: string;
   campaignId?: string;
   lastEventId?: number;
+  assetFileIds?: string[];
 }
 
 // ============================================

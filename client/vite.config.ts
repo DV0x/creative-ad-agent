@@ -11,6 +11,9 @@ export default defineConfig({
     },
   },
   server: {
+    watch: {
+      ignored: ['**/tsconfig.json', '**/.env'],
+    },
     port: 5173,
     proxy: {
       '/ws': {

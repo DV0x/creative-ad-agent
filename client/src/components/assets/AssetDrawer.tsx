@@ -73,6 +73,7 @@ function CampaignsSection() {
   const { campaigns, activeCampaignId, isCreatingCampaign, setActiveCampaignId, setIsCreatingCampaign, setAppState } = useStore()
   const { setRightOpen, setMobileDrawerOpen } = useSidebars()
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+  const [isCollapsed, setIsCollapsed] = useState(false)
 
   const handleCampaignClick = (campaignId: string) => {
     setActiveCampaignId(campaignId)
@@ -81,6 +82,7 @@ function CampaignsSection() {
 
   const handleNewCampaign = () => {
     setIsCreatingCampaign(true)
+    setIsCollapsed(false)
     // Stay in workspace and open the chat sidebar for prompt input
     if (isMobile) {
       setMobileDrawerOpen(true)
@@ -93,9 +95,23 @@ function CampaignsSection() {
     <div className="p-2">
       {/* Section Header */}
       <div className="flex items-center justify-between px-2 py-1 mb-1">
-        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
+        <button
+          onClick={() => setIsCollapsed(!isCollapsed)}
+          className="flex items-center gap-1 text-xs font-medium text-text-muted uppercase tracking-wider hover:text-text-secondary transition-colors"
+        >
+          <ChevronRightIcon
+            className={cn(
+              'w-3 h-3 transition-transform duration-200',
+              !isCollapsed && 'rotate-90'
+            )}
+          />
           Campaigns
-        </span>
+          {isCollapsed && campaigns.length > 0 && (
+            <span className="text-text-muted/60 normal-case tracking-normal font-normal">
+              ({campaigns.length})
+            </span>
+          )}
+        </button>
         <Button
           variant="ghost"
           size="icon-xs"
@@ -108,33 +124,35 @@ function CampaignsSection() {
       </div>
 
       {/* Campaign List */}
-      <div className="space-y-1">
-        {/* New Campaign item (when creating) */}
-        {isCreatingCampaign && (
-          <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-accent/10 text-accent">
-            <SparklesIcon className="w-4 h-4" />
-            <span className="text-sm font-medium">New Campaign</span>
-          </div>
-        )}
+      {!isCollapsed && (
+        <div className="space-y-1">
+          {/* New Campaign item (when creating) */}
+          {isCreatingCampaign && (
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-accent/10 text-accent">
+              <SparklesIcon className="w-4 h-4" />
+              <span className="text-sm font-medium">New Campaign</span>
+            </div>
+          )}
 
-        {campaigns.map((campaign) => (
-          <CampaignItem
-            key={campaign.id}
-            campaign={campaign}
-            isActive={activeCampaignId === campaign.id && !isCreatingCampaign}
-            onSelect={() => handleCampaignClick(campaign.id)}
-          />
-        ))}
+          {campaigns.map((campaign) => (
+            <CampaignItem
+              key={campaign.id}
+              campaign={campaign}
+              isActive={activeCampaignId === campaign.id && !isCreatingCampaign}
+              onSelect={() => handleCampaignClick(campaign.id)}
+            />
+          ))}
 
-        {campaigns.length === 0 && !isCreatingCampaign && (
-          <div className="text-center py-4 px-2">
-            <SparklesIcon className="w-5 h-5 text-text-muted mx-auto mb-2" />
-            <p className="text-xs text-text-muted">
-              No campaigns yet
-            </p>
-          </div>
-        )}
-      </div>
+          {campaigns.length === 0 && !isCreatingCampaign && (
+            <div className="text-center py-4 px-2">
+              <SparklesIcon className="w-5 h-5 text-text-muted mx-auto mb-2" />
+              <p className="text-xs text-text-muted">
+                No campaigns yet
+              </p>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
