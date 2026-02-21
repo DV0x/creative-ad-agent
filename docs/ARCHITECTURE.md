@@ -869,7 +869,14 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 | **H1** | ~~Event buffer memory leak~~ | Fixed | `clearBuffer(sessionId)` now called 60s after generation ends (in `finally` blocks of both `handleGenerate` and `handleFollowUp`). 60s grace period allows late reconnects to still replay. |
 | **H2** | ~~Recovery stuck state~~ | Fixed | Added 45s timeout in `useWebSocket.ts` `handleConnected`. If `subscribed` never arrives, clears `isRecovering` and removes stale session from localStorage. 45s covers worst-case reconnect (5 attempts × escalating delays ≈ 30s) + replay time. |
 | **H3** | ~~Silent stream end~~ | Fixed | Added fallback completion in `handleFollowUp`: if SDK stream ends without `result` message and wasn't cancelled, sends `complete` event with accumulated text/images, persists to DB. Matches existing fallback in `handleGenerate`. |
-| **H4** | ~~Recovery replays from 0~~ | Fixed | Added `getLastEventId()` helper, `subscribe` message now uses saved `lastEventId` from localStorage instead of hardcoded `0`. Client already saved event IDs on each message — just wasn't reading them back on reconnect. |
+| **H4** | ~~Recovery replays from 0~~ | Fixed | `subscribe` message now uses `lastEventIdRef.current` (in-memory). On page refresh ref is `0` (replays all events to rebuild UI). On WebSocket reconnect ref has the real last received ID (replays only missed events). Initial fix used localStorage which broke page refresh — corrected to use in-memory ref to distinguish the two cases. |
+
+### 9.2b Additional Bugs Found During Testing
+
+| ID | Issue | Details |
+|----|-------|---------|
+| **H5** | ~~Campaign name wrong after refresh~~ | Fixed | Server used `prompt.slice(0, 50)` as campaign name in DB. Client extracted a clean name via `extractCampaignName()` (e.g., "Iamchakra"), but on page reload the DB name (raw prompt) was displayed. Fixed by adding same `extractCampaignName()` logic to server's `handleGenerate`. |
+| **H6** | ~~All campaign messages hidden if active session exists~~ | Fixed | `App.tsx` skipped loading ALL campaign messages from DB when `localStorage['creative-agent:activeSession']` existed. Should only skip the active campaign's messages. Fixed to exclude only the recovering campaign's messages, loading all others normally. |
 
 ### 9.3 Discrepancies
 
@@ -935,10 +942,12 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 1. ~~**Fix image ID namespace**~~ — Not a bug. Both paths already use `image_index` consistently.
 2. ~~**Buffer the `ack` event**~~ — Fixed. Changed `send()` to `emitEvent()` in `handleGenerate`.
 3. **Wire up image regeneration** — Deferred to Phase 2 (§10.4). Current text-based path works via session resume.
-4. ~~**Fix recovery replay**~~ — Fixed. `subscribe` now uses saved `lastEventId` from localStorage.
+4. ~~**Fix recovery replay**~~ — Fixed. `subscribe` uses `lastEventIdRef.current` (0 on refresh, real value on reconnect).
 5. ~~**Add recovery timeout**~~ — Fixed. 45s timeout clears `isRecovering` if `subscribed` never arrives.
 6. ~~**Handle stream end without result**~~ — Fixed. Fallback `complete` event in `handleFollowUp`.
 7. ~~**Call `clearBuffer()`**~~ — Fixed. Called with 60s delay in both `handleGenerate` and `handleFollowUp` finally blocks.
+8. ~~**Campaign name mismatch on refresh**~~ — Fixed. Server now uses `extractCampaignName()` matching client logic.
+9. ~~**All messages hidden during recovery**~~ — Fixed. `App.tsx` now only skips the active campaign's messages, not all.
 
 ### 10.3 Suggested Improvements
 
