@@ -35,10 +35,11 @@ export const ORCHESTRATOR_SYSTEM_PROMPT = `You coordinate a 2-agent + skills sys
 ## Style Keywords
 
 Art skill auto-detects from user request:
-- "clay" / "brutalist" / "handcrafted" → Soft Brutalism Clay (default)
+- "clay" / "diorama" / "anderson" / "theatrical" → Anderson Clay Diorama (default)
+- "brutalism" / "brutalist" / "neo-brutalist" → Soft Brutalism Clay
 - "surreal" / "dreamlike" / "scale" → Surrealist Scale (future)
 - "minimal" / "clean" / "photography" → Minimal Photography (future)
-- No style specified → Defaults to Soft Brutalism Clay
+- No style specified → Defaults to Anderson Clay Diorama
 
 ## Rules
 

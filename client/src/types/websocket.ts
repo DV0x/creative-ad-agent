@@ -5,13 +5,11 @@ import type { HookType } from './chat';
 // ============================================
 
 export interface WSClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe' | 'follow_up';
+  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up';
   prompt?: string;
   sessionId?: string;
   campaignId?: string;
   lastEventId?: number;
-  // Image references for follow-up messages
-  imageRefs?: number[];
 }
 
 // ============================================
@@ -59,7 +57,6 @@ export interface WSStatusEvent extends WSBaseMessage {
   success?: boolean;
 }
 
-// New: File event for syncing campaign files from backend
 export interface WSFileEvent extends WSBaseMessage {
   type: 'file';
   fileType: 'research' | 'hooks' | 'prompts';
@@ -67,10 +64,8 @@ export interface WSFileEvent extends WSBaseMessage {
   path: string;
 }
 
-// Updated: Image event with hookType and imageIndex
 export interface WSImageEvent extends WSBaseMessage {
   type: 'image';
-  imageId: string; // Unique image identifier (separate from event id)
   urlPath: string;
   prompt: string;
   filename?: string;
@@ -78,11 +73,10 @@ export interface WSImageEvent extends WSBaseMessage {
   imageIndex: number; // 1-6
 }
 
-// Updated: Complete event with summary for assistant message
 export interface WSCompleteEvent extends WSBaseMessage {
   type: 'complete';
   message?: string;
-  summary: string; // Final assistant message content
+  summary: string;
   sessionId?: string;
   duration?: number;
   imageCount?: number;
@@ -157,14 +151,3 @@ export function isErrorEvent(msg: WSServerMessage): msg is WSErrorEvent {
 
 // WebSocket connection state
 export type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting';
-
-// WebSocket hook return type
-export interface UseWebSocketReturn {
-  connectionState: WSConnectionState;
-  isConnected: boolean;
-  isRecovering: boolean;
-  generate: () => void;
-  cancel: () => void;
-  pause: () => void;
-  resume: () => void;
-}

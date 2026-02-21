@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react'
+import { useRef, useEffect } from 'react'
 import { Sparkles, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,18 +22,13 @@ interface MobileChatDrawerProps {
 export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) {
   const {
     getActiveChatMessages,
-    addChatMessage,
-    getActiveCampaign,
     activeCampaignId,
     isCreatingCampaign,
-    setPrompt,
     currentGeneratingMessageId,
   } = useStore()
-  const { isConnected, generate, cancel } = useWebSocket()
-  const [isTyping, setIsTyping] = useState(false)
+  const { isConnected, generate, cancel, followUp } = useWebSocket()
   const scrollRef = useRef<HTMLDivElement>(null)
 
-  const activeCampaign = getActiveCampaign()
   const chatMessages = getActiveChatMessages()
   const isGenerating = !!currentGeneratingMessageId
 
@@ -52,51 +47,14 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
   }) => {
     // When creating a new campaign, trigger generation via WebSocket
     if (isCreatingCampaign && message.content.trim() && isConnected) {
-      setPrompt(message.content.trim())
-      setTimeout(() => generate(), 0)
+      generate(message.content.trim())
       return
     }
 
-    if (!activeCampaignId) return
-
-    addChatMessage(activeCampaignId, {
-      role: 'user',
-      content: message.content,
-      fileRefs: message.fileRefs,
-      assetRefs: message.assetRefs,
-      imageRefs: message.imageRefs,
-    })
-
-    setIsTyping(true)
-
-    setTimeout(() => {
-      if (!activeCampaignId) return
-
-      let response = "I'll help you with that. What specific changes would you like me to make to the creatives?"
-
-      if (message.imageRefs.length > 0) {
-        const imageCount = message.imageRefs.length
-        response = `I'll regenerate ${imageCount === 1 ? 'Image ' + message.imageRefs[0].imageId : imageCount + ' images'} based on your feedback.`
-      } else if (message.fileRefs.length > 0 && activeCampaign) {
-        const fileDescriptions = message.fileRefs.map(f => {
-          switch (f.fileType) {
-            case 'research': return 'brand research'
-            case 'hooks': return 'ad hooks'
-            case 'prompts': return 'image prompts'
-            default: return f.fileType
-          }
-        })
-        response = `I'll reference the ${fileDescriptions.join(' and ')} from "${activeCampaign.name}" to help with your request.`
-      }
-
-      addChatMessage(activeCampaignId, {
-        role: 'assistant',
-        content: response,
-        fileRefs: [],
-        assetRefs: [],
-      })
-      setIsTyping(false)
-    }, 1500)
+    // Existing campaign: send follow-up to AI
+    if (activeCampaignId && message.content.trim()) {
+      followUp(activeCampaignId, message.content.trim())
+    }
   }
 
   const handleCancel = () => {
@@ -143,16 +101,6 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
               {chatMessages.map((msg) => (
                 <MobileChatMessage key={msg.id} message={msg} />
               ))}
-              {isTyping && (
-                <div className="flex items-center gap-2 text-text-muted">
-                  <div className="flex gap-1">
-                    <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '0ms' }} />
-                    <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '150ms' }} />
-                    <span className="w-2 h-2 bg-accent rounded-full animate-pulse" style={{ animationDelay: '300ms' }} />
-                  </div>
-                  <span className="text-xs">Agent is typing...</span>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -160,7 +108,7 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
         {/* Input */}
         <ChatInput
           onSubmit={handleSubmit}
-          disabled={isTyping}
+          disabled={isGenerating}
           isGenerating={isGenerating}
           onCancel={handleCancel}
         />

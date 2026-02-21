@@ -3,14 +3,14 @@ import { Server, IncomingMessage } from 'http';
 import { aiClient } from './ai-client.js';
 import { sessionManager } from './session-manager.js';
 import { SDKInstrumentor } from './instrumentor.js';
-import { appendEvent, getEventsSince, getLatestEventId, hasBuffer } from './event-buffer.js';
+import { appendEvent, getEventsSince, getLatestEventId, hasBuffer, clearBuffer } from './event-buffer.js';
 import * as db from './db/index.js';
 import { verifyWebSocketToken, IS_CLERK_CONFIGURED } from './auth.js';
 import { imageEvents, ImageSavedEvent, registerMcpSession, resolveWsSessionId, unregisterByWsSession } from './image-events.js';
 
 // Client → Server message types
 interface ClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe' | 'follow_up';
+  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up';
   prompt?: string;
   sessionId?: string;
   campaignId?: string;
@@ -73,8 +73,6 @@ interface ConnectionState {
   userId: string;             // User ID (placeholder until auth)
   abortController: AbortController | null;
   isGenerating: boolean;
-  isPaused: boolean;
-  messageBuffer: ServerMessage[];
   heartbeatInterval: NodeJS.Timeout | null;
 }
 
@@ -133,9 +131,7 @@ function emitEvent(sessionId: string, event: ServerMessage): number {
 }
 
 function broadcastToConnection(state: ConnectionState, message: ServerMessage) {
-  if (state.isPaused) {
-    state.messageBuffer.push(message);
-  } else if (state.sessionId) {
+  if (state.sessionId) {
     // Use emitEvent for resilience (buffers + sends)
     emitEvent(state.sessionId, message);
   } else {
@@ -258,7 +254,7 @@ class BlockBuilder {
 }
 
 // Process SDK messages and convert to WebSocket events
-function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor, processedImageIndices?: Set<number>, textAccumulator?: TextAccumulator, blockBuilder?: BlockBuilder) {
+function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor, processedFilenames?: Set<string>, textAccumulator?: TextAccumulator, blockBuilder?: BlockBuilder, imageCounter?: { next: number }) {
   // Process for instrumentation
   instrumentor.processMessage(message);
 
@@ -450,41 +446,45 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
               for (const img of resultContent.images) {
                 const imageUrl = img.urlPath || img.url; // Support both 'url' and 'urlPath'
                 if (imageUrl && !img.error) {
-                  // Extract image index from id (e.g., "image_1" -> 1)
-                  const imageIndex = typeof img.id === 'string'
-                    ? parseInt(img.id.replace('image_', ''), 10) || 1
-                    : 1;
-                  const hookType = img.hookType || getHookTypeForIndex(imageIndex);
-
-                  // Dedup: skip if already handled by real-time EventEmitter path
-                  if (processedImageIndices?.has(imageIndex)) {
-                    console.log(`[SDK Stream] Skipping duplicate image ${imageIndex} (already processed via EventEmitter)`);
+                  // Dedup by filename (unique per image across all MCP batches)
+                  const filename = img.filename || '';
+                  if (filename && processedFilenames?.has(filename)) {
+                    console.log(`[SDK Stream] Skipping duplicate "${filename}" (already processed via EventEmitter)`);
                     continue;
                   }
-                  processedImageIndices?.add(imageIndex);
+                  if (filename) processedFilenames?.add(filename);
+
+                  // Server assigns global index (not MCP's per-batch index)
+                  const globalIndex = imageCounter ? imageCounter.next++ : 1;
+                  const hookType = getHookTypeForIndex(globalIndex);
 
                   broadcastToConnection(state, {
                     type: 'image',
                     timestamp: new Date().toISOString(),
-                    id: img.id || `img-${Date.now()}`,
+                    id: `image_${globalIndex}`,
                     urlPath: imageUrl,
                     prompt: img.prompt || '',
-                    filename: img.filename || '',
+                    filename,
                     hookType,
-                    imageIndex,
+                    imageIndex: globalIndex,
                   });
+
+                  // Track in block builder
+                  if (blockBuilder) {
+                    blockBuilder.incrementCompletedImages();
+                  }
 
                   // Persist to database
                   if (state.campaignId) {
                     try {
                       db.addCampaignImage({
                         campaignId: state.campaignId,
-                        imageIndex,
+                        imageIndex: globalIndex,
                         hookType: hookType as db.HookType,
                         prompt: img.prompt || undefined,
                         filePath: imageUrl,
                       });
-                      console.log(`💾 DB: Saved image ${imageIndex} (${hookType}) for campaign ${state.campaignId} [via SDK stream fallback]`);
+                      console.log(`💾 DB: Saved image ${globalIndex} (${hookType}) for campaign ${state.campaignId} [via SDK stream fallback]`);
                     } catch (dbError) {
                       console.error(`❌ DB: Failed to save image:`, dbError);
                     }
@@ -517,8 +517,6 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   const sessionId = requestedSessionId || `ws-${Date.now()}`;
   state.sessionId = sessionId;
   state.abortController = new AbortController();
-  state.isPaused = false;
-  state.messageBuffer = [];
 
   // Register this WebSocket for the session (for resilience)
   // Close any previous connection for this session first
@@ -566,7 +564,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
   // Send acknowledgment with the DB campaign ID so the client
   // can replace its local placeholder ID with the real one.
-  send(state.ws, {
+  emitEvent(sessionId, {
     type: 'ack',
     timestamp: new Date().toISOString(),
     message: 'Generation started',
@@ -583,11 +581,11 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   });
 
   const startTime = Date.now();
-  let imageCount = 0;
   let wasCancelled = false;
 
-  // Real-time image event handling (Bug 4 fix)
-  const processedImageIndices = new Set<number>();
+  // Real-time image event handling — dedup by filename, server assigns global index
+  const processedFilenames = new Set<string>();
+  const imageCounter = { next: 1 };
   let generationCompleted = false;
 
   // Accumulate AI text for DB persistence
@@ -600,32 +598,37 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   const onImageSaved = (event: ImageSavedEvent) => {
     const wsId = resolveWsSessionId(event.sessionId) || event.sessionId;
     if (wsId !== sessionId) return;
-    if (processedImageIndices.has(event.imageIndex)) return;
-    processedImageIndices.add(event.imageIndex);
+    // Dedup by filename (unique per image across all MCP batches)
+    if (processedFilenames.has(event.filename)) return;
+    processedFilenames.add(event.filename);
 
-    console.log(`[ImageEvent] Real-time image ${event.imageIndex} for session ${sessionId}`);
+    // Server assigns global index (not MCP's per-batch index)
+    const globalIndex = imageCounter.next++;
+    const hookType = getHookTypeForIndex(globalIndex);
+
+    console.log(`[ImageEvent] Real-time image ${globalIndex} for session ${sessionId} (file: ${event.filename})`);
 
     broadcastToConnection(state, {
       type: 'image',
       timestamp: new Date().toISOString(),
-      id: event.id,
+      id: `image_${globalIndex}`,
       urlPath: event.urlPath,
       prompt: event.prompt,
       filename: event.filename,
-      hookType: event.hookType as HookType,
-      imageIndex: event.imageIndex,
+      hookType,
+      imageIndex: globalIndex,
     });
 
     if (state.campaignId) {
       try {
         db.addCampaignImage({
           campaignId: state.campaignId,
-          imageIndex: event.imageIndex,
-          hookType: event.hookType as db.HookType,
+          imageIndex: globalIndex,
+          hookType: hookType as db.HookType,
           prompt: event.prompt || undefined,
           filePath: event.urlPath,
         });
-        console.log(`💾 DB: Saved image ${event.imageIndex} (${event.hookType}) for campaign ${state.campaignId} [via EventEmitter]`);
+        console.log(`💾 DB: Saved image ${globalIndex} (${hookType}) for campaign ${state.campaignId} [via EventEmitter]`);
       } catch (dbError) {
         console.error(`❌ DB: Failed to save image via EventEmitter:`, dbError);
       }
@@ -633,7 +636,6 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
     // Track image completion in block builder
     blockBuilder.incrementCompletedImages();
-    imageCount++;
   };
 
   imageEvents.on('image-saved', onImageSaved);
@@ -664,32 +666,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       }
 
       const { message } = result;
-      processSDKMessage(message, state, instrumentor, processedImageIndices, textAccumulator, blockBuilder);
-
-      // Count images (only those not already counted by EventEmitter path)
-      if (message.type === 'user') {
-        const content = message.message?.content;
-        if (Array.isArray(content)) {
-          for (const block of content) {
-            if (block.type === 'tool_result') {
-              try {
-                let rc = block.content;
-                if (typeof rc === 'string') rc = JSON.parse(rc);
-                if (rc?.images?.length) {
-                  for (const img of rc.images) {
-                    const idx = typeof img.id === 'string'
-                      ? parseInt(img.id.replace('image_', ''), 10) || 1
-                      : 1;
-                    if (!processedImageIndices.has(idx)) {
-                      imageCount++;
-                    }
-                  }
-                }
-              } catch { /* ignore */ }
-            }
-          }
-        }
-      }
+      processSDKMessage(message, state, instrumentor, processedFilenames, textAccumulator, blockBuilder, imageCounter);
 
       // SDK 'result' message = conversation finished.
       // Send completion immediately for responsive UX. The for-await loop
@@ -705,6 +682,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
           label: 'Complete'
         });
 
+        const imageCount = imageCounter.next - 1;
         const hookTypeLabels: Record<HookType, string> = {
           stat: 'Stat Hook', story: 'Story Hook', fomo: 'FOMO Hook',
           curiosity: 'Curiosity Hook', callout: 'Call-out Hook', contrast: 'Contrast Hook'
@@ -759,6 +737,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       });
 
       // Generate summary message for assistant (use accumulated text if available)
+      const imageCount = imageCounter.next - 1;
       const hookTypeLabels: Record<HookType, string> = {
         stat: 'Stat Hook', story: 'Story Hook', fomo: 'FOMO Hook',
         curiosity: 'Curiosity Hook', callout: 'Call-out Hook', contrast: 'Contrast Hook'
@@ -890,6 +869,8 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     state.abortController = null;
     if (sessionId) {
       sessionAbortControllers.delete(sessionId);
+      // Clear event buffer after grace period (allows late reconnects to replay)
+      setTimeout(() => clearBuffer(sessionId), 60_000);
     }
   }
 }
@@ -971,8 +952,9 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     console.log(`💬 WebSocket: Starting follow-up for campaign ${campaignId}, session ${wsSessionId}`);
 
     // 6. Register image event listener (same pattern as handleGenerate)
-    const processedImageIndices = new Set<number>();
-    let imageCount = 0;
+    const processedFilenames = new Set<string>();
+    const existingImageCount = db.getImageCount(campaignId);
+    const imageCounter = { next: existingImageCount + 1 };
 
     // Accumulate AI text for DB persistence
     const textAccumulator: TextAccumulator = { text: '' };
@@ -980,26 +962,31 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     onImageSaved = (event: ImageSavedEvent) => {
       const wsId = resolveWsSessionId(event.sessionId) || event.sessionId;
       if (wsId !== wsSessionId) return;
-      if (processedImageIndices.has(event.imageIndex)) return;
-      processedImageIndices.add(event.imageIndex);
+      // Dedup by filename (unique per image across all MCP batches)
+      if (processedFilenames.has(event.filename)) return;
+      processedFilenames.add(event.filename);
+
+      // Server assigns global index (continues from existing images)
+      const globalIndex = imageCounter.next++;
+      const hookType = getHookTypeForIndex(globalIndex);
 
       broadcastToConnection(state, {
         type: 'image',
         timestamp: new Date().toISOString(),
-        id: event.id,
+        id: `image_${globalIndex}`,
         urlPath: event.urlPath,
         prompt: event.prompt,
         filename: event.filename,
-        hookType: event.hookType as HookType,
-        imageIndex: event.imageIndex,
+        hookType,
+        imageIndex: globalIndex,
       });
 
       if (state.campaignId) {
         try {
           db.addCampaignImage({
             campaignId: state.campaignId,
-            imageIndex: event.imageIndex,
-            hookType: event.hookType as db.HookType,
+            imageIndex: globalIndex,
+            hookType: hookType as db.HookType,
             prompt: event.prompt || undefined,
             filePath: event.urlPath,
           });
@@ -1008,7 +995,6 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
         }
       }
       blockBuilder.incrementCompletedImages();
-      imageCount++;
     };
 
     imageEvents.on('image-saved', onImageSaved);
@@ -1035,11 +1021,12 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       }
 
       const { message } = result;
-      processSDKMessage(message, state, instrumentor, processedImageIndices, textAccumulator, blockBuilder);
+      processSDKMessage(message, state, instrumentor, processedFilenames, textAccumulator, blockBuilder, imageCounter);
 
       if (message.type === 'result' && !generationCompleted && !wasCancelled) {
         generationCompleted = true;
         const duration = Date.now() - startTime;
+        const imageCount = imageCounter.next - 1 - existingImageCount;
         // Use accumulated AI text if available, otherwise fallback
         const summary = textAccumulator.text.trim() || 'Follow-up completed.';
 
@@ -1066,6 +1053,36 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
 
         console.log(`✅ WebSocket: Follow-up complete for campaign ${campaignId} (${duration}ms)`);
       }
+    }
+
+    // Handle silent stream end (SDK finished without 'result' message)
+    if (!generationCompleted && !wasCancelled) {
+      const duration = Date.now() - startTime;
+      const imageCount = imageCounter.next - 1 - existingImageCount;
+      const summary = textAccumulator.text.trim() || 'Follow-up completed.';
+
+      broadcastToConnection(state, {
+        type: 'complete',
+        timestamp: new Date().toISOString(),
+        sessionId: wsSessionId,
+        duration,
+        imageCount,
+        message: `Follow-up complete in ${(duration / 1000).toFixed(1)}s`,
+        summary,
+      });
+
+      if (state.campaignId) {
+        db.updateCampaignStatus(state.campaignId, 'complete');
+        blockBuilder.addTextBlock(summary);
+        db.addMessage({
+          campaignId: state.campaignId,
+          role: 'assistant',
+          content: summary,
+          blocks: blockBuilder.getBlocks(),
+        });
+      }
+
+      console.log(`✅ WebSocket: Follow-up complete (fallback) for campaign ${campaignId} (${duration}ms)`);
     }
 
     // Handle cancellation (if cancelled but no error thrown)
@@ -1115,6 +1132,8 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     if (localSessionId) {
       sessionAbortControllers.delete(localSessionId);
       unregisterByWsSession(localSessionId);
+      // Clear event buffer after grace period (allows late reconnects to replay)
+      setTimeout(() => clearBuffer(localSessionId), 60_000);
     }
     state.abortController = null;
     if (onImageSaved) {
@@ -1140,34 +1159,6 @@ function handleCancel(state: ConnectionState) {
   } else {
     console.log(`⚠️ WebSocket: No generation to cancel for session ${state.sessionId}`);
   }
-}
-
-function handlePause(state: ConnectionState) {
-  state.isPaused = true;
-  console.log(`⏸️ WebSocket: Pausing stream for session ${state.sessionId}`);
-
-  send(state.ws, {
-    type: 'ack',
-    timestamp: new Date().toISOString(),
-    message: 'Stream paused'
-  });
-}
-
-function handleResume(state: ConnectionState) {
-  state.isPaused = false;
-  console.log(`▶️ WebSocket: Resuming stream for session ${state.sessionId}`);
-
-  // Flush buffered messages
-  for (const msg of state.messageBuffer) {
-    send(state.ws, msg);
-  }
-  state.messageBuffer = [];
-
-  send(state.ws, {
-    type: 'ack',
-    timestamp: new Date().toISOString(),
-    message: 'Stream resumed'
-  });
 }
 
 function handlePing(state: ConnectionState) {
@@ -1285,8 +1276,6 @@ export function initWebSocket(server: Server): WebSocketServer {
       userId,
       abortController: null,
       isGenerating: false,
-      isPaused: false,
-      messageBuffer: [],
       heartbeatInterval: null
     };
 
@@ -1320,14 +1309,6 @@ export function initWebSocket(server: Server): WebSocketServer {
 
           case 'cancel':
             handleCancel(state);
-            break;
-
-          case 'pause':
-            handlePause(state);
-            break;
-
-          case 'resume':
-            handleResume(state);
             break;
 
           case 'ping':

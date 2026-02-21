@@ -858,44 +858,44 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 
 | ID | Issue | Severity | Details |
 |----|-------|----------|---------|
-| **C1** | **Image regeneration is broken end-to-end** | Critical | Completion summary tells users to "select images to regenerate." Images can be selected, `ChatInput` builds `imageRefs`, but `ChatSidebar.handleSubmit()` DROPS the imageRefs when calling `followUp()`. Server `handleFollowUp` has no regeneration logic. `replaceImage` store action exists but nothing calls it. Entirely non-functional. |
-| **C2** | **`ack` not buffered → campaign ID replacement fails on reconnect** | Critical | `handleGenerate` sends the initial `ack` (with server campaign ID) via direct `send()`, NOT via `emitEvent()`. So the `ack` is NOT in the event buffer. If client reconnects mid-generation, the `ack` is never replayed, leaving the client with a stale local campaign ID that doesn't exist in the DB. |
-| **C3** | **Image ID namespace collision** | Critical | During live generation, images get `id: imageIndex` (1-6). After page reload, images loaded from DB get `id: autoincrement_pk` (47, 48, etc.). Image selection (`selectedImageIds`) operates on these IDs. Selecting image #3 live vs #47 from DB are different namespaces. Selection breaks across page reloads. |
+| **C1** | **Image regeneration — works but doesn't scale** | Deferred | @ mentions embed `[Image N]` in prompt text, agent understands via session resume. Structured `imageRefs` path is broken (dropped at every handoff) but not needed currently. Does not scale — session resume replays entire history. See §10.4 for stateless regen plan. |
+| **C2** | ~~`ack` not buffered~~ | Fixed | Changed `send()` to `emitEvent()` in `handleGenerate` so the `ack` (with server campaign ID) is buffered and replayed on reconnect. |
+| **C3** | ~~Image ID namespace collision~~ | Not a bug | Both paths (live: `useWebSocket.ts:170` and reload: `api.ts:148`) use `image_index` (1-6) as `GeneratedImage.id`. DB autoincrement PK is never exposed to the client. No namespace collision exists. |
 
 ### 9.2 High Severity (Data Integrity / Reliability)
 
 | ID | Issue | Details |
 |----|-------|---------|
-| **H1** | **Event buffer memory leak** | `clearBuffer()` is defined but NEVER called. Buffers only expire via 40-min periodic cleanup. 20 generations = 20 buffers × 1000 events in RAM. |
-| **H2** | **Recovery stuck state** | If WebSocket reconnect fails (5 attempts), `isRecovering` stays `true` forever — the `subscribed` handler that sets it to `false` never fires. User sees perpetual "recovering" state. |
-| **H3** | **Silent stream end** | If SDK stream ends without a `result` message (e.g., CLI subprocess dies), `handleFollowUp` exits without sending `complete` or `error`. Client stuck in generating state forever. |
-| **H4** | **Recovery replays from 0** | `useWebSocket.ts:269` always sends `lastEventId: 0` instead of `lastEventIdRef.current`. Every reconnect replays ALL events from scratch. Store deduplicates images but wastes bandwidth/processing. |
+| **H1** | ~~Event buffer memory leak~~ | Fixed | `clearBuffer(sessionId)` now called 60s after generation ends (in `finally` blocks of both `handleGenerate` and `handleFollowUp`). 60s grace period allows late reconnects to still replay. |
+| **H2** | ~~Recovery stuck state~~ | Fixed | Added 45s timeout in `useWebSocket.ts` `handleConnected`. If `subscribed` never arrives, clears `isRecovering` and removes stale session from localStorage. 45s covers worst-case reconnect (5 attempts × escalating delays ≈ 30s) + replay time. |
+| **H3** | ~~Silent stream end~~ | Fixed | Added fallback completion in `handleFollowUp`: if SDK stream ends without `result` message and wasn't cancelled, sends `complete` event with accumulated text/images, persists to DB. Matches existing fallback in `handleGenerate`. |
+| **H4** | ~~Recovery replays from 0~~ | Fixed | Added `getLastEventId()` helper, `subscribe` message now uses saved `lastEventId` from localStorage instead of hardcoded `0`. Client already saved event IDs on each message — just wasn't reading them back on reconnect. |
 
 ### 9.3 Discrepancies
 
 | Issue | Details |
 |-------|---------|
-| **Default style mismatch** | `orchestrator-prompt.ts` says "Soft Brutalism Clay" but `art-style/SKILL.md` routes to Anderson Clay Diorama when no style specified. The skill file wins. |
+| ~~Default style mismatch~~ | Fixed. `orchestrator-prompt.ts` now says Anderson Clay Diorama as default, matching `art-style/SKILL.md`. |
 | **Hook type count** | Hook methodology defines **10** types, but MCP maps only **6** by index (`stat`, `story`, `fomo`, `curiosity`, `callout`, `contrast`). |
 | **Hook count** | Skill default is 3 hooks, orchestrator requests 6. |
 | **File paths in docs** | Some skill docs reference `/storage/` paths that don't match actual `agent/files/` paths. |
-| **`WSImageEvent.imageId`** | Client type declares `imageId: string` but no code ever reads it — `imageIndex` is used instead. |
-| **`UseWebSocketReturn` type** | `types/websocket.ts` declares stale signatures (no-arg `generate`, `pause`, `resume`). Actual hook has different signatures. This type is dead — components import from the hook file. |
-| **`WSClientMessage.imageRefs`** | Client type declares `imageRefs?: number[]` but server's `ClientMessage` has no such field. |
+| ~~`WSImageEvent.imageId`~~ | Removed. Stale `imageId: string` field cleaned from `types/websocket.ts`. Only `imageIndex` remains. |
+| ~~`UseWebSocketReturn` type~~ | Removed stale duplicate from `types/websocket.ts`. Canonical version lives in `useWebSocket.ts` with correct signatures. |
+| ~~`WSClientMessage.imageRefs`~~ | Removed. Stale `imageRefs?: number[]` cleaned from `types/websocket.ts`. |
 | **`ApiFolder.updated_at`** | Client type expects it but DB `asset_folders` table has no `updated_at` column — returns null. |
 
 ### 9.4 Dead Code
 
 | Item | Location | Notes |
 |------|----------|-------|
-| `clearBuffer()` | `server/lib/event-buffer.ts:105` | Exported but zero callers |
-| `UseWebSocketReturn` | `client/src/types/websocket.ts:162-170` | Stale type, nothing imports it |
-| `pause`/`resume` WS types | `types/websocket.ts` + `websocket-handler.ts` | Both sides define handlers/types, neither side ever sends |
-| `isPaused` buffer path | `websocket-handler.ts:136` | `isPaused` is always false, message buffering is dead |
-| `addStatusBlock` store action | `store/index.ts:816-831` | Defined but never called by any component or hook |
-| `SavedSession.messageId` | `useWebSocket.ts:17` | Saved to localStorage but never read during recovery |
-| `MobileChatDrawer` mock responses | `components/chat/MobileChatDrawer.tsx:57-99` | Legacy mock follow-up flow with `setTimeout` + canned responses |
-| File upload | `components/assets/FileUpload.tsx` | Uses object URLs — no actual server upload (stub/demo only) |
+| ~~`clearBuffer()`~~ | `server/lib/event-buffer.ts:105` | Now called from both `handleGenerate` and `handleFollowUp` finally blocks (H1 fix) |
+| ~~`UseWebSocketReturn`~~ | `client/src/types/websocket.ts` | Removed stale duplicate. Canonical type lives in `useWebSocket.ts`. |
+| ~~`pause`/`resume` WS~~ | `types/websocket.ts` + `websocket-handler.ts` | Removed from both sides: `handlePause`, `handleResume`, `isPaused`, `messageBuffer`, case handlers, and type unions. |
+| ~~`isPaused` buffer path~~ | `websocket-handler.ts` | Removed along with pause/resume cleanup. `broadcastToConnection` simplified. |
+| ~~`addStatusBlock`~~ | `store/index.ts` | Removed action and type declaration. |
+| `SavedSession.messageId` | `useWebSocket.ts:17` | Saved to localStorage but never read during recovery. |
+| ~~`MobileChatDrawer` mocks~~ | `components/chat/MobileChatDrawer.tsx` | Replaced mock `setTimeout` responses with real `followUp()` call. Removed `isTyping` state, `addChatMessage`, `setPrompt`. |
+| File upload | `components/assets/FileUpload.tsx` | Uses object URLs — no actual server upload (stub/demo only). |
 
 ### 9.5 Race Conditions
 
@@ -924,7 +924,7 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 
 | Feature | Status | What's Missing |
 |---------|--------|---------------|
-| **Image regeneration** | Broken | `imageRefs` dropped in `ChatSidebar`, server has no regen logic, `replaceImage` store action unused. Full E2E wiring needed. |
+| **Image regeneration** | Works via text path | @ mentions embed `[Image N]` in prompt text, agent understands via session resume. Structured `imageRefs` path is broken (dropped at every handoff) but not needed currently. **Does not scale** — session resume replays entire history. See §10.4 for stateless regen plan. |
 | **Image download** | Partially works | `ImageCard` and `ImageLightbox` use `<a download>` which works for same-origin `/images/` URLs. Batch download toolbar button has no `onClick` handler. |
 | **Batch operations** | Selection UI works | Toolbar shows count but Download button has no handler. No bulk download/delete/export API. |
 | **File upload** | Stub only | Uses object URLs. No actual server upload — "in real app, would upload to server" comment in code. |
@@ -932,13 +932,13 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 
 ### 10.2 Bugs to Fix (Priority Order)
 
-1. **Fix image ID namespace** — Use `imageIndex` consistently (not DB autoincrement PK) as `GeneratedImage.id`
-2. **Buffer the `ack` event** — Use `emitEvent()` instead of `send()` in `handleGenerate`
-3. **Wire up image regeneration** — Pass `imageRefs` through `followUp()`, add server-side regen logic
-4. **Fix recovery replay** — Use `lastEventIdRef.current` instead of hardcoded `0`
-5. **Add recovery timeout** — If `subscribed` never arrives, clear `isRecovering` after N seconds
-6. **Handle stream end without result** — Add fallback completion/error in `handleFollowUp`
-7. **Call `clearBuffer()`** — Clear event buffer on generation complete
+1. ~~**Fix image ID namespace**~~ — Not a bug. Both paths already use `image_index` consistently.
+2. ~~**Buffer the `ack` event**~~ — Fixed. Changed `send()` to `emitEvent()` in `handleGenerate`.
+3. **Wire up image regeneration** — Deferred to Phase 2 (§10.4). Current text-based path works via session resume.
+4. ~~**Fix recovery replay**~~ — Fixed. `subscribe` now uses saved `lastEventId` from localStorage.
+5. ~~**Add recovery timeout**~~ — Fixed. 45s timeout clears `isRecovering` if `subscribed` never arrives.
+6. ~~**Handle stream end without result**~~ — Fixed. Fallback `complete` event in `handleFollowUp`.
+7. ~~**Call `clearBuffer()`**~~ — Fixed. Called with 60s delay in both `handleGenerate` and `handleFollowUp` finally blocks.
 
 ### 10.3 Suggested Improvements
 
@@ -951,10 +951,39 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 | **Export** | No way to export campaign (images + copy) as a package |
 | **Style selection UI** | User must type style keywords — no dropdown/picker |
 
-### 10.4 Cleanup
+### 10.4 Phase 2: Stateless Image Operations (Architecture Refactor)
 
-- Remove dead `UseWebSocketReturn` type from `types/websocket.ts`
-- Remove `pause`/`resume` handlers from both client and server
-- Remove stale mock responses from `MobileChatDrawer`
-- Align default style between orchestrator prompt and art-style SKILL.md
+**Problem:** Current system uses session resume (full conversation replay) for image regeneration. The agent "remembers" images through conversation history. This doesn't scale — 100 images means replaying all 100 tool calls/results just to change one. Even with 6 images, cost compounds with each follow-up.
+
+**Solution:** Separate conversation from operations. Three-layer architecture:
+
+```
+CONVERSATION LAYER — open-ended creative dialogue, uses session resume
+        │
+OPERATION LAYER  — structured, stateless (regenerate, vary, edit)
+        │                pulls only relevant metadata from DB
+        │                no session resume needed
+ASSET LAYER      — DB is the source of truth, not the conversation
+```
+
+**Implementation:**
+
+1. **Enrich `campaign_images` storage** — at generation time, persist full context per image: prompt, hook type, style params, brand brief summary, aspect ratio, resolution. Currently only `prompt` and `hook_type` are saved — not enough to regenerate without session history.
+
+2. **Route operations vs conversations** — detect structured operations (regenerate, variation, style swap) vs open-ended chat. Operations bypass session resume entirely.
+
+3. **Stateless regen endpoint** — `POST /api/campaigns/:id/images/:index/regenerate { instruction }`. Looks up image metadata from DB, builds a focused prompt (~500 tokens instead of ~50k), calls MCP directly, saves result as new version.
+
+4. **Version lineage** — new versions link back to their parent. `campaign_images` already has `version` column; add `parent_image_id` for lineage tracking.
+
+5. **Client operation routing** — when user selects images + gives instruction, route to operation endpoint instead of `followUp()`. Reserve `followUp()` for actual creative conversation.
+
+**Key principle:** The database is the memory, not the conversation. Session resume stays for dialogue; image operations are stateless DB lookups.
+
+### 10.5 Cleanup
+
+- ~~Remove dead `UseWebSocketReturn` type from `types/websocket.ts`~~ — Done
+- ~~Remove `pause`/`resume` handlers from both client and server~~ — Done
+- ~~Remove stale mock responses from `MobileChatDrawer`~~ — Done, replaced with real `followUp()` call
+- ~~Align default style between orchestrator prompt and art-style SKILL.md~~ — Done
 - Commit untracked docs in `docs/`

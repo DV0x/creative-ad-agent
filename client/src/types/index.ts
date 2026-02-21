@@ -42,7 +42,6 @@ export type {
   WSPongEvent,
   WSSubscribedEvent,
   WSConnectionState,
-  UseWebSocketReturn,
 } from './websocket';
 
 export {

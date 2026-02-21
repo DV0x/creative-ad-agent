@@ -53,6 +53,11 @@ function saveLastEventId(sessionId: string, eventId: number): void {
   localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId), String(eventId));
 }
 
+function getLastEventId(sessionId: string): number {
+  const saved = localStorage.getItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId));
+  return saved ? parseInt(saved, 10) || 0 : 0;
+}
+
 // Extract campaign name from prompt (e.g., "nike.com" -> "Nike")
 function extractCampaignName(prompt: string): string {
   const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
@@ -110,9 +115,6 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'phase':
           if (isPhaseEvent(message) && campaignId && messageId) {
             store.addThinkingChild(campaignId, messageId, { kind: 'phase', text: message.label || message.phase });
-            if (message.phase === 'images' && message.imageCount) {
-              store.setGenerationExpectedImages(message.imageCount);
-            }
           }
           break;
 
@@ -155,6 +157,15 @@ export function useWebSocket(): UseWebSocketReturn {
           if (isFileEvent(message) && campaignId && messageId) {
             store.updateCampaignFile(campaignId, message.fileType, message.content);
             store.addThinkingChild(campaignId, messageId, { kind: 'status', text: `${message.fileType}.md created`, variant: 'info' });
+            // Prompts file is the authoritative source for expected image count
+            if (message.fileType === 'prompts' && message.content) {
+              try {
+                const prompts = JSON.parse(message.content);
+                if (Array.isArray(prompts) && prompts.length > 0) {
+                  store.setGenerationExpectedImages(prompts.length);
+                }
+              } catch { /* not valid JSON, keep current count */ }
+            }
           }
           break;
 
@@ -266,8 +277,18 @@ export function useWebSocket(): UseWebSocketReturn {
       wsManager.sendMessage({
         type: 'subscribe',
         sessionId: savedSession.sessionId,
-        lastEventId: 0
+        lastEventId: getLastEventId(savedSession.sessionId)
       });
+
+      // Recovery timeout — if 'subscribed' never arrives, clear the stuck state
+      // Must exceed worst-case reconnect time (5 attempts × escalating delays = ~30s) + replay time
+      setTimeout(() => {
+        if (useStore.getState().isRecovering) {
+          console.warn('WebSocket: Recovery timed out, clearing recovery state');
+          useStore.getState().setIsRecovering(false);
+          clearActiveSession();
+        }
+      }, 45_000);
     }
   }, []);
 

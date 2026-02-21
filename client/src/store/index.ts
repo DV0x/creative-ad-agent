@@ -155,7 +155,6 @@ interface Store {
   addThinkingChild: (campaignId: string, messageId: string, child: { kind: ThinkingChild['kind']; text: string; variant?: ThinkingChild['variant'] }) => void
   closeThinkingBlock: (campaignId: string, messageId: string, status: 'complete' | 'error') => void
   updateThinkingImages: (campaignId: string, messageId: string, completedImages: number) => void
-  addStatusBlock: (campaignId: string, messageId: string, text: string, variant: StatusBlockData['variant']) => void
   toggleBlockExpanded: (campaignId: string, messageId: string, blockId: string) => void
 
   // Edit Panel
@@ -808,23 +807,6 @@ export const useStore = create<Store>((set, get) => ({
             break
           }
         }
-        return { ...msg, blocks }
-      })
-    }
-  })),
-
-  addStatusBlock: (campaignId, messageId, text, variant) => set((state) => ({
-    chatMessages: {
-      ...state.chatMessages,
-      [campaignId]: (state.chatMessages[campaignId] || []).map(msg => {
-        if (msg.id !== messageId) return msg
-        const blocks = [...(msg.blocks || [])]
-        blocks.push({
-          type: 'status',
-          id: generateBlockId('status'),
-          text,
-          variant,
-        } satisfies StatusBlockData)
         return { ...msg, blocks }
       })
     }

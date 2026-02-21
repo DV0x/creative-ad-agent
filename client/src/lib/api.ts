@@ -145,7 +145,7 @@ function transformCampaign(
     filesReady,
     files: campaignFiles,
     images: images.map(img => ({
-      id: img.id,
+      id: img.image_index,
       url: img.file_path,
       prompt: img.prompt,
       hookType: img.hook_type,
