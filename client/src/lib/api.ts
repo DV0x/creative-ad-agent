@@ -151,6 +151,7 @@ function transformCampaign(
       hookType: img.hook_type,
       version: img.version,
     })),
+    sessionId: api.session_id ?? undefined,
   };
 }
 

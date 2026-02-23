@@ -4,6 +4,7 @@ import type { WSServerMessage, WSConnectionState } from '../types/websocket';
 import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEvent, isErrorEvent } from '../types/websocket';
 import { getHookTypeForIndex } from '../types/chat';
 import * as wsManager from '../lib/websocket-manager';
+import { campaignsApi } from '../lib/api';
 
 // ── Storage keys for session persistence ───────────────────────
 
@@ -257,41 +258,70 @@ export function useWebSocket(): UseWebSocketReturn {
 
   const handleConnected = useCallback(() => {
     const savedSession = getActiveSession();
-    if (savedSession) {
-      const store = useStore.getState();
-      console.log(`WebSocket: Recovering session ${savedSession.sessionId}`);
-      store.setIsRecovering(true);
-      sessionIdRef.current = savedSession.sessionId;
+    if (!savedSession) return;
 
-      store.reconstructForRecovery(
-        savedSession.sessionId,
-        savedSession.prompt,
-        savedSession.campaignId
-      );
+    const store = useStore.getState();
+    sessionIdRef.current = savedSession.sessionId;
 
-      const recoverMessageId = useStore.getState().currentGeneratingMessageId;
-      if (recoverMessageId) {
-        store.openThinkingBlock(savedSession.campaignId, recoverMessageId, 'Recovering session...');
-      }
-
+    // If recovery is already active for this campaign (e.g. WebSocket reconnected),
+    // just re-subscribe without creating duplicate messages.
+    if (store.generatingCampaignId === savedSession.campaignId && store.currentGeneratingMessageId) {
+      console.log(`WebSocket: Re-subscribing to session ${savedSession.sessionId} (recovery already active)`);
       wsManager.sendMessage({
         type: 'subscribe',
         sessionId: savedSession.sessionId,
-        // Use in-memory ref, not localStorage: on page refresh ref is 0 (replay all),
-        // on WebSocket reconnect ref has the real last received ID (replay only missed)
         lastEventId: lastEventIdRef.current
       });
-
-      // Recovery timeout — if 'subscribed' never arrives, clear the stuck state
-      // Must exceed worst-case reconnect time (5 attempts × escalating delays = ~30s) + replay time
-      setTimeout(() => {
-        if (useStore.getState().isRecovering) {
-          console.warn('WebSocket: Recovery timed out, clearing recovery state');
-          useStore.getState().setIsRecovering(false);
-          clearActiveSession();
-        }
-      }, 45_000);
+      return;
     }
+
+    console.log(`WebSocket: Recovering session ${savedSession.sessionId}`);
+    store.setIsRecovering(true);
+
+    // Set up recovery state (generatingCampaignId, etc.) immediately
+    // so setCampaigns/setChatMessages know to preserve this campaign.
+    store.reconstructForRecovery(
+      savedSession.sessionId,
+      savedSession.prompt,
+      savedSession.campaignId
+    );
+
+    const recoverMessageId = useStore.getState().currentGeneratingMessageId;
+    if (recoverMessageId) {
+      store.openThinkingBlock(savedSession.campaignId, recoverMessageId, 'Recovering session...');
+    }
+
+    // Subscribe immediately — events that arrive before setCampaigns loads
+    // the campaign are buffered by the store (_pendingImages/_pendingFiles)
+    // and flushed when setCampaigns runs.
+    wsManager.sendMessage({
+      type: 'subscribe',
+      sessionId: savedSession.sessionId,
+      lastEventId: lastEventIdRef.current
+    });
+
+    // Load historical messages in background (non-blocking).
+    // App.tsx excludes the recovering campaign from setChatMessages to avoid
+    // overwriting live recovery state, so we load its history here instead.
+    campaignsApi.get(savedSession.campaignId).then(({ messages }) => {
+      if (messages.length > 0) {
+        const currentStore = useStore.getState();
+        const existing = currentStore.chatMessages[savedSession.campaignId] || [];
+        currentStore.setChatMessagesForCampaign(savedSession.campaignId, [
+          ...messages,
+          ...existing,
+        ]);
+      }
+    }).catch(() => { /* recovery works without history */ });
+
+    // Recovery timeout
+    setTimeout(() => {
+      if (useStore.getState().isRecovering) {
+        console.warn('WebSocket: Recovery timed out, clearing recovery state');
+        useStore.getState().setIsRecovering(false);
+        clearActiveSession();
+      }
+    }, 45_000);
   }, []);
 
   // ── Refs so manager always calls latest callbacks ──────────
@@ -393,7 +423,15 @@ export function useWebSocket(): UseWebSocketReturn {
     if (!prompt.trim()) return;
 
     const store = useStore.getState();
+    const campaign = store.campaigns.find(c => c.id === campaignId);
     const { messageId } = store.startFollowUp(campaignId, prompt);
+
+    // Save session for recovery on page refresh (matches generate/resume pattern)
+    if (campaign?.sessionId) {
+      sessionIdRef.current = campaign.sessionId;
+      lastEventIdRef.current = 0;
+      saveActiveSession(campaign.sessionId, prompt, campaignId, messageId);
+    }
 
     store.openThinkingBlock(campaignId, messageId, 'Processing follow-up...');
 
@@ -406,6 +444,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
     if (!sent) {
       store.failGeneration(campaignId, messageId, 'WebSocket not connected');
+      clearActiveSession();
     }
   }, []);
 

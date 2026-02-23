@@ -982,8 +982,14 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     state.abortController = null;
     if (sessionId) {
       sessionAbortControllers.delete(sessionId);
-      // Clear event buffer after grace period (allows late reconnects to replay)
-      setTimeout(() => clearBuffer(sessionId), 60_000);
+      // Clear event buffer after grace period (allows late reconnects to replay).
+      // Guard: if a follow-up reuses this sessionId, its abort controller will be
+      // registered — skip the clear so we don't destroy the follow-up's active buffer.
+      setTimeout(() => {
+        if (!sessionAbortControllers.has(sessionId)) {
+          clearBuffer(sessionId);
+        }
+      }, 60_000);
     }
   }
 }
@@ -1048,13 +1054,17 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     }
     sessionConnections.set(wsSessionId, state.ws);
 
-    // 3. Persist user message to DB
+    // 3. Clear stale events from previous generation (e.g. cancel events
+    //    that would poison recovery replay for this follow-up).
+    clearBuffer(wsSessionId);
+
+    // 4. Persist user message to DB
     db.addMessage({ campaignId, role: 'user', content: prompt });
 
-    // 4. Update campaign status
+    // 5. Update campaign status
     db.updateCampaignStatus(campaignId, 'generating');
 
-    // 5. Send ack to client
+    // 6. Send ack to client
     emitEvent(wsSessionId, {
       type: 'ack',
       timestamp: new Date().toISOString(),
@@ -1256,8 +1266,13 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       const sid = localSessionId;
       sessionAbortControllers.delete(sid);
       unregisterByWsSession(sid);
-      // Clear event buffer after grace period (allows late reconnects to replay)
-      setTimeout(() => clearBuffer(sid), 60_000);
+      // Clear event buffer after grace period (allows late reconnects to replay).
+      // Guard: if another follow-up reuses this sessionId, skip the clear.
+      setTimeout(() => {
+        if (!sessionAbortControllers.has(sid)) {
+          clearBuffer(sid);
+        }
+      }, 60_000);
     }
     state.abortController = null;
     if (onImageSaved) {

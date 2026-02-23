@@ -38,6 +38,7 @@ export interface Campaign {
   images: GeneratedImage[]
   status: CampaignStatus
   filesReady: FilesReadyState
+  sessionId?: string
 }
 
 export interface AssetFile {
@@ -80,7 +81,7 @@ interface Store {
   getGeneratingCampaign: () => Campaign | null
 
   // Campaign CRUD
-  addCampaign: (name: string, status?: CampaignStatus) => string
+  addCampaign: (name: string, status?: CampaignStatus, sessionId?: string) => string
   removeCampaign: (id: string) => void
   renameCampaign: (id: string, name: string) => void
   replaceCampaignId: (oldId: string, newId: string) => void
@@ -188,6 +189,11 @@ interface Store {
   setCampaigns: (campaigns: Campaign[]) => void
   setAssetFolders: (folders: AssetFolder[]) => void
   setChatMessages: (messages: Record<string, ChatMessage[]>) => void
+  setChatMessagesForCampaign: (campaignId: string, messages: ChatMessage[]) => void
+
+  // Pending event buffers (events that arrive before setCampaigns loads campaigns)
+  _pendingImages: Record<string, GeneratedImage[]>
+  _pendingFiles: Record<string, Array<{ fileType: CampaignFileType; content: string }>>
 
   // Reset
   reset: () => void
@@ -245,6 +251,8 @@ export const useStore = create<Store>((set, get) => ({
   isCreatingCampaign: false,
   generatingCampaignId: null,
   isFollowUp: false,
+  _pendingImages: {},
+  _pendingFiles: {},
 
   setActiveCampaignId: (activeCampaignId) => set({
     activeCampaignId,
@@ -269,7 +277,7 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   // Campaign CRUD
-  addCampaign: (name, status = 'generating') => {
+  addCampaign: (name, status = 'generating', sessionId?) => {
     const id = generateId('campaign')
     set((state) => ({
       campaigns: [...state.campaigns, {
@@ -283,7 +291,8 @@ export const useStore = create<Store>((set, get) => ({
           { type: 'hooks', name: 'hooks.md', content: '', lastModified: new Date() },
           { type: 'prompts', name: 'prompts.md', content: '', lastModified: new Date() },
         ],
-        images: []
+        images: [],
+        sessionId,
       }],
       activeCampaignId: id,
       generatingCampaignId: status === 'generating' ? id : state.generatingCampaignId,
@@ -326,19 +335,29 @@ export const useStore = create<Store>((set, get) => ({
       ? null : state.generatingCampaignId,
   })),
 
-  updateCampaignFile: (campaignId, fileType, content) => set((state) => ({
-    campaigns: state.campaigns.map(campaign =>
-      campaign.id === campaignId
-        ? {
-            ...campaign,
-            files: campaign.files.map(file =>
-              file.type === fileType ? { ...file, content, lastModified: new Date() } : file
-            ),
-            filesReady: { ...campaign.filesReady, [fileType]: true }
-          }
-        : campaign
-    )
-  })),
+  updateCampaignFile: (campaignId, fileType, content) => set((state) => {
+    const exists = state.campaigns.some(c => c.id === campaignId);
+    if (!exists) {
+      // Campaign not loaded yet — buffer for flush on setCampaigns
+      const pending = { ...state._pendingFiles };
+      const list = (pending[campaignId] || []).filter(f => f.fileType !== fileType);
+      pending[campaignId] = [...list, { fileType, content }];
+      return { _pendingFiles: pending };
+    }
+    return {
+      campaigns: state.campaigns.map(campaign =>
+        campaign.id === campaignId
+          ? {
+              ...campaign,
+              files: campaign.files.map(file =>
+                file.type === fileType ? { ...file, content, lastModified: new Date() } : file
+              ),
+              filesReady: { ...campaign.filesReady, [fileType]: true }
+            }
+          : campaign
+      )
+    };
+  }),
 
   setFileReady: (campaignId, fileType, ready) => set((state) => ({
     campaigns: state.campaigns.map(campaign =>
@@ -348,16 +367,26 @@ export const useStore = create<Store>((set, get) => ({
     )
   })),
 
-  addImageToCampaign: (campaignId, image) => set((state) => ({
-    campaigns: state.campaigns.map(campaign =>
-      campaign.id === campaignId
-        ? {
-            ...campaign,
-            images: [...campaign.images.filter(i => i.id !== image.id), image].sort((a, b) => a.id - b.id)
-          }
-        : campaign
-    )
-  })),
+  addImageToCampaign: (campaignId, image) => set((state) => {
+    const exists = state.campaigns.some(c => c.id === campaignId);
+    if (!exists) {
+      // Campaign not loaded yet — buffer for flush on setCampaigns
+      const pending = { ...state._pendingImages };
+      const list = [...(pending[campaignId] || []).filter(i => i.id !== image.id), image];
+      pending[campaignId] = list.sort((a, b) => a.id - b.id);
+      return { _pendingImages: pending };
+    }
+    return {
+      campaigns: state.campaigns.map(campaign =>
+        campaign.id === campaignId
+          ? {
+              ...campaign,
+              images: [...campaign.images.filter(i => i.id !== image.id), image].sort((a, b) => a.id - b.id)
+            }
+          : campaign
+      )
+    };
+  }),
 
   replaceImage: (campaignId, imageId, newImage) => set((state) => ({
     campaigns: state.campaigns.map(campaign =>
@@ -433,7 +462,7 @@ export const useStore = create<Store>((set, get) => ({
 
   // Generation flow
   startGeneration: (sessionId, campaignName, prompt) => {
-    const campaignId = get().addCampaign(campaignName, 'generating')
+    const campaignId = get().addCampaign(campaignName, 'generating', sessionId)
     const userMessageId = generateId('msg')
     const assistantMessageId = generateId('msg')
 
@@ -512,9 +541,7 @@ export const useStore = create<Store>((set, get) => ({
         if (Array.isArray(prompts) && prompts.length > 0) expectedTotal = prompts.length
       } catch { /* keep default from prompt parse */ }
     }
-    const expectedImages = Math.max(1, expectedTotal - existingImages)
 
-    const userMessageId = generateId('msg')
     const assistantMessageId = generateId('msg')
 
     set((state) => ({
@@ -528,11 +555,13 @@ export const useStore = create<Store>((set, get) => ({
       campaigns: state.campaigns.map(c =>
         c.id === campaignId ? { ...c, status: 'generating' as CampaignStatus } : c
       ),
-      // Replace this campaign's messages only — previous are stale after refresh
+      // Only append the assistant (recovery) message — the user message already
+      // exists in the DB and will arrive via the historical message load in
+      // handleConnected. Adding it here would create a duplicate.
       chatMessages: {
         ...state.chatMessages,
         [campaignId]: [
-          { id: userMessageId, campaignId, role: 'user' as const, content: prompt, timestamp: new Date() },
+          ...(state.chatMessages[campaignId] || []),
           { id: assistantMessageId, campaignId, role: 'assistant' as const, content: '', timestamp: new Date() }
         ]
       }
@@ -557,6 +586,8 @@ export const useStore = create<Store>((set, get) => ({
         error: null,
         generationExpectedImages: 0,
         chatMessages: updatedMessages,
+        _pendingImages: {},
+        _pendingFiles: {},
       }
     })
   },
@@ -571,6 +602,8 @@ export const useStore = create<Store>((set, get) => ({
       sessionId: null,
       currentGeneratingMessageId: null,
       generationExpectedImages: 0,
+      _pendingImages: {},
+      _pendingFiles: {},
       chatMessages: {
         ...state.chatMessages,
         [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
@@ -949,9 +982,63 @@ export const useStore = create<Store>((set, get) => ({
   setDataLoading: (dataLoading) => set({ dataLoading }),
 
   // Bulk setters for API sync
-  setCampaigns: (campaigns) => set({ campaigns }),
+  setCampaigns: (incoming) => set((state) => {
+    const pendingImages = { ...state._pendingImages };
+    const pendingFiles = { ...state._pendingFiles };
+    let dirty = false;
+
+    const campaigns = incoming.map(c => {
+      const images = pendingImages[c.id];
+      const files = pendingFiles[c.id];
+      if (!images && !files) return c;
+      dirty = true;
+
+      let updated = c;
+      if (images) {
+        const merged = [...updated.images];
+        for (const img of images) {
+          if (!merged.some(m => m.id === img.id)) merged.push(img);
+        }
+        merged.sort((a, b) => a.id - b.id);
+        updated = { ...updated, images: merged };
+        delete pendingImages[c.id];
+      }
+      if (files) {
+        updated = {
+          ...updated,
+          files: updated.files.map(f => {
+            const pending = files.find(p => p.fileType === f.type);
+            return pending ? { ...f, content: pending.content, lastModified: new Date() } : f;
+          }),
+          filesReady: files.reduce(
+            (acc, f) => ({ ...acc, [f.fileType]: true }),
+            { ...updated.filesReady }
+          ),
+        };
+        delete pendingFiles[c.id];
+      }
+      return updated;
+    });
+
+    return {
+      campaigns,
+      ...(dirty ? { _pendingImages: pendingImages, _pendingFiles: pendingFiles } : {}),
+    };
+  }),
   setAssetFolders: (assetFolders) => set({ assetFolders }),
-  setChatMessages: (chatMessages: Record<string, ChatMessage[]>) => set({ chatMessages }),
+  setChatMessages: (incoming: Record<string, ChatMessage[]>) => set((state) => {
+    // Preserve the generating campaign's messages — they contain live recovery
+    // state (thinking blocks, streamed events) that must not be overwritten by
+    // stale DB data. App.tsx already excludes the recovering campaign from incoming.
+    const genId = state.generatingCampaignId
+    if (genId && state.chatMessages[genId]?.length > 0) {
+      return { chatMessages: { ...incoming, [genId]: state.chatMessages[genId] } }
+    }
+    return { chatMessages: incoming }
+  }),
+  setChatMessagesForCampaign: (campaignId, messages) => set((state) => ({
+    chatMessages: { ...state.chatMessages, [campaignId]: messages }
+  })),
 
   // Reset
   reset: () => set({

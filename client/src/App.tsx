@@ -80,8 +80,8 @@ function AppContent() {
         setCampaigns(fullCampaigns)
         setAssetFolders(foldersWithFiles)
         // Load persisted messages for all campaigns.
-        // If there's an active recovery session, exclude only that campaign's messages
-        // so the live generation state isn't overwritten with stale DB data.
+        // Exclude the recovering campaign — its messages will be loaded by
+        // handleConnected before subscribe, so the bulk setter can't overwrite them.
         if (Object.keys(messagesByCampaign).length > 0) {
           const activeSessionRaw = localStorage.getItem('creative-agent:activeSession')
           const activeSession = activeSessionRaw ? JSON.parse(activeSessionRaw) : null
@@ -133,6 +133,14 @@ function AppContent() {
     if (!dataLoaded || recoveryChecked || campaigns.length === 0) return
 
     async function checkForRecovery() {
+      // If WebSocket recovery is already active, don't interfere —
+      // handleConnected owns the recovery flow and this effect could
+      // race with it and null out generatingCampaignId.
+      if (useStore.getState().generatingCampaignId) {
+        setRecoveryChecked(true)
+        return
+      }
+
       // Find campaigns with 'generating' status (most recent first)
       const generatingCampaigns = campaigns
         .filter(c => c.status === 'generating')

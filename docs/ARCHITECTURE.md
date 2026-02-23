@@ -1,6 +1,6 @@
 # Creative Ad Agent — Architecture Document
 
-> Updated 2026-02-21 (session 2). Covers the full system: client, server, agent ecosystem.
+> Updated 2026-02-23 (session 4). Covers the full system: client, server, agent ecosystem.
 
 ---
 
@@ -231,6 +231,8 @@ Handles real-time generation streaming. Message types:
 - 40-minute TTL for stale buffers
 - On `subscribe`: replays events from `lastEventId` onward
 - Enables seamless reconnection mid-generation
+- Cleared at start of `handleFollowUp` to prevent stale events (e.g., cancel) from poisoning follow-up recovery replay
+- Cleared 60s after generation ends (guarded: skipped if a follow-up has started for the same session)
 
 ### 4.3 AI Client (`lib/ai-client.ts`)
 
@@ -431,7 +433,7 @@ Three-panel layout with collapsible sidebars:
 
 ### 5.3 Zustand Store (`store/index.ts`)
 
-Single store (~1000 lines) organized into sections:
+Single store (~1060 lines) organized into sections:
 
 | Section | Key State | Key Actions |
 |---------|-----------|-------------|
@@ -443,6 +445,7 @@ Single store (~1000 lines) organized into sections:
 | **WebSocket** | `sessionId`, `connectionState`, `isRecovering` | `setConnectionState()` |
 | **Chat** | `chatMessages{}`, `currentGeneratingMessageId` | `addChatMessage()`, `appendTextBlock()`, `openThinkingBlock()` |
 | **Blocks** | (nested in chat) | `addThinkingChild()`, `closeThinkingBlock()`, `updateThinkingImages()` |
+| **Recovery** | `isRecovering`, `_pendingImages`, `_pendingFiles` | `reconstructForRecovery()`, `cleanupFailedRecovery()`, `setChatMessagesForCampaign()` |
 | **Assets** | `assetFolders[]` | `addFolder()`, `addFileToFolder()` |
 | **Async** | (API sync) | `deleteCampaignAsync()`, `saveFileAsync()` |
 
@@ -451,6 +454,14 @@ Single store (~1000 lines) organized into sections:
 - `get()` for derived reads without subscribing
 - Optimistic async (update local first, sync to API)
 - Explicit `campaignId` passing to avoid stale closure bugs
+
+**Event Buffering for Recovery:**
+
+When replay events arrive (via `subscribe`) before `setCampaigns` has loaded campaign data from the API, `addImageToCampaign` and `updateCampaignFile` buffer events into `_pendingImages` / `_pendingFiles` instead of silently dropping them. When `setCampaigns` runs, it flushes the buffers by merging pending images/files into the incoming campaign data. Buffers are cleared on `cleanupFailedRecovery` and `completeGeneration`.
+
+**Chat Message Preservation:**
+
+`setChatMessages` has a guard: if `generatingCampaignId` is set, the generating campaign's messages are preserved (not overwritten by stale DB data from the bulk load in App.tsx). The recovering campaign's historical messages are loaded separately by `handleConnected` via `setChatMessagesForCampaign`.
 
 ### 5.4 WebSocket Integration
 
@@ -464,14 +475,17 @@ Single store (~1000 lines) organized into sections:
 **Hook (`hooks/useWebSocket.ts`):**
 - Registers callbacks with singleton manager
 - Processes server messages → dispatches store actions
-- Exposes: `generate()`, `cancel()`, `followUp()`
-- Session recovery on connection: checks localStorage, sends `subscribe`
+- Exposes: `generate()`, `cancel()`, `resume()`, `followUp()`
+- `handleConnected`: owns recovery flow — checks localStorage for active session, calls `reconstructForRecovery`, subscribes immediately
+- `handleConnected` is idempotent — safe to call multiple times (React StrictMode causes mount→unmount→remount). If recovery is already active for the same campaign, it re-subscribes without creating duplicate messages
+- `handleMessage`: routes server events to store actions, tracks `lastEventId` for recovery
 
 **Session Persistence:**
 - Stored in `localStorage['creative-agent:activeSession']`
 - Contains: `sessionId`, `prompt`, `campaignId`, `messageId`, `startedAt`
-- Cleared on generation complete/error
-- Checked on reconnect for recovery
+- Saved by `generate()`, `resume()`, and `followUp()` on action start
+- Cleared on generation complete/error/cancel
+- Checked by `handleConnected` on reconnect for recovery
 
 ### 5.5 Chat System (`components/chat/`)
 
@@ -535,6 +549,7 @@ ChatMessage
 - Base `apiFetch<T>()` adds auth headers + error handling
 - Type transformers: snake_case (server) → camelCase (client)
 - Campaigns API: list, get, create, update, delete, updateFile, getStatus
+- `transformCampaign` populates `sessionId` from `api.session_id` (used by follow-up for recovery session saving)
 - Assets API: listFolders, createFolder, renameFolder, deleteFolder, getFiles, deleteFile, uploadFile
 
 ### 5.10 Styling
@@ -708,34 +723,46 @@ useWebSocket.generate(prompt)
 
 ### 7.2 Session Recovery (Page Reload)
 
+Recovery is owned by `handleConnected` in `useWebSocket.ts`. `checkForRecovery` in `App.tsx` is a fallback only for when localStorage has no active session (e.g., server-side recovery detection).
+
 ```
-App.tsx loads → AppContent useEffect
-    │
-    ├── Fetch campaigns from API
-    ├── Check localStorage for activeSession
-    │
-    ▼ (if active session found)
-useWebSocket onConnected callback
-    │
-    ├── store.setIsRecovering(true)
-    ├── store.reconstructForRecovery(sessionId, prompt, campaignId)
-    │     └── Creates fresh user + assistant messages
-    ├── openThinkingBlock("Recovering session...")
-    │
-    └── wsManager.sendMessage({ type: 'subscribe', sessionId, lastEventId: 0 })
-          │
-          ▼
-    Server: handleSubscribe()
-          │
-          ├── Check event buffer for sessionId
-          ├── Replay buffered events from lastEventId
-          └── Send { type: 'subscribed', sessionId }
-                └── Client: setIsRecovering(false)
+Page refresh
+  │
+  ├── Store initializes empty
+  │
+  ├── WebSocket connects → handleConnected()
+  │     ├── Check idempotency (generatingCampaignId already set?) → re-subscribe only
+  │     ├── reconstructForRecovery() → sets generatingCampaignId, creates assistant msg
+  │     │     (user message NOT created here — comes from DB via historical load)
+  │     ├── openThinkingBlock("Recovering session...")
+  │     ├── subscribe IMMEDIATELY (lastEventId: 0)
+  │     │     → Server replays buffered events
+  │     │     → Images/files buffered in _pendingImages/_pendingFiles if campaign not in store yet
+  │     │     → Phases/tools added to thinking block
+  │     │     → 'subscribed' event → setIsRecovering(false)
+  │     └── Background: campaignsApi.get() → prepend historical messages (non-blocking)
+  │
+  ├── API data loads (async, from App.tsx useEffect)
+  │     ├── setCampaigns(fullCampaigns) → FLUSHES _pendingImages/_pendingFiles
+  │     └── setChatMessages(excluding recovering campaign) → preserved by generatingCampaignId guard
+  │
+  ├── checkForRecovery effect (App.tsx)
+  │     └── generatingCampaignId already set → SKIP (guard prevents interference)
+  │
+  └── Result: historical messages + recovery assistant msg + live events + images/files
 ```
+
+**Key invariants:**
+1. `handleConnected` is the SOLE owner of recovery. `checkForRecovery` is a fallback for when localStorage has no active session.
+2. Subscribe must be fast (immediate after `reconstructForRecovery`) to minimize timing windows.
+3. `handleConnected` must be idempotent — safe to call multiple times (StrictMode, reconnects).
+4. Event buffer must be clean when starting a follow-up (`clearBuffer` in `handleFollowUp`).
+5. `addImageToCampaign`/`updateCampaignFile` must buffer when campaign doesn't exist yet (not silently drop).
 
 **Edge cases:**
 - Buffer expired (40 min TTL) → client gets error, cleans up recovery state
-- Server restarted → no buffer exists → error sent, falls back to campaign status check via REST
+- Server restarted → no buffer exists → error sent, falls back to `checkForRecovery` which detects via REST status endpoint
+- React StrictMode double-mount → idempotency guard prevents duplicate recovery messages; second connection replays events harmlessly
 
 ### 7.3 Follow-up Conversation
 
@@ -750,18 +777,24 @@ useWebSocket.followUp(campaignId, prompt)
     │
     ├── store.startFollowUp(campaignId, prompt)
     │     └── Appends user + assistant messages to existing chat
+    ├── Save to localStorage (campaign.sessionId, prompt, campaignId, messageId)
+    │     └── Enables recovery if user refreshes mid-follow-up
     │
-    └── wsManager.sendMessage({ type: 'follow_up', prompt, campaignId, sessionId })
+    └── wsManager.sendMessage({ type: 'follow_up', prompt, campaignId })
           │
           ▼
     Server: handleFollowUp()
           │
           ├── Look up campaign's SDK session ID
+          ├── clearBuffer(wsSessionId)  ← clears stale events from previous generation
+          │     └── Prevents cancel events from poisoning follow-up recovery replay
           ├── aiClient.query(prompt, null, sdkSessionId) ← resumes session
           │     └── AI has full context from previous generation
           ├── Stream events (message text, possibly new images)
           └── Complete
 ```
+
+**Follow-up recovery:** If the user refreshes mid-follow-up, recovery works the same as initial generation (§7.2). The `clearBuffer` at the start of `handleFollowUp` ensures the replay buffer only contains follow-up events — stale events from the previous generation (including cancel events) are wiped.
 
 ### 7.4 Asset Upload & @ Mention
 
