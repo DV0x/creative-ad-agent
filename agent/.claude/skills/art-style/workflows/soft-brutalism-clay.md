@@ -8,15 +8,7 @@ Bold neo-brutalist borders and typography combined with warm, handcrafted 3D cla
 
 ## Step 1: Load Hook Bank
 
-Read the hook-bank file for brand data.
-
-**Location:** `agent/.claude/skills/hook-methodology/hook-bank/`
-
-**Process:**
-1. List files matching `{brand}-*.md` in the hook-bank folder
-2. Sort by date (from filename: `{brand}-YYYY-MM-DD.md`)
-3. Read the most recent file (unless user specified a date)
-4. Extract: Brand colors, ICP summary, 6 hook concepts
+Follow the **Hook-Bank Loading** process in SKILL.md. Extract brand colors, ICP, category, owned positioning, and 6 hook concepts with psychology, funnel stage, format intention, and visual direction fields.
 
 ---
 
@@ -328,7 +320,3 @@ Reads hook-bank in the new Research-First format:
 - **Psychology** (why it works — use for visual metaphor selection)
 
 ---
-
-## Done
-
-After writing prompts.json, this skill is complete. Main Agent handles image generation via MCP.
