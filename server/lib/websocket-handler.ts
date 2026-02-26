@@ -120,7 +120,7 @@ function getHookTypeForIndex(index: number): HookType {
 
 // Server → Client message types
 interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'ack' | 'pong' | 'subscribed';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed';
   timestamp: string;
   // Event/Image ID (number for event tracking, string for image IDs)
   id?: number | string;
@@ -684,6 +684,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
 
   const startTime = Date.now();
   let wasCancelled = false;
+  let apiError: string | null = null; // SDK API error: 'billing_error', 'rate_limit', etc.
 
   // Real-time image event handling — dedup by filename, server assigns global index
   const processedFilenames = new Set<string>();
@@ -781,10 +782,18 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       const { message } = result;
       processSDKMessage(message, state, instrumentor, processedFilenames, textAccumulator, blockBuilder, imageCounter);
 
+      // Detect SDK API errors (billing, rate limit, etc.) on assistant messages.
+      // These arrive BEFORE the result message and indicate the process will crash.
+      if (message.type === 'assistant' && message.error) {
+        apiError = message.error;
+        console.warn(`⚠️ SDK API error detected: ${message.error} for session ${sessionId}`);
+      }
+
       // SDK 'result' message = conversation finished.
       // Send completion immediately for responsive UX. The for-await loop
       // will exit naturally after this (no more messages from the SDK).
-      if (message.type === 'result' && !generationCompleted && !wasCancelled) {
+      // Skip if an API error was detected — the result is not a real completion.
+      if (message.type === 'result' && !generationCompleted && !wasCancelled && !apiError) {
         generationCompleted = true;
         const duration = Date.now() - startTime;
 
@@ -915,8 +924,8 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     // If generationCompleted: already handled inline, nothing to do here
 
   } catch (error: any) {
-    // If generation already completed inline, the abort was intentional cleanup
-    if (generationCompleted) {
+    // If generation completed cleanly (no API error), the exit code 1 is just cleanup noise
+    if (generationCompleted && !apiError) {
       // Fall through to finally block for cleanup
       return;
     }
@@ -945,6 +954,41 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
             blocks: blockBuilder.getBlocks(),
           });
           console.log(`💾 DB: Campaign ${state.campaignId} marked as cancelled`);
+        } catch (dbError) {
+          console.error('❌ DB: Failed to update campaign status:', dbError);
+        }
+      }
+    } else if (apiError) {
+      // SDK API error (billing, rate limit, auth, etc.) — mark incomplete, keep sdk_session_id.
+      // The JSONL is valid and resume will work when the transient issue resolves.
+      const friendlyMessages: Record<string, string> = {
+        billing_error: 'Credit balance is too low — generation will resume when credits are available.',
+        rate_limit: 'Rate limit reached — generation will resume on your next message.',
+        authentication_failed: 'Authentication error — please check your API key.',
+        server_error: 'Anthropic server error — generation will resume on your next message.',
+      };
+      const friendlyMsg = friendlyMessages[apiError] || `Generation interrupted: ${apiError}`;
+
+      console.warn(`⚠️ WebSocket: Generation interrupted by API error (${apiError}) for session ${sessionId}`);
+
+      broadcastToConnection(state, {
+        type: 'incomplete',
+        timestamp: new Date().toISOString(),
+        error: apiError,
+        message: friendlyMsg,
+      });
+
+      if (state.campaignId) {
+        try {
+          db.updateCampaignStatus(state.campaignId, 'incomplete');
+          blockBuilder.addStatusBlock(friendlyMsg, 'error');
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: friendlyMsg,
+            blocks: blockBuilder.getBlocks(),
+          });
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as incomplete (${apiError})`);
         } catch (dbError) {
           console.error('❌ DB: Failed to update campaign status:', dbError);
         }
@@ -1014,6 +1058,10 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
   // Build blocks for DB persistence (declared outside try for catch block access)
   const blockBuilder = new BlockBuilder();
   blockBuilder.openThinkingBlock('Processing Follow-up');
+
+  // Declared outside try so catch block can access them
+  let generationCompleted = false;
+  let apiError: string | null = null;
 
   try {
     // 1. Look up campaign and SDK session ID
@@ -1136,7 +1184,6 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       }
     }
 
-    let generationCompleted = false;
     let wasCancelled = false;
     const startTime = Date.now();
 
@@ -1156,7 +1203,14 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       const { message } = result;
       processSDKMessage(message, state, instrumentor, processedFilenames, textAccumulator, blockBuilder, imageCounter);
 
-      if (message.type === 'result' && !generationCompleted && !wasCancelled) {
+      // Detect SDK API errors (billing, rate limit, etc.) on assistant messages.
+      if (message.type === 'assistant' && message.error) {
+        apiError = message.error;
+        console.warn(`⚠️ SDK API error detected: ${message.error} for campaign ${campaignId}`);
+      }
+
+      // Skip if an API error was detected — the result is not a real completion.
+      if (message.type === 'result' && !generationCompleted && !wasCancelled && !apiError) {
         generationCompleted = true;
         const duration = Date.now() - startTime;
         const imageCount = imageCounter.next - 1 - existingImageCount;
@@ -1232,6 +1286,11 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     }
 
   } catch (err) {
+    // If follow-up completed cleanly (no API error), the exit code 1 is just cleanup noise
+    if (generationCompleted && !apiError) {
+      return;
+    }
+
     const isAbort = (err instanceof Error && err.name === 'AbortError') || state.abortController?.signal.aborted;
 
     if (isAbort) {
@@ -1244,6 +1303,40 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
           content: 'Follow-up was cancelled.',
           blocks: blockBuilder.getBlocks(),
         });
+      }
+    } else if (apiError) {
+      // SDK API error (billing, rate limit, auth, etc.) — mark incomplete, keep sdk_session_id.
+      const friendlyMessages: Record<string, string> = {
+        billing_error: 'Credit balance is too low — generation will resume when credits are available.',
+        rate_limit: 'Rate limit reached — generation will resume on your next message.',
+        authentication_failed: 'Authentication error — please check your API key.',
+        server_error: 'Anthropic server error — generation will resume on your next message.',
+      };
+      const friendlyMsg = friendlyMessages[apiError] || `Generation interrupted: ${apiError}`;
+
+      console.warn(`⚠️ WebSocket: Follow-up interrupted by API error (${apiError}) for campaign ${campaignId}`);
+
+      broadcastToConnection(state, {
+        type: 'incomplete',
+        timestamp: new Date().toISOString(),
+        error: apiError,
+        message: friendlyMsg,
+      });
+
+      if (state.campaignId) {
+        try {
+          db.updateCampaignStatus(state.campaignId, 'incomplete');
+          blockBuilder.addStatusBlock(friendlyMsg, 'error');
+          db.addMessage({
+            campaignId: state.campaignId,
+            role: 'assistant',
+            content: friendlyMsg,
+            blocks: blockBuilder.getBlocks(),
+          });
+          console.log(`💾 DB: Campaign ${state.campaignId} marked as incomplete (${apiError})`);
+        } catch (dbError) {
+          console.error('❌ DB: Failed to update campaign status:', dbError);
+        }
       }
     } else {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';

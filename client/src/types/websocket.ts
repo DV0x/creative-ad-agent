@@ -104,6 +104,12 @@ export interface WSSubscribedEvent extends WSBaseMessage {
   sessionId: string;
 }
 
+export interface WSIncompleteEvent extends WSBaseMessage {
+  type: 'incomplete';
+  error: string;
+  message: string;
+}
+
 // ============================================
 // Union Type for All Server Messages
 // ============================================
@@ -118,6 +124,7 @@ export type WSServerMessage =
   | WSImageEvent
   | WSCompleteEvent
   | WSErrorEvent
+  | WSIncompleteEvent
   | WSAckEvent
   | WSPongEvent
   | WSSubscribedEvent;

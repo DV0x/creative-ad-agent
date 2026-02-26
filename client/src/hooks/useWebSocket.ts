@@ -224,6 +224,20 @@ export function useWebSocket(): UseWebSocketReturn {
           }
           break;
 
+        case 'incomplete':
+          // API error (billing, rate limit, etc.) — campaign is resumable
+          if (campaignId && messageId) {
+            store.closeThinkingBlock(campaignId, messageId, 'error');
+            const incompleteMsg = ('message' in message && typeof message.message === 'string')
+              ? message.message
+              : 'Generation interrupted — will resume on your next message.';
+            store.appendTextBlock(campaignId, messageId, incompleteMsg);
+            store.updateCampaignStatus(campaignId, 'incomplete');
+          }
+          clearActiveSession();
+          sessionIdRef.current = null;
+          break;
+
         case 'ack':
           if ('campaignId' in message && message.campaignId) {
             const serverCampaignId = message.campaignId as string;
