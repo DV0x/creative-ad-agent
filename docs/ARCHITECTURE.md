@@ -31,7 +31,7 @@ User ──► React Client (Vite) ──► WebSocket ──► Bun/Express Ser
                                     ┌─────────────────┼─────────────────┐
                                     ▼                 ▼                  ▼
                             Research Agent    Hook Skill          Art Style Skill
-                            (WebFetch)        (10 formulas)       (2 workflows)
+                            (WebFetch)        (10 formulas)       (14 workflows)
                                     │                 │                  │
                                     ▼                 ▼                  ▼
                             research.md        hook-bank.md        prompts.json
@@ -134,12 +134,24 @@ creative-ad-agent/
 │           ├── hook-methodology/
 │           │   ├── SKILL.md        # Hook generation (10 types)
 │           │   ├── formulas.md     # Hook formula reference
-│           │   └── hook-bank/      # Generated hook files (34 files)
+│           │   └── hook-bank/      # Generated hook files (39 files)
 │           └── art-style/
 │               ├── SKILL.md        # Visual prompt routing
-│               ├── workflows/
+│               ├── workflows/      # 14 style workflows
+│               │   ├── anderson-clay-diorama.md
 │               │   ├── soft-brutalism-clay.md
-│               │   └── anderson-clay-diorama.md
+│               │   ├── product-on-gradient.md
+│               │   ├── editorial-cutout.md
+│               │   ├── typography-dominant.md
+│               │   ├── infographic-data-visual.md
+│               │   ├── lifestyle-render-hybrid.md
+│               │   ├── ugc-aesthetic-static.md
+│               │   ├── analog-craft.md
+│               │   ├── bold-energy.md
+│               │   ├── clean-premium.md
+│               │   ├── dream-sketch-hybrid.md
+│               │   ├── service-realism.md
+│               │   └── split-comparison.md
 │               └── tools/
 │                   ├── generate-images.ts  # Gemini 3 Pro standalone generator
 │                   └── run-generate.sh     # Shell wrapper
@@ -617,21 +629,21 @@ ChatMessage
 
 **Purpose:** Create visual prompts from hooks. Routes to style workflow.
 
-**Style Routing:**
+**Style Routing (keyword → workflow):**
 
-| Keywords | Workflow | Status |
-|----------|----------|--------|
-| clay, diorama, anderson, theatrical | `anderson-clay-diorama.md` | Active |
-| brutalism, soft brutalism, neo-brutalist | `soft-brutalism-clay.md` | Active |
-| surreal, dreamlike, scale | surrealist-scale | Future |
-| minimal, clean, photography | minimal-photography | Future |
-| (none) | anderson-clay-diorama.md | Default* |
+| Keywords | Workflow |
+|----------|----------|
+| clay, diorama, anderson, theatrical, miniature | `anderson-clay-diorama.md` |
+| brutalism, soft brutalism, neo-brutalist, bold borders | `soft-brutalism-clay.md` |
+| gradient, product shot, minimal product, clean product | `product-on-gradient.md` |
+| editorial, cutout, magazine, collage, premium | `editorial-cutout.md` |
+| type, typography, text, bold text, poster | `typography-dominant.md` |
+| infographic, data, chart, comparison, education | `infographic-data-visual.md` |
+| lifestyle, environment, scene, context, atmospheric | `lifestyle-render-hybrid.md` |
+| ugc, testimonial, review, social proof, screenshot | `ugc-aesthetic-static.md` |
+| (none) | Auto-select 3-4 styles based on brand category |
 
-> *Note: Discrepancy — `orchestrator-prompt.ts` says default is Soft Brutalism Clay, but `SKILL.md` says Anderson Clay Diorama. The skill file is what the agent reads, so Anderson is the actual default.
-
-**Soft Brutalism Clay:** Bold neo-brutalist borders (8-12px) + warm 3D clay. Palette: Terracotta, Sage Green, Warm Cream, Deep Charcoal, Warm Coral.
-
-**Anderson Clay Diorama:** "Every frame is a tiny theater." Museum-quality dioramas with Wes Anderson visual grammar. 3 decisions: THE STORY (visual world mapping), THE STAGE (lighting, camera, composition, texture, color temp), THE FRAME (typography, borders, hierarchy).
+Additional workflows (routed via category-aware defaults): `analog-craft.md`, `bold-energy.md`, `clean-premium.md`, `dream-sketch-hybrid.md`, `service-realism.md`, `split-comparison.md`.
 
 **Output:** `agent/files/creatives/{brand}_prompts.json`
 
@@ -872,11 +884,12 @@ interface ThinkingChild {
 ```typescript
 // Client → Server
 interface WSClientMessage {
-  type: 'generate' | 'cancel' | 'pause' | 'resume' | 'ping' | 'subscribe' | 'follow_up'
+  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up'
   prompt?: string
   sessionId?: string
   campaignId?: string
   lastEventId?: number
+  assetFileIds?: string[]
 }
 
 // Server → Client (union of all event types)
