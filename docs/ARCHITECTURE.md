@@ -1,6 +1,6 @@
 # Creative Ad Agent — Architecture Document
 
-> Updated 2026-02-23 (session 4). Covers the full system: client, server, agent ecosystem.
+> Updated 2026-02-28 (session 5). Covers the full system: client, server, agent ecosystem.
 
 ---
 
@@ -226,17 +226,30 @@ Handles real-time generation streaming. Message types:
 | `image` | Image generated | `urlPath`, `hookType`, `imageIndex` |
 | `message` | Streamed text (follow-ups) | `text` |
 | `complete` | Generation finished | `summary`, `duration`, `imageCount` |
+| `incomplete` | Generation interrupted (API error) | `error`, `message` |
 | `error` | Generation failed | `error` |
 | `status` | Status updates | `status` (cancelled, etc.) |
+| `pong` | Ping response | — |
 | `subscribed` | Reconnect acknowledged | `sessionId` |
 
 **Generation Flow (`handleGenerate`):**
 1. Creates campaign in DB immediately
 2. Persists user prompt as a message
-3. Calls `aiClient.query()` with orchestrator prompt
+3. Calls `aiClient.queryWithSession()` with orchestrator prompt
 4. Iterates async generator — maps SDK events to WebSocket events
 5. BlockBuilder structures events into thinking/text/status blocks
 6. On completion: persists assistant message + blocks to DB
+7. On cancel: marks campaign `cancelled`, persists cancel message
+8. On API error (billing, rate limit): marks campaign `incomplete`, preserves SDK session ID for resume
+
+**Follow-up Flow (`handleFollowUp`):**
+1. Looks up campaign + SDK session ID from DB (always attempted, regardless of campaign status)
+2. Clears stale event buffer from previous generation
+3. Calls `aiClient.queryWithSession()` with `resumeSdkSessionId` — AI has full conversation context
+4. On cancel: marks campaign `cancelled`, persists cancel message
+5. On API error: marks campaign `incomplete`
+
+**Session Resume:** The AI client tries `resume: sdkSessionId` first. If the JSONL is corrupted or missing, it falls back to a fresh session automatically. The `system.init` message from the SDK always updates the DB with the current SDK session ID.
 
 **Event Buffering (`lib/event-buffer.ts`):**
 - Buffers all events with sequential IDs (max 1000 per session)
@@ -453,7 +466,7 @@ Single store (~1060 lines) organized into sections:
 | **Campaigns** | `campaigns[]`, `activeCampaignId`, `generatingCampaignId` | `addCampaign()`, `removeCampaign()`, `replaceCampaignId()` |
 | **Files** | `activeFileType` | `updateCampaignFile()`, `setFileReady()` |
 | **Images** | `selectedImageIds[]` | `addImageToCampaign()`, `toggleImageSelection()` |
-| **Generation** | `prompt`, `pendingGeneration` | `startGeneration()`, `completeGeneration()`, `failGeneration()` |
+| **Generation** | `prompt`, `pendingGeneration`, `isFollowUp` | `startGeneration()`, `startFollowUp()`, `completeGeneration()`, `cancelGeneration()`, `failGeneration()` |
 | **WebSocket** | `sessionId`, `connectionState`, `isRecovering` | `setConnectionState()` |
 | **Chat** | `chatMessages{}`, `currentGeneratingMessageId` | `addChatMessage()`, `appendTextBlock()`, `openThinkingBlock()` |
 | **Blocks** | (nested in chat) | `addThinkingChild()`, `closeThinkingBlock()`, `updateThinkingImages()` |
@@ -797,14 +810,20 @@ useWebSocket.followUp(campaignId, prompt)
           ▼
     Server: handleFollowUp()
           │
-          ├── Look up campaign's SDK session ID
+          ├── Look up campaign + SDK session ID from DB
+          │     └── Always attempted regardless of campaign status (cancelled, error, etc.)
           ├── clearBuffer(wsSessionId)  ← clears stale events from previous generation
           │     └── Prevents cancel events from poisoning follow-up recovery replay
-          ├── aiClient.query(prompt, null, sdkSessionId) ← resumes session
-          │     └── AI has full context from previous generation
+          ├── aiClient.queryWithSession(prompt, wsSessionId, ..., sdkSessionId)
+          │     ├── Tries resume: sdkSessionId first (loads JSONL conversation history)
+          │     ├── If JSONL invalid → falls back to fresh session automatically
+          │     └── AI has full context from previous generation on successful resume
           ├── Stream events (message text, possibly new images)
+          ├── On cancel: marks campaign 'cancelled', persists cancel message
           └── Complete
 ```
+
+**Follow-up after cancel:** When a follow-up is cancelled, the campaign status is set to `'cancelled'`. The next follow-up still loads the SDK session ID and attempts resume — cancelled campaigns have valid JSONL files (just interrupted). The `system.init` message from the new SDK session updates the DB's `sdk_session_id`, keeping it current.
 
 **Follow-up recovery:** If the user refreshes mid-follow-up, recovery works the same as initial generation (§7.2). The `clearBuffer` at the start of `handleFollowUp` ensures the replay buffer only contains follow-up events — stale events from the previous generation (including cancel events) are wiped.
 
@@ -901,9 +920,11 @@ type WSServerMessage =
   | WSImageEvent      // { type: 'image', urlPath, hookType, imageIndex }
   | WSMessageEvent    // { type: 'message', text }
   | WSCompleteEvent   // { type: 'complete', summary, duration?, imageCount? }
+  | WSIncompleteEvent // { type: 'incomplete', error, message }
   | WSErrorEvent      // { type: 'error', error }
   | WSAckEvent        // { type: 'ack', campaignId? }
   | WSStatusEvent     // { type: 'status', status }
+  | WSPongEvent       // { type: 'pong' }
   | WSSubscribedEvent // { type: 'subscribed', sessionId }
 
 type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnecting'
@@ -934,6 +955,7 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 |----|------|---------|
 | **R1** | **Campaign ID window** | Between `startGeneration` (local ID) and `replaceCampaignId` (server ID via `ack`), any API call using the local ID will 404. |
 | **R2** | **Dual image event path** | Images arrive via EventEmitter (real-time) AND SDK `tool_result`. Deduplication via `processedImageIndices` Set works in-memory, but DB may get version 2 orphan rows. |
+| **R3** | **SDK session ID overwrite** | `processSDKMessage` updates `sdk_session_id` on every `system.init`. If resume fails and falls back to fresh session, the new ID overwrites the old one — losing the link to the original JSONL with full conversation history. Mitigated: resume is now always attempted (never skipped by status), and AI client retries fresh only if JSONL is truly invalid. |
 
 ### 9.4 Security / Production Hardening
 
@@ -962,6 +984,11 @@ type WSConnectionState = 'connecting' | 'connected' | 'disconnected' | 'reconnec
 1. **Wire up image regeneration** — Deferred to Phase 2 (§10.4). Current text-based path works via session resume.
 2. **R1: Campaign ID window** — File saves can 404 between local ID creation and server `ack`. See §9.3.
 3. **R2: Dual image event path** — DB can get orphan version rows from EventEmitter + SDK tool_result race. See §9.3.
+4. **R3: SDK session ID overwrite** — If resume fails, fresh session overwrites `sdk_session_id` in DB. See §9.3.
+
+### 10.2.1 Resolved Bugs
+
+1. ~~**Follow-up after cancel lost session context**~~ — `handleFollowUp` skipped SDK session ID lookup for cancelled/errored campaigns, causing fresh sessions with no conversation history. Fixed: always attempt resume regardless of status (2026-02-28).
 
 ### 10.3 Suggested Improvements
 
@@ -1005,4 +1032,4 @@ ASSET LAYER      — DB is the source of truth, not the conversation
 
 ### 10.5 Cleanup
 
-- Commit untracked docs in `docs/`
+- ~~Commit untracked docs in `docs/`~~ — Done (2026-02-28)
