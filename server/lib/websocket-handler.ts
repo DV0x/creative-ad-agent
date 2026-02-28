@@ -1071,14 +1071,11 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       return;
     }
 
-    // Get SDK session ID — skip resume for failed/cancelled campaigns
-    // (their JSONL files may be empty/invalid and would crash the CLI)
-    let sdkSessionId: string | null = null;
-    if (campaign.status !== 'error' && campaign.status !== 'cancelled') {
-      sdkSessionId = db.getSdkSessionId(campaignId);
-    }
+    // Always attempt to load SDK session ID for resume — the AI client has
+    // fallback logic (try resume → fall back to fresh session if JSONL is invalid).
+    const sdkSessionId = db.getSdkSessionId(campaignId);
     if (!sdkSessionId) {
-      console.log(`⚠️ No valid SDK session for campaign ${campaignId} (status: ${campaign.status}) — will start fresh`);
+      console.log(`⚠️ No SDK session for campaign ${campaignId} (status: ${campaign.status}) — will start fresh`);
     }
 
     if (!campaign.session_id) {
