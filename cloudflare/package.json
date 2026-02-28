@@ -1,0 +1,16 @@
+{
+  "name": "creative-agent-cloudflare",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "typecheck": "tsc --noEmit",
+    "d1:migrate": "wrangler d1 execute creative-agent-db --remote --file=./schema.sql"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260101.0",
+    "typescript": "^5.7.0",
+    "wrangler": "^4.0.0"
+  }
+}

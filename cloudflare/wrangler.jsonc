@@ -1,0 +1,41 @@
+{
+  "name": "creative-agent",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-01-01",
+  "compatibility_flags": ["nodejs_compat"],
+
+  // D1 database (already created)
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "creative-agent-db",
+      "database_id": "ddcd29d7-632c-4017-8f3b-9de6cdd8c5fe"
+    }
+  ],
+
+  // R2 bucket (already created)
+  "r2_buckets": [
+    {
+      "binding": "R2_BUCKET",
+      "bucket_name": "creative-agent-assets"
+    }
+  ],
+
+  // Durable Objects (Phase 3)
+  "durable_objects": {
+    "bindings": [
+      {
+        "name": "CAMPAIGN_SESSION",
+        "class_name": "CampaignSession"
+      }
+    ]
+  },
+
+  // DO migrations
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_classes": ["CampaignSession"]
+    }
+  ]
+}
