@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Performance Marketer Research &mdash; Creative Agent</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  :root {
+    --sidebar-w: 280px;
+    --text: #1a1a1a;
+    --text-secondary: #555;
+    --bg: #fafaf8;
+    --paper: #fff;
+    --border: #e0ddd8;
+    --accent: #2c5282;
+    --accent-light: #ebf4ff;
+    --sidebar-bg: #f5f4f0;
+    --sidebar-hover: #eae8e3;
+    --sidebar-active: #ddd9d0;
+    --font-serif: 'Georgia', 'Times New Roman', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    --font-mono: 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', monospace;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { font-size: 16px; scroll-behavior: smooth; }
+
+  body {
+    font-family: var(--font-serif);
+    color: var(--text);
+    background: var(--bg);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ---- Sidebar ---- */
+  .sidebar {
+    position: fixed;
+    top: 0; left: 0;
+    width: var(--sidebar-w);
+    height: 100vh;
+    background: var(--sidebar-bg);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    z-index: 100;
+    padding: 24px 0;
+    font-family: var(--font-sans);
+    font-size: 13px;
+  }
+
+  .sidebar-title {
+    padding: 0 20px 16px;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--text);
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  .sidebar-title small {
+    display: block;
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-top: 2px;
+  }
+
+  .sidebar nav a {
+    display: block;
+    padding: 6px 20px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: background 0.15s, color 0.15s;
+    border-left: 3px solid transparent;
+  }
+
+  .sidebar nav a:hover {
+    background: var(--sidebar-hover);
+    color: var(--text);
+  }
+
+  .sidebar nav a.active {
+    background: var(--sidebar-active);
+    color: var(--text);
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .sidebar nav .section-label {
+    padding: 14px 20px 4px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+  }
+
+  /* ---- Main content ---- */
+  .main {
+    margin-left: var(--sidebar-w);
+    min-height: 100vh;
+  }
+
+  .doc-section {
+    display: none;
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 48px 48px 80px;
+  }
+
+  .doc-section.active { display: block; }
+
+  /* ---- Typography ---- */
+  .doc-section h1 {
+    font-family: var(--font-sans);
+    font-size: 2rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.2;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+
+  .doc-section h2 {
+    font-family: var(--font-sans);
+    font-size: 1.4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-top: 48px;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    color: var(--text);
+  }
+
+  .doc-section h3 {
+    font-family: var(--font-sans);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-top: 32px;
+    margin-bottom: 12px;
+    color: var(--text);
+  }
+
+  .doc-section h4 {
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-top: 24px;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+
+  .doc-section p {
+    margin-bottom: 14px;
+  }
+
+  .doc-section ul, .doc-section ol {
+    margin-bottom: 14px;
+    padding-left: 24px;
+  }
+
+  .doc-section li { margin-bottom: 4px; }
+
+  .doc-section li > ul, .doc-section li > ol {
+    margin-top: 4px;
+    margin-bottom: 4px;
+  }
+
+  .doc-section strong { font-weight: 700; }
+
+  .doc-section blockquote {
+    border-left: 3px solid var(--border);
+    padding: 8px 16px;
+    margin: 16px 0;
+    color: var(--text-secondary);
+    font-style: italic;
+    background: #fdfdfb;
+  }
+
+  .doc-section hr {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 40px 0;
+  }
+
+  /* ---- Tables ---- */
+  .doc-section table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 16px 0 24px;
+    font-size: 0.875rem;
+    font-family: var(--font-sans);
+    line-height: 1.5;
+  }
+
+  .doc-section th {
+    text-align: left;
+    font-weight: 600;
+    padding: 10px 12px;
+    border-bottom: 2px solid var(--border);
+    background: #f9f8f5;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  .doc-section td {
+    padding: 8px 12px;
+    border-bottom: 1px solid #eee;
+    vertical-align: top;
+  }
+
+  .doc-section tr:last-child td { border-bottom: 1px solid var(--border); }
+
+  .doc-section tr:hover td { background: #fdfdfb; }
+
+  /* ---- Code ---- */
+  .doc-section code {
+    font-family: var(--font-mono);
+    font-size: 0.85em;
+    background: #f4f3ef;
+    padding: 2px 5px;
+    border-radius: 3px;
+  }
+
+  .doc-section pre {
+    background: #f4f3ef;
+    padding: 16px 20px;
+    border-radius: 4px;
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    font-size: 0.82rem;
+    line-height: 1.6;
+    border: 1px solid #e8e6e1;
+  }
+
+  .doc-section pre code {
+    background: none;
+    padding: 0;
+    font-size: inherit;
+  }
+
+  /* ---- Links ---- */
+  .doc-section a {
+    color: var(--accent);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+  }
+  .doc-section a:hover { border-bottom-color: var(--accent); }
+
+  /* ---- Mobile ---- */
+  .menu-toggle {
+    display: none;
+    position: fixed;
+    top: 12px; left: 12px;
+    z-index: 200;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  }
+
+  @media (max-width: 900px) {
+    .sidebar { transform: translateX(-100%); transition: transform 0.25s ease; }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 20px rgba(0,0,0,0.1); }
+    .main { margin-left: 0; }
+    .doc-section { padding: 48px 24px 80px; }
+    .menu-toggle { display: block; }
+  }
+
+  /* ---- Print ---- */
+  @media print {
+    .sidebar, .menu-toggle { display: none !important; }
+    .main { margin-left: 0; }
+    .doc-section { display: block !important; max-width: 100%; padding: 0; page-break-after: always; }
+    .doc-section h2 { page-break-after: avoid; }
+    .doc-section table { page-break-inside: avoid; }
+    body { font-size: 11pt; line-height: 1.5; }
+  }
+
+  /* ---- Scroll indicator ---- */
+  .scroll-top {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    width: 40px; height: 40px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 50;
+    font-family: var(--font-sans);
+  }
+  .scroll-top.visible { opacity: 1; }
+</style>
+</head>
+<body>
+
+<button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">Menu</button>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-title">
+    Performance Marketer Research
+    <small>Creative Agent &mdash; Feb 2026</small>
+  </div>
+  <nav id="nav">
+    <div class="section-label">Synthesis</div>
+    <a href="#" data-doc="final-report" class="active">Final Report</a>
+    <a href="#" data-doc="critique">Critique &amp; Recommendations</a>
+    <div class="section-label">Research</div>
+    <a href="#" data-doc="platform-audit">Platform Capability Audit</a>
+    <a href="#" data-doc="marketer-workflow">Marketer Workflow</a>
+    <a href="#" data-doc="competitor-teardown">Competitor Teardown</a>
+    <a href="#" data-doc="meta-ecosystem">Meta Ads Ecosystem</a>
+    <a href="#" data-doc="gap-analysis">Gap Analysis</a>
+    <a href="#" data-doc="workflow-integration">Workflow Integration</a>
+  </nav>
+</aside>
+
+<main class="main">
+  <section class="doc-section active" id="final-report"></section>
+  <section class="doc-section" id="critique"></section>
+  <section class="doc-section" id="platform-audit"></section>
+  <section class="doc-section" id="marketer-workflow"></section>
+  <section class="doc-section" id="competitor-teardown"></section>
+  <section class="doc-section" id="meta-ecosystem"></section>
+  <section class="doc-section" id="gap-analysis"></section>
+  <section class="doc-section" id="workflow-integration"></section>
+</main>
+
+<button class="scroll-top" id="scrollTop" title="Back to top">&uarr;</button>
+
+<script>
+// Markdown sources keyed by section id
+const docs = {
+  'final-report': 'FINAL_REPORT.md',
+  'critique': 'critique.md',
+  'platform-audit': 'research_platform_audit.md',
+  'marketer-workflow': 'research_marketer_workflow.md',
+  'competitor-teardown': 'research_competitor_teardown.md',
+  'meta-ecosystem': 'research_meta_ads_ecosystem.md',
+  'gap-analysis': 'research_gap_analysis.md',
+  'workflow-integration': 'research_workflow_integration.md'
+};
+
+// marked.js config
+marked.setOptions({ gfm: true, breaks: false });
+
+// Load a doc section
+async function loadDoc(id) {
+  const el = document.getElementById(id);
+  if (el.dataset.loaded) return;
+  try {
+    const res = await fetch(docs[id]);
+    if (!res.ok) throw new Error(res.statusText);
+    const md = await res.text();
+    el.innerHTML = marked.parse(md);
+    el.dataset.loaded = '1';
+  } catch (e) {
+    el.innerHTML = '<p style="color:#a00">Failed to load document: ' + e.message + '</p>';
+  }
+}
+
+// Switch active doc
+function switchDoc(id) {
+  document.querySelectorAll('.doc-section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('#nav a[data-doc]').forEach(a => a.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelector(`#nav a[data-doc="${id}"]`).classList.add('active');
+  loadDoc(id);
+  window.scrollTo(0, 0);
+  // close mobile menu
+  document.querySelector('.sidebar').classList.remove('open');
+}
+
+// Nav clicks
+document.querySelectorAll('#nav a[data-doc]').forEach(a => {
+  a.addEventListener('click', e => {
+    e.preventDefault();
+    switchDoc(a.dataset.doc);
+  });
+});
+
+// Scroll-to-top button
+const scrollBtn = document.getElementById('scrollTop');
+window.addEventListener('scroll', () => {
+  scrollBtn.classList.toggle('visible', window.scrollY > 400);
+});
+scrollBtn.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smooth' }));
+
+// Load initial doc
+loadDoc('final-report');
+</script>
+</body>
+</html>
