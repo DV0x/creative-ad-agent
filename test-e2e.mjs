@@ -27,7 +27,7 @@ ws.on('open', () => {
 
   ws.send(JSON.stringify({
     type: 'generate',
-    prompt: 'Create conversion ads for a premium coffee brand called "Dark Roast Co" - they sell organic single-origin coffee beans',
+    prompt: 'Create conversion ads for a premium coffee brand called "Dark Roast Co" at https://darkroastco.com - they sell organic single-origin coffee beans. Make 2 ads in clay diorama style.',
     sessionId: SESSION_ID,
   }));
 });
@@ -94,13 +94,21 @@ ws.on('error', (err) => {
 });
 
 ws.on('close', (code, reason) => {
+  clearInterval(pingInterval);
   console.log(`\n[${elapsed()}] Connection closed (code: ${code}, reason: ${reason || 'none'})`);
   process.exit(code === 1000 ? 0 : 1);
 });
 
-// Timeout after 10 minutes
+// Ping every 30s to keep WS alive during long sandbox boot
+const pingInterval = setInterval(() => {
+  if (ws.readyState === WebSocket.OPEN) {
+    ws.send(JSON.stringify({ type: 'ping' }));
+  }
+}, 30_000);
+
+// Timeout after 15 minutes (sandbox boot ~2-4min + generation ~5-10min)
 setTimeout(() => {
   console.error(`\n[${elapsed()}] TIMEOUT — generation took too long`);
   ws.close();
   process.exit(1);
-}, 600_000);
+}, 900_000);

@@ -341,16 +341,46 @@ export class CampaignSession implements DurableObject {
     };
 
     try {
+      // 0. Debug: verify API key reaches DO correctly
+      const keyLen = this.env.ANTHROPIC_API_KEY?.length || 0;
+      const keyPrefix = this.env.ANTHROPIC_API_KEY?.substring(0, 10) || '(none)';
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] API key check: len=${keyLen}, prefix=${keyPrefix}` });
+
+      // Quick API test from DO (bypasses sandbox entirely)
+      try {
+        const testResp = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'content-type': 'application/json',
+            'x-api-key': this.env.ANTHROPIC_API_KEY,
+            'anthropic-version': '2023-06-01',
+          },
+          body: JSON.stringify({
+            model: 'claude-haiku-4-5-20251001',
+            max_tokens: 5,
+            messages: [{ role: 'user', content: 'hi' }],
+          }),
+        });
+        this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] API key test from DO: ${testResp.status}` });
+      } catch (e: any) {
+        this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] API key test error: ${e.message}` });
+      }
+
       // 1. Get or create sandbox
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Getting sandbox...' });
       const sandbox = getSandbox(this.env.SANDBOX, `user-${this.userId}`, {
         sleepAfter: '10m',
       });
       this.sandbox = sandbox;
 
       // 2. Clean mount point (unmount stale FUSE, clear residual files)
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Cleaning mount point...' });
+      console.log(`[gen] Cleaning mount point...`);
       await sandbox.exec('fusermount -u /mnt/r2 2>/dev/null; umount /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2');
 
       // 3. Mount R2 for per-user storage via S3-compatible FUSE
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Mounting R2 bucket...' });
+      console.log(`[gen] Mounting R2 bucket...`);
       await sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
         endpoint: `https://${this.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
         provider: 'r2',
@@ -362,10 +392,41 @@ export class CampaignSession implements DurableObject {
         prefix: `/users/${this.userId}`,
       });
 
-      // 3. Start agent-runner with streaming
+      // 3. Clean stale Claude CLI auth cache (may contain corrupted key from previous sessions)
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Cleaning CLI auth cache...' });
+      await sandbox.exec('rm -f /mnt/r2/.claude/.credentials /mnt/r2/.claude/config.json /mnt/r2/.claude/auth.json 2>/dev/null; ls -la /mnt/r2/.claude/ 2>/dev/null || true');
+
+      // 4. Debug: comprehensive network test from sandbox
+      const netTest = await sandbox.exec(
+        `node -e "
+          async function test() {
+            // Test 1: with API key
+            const r1 = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})});
+            const t1 = await r1.text();
+            console.log('WITH_KEY='+r1.status);
+            // Test 2: without API key (should get 401 if network works)
+            const r2 = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':'sk-ant-bad-key','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})});
+            console.log('BAD_KEY='+r2.status);
+            // Test 3: simple GET to external site
+            const r3 = await fetch('https://httpbin.org/ip');
+            const t3 = await r3.text();
+            console.log('HTTPBIN='+r3.status+' '+t3.substring(0,100));
+          }
+          test().catch(e=>console.log('ERR='+e.message));
+        "`,
+        { env: { ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY } }
+      );
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Net test: ${netTest?.stdout?.substring(0, 400) || JSON.stringify(netTest).substring(0, 400)}` });
+
+      // 5. Start agent-runner with streaming
       const messageQueue: any[] = [];
       let execDone = false;
+      let stdoutBuffer = ''; // Accumulate partial lines across chunks
 
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Starting agent-runner exec...' });
+      console.log(`[gen] Starting agent-runner for session=${sessionId}, campaign=${this.campaignId}`);
+
+      let outputChunkCount = 0;
       const execPromise = sandbox.exec('npx tsx /app/agent-runner.ts', {
         cwd: '/app',
         env: {
@@ -381,23 +442,59 @@ export class CampaignSession implements DurableObject {
         },
         stream: true,
         onOutput: (stream: string, data: string) => {
+          outputChunkCount++;
           if (stream === 'stdout') {
-            for (const line of data.split('\n').filter(Boolean)) {
-              try { messageQueue.push(JSON.parse(line)); } catch { /* non-JSON line, skip */ }
+            // Buffer partial lines — only parse complete lines ending with \n
+            stdoutBuffer += data;
+            const lines = stdoutBuffer.split('\n');
+            // Keep the last element (incomplete line or empty string after trailing \n)
+            stdoutBuffer = lines.pop() || '';
+
+            for (const line of lines) {
+              if (!line.trim()) continue;
+              try {
+                const parsed = JSON.parse(line);
+                messageQueue.push(parsed);
+                console.log(`[gen] SDK message: type=${parsed.type}${parsed.subtype ? '/' + parsed.subtype : ''}`);
+                // Debug: send all SDK message types to WS
+                this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] SDK msg: ${parsed.type}${parsed.subtype ? '/' + parsed.subtype : ''}` });
+              } catch {
+                console.warn(`[gen] Non-JSON stdout line: ${line.substring(0, 120)}`);
+                this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Non-JSON stdout: ${line.substring(0, 80)}` });
+              }
             }
           } else if (stream === 'stderr') {
-            console.error('Sandbox stderr:', data);
+            console.log(`[gen] stderr: ${data.substring(0, 200)}`);
+            this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] stderr: ${data.substring(0, 100)}` });
           }
         },
       }).then((result: any) => {
+        // Flush remaining buffer
+        if (stdoutBuffer.trim()) {
+          try {
+            const parsed = JSON.parse(stdoutBuffer);
+            messageQueue.push(parsed);
+            console.log(`[gen] SDK message (flush): type=${parsed.type}`);
+          } catch {
+            console.warn(`[gen] Non-JSON final buffer: ${stdoutBuffer.substring(0, 120)}`);
+          }
+        }
         execDone = true;
+        console.log(`[gen] Sandbox exec finished, exit=${result?.exitCode}, messages queued=${messageQueue.length}`);
+        this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] exec done: exit=${result?.exitCode}, stdout chunks=${outputChunkCount}, msgs=${messageQueue.length}` });
         return result;
       });
 
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] R2 mounted, agent-runner started. Draining queue...' });
+      console.log(`[gen] R2 mounted, agent-runner started. Draining message queue...`);
+
       // 4. Concurrent drain loop — process messages as they arrive
+      let lastOutputTime = Date.now();
+      let heartbeatCount = 0;
       while (true) {
         if (messageQueue.length > 0) {
           const msg = messageQueue.shift()!;
+          lastOutputTime = Date.now();
 
           // Check for abort
           if (this.abortController?.signal.aborted) {
@@ -416,6 +513,15 @@ export class CampaignSession implements DurableObject {
         } else {
           // Yield to let exec fill queue
           await new Promise(r => setTimeout(r, 10));
+
+          // Heartbeat: send status every 60s of silence
+          const silenceSecs = Math.floor((Date.now() - lastOutputTime) / 1000);
+          if (silenceSecs > 0 && silenceSecs % 60 === 0) {
+            heartbeatCount++;
+            if (heartbeatCount % 60 === 1) { // Once per minute
+              this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Waiting for SDK output... ${silenceSecs}s since last message, chunks=${outputChunkCount}` });
+            }
+          }
         }
       }
 
@@ -475,6 +581,7 @@ export class CampaignSession implements DurableObject {
       }
 
     } catch (error: any) {
+      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Generation error: ${error.message?.substring(0, 150) || error}` });
       const isAbort = error.name === 'AbortError' || this.abortController?.signal.aborted;
       if (isAbort) {
         wasCancelled = true;

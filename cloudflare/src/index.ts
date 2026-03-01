@@ -24,7 +24,7 @@ export default {
 
       // One DO per user — pass userId via internal header
       const doId = env.CAMPAIGN_SESSION.idFromName(userId);
-      const stub = env.CAMPAIGN_SESSION.get(doId);
+      const stub = env.CAMPAIGN_SESSION.get(doId, { locationHint: 'enam' });
 
       const doRequest = new Request(request.url, request);
       doRequest.headers.set('X-User-Id', userId);

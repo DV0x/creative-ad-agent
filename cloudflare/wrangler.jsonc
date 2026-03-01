@@ -4,6 +4,11 @@
   "compatibility_date": "2026-01-01",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Place Worker near US East — Anthropic API is US-hosted (avoids geo-blocked IP ranges)
+  "placement": {
+    "region": "aws:us-east-1"
+  },
+
   // D1 database (already created)
   "d1_databases": [
     {
@@ -21,11 +26,11 @@
     }
   ],
 
-  // Sandbox container (runs Claude SDK)
+  // Sandbox container (runs Claude SDK — needs 1 vCPU + 6GB for CLI + subagents)
   "containers": [{
     "class_name": "Sandbox",
     "image": "./sandbox/Dockerfile",
-    "instance_type": "standard-1",
+    "instance_type": "standard-2",
     "max_instances": 10
   }],
 
@@ -54,6 +59,11 @@
       "new_sqlite_classes": ["Sandbox"]
     }
   ],
+
+  // Container observability (enables container logs in dashboard)
+  "observability": {
+    "enabled": true
+  },
 
   // Local dev environment (wrangler dev --env dev)
   "env": {
