@@ -347,7 +347,10 @@ export class CampaignSession implements DurableObject {
       });
       this.sandbox = sandbox;
 
-      // 2. Mount R2 for per-user storage via S3-compatible FUSE
+      // 2. Clean mount point (unmount stale FUSE, clear residual files)
+      await sandbox.exec('fusermount -u /mnt/r2 2>/dev/null; umount /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2');
+
+      // 3. Mount R2 for per-user storage via S3-compatible FUSE
       await sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
         endpoint: `https://${this.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
         provider: 'r2',
@@ -356,7 +359,7 @@ export class CampaignSession implements DurableObject {
           secretAccessKey: this.env.R2_SECRET_ACCESS_KEY,
         },
         readOnly: false,
-        prefix: `users/${this.userId}`,
+        prefix: `/users/${this.userId}`,
       });
 
       // 3. Start agent-runner with streaming

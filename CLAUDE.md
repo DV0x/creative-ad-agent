@@ -4,12 +4,12 @@ Project-specific instructions for Claude Code.
 
 ## Project Overview
 
-Creative agent — a chat-based AI tool for generating ad campaigns (images, hooks, copy). Stack: React + Vite (client), Bun + Hono (server), SQLite (persistence), Claude SDK (AI), WebSocket (real-time).
+Creative agent — a chat-based AI tool for generating ad campaigns (images, hooks, copy). Stack: React + Vite (client), Node + Express (server), SQLite (persistence), Claude SDK (AI), WebSocket (real-time).
 
 ## Key Directories
 
 - `client/` — React frontend (Zustand store, WebSocket hook, chat UI)
-- `server/` — Bun backend (WebSocket handler, AI client, DB layer, MCP integration)
+- `server/` — Node/Express backend (WebSocket handler, AI client, DB layer, MCP integration)
 - `docs/` — Implementation plans and architecture docs
 
 ## Plan Document Rules
