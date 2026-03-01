@@ -8,6 +8,9 @@
     "typecheck": "tsc --noEmit",
     "d1:migrate": "wrangler d1 execute creative-agent-db --remote --file=./schema.sql"
   },
+  "dependencies": {
+    "@cloudflare/sandbox": "latest"
+  },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260101.0",
     "typescript": "^5.7.0",

@@ -1,6 +1,6 @@
 // CampaignSession Durable Object — one per user.
 // Accepts WebSocket via Hibernation API, handles generate/follow_up/cancel/subscribe/ping.
-// runGeneration() is STUBBED — Phase 4 replaces with sandbox execution.
+// runGeneration() executes AI generation via Cloudflare Sandbox containers (Phase 4).
 
 import type { Env } from '../env.js';
 import type { ClientMessage, ServerMessage } from '../lib/types.js';
@@ -9,6 +9,7 @@ import { EventBuffer } from '../lib/event-buffer.js';
 import { BlockBuilder } from '../lib/block-builder.js';
 import { processSDKMessage, type TextAccumulator, type ParserContext } from '../lib/sdk-message-parser.js';
 import * as db from '../db/index.js';
+import { getSandbox } from '@cloudflare/sandbox';
 
 export class CampaignSession implements DurableObject {
   // Per-generation state (transient, lost on eviction — acceptable)
@@ -18,6 +19,7 @@ export class CampaignSession implements DurableObject {
   private campaignId: string | null = null;
   private isGenerating = false;
   private abortController: AbortController | null = null;
+  private sandbox: any = null;
   private eventBuffer: EventBuffer = new EventBuffer();
 
   constructor(
@@ -164,13 +166,8 @@ export class CampaignSession implements DurableObject {
       label: 'Parsing Request',
     });
 
-    // Run generation (stubbed in Phase 3)
-    try {
-      await this.runGeneration(prompt, sessionId);
-    } finally {
-      this.isGenerating = false;
-      this.abortController = null;
-    }
+    // Run generation via sandbox
+    await this.runGeneration(prompt, sessionId);
   }
 
   private async handleFollowUp(prompt: string, campaignId: string): Promise<void> {
@@ -224,8 +221,8 @@ export class CampaignSession implements DurableObject {
         campaignId,
       });
 
-      // Run generation (stubbed in Phase 3)
-      await this.runGeneration(prompt, wsSessionId);
+      // Run generation with SDK session for resume
+      await this.runGeneration(prompt, wsSessionId, sdkSessionId ?? undefined);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
@@ -244,6 +241,10 @@ export class CampaignSession implements DurableObject {
     if (this.abortController) {
       console.log(`Cancelling generation for session ${this.sessionId}`);
       this.abortController.abort();
+      if (this.sandbox) {
+        this.sandbox.destroy().catch(() => {});
+        this.sandbox = null;
+      }
       this.sendWS({
         type: 'ack',
         timestamp: new Date().toISOString(),
@@ -287,18 +288,25 @@ export class CampaignSession implements DurableObject {
     this.sendWS({ type: 'pong', timestamp: new Date().toISOString() });
   }
 
-  // ─── Generation (STUB — Phase 4 replaces) ────────────────────
+  // ─── Generation (Phase 4: Sandbox execution) ─────────────────
 
-  private async runGeneration(prompt: string, sessionId: string): Promise<void> {
+  private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string): Promise<void> {
+    const startTime = Date.now();
+
     // Set up streaming state
     const blockBuilder = new BlockBuilder();
     blockBuilder.openThinkingBlock('Parsing Request');
 
     const textAccumulator: TextAccumulator = { text: '' };
     const processedFilenames = new Set<string>();
-    const imageCounter = { next: 1 };
+    const existingImageCount = this.campaignId
+      ? (await db.getImageCount(this.env.DB, this.campaignId)) || 0
+      : 0;
+    const imageCounter = { next: existingImageCount + 1 };
+    let generationCompleted = false;
+    let wasCancelled = false;
 
-    const _ctx: ParserContext = {
+    const ctx: ParserContext = {
       emitEvent: (event) => this.emitEvent(event),
       campaignId: this.campaignId,
       d1: this.env.DB,
@@ -308,35 +316,168 @@ export class CampaignSession implements DurableObject {
       imageCounter,
     };
 
-    // ── STUB: Phase 4 will replace this with sandbox execution ──
-    // For now, send an incomplete event so surrounding logic is testable.
+    try {
+      // 1. Get or create sandbox
+      const sandbox = getSandbox(this.env.SANDBOX, `user-${this.userId}`, {
+        sleepAfter: '10m',
+      });
+      this.sandbox = sandbox;
 
-    const message = 'Sandbox not configured — Phase 4 will enable AI generation.';
+      // 2. Mount R2 for per-user storage via S3-compatible FUSE
+      await sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
+        endpoint: `https://${this.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+        provider: 'r2',
+        credentials: {
+          accessKeyId: this.env.R2_ACCESS_KEY_ID,
+          secretAccessKey: this.env.R2_SECRET_ACCESS_KEY,
+        },
+        readOnly: false,
+      });
 
-    this.emitEvent({
-      type: 'incomplete',
-      timestamp: new Date().toISOString(),
-      error: 'sandbox_not_configured',
-      message,
-    });
+      // 3. Start agent-runner with streaming
+      const messageQueue: any[] = [];
+      let execDone = false;
 
-    // Update campaign status
-    if (this.campaignId) {
-      try {
-        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete');
+      const execPromise = sandbox.exec('npx tsx /app/agent-runner.ts', {
+        cwd: '/app',
+        env: {
+          ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
+          FAL_KEY: this.env.FAL_KEY,
+          PROMPT: prompt,
+          SESSION_ID: sessionId,
+          RESUME_SDK_SESSION_ID: sdkSessionId || '',
+          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
+          CLAUDE_CODE_MAX_OUTPUT_TOKENS: '16384',
+          HOME: '/mnt/r2',
+          IMAGE_OUTPUT_DIR: '/mnt/r2/images',
+        },
+        stream: true,
+        onOutput: (stream: string, data: string) => {
+          if (stream === 'stdout') {
+            for (const line of data.split('\n').filter(Boolean)) {
+              try { messageQueue.push(JSON.parse(line)); } catch { /* non-JSON line, skip */ }
+            }
+          } else if (stream === 'stderr') {
+            console.error('Sandbox stderr:', data);
+          }
+        },
+      }).then((result: any) => {
+        execDone = true;
+        return result;
+      });
 
-        // Save assistant message with blocks
-        blockBuilder.addStatusBlock(message, 'error');
+      // 4. Concurrent drain loop — process messages as they arrive
+      while (true) {
+        if (messageQueue.length > 0) {
+          const msg = messageQueue.shift()!;
+
+          // Check for abort
+          if (this.abortController?.signal.aborted) {
+            wasCancelled = true;
+            break;
+          }
+
+          await processSDKMessage(msg, ctx);
+
+          // Detect completion
+          if (msg.type === 'result' && !wasCancelled) {
+            generationCompleted = true;
+          }
+        } else if (execDone) {
+          break;
+        } else {
+          // Yield to let exec fill queue
+          await new Promise(r => setTimeout(r, 10));
+        }
+      }
+
+      // 5. Wait for exec to finish (should already be done)
+      const result = await execPromise;
+
+      // 6. Drain any remaining messages
+      while (messageQueue.length > 0) {
+        const msg = messageQueue.shift()!;
+        await processSDKMessage(msg, ctx);
+        if (msg.type === 'result') generationCompleted = true;
+      }
+
+      // 7. Handle completion
+      if (generationCompleted && this.campaignId) {
+        const duration = Date.now() - startTime;
+        const imageCount = imageCounter.next - 1;
         const summary = this.generateSummary(textAccumulator, imageCounter);
+
+        this.emitEvent({
+          type: 'complete',
+          timestamp: new Date().toISOString(),
+          sessionId,
+          campaignId: this.campaignId,
+          duration,
+          imageCount,
+          summary,
+        });
+
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'complete');
+        blockBuilder.closeThinkingBlock('complete');
         await db.addMessage(this.env.DB, {
           campaignId: this.campaignId,
           role: 'assistant',
-          content: summary || message,
+          content: summary || 'Generation complete.',
           blocks: blockBuilder.getBlocks(),
         });
-      } catch (err) {
-        console.error('Failed to update campaign:', err);
+      } else if (!wasCancelled && !generationCompleted && this.campaignId) {
+        // Stream ended without a result message
+        this.emitEvent({
+          type: 'incomplete',
+          timestamp: new Date().toISOString(),
+          error: 'generation_ended_unexpectedly',
+        });
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete');
       }
+
+      if (wasCancelled && this.campaignId) {
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
+        blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
+        await db.addMessage(this.env.DB, {
+          campaignId: this.campaignId,
+          role: 'assistant',
+          content: 'Generation was cancelled.',
+          blocks: blockBuilder.getBlocks(),
+        });
+      }
+
+    } catch (error: any) {
+      const isAbort = error.name === 'AbortError' || this.abortController?.signal.aborted;
+      if (isAbort) {
+        wasCancelled = true;
+        if (this.campaignId) {
+          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
+          blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
+          await db.addMessage(this.env.DB, {
+            campaignId: this.campaignId,
+            role: 'assistant',
+            content: 'Generation was cancelled.',
+            blocks: blockBuilder.getBlocks(),
+          });
+        }
+      } else {
+        const errorMsg = error.message || 'Unknown error';
+        this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
+        if (this.campaignId) {
+          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
+          blockBuilder.addStatusBlock(`Error: ${errorMsg}`, 'error');
+          await db.addMessage(this.env.DB, {
+            campaignId: this.campaignId,
+            role: 'assistant',
+            content: `Error: ${errorMsg}`,
+            blocks: blockBuilder.getBlocks(),
+          });
+        }
+      }
+    } finally {
+      this.isGenerating = false;
+      this.abortController = null;
+      this.sandbox = null;
     }
   }
 

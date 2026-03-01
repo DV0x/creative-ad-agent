@@ -1,0 +1,3 @@
+# Copied from project root at build time — don't commit duplicate
+agent/
+node_modules/

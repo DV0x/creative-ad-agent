@@ -21,12 +21,24 @@
     }
   ],
 
-  // Durable Objects (Phase 3)
+  // Sandbox container (runs Claude SDK)
+  "containers": [{
+    "class_name": "Sandbox",
+    "image": "./sandbox/Dockerfile",
+    "instance_type": "standard-1",
+    "max_instances": 10
+  }],
+
+  // Durable Objects (Phase 3 + Phase 4 Sandbox)
   "durable_objects": {
     "bindings": [
       {
         "name": "CAMPAIGN_SESSION",
         "class_name": "CampaignSession"
+      },
+      {
+        "name": "SANDBOX",
+        "class_name": "Sandbox"
       }
     ]
   },
@@ -36,6 +48,10 @@
     {
       "tag": "v1",
       "new_classes": ["CampaignSession"]
+    },
+    {
+      "tag": "v2",
+      "new_sqlite_classes": ["Sandbox"]
     }
   ]
 }

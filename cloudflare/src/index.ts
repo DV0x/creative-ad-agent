@@ -2,8 +2,9 @@ import type { Env } from './env.js';
 import { handleApiRequest } from './router.js';
 import { verifyWebSocketToken } from './auth.js';
 
-// Re-export Durable Object class (required by wrangler)
+// Re-export Durable Object classes (required by wrangler)
 export { CampaignSession } from './durable-objects/campaign-session.js';
+export { Sandbox } from '@cloudflare/sandbox';
 
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
