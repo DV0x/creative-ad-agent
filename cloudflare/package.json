@@ -9,11 +9,14 @@
     "d1:migrate": "wrangler d1 execute creative-agent-db --remote --file=./schema.sql"
   },
   "dependencies": {
-    "@cloudflare/sandbox": "latest"
+    "@cloudflare/sandbox": "latest",
+    "@fal-ai/client": "^1.2.0"
   },
   "devDependencies": {
+    "@anthropic-ai/claude-agent-sdk": "latest",
     "@cloudflare/workers-types": "^4.20260101.0",
     "typescript": "^5.7.0",
-    "wrangler": "^4.0.0"
+    "wrangler": "^4.0.0",
+    "zod": "^4.0.0"
   }
 }

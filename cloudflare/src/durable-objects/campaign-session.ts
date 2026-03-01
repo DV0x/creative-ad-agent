@@ -10,6 +10,7 @@ import { BlockBuilder } from '../lib/block-builder.js';
 import { processSDKMessage, type TextAccumulator, type ParserContext } from '../lib/sdk-message-parser.js';
 import * as db from '../db/index.js';
 import { getSandbox } from '@cloudflare/sandbox';
+import { fal } from '@fal-ai/client';
 
 export class CampaignSession implements DurableObject {
   // Per-generation state (transient, lost on eviction — acceptable)
@@ -70,13 +71,13 @@ export class CampaignSession implements DurableObject {
     switch (message.type) {
       case 'generate':
         if (message.prompt) {
-          await this.handleGenerate(message.prompt, message.sessionId);
+          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds);
         }
         break;
 
       case 'follow_up':
         if (message.prompt && message.campaignId) {
-          await this.handleFollowUp(message.prompt, message.campaignId);
+          await this.handleFollowUp(message.prompt, message.campaignId, message.assetFileIds);
         }
         break;
 
@@ -115,7 +116,7 @@ export class CampaignSession implements DurableObject {
 
   // ─── Message Handlers ─────────────────────────────────────────
 
-  private async handleGenerate(prompt: string, requestedSessionId?: string): Promise<void> {
+  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[]): Promise<void> {
     if (this.isGenerating) {
       this.sendWS({
         type: 'error',
@@ -166,11 +167,20 @@ export class CampaignSession implements DurableObject {
       label: 'Parsing Request',
     });
 
+    // Resolve asset reference URLs and prepend to prompt
+    let aiPrompt = prompt;
+    if (assetFileIds && assetFileIds.length > 0) {
+      const referenceUrls = await this.resolveAssetUrls(assetFileIds);
+      if (referenceUrls.length > 0) {
+        aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
+      }
+    }
+
     // Run generation via sandbox
-    await this.runGeneration(prompt, sessionId);
+    await this.runGeneration(aiPrompt, sessionId);
   }
 
-  private async handleFollowUp(prompt: string, campaignId: string): Promise<void> {
+  private async handleFollowUp(prompt: string, campaignId: string, assetFileIds?: string[]): Promise<void> {
     if (this.isGenerating) {
       this.sendWS({
         type: 'error',
@@ -221,8 +231,17 @@ export class CampaignSession implements DurableObject {
         campaignId,
       });
 
+      // Resolve asset reference URLs and prepend to prompt
+      let aiPrompt = prompt;
+      if (assetFileIds && assetFileIds.length > 0) {
+        const referenceUrls = await this.resolveAssetUrls(assetFileIds);
+        if (referenceUrls.length > 0) {
+          aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
+        }
+      }
+
       // Run generation with SDK session for resume
-      await this.runGeneration(prompt, wsSessionId, sdkSessionId ?? undefined);
+      await this.runGeneration(aiPrompt, wsSessionId, sdkSessionId ?? undefined);
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
@@ -291,6 +310,11 @@ export class CampaignSession implements DurableObject {
   // ─── Generation (Phase 4: Sandbox execution) ─────────────────
 
   private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string): Promise<void> {
+    // Local dev: bypass sandbox, run SDK in-process
+    if (this.env.AI_BACKEND === 'local') {
+      return this.runGenerationLocal(prompt, sessionId, sdkSessionId);
+    }
+
     const startTime = Date.now();
 
     // Set up streaming state
@@ -332,6 +356,7 @@ export class CampaignSession implements DurableObject {
           secretAccessKey: this.env.R2_SECRET_ACCESS_KEY,
         },
         readOnly: false,
+        prefix: `users/${this.userId}`,
       });
 
       // 3. Start agent-runner with streaming
@@ -479,6 +504,174 @@ export class CampaignSession implements DurableObject {
       this.abortController = null;
       this.sandbox = null;
     }
+  }
+
+  // ─── Local Dev Generation (in-process SDK) ──────────────────
+
+  private async runGenerationLocal(prompt: string, sessionId: string, sdkSessionId?: string): Promise<void> {
+    const startTime = Date.now();
+
+    const blockBuilder = new BlockBuilder();
+    blockBuilder.openThinkingBlock('Parsing Request');
+
+    const textAccumulator: TextAccumulator = { text: '' };
+    const processedFilenames = new Set<string>();
+    const existingImageCount = this.campaignId
+      ? (await db.getImageCount(this.env.DB, this.campaignId)) || 0
+      : 0;
+    const imageCounter = { next: existingImageCount + 1 };
+    let generationCompleted = false;
+    let wasCancelled = false;
+
+    const ctx: ParserContext = {
+      emitEvent: (event) => this.emitEvent(event),
+      campaignId: this.campaignId,
+      d1: this.env.DB,
+      processedFilenames,
+      textAccumulator,
+      blockBuilder,
+      imageCounter,
+    };
+
+    try {
+      const { runLocalGeneration } = await import('../lib/local-ai-runner.js');
+
+      const generator = runLocalGeneration(prompt, sessionId, sdkSessionId, {
+        apiKey: this.env.ANTHROPIC_API_KEY,
+        falKey: this.env.FAL_KEY,
+        imageOutputDir: './generated-images',
+      });
+
+      for await (const msg of generator) {
+        if (this.abortController?.signal.aborted) {
+          wasCancelled = true;
+          break;
+        }
+
+        await processSDKMessage(msg, ctx);
+
+        if (msg.type === 'result' && !wasCancelled) {
+          generationCompleted = true;
+        }
+      }
+
+      // Handle completion
+      if (generationCompleted && this.campaignId) {
+        const duration = Date.now() - startTime;
+        const imageCount = imageCounter.next - 1;
+        const summary = this.generateSummary(textAccumulator, imageCounter);
+
+        this.emitEvent({
+          type: 'complete',
+          timestamp: new Date().toISOString(),
+          sessionId,
+          campaignId: this.campaignId,
+          duration,
+          imageCount,
+          summary,
+        });
+
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'complete');
+        blockBuilder.closeThinkingBlock('complete');
+        await db.addMessage(this.env.DB, {
+          campaignId: this.campaignId,
+          role: 'assistant',
+          content: summary || 'Generation complete.',
+          blocks: blockBuilder.getBlocks(),
+        });
+      } else if (!wasCancelled && !generationCompleted && this.campaignId) {
+        this.emitEvent({
+          type: 'incomplete',
+          timestamp: new Date().toISOString(),
+          error: 'generation_ended_unexpectedly',
+        });
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete');
+      }
+
+      if (wasCancelled && this.campaignId) {
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
+        blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
+        await db.addMessage(this.env.DB, {
+          campaignId: this.campaignId,
+          role: 'assistant',
+          content: 'Generation was cancelled.',
+          blocks: blockBuilder.getBlocks(),
+        });
+      }
+    } catch (error: any) {
+      const isAbort = error.name === 'AbortError' || this.abortController?.signal.aborted;
+      if (isAbort) {
+        if (this.campaignId) {
+          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
+          blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
+          await db.addMessage(this.env.DB, {
+            campaignId: this.campaignId,
+            role: 'assistant',
+            content: 'Generation was cancelled.',
+            blocks: blockBuilder.getBlocks(),
+          });
+        }
+      } else {
+        const errorMsg = error.message || 'Unknown error';
+        this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
+        if (this.campaignId) {
+          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
+          blockBuilder.addStatusBlock(`Error: ${errorMsg}`, 'error');
+          await db.addMessage(this.env.DB, {
+            campaignId: this.campaignId,
+            role: 'assistant',
+            content: `Error: ${errorMsg}`,
+            blocks: blockBuilder.getBlocks(),
+          });
+        }
+      }
+    } finally {
+      this.isGenerating = false;
+      this.abortController = null;
+    }
+  }
+
+  // ─── Asset Resolution ────────────────────────────────────────
+
+  /** Resolve asset file IDs → R2 objects → fal.ai public URLs for reference images */
+  private async resolveAssetUrls(assetFileIds: string[]): Promise<string[]> {
+    const urls: string[] = [];
+
+    fal.config({ credentials: this.env.FAL_KEY });
+
+    for (const fileId of assetFileIds) {
+      try {
+        const file = await db.getFile(this.env.DB, fileId);
+        if (!file) {
+          console.warn(`Asset file not found: ${fileId}`);
+          continue;
+        }
+
+        if (file.file_type !== 'image') {
+          console.log(`Skipping non-image asset: ${fileId} (type: ${file.file_type})`);
+          continue;
+        }
+
+        // Read from R2 (file_path is relative, e.g. "folder-xxx/image.png")
+        const r2Key = `users/${this.userId}/uploads/${file.file_path}`;
+        const r2Object = await this.env.R2_BUCKET.get(r2Key);
+        if (!r2Object) {
+          console.warn(`R2 object not found: ${r2Key}`);
+          continue;
+        }
+
+        // Upload to fal.ai storage to get a public URL
+        const blob = await r2Object.blob();
+        const uploadFile = new File([blob], file.name, { type: r2Object.httpMetadata?.contentType || 'image/png' });
+        const publicUrl = await fal.storage.upload(uploadFile);
+        urls.push(publicUrl);
+        console.log(`Resolved asset: ${file.name} → ${publicUrl}`);
+      } catch (err) {
+        console.error(`Failed to resolve asset ${fileId}:`, err);
+      }
+    }
+
+    return urls;
   }
 
   // ─── Helpers ──────────────────────────────────────────────────

@@ -53,5 +53,14 @@
       "tag": "v2",
       "new_sqlite_classes": ["Sandbox"]
     }
-  ]
+  ],
+
+  // Local dev environment (wrangler dev --env dev)
+  "env": {
+    "dev": {
+      "vars": {
+        "AI_BACKEND": "local"
+      }
+    }
+  }
 }
