@@ -1,6 +1,8 @@
 import { useEffect, useCallback } from 'react'
 import { Download, X, ChevronLeft, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { AuthImage } from '@/components/AuthImage'
+import { authFetchBlob } from '@/lib/api'
 import { HOOK_TYPE_LABELS, type GeneratedImage } from '@/types/chat'
 import { cn } from '@/lib/utils'
 
@@ -31,14 +33,25 @@ export function ImageLightbox({
     if (hasNext) onNavigate(currentIndex + 1)
   }, [hasNext, currentIndex, onNavigate])
 
-  const handleDownload = useCallback(() => {
+  const handleDownload = useCallback(async () => {
     if (!image) return
-    const link = document.createElement('a')
-    link.href = image.url
-    link.download = `image-${currentIndex + 1}.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const blobUrl = await authFetchBlob(image.url)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `image-${currentIndex + 1}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+    } catch {
+      const link = document.createElement('a')
+      link.href = image.url
+      link.download = `image-${currentIndex + 1}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }, [image, currentIndex])
 
   useEffect(() => {
@@ -104,7 +117,7 @@ export function ImageLightbox({
 
       {/* Image area */}
       <div className="relative z-10 flex-1 flex items-center justify-center min-h-0 p-4">
-        <img
+        <AuthImage
           src={image.url}
           alt={`Image ${currentIndex + 1}`}
           className="max-w-full max-h-full object-contain rounded-lg"

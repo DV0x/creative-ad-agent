@@ -83,11 +83,17 @@ function AppContent() {
         // Exclude the recovering campaign — its messages will be loaded by
         // handleConnected before subscribe, so the bulk setter can't overwrite them.
         if (Object.keys(messagesByCampaign).length > 0) {
+          // Exclude messages for campaigns with active WS recovery (generating status).
+          // For completed/errored/cancelled campaigns, load messages normally —
+          // there's no live recovery to protect from being overwritten.
           const activeSessionRaw = localStorage.getItem('creative-agent:activeSession')
           const activeSession = activeSessionRaw ? JSON.parse(activeSessionRaw) : null
           const activeCampaignId = activeSession?.campaignId
           if (activeCampaignId) {
-            delete messagesByCampaign[activeCampaignId]
+            const activeCampaign = fullCampaigns.find(c => c.id === activeCampaignId)
+            if (activeCampaign?.status === 'generating') {
+              delete messagesByCampaign[activeCampaignId]
+            }
           }
           if (Object.keys(messagesByCampaign).length > 0) {
             setChatMessages(messagesByCampaign)
@@ -180,10 +186,33 @@ function AppContent() {
           setAppState('workspace')
           // WebSocket will auto-connect and recover via useWebSocket
         } else if (statusInfo.status === 'incomplete' || !statusInfo.isAgentRunning) {
-          // Agent stopped - update local state AND database
-          console.log(`⚠️ Campaign ${campaign.id} marked as incomplete (agent stopped)`)
-          updateCampaignStatus(campaign.id, 'incomplete')
-          campaignsApi.update(campaign.id, { status: 'incomplete' }).catch(console.error)
+          // Agent stopped — try to recover from R2 completion marker
+          console.log(`⚠️ Campaign ${campaign.id} agent stopped, attempting recovery...`)
+          try {
+            const result = await campaignsApi.recover(campaign.id)
+            if (result.recovered && result.campaign) {
+              console.log(`✅ Recovered campaign ${campaign.id}: ${result.imagesAdded} images, ${result.filesUpdated} files`)
+              // Update local store with recovered data
+              const store = useStore.getState()
+              store.setCampaigns(
+                store.campaigns.map(c => c.id === campaign.id ? result.campaign! : c)
+              )
+              if (result.messages) {
+                store.setChatMessagesForCampaign(campaign.id, result.messages)
+              }
+              setActiveCampaignId(campaign.id)
+              setAppState('workspace')
+            } else {
+              // No marker found — fall through to mark incomplete
+              console.log(`⚠️ No recovery marker for ${campaign.id} (${result.reason}), marking incomplete`)
+              updateCampaignStatus(campaign.id, 'incomplete')
+              campaignsApi.update(campaign.id, { status: 'incomplete' }).catch(console.error)
+            }
+          } catch (recoverErr) {
+            console.error('Recovery failed:', recoverErr)
+            updateCampaignStatus(campaign.id, 'incomplete')
+            campaignsApi.update(campaign.id, { status: 'incomplete' }).catch(console.error)
+          }
         }
       } catch (err) {
         console.error('Failed to check campaign status:', err)

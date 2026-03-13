@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudflare Deployment Architecture — Creative Ad Agent</title>
+<style>
+  :root {
+    --cf-orange: #F6821F;
+    --cf-dark: #1B1B1B;
+    --cf-gray: #404040;
+    --cf-light: #F8F8F8;
+    --cf-blue: #003682;
+    --cf-green: #2BAD66;
+    --cf-red: #E04E39;
+    --cf-purple: #7C3AED;
+    --border: #E5E7EB;
+    --code-bg: #1E1E2E;
+    --code-fg: #CDD6F4;
+    --kw: #CBA6F7;
+    --str: #A6E3A1;
+    --fn: #89B4FA;
+    --cm: #6C7086;
+    --num: #FAB387;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--cf-gray);
+    background: #fff;
+    line-height: 1.7;
+    font-size: 16px;
+  }
+
+  /* ---- NAV ---- */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 280px;
+    height: 100vh;
+    background: var(--cf-dark);
+    color: #ccc;
+    overflow-y: auto;
+    padding: 24px 0;
+    z-index: 100;
+    font-size: 13px;
+  }
+  nav .logo {
+    padding: 0 20px 20px;
+    border-bottom: 1px solid #333;
+    margin-bottom: 16px;
+  }
+  nav .logo h2 {
+    color: var(--cf-orange);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: -0.3px;
+  }
+  nav .logo p { color: #888; font-size: 11px; margin-top: 4px; }
+  nav ol {
+    list-style: none;
+    padding: 0;
+  }
+  nav ol li a {
+    display: block;
+    padding: 7px 20px;
+    color: #aaa;
+    text-decoration: none;
+    transition: all 0.15s;
+    border-left: 3px solid transparent;
+  }
+  nav ol li a:hover {
+    color: #fff;
+    background: rgba(255,255,255,0.05);
+    border-left-color: var(--cf-orange);
+  }
+  nav ol li a.active {
+    color: #fff;
+    border-left-color: var(--cf-orange);
+    background: rgba(246,130,31,0.1);
+  }
+
+  /* ---- MAIN ---- */
+  main {
+    margin-left: 280px;
+    max-width: 900px;
+    padding: 48px 56px 120px;
+  }
+
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    color: var(--cf-dark);
+    letter-spacing: -1px;
+    margin-bottom: 8px;
+  }
+  .subtitle {
+    color: #888;
+    font-size: 15px;
+    margin-bottom: 48px;
+  }
+
+  h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: var(--cf-dark);
+    margin-top: 64px;
+    margin-bottom: 20px;
+    padding-top: 24px;
+    border-top: 2px solid var(--border);
+    letter-spacing: -0.5px;
+  }
+  h2 .num {
+    color: var(--cf-orange);
+    font-weight: 800;
+    margin-right: 8px;
+  }
+
+  h3 {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--cf-dark);
+    margin-top: 32px;
+    margin-bottom: 12px;
+  }
+
+  p { margin-bottom: 16px; }
+
+  strong { color: var(--cf-dark); }
+
+  ul, ol { margin-bottom: 16px; padding-left: 24px; }
+  li { margin-bottom: 6px; }
+
+  a { color: var(--cf-blue); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+
+  /* ---- CODE ---- */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border-radius: 10px;
+    padding: 20px 24px;
+    overflow-x: auto;
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    font-size: 13px;
+  }
+  p code, li code, td code {
+    background: #F1F5F9;
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--cf-dark);
+    font-size: 13px;
+  }
+  .kw { color: var(--kw); }
+  .str { color: var(--str); }
+  .fn { color: var(--fn); }
+  .cm { color: var(--cm); font-style: italic; }
+  .num { color: var(--num); }
+
+  /* ---- TABLES ---- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+    font-size: 14px;
+  }
+  th {
+    text-align: left;
+    background: var(--cf-light);
+    color: var(--cf-dark);
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:hover td { background: #FAFAFA; }
+
+  /* ---- DIAGRAMS ---- */
+  .diagram {
+    margin: 28px 0;
+    text-align: center;
+  }
+  .diagram svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* ---- CALLOUTS ---- */
+  .callout {
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 24px;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .callout-insight {
+    background: #FFF7ED;
+    border-left: 4px solid var(--cf-orange);
+  }
+  .callout-note {
+    background: #F0F9FF;
+    border-left: 4px solid var(--cf-blue);
+  }
+  .callout-success {
+    background: #F0FDF4;
+    border-left: 4px solid var(--cf-green);
+  }
+  .callout-warning {
+    background: #FEF2F2;
+    border-left: 4px solid var(--cf-red);
+  }
+  .callout strong { display: block; margin-bottom: 4px; }
+
+  /* ---- BADGES ---- */
+  .badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .badge-unchanged { background: #DCFCE7; color: #166534; }
+  .badge-rewritten { background: #FEF3C7; color: #92400E; }
+  .badge-removed { background: #FEE2E2; color: #991B1B; }
+  .badge-moved { background: #E0E7FF; color: #3730A3; }
+  .badge-minor { background: #F3E8FF; color: #6B21A8; }
+
+  /* ---- FLOW STEPS ---- */
+  .flow {
+    position: relative;
+    padding-left: 32px;
+    margin-bottom: 24px;
+  }
+  .flow::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 4px;
+    bottom: 4px;
+    width: 2px;
+    background: var(--border);
+  }
+  .flow .step {
+    position: relative;
+    margin-bottom: 14px;
+    font-size: 14px;
+  }
+  .flow .step::before {
+    content: '';
+    position: absolute;
+    left: -26px;
+    top: 7px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--cf-orange);
+    border: 2px solid #fff;
+    box-shadow: 0 0 0 2px var(--cf-orange);
+  }
+  .flow .step .label { font-weight: 600; color: var(--cf-dark); }
+  .flow .step .detail { color: #666; margin-top: 2px; }
+  .flow .step .sub { margin-left: 16px; color: #888; font-size: 13px; }
+
+  /* ---- RESPONSIVE ---- */
+  @media (max-width: 960px) {
+    nav { display: none; }
+    main { margin-left: 0; padding: 32px 24px 80px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== NAV ==================== -->
+<nav id="sidebar">
+  <div class="logo">
+    <h2>Creative Ad Agent</h2>
+    <p>Cloudflare Deployment Architecture</p>
+  </div>
+  <ol>
+    <li><a href="#s1">1. Architecture Overview</a></li>
+    <li><a href="#s2">2. What Lives Where</a></li>
+    <li><a href="#s3">3. Durable Object Design</a></li>
+    <li><a href="#s4">4. Sandbox Container</a></li>
+    <li><a href="#s5">5. Data Flow</a></li>
+    <li><a href="#s6">6. Persistence Strategy</a></li>
+    <li><a href="#s7">7. Database Migration (D1)</a></li>
+    <li><a href="#s8">8. Image Pipeline</a></li>
+    <li><a href="#s9">9. EventEmitter Replacement</a></li>
+    <li><a href="#s10">10. New File Structure</a></li>
+    <li><a href="#s11">11. Environment &amp; Secrets</a></li>
+    <li><a href="#s12">12. Cost Projections</a></li>
+    <li><a href="#s13">13. Local Dev Story</a></li>
+    <li><a href="#s14">14. Migration Path</a></li>
+    <li><a href="#s15">15. Client Changes</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<h1>Cloudflare Deployment Architecture</h1>
+<p class="subtitle">All-Cloudflare production deployment for the Creative Ad Agent &mdash; Last updated 2026-02-28</p>
+
+<!-- ==================== 1. OVERVIEW ==================== -->
+<h2 id="s1"><span class="num">01</span> Architecture Overview</h2>
+
+<div class="diagram">
+<svg viewBox="0 0 820 520" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <!-- Cloudflare boundary -->
+  <rect x="30" y="10" width="760" height="380" rx="16" fill="#FFF7ED" stroke="#F6821F" stroke-width="2" stroke-dasharray="8 4"/>
+  <text x="410" y="36" text-anchor="middle" font-size="13" fill="#F6821F" font-weight="700">CLOUDFLARE NETWORK</text>
+
+  <!-- Pages -->
+  <rect x="60" y="60" width="160" height="90" rx="10" fill="#fff" stroke="#F6821F" stroke-width="2"/>
+  <text x="140" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">Pages</text>
+  <text x="140" y="106" text-anchor="middle" font-size="11" fill="#888">React Static Build</text>
+  <text x="140" y="122" text-anchor="middle" font-size="11" fill="#888">Global CDN</text>
+  <text x="140" y="138" text-anchor="middle" font-size="11" fill="#888">Zero Config</text>
+
+  <!-- Worker -->
+  <rect x="260" y="60" width="160" height="90" rx="10" fill="#fff" stroke="#F6821F" stroke-width="2"/>
+  <text x="340" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">Worker</text>
+  <text x="340" y="106" text-anchor="middle" font-size="11" fill="#888">/api/* routes</text>
+  <text x="340" y="122" text-anchor="middle" font-size="11" fill="#888">/images/* proxy</text>
+  <text x="340" y="138" text-anchor="middle" font-size="11" fill="#888">Auth (Clerk JWT)</text>
+
+  <!-- Durable Object -->
+  <rect x="460" y="60" width="200" height="90" rx="10" fill="#fff" stroke="#F6821F" stroke-width="2"/>
+  <text x="560" y="88" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">Durable Object</text>
+  <text x="560" y="106" text-anchor="middle" font-size="11" fill="#888">WebSocket Handler</text>
+  <text x="560" y="122" text-anchor="middle" font-size="11" fill="#888">Sandbox Lifecycle</text>
+  <text x="560" y="138" text-anchor="middle" font-size="11" fill="#888">Event Buffer + D1 Writes</text>
+
+  <!-- D1 -->
+  <rect x="260" y="190" width="140" height="80" rx="10" fill="#fff" stroke="#003682" stroke-width="2"/>
+  <text x="330" y="218" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">D1 (SQLite)</text>
+  <text x="330" y="236" text-anchor="middle" font-size="11" fill="#888">campaigns, messages</text>
+  <text x="330" y="252" text-anchor="middle" font-size="11" fill="#888">images, assets</text>
+
+  <!-- Sandbox -->
+  <rect x="460" y="190" width="200" height="80" rx="10" fill="#fff" stroke="#7C3AED" stroke-width="2"/>
+  <text x="560" y="218" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">Sandbox (Linux)</text>
+  <text x="560" y="236" text-anchor="middle" font-size="11" fill="#888">Claude SDK + CLI</text>
+  <text x="560" y="252" text-anchor="middle" font-size="11" fill="#888">MCP + Agent Files</text>
+
+  <!-- R2 -->
+  <rect x="460" y="310" width="200" height="70" rx="10" fill="#fff" stroke="#2BAD66" stroke-width="2"/>
+  <text x="560" y="336" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">R2 (Storage)</text>
+  <text x="560" y="354" text-anchor="middle" font-size="11" fill="#888">/images/ /transcripts/ /uploads/</text>
+  <text x="560" y="370" text-anchor="middle" font-size="11" fill="#2BAD66">Zero egress fees</text>
+
+  <!-- Arrows -->
+  <defs>
+    <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#999"/></marker>
+    <marker id="arrO" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><path d="M0,0 L8,3 L0,6" fill="#F6821F"/></marker>
+  </defs>
+  <!-- Worker → D1 -->
+  <line x1="340" y1="150" x2="335" y2="188" stroke="#999" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- DO → Sandbox -->
+  <line x1="560" y1="150" x2="560" y2="188" stroke="#7C3AED" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- Sandbox → R2 -->
+  <line x1="560" y1="270" x2="560" y2="308" stroke="#2BAD66" stroke-width="1.5" marker-end="url(#arr)"/>
+  <!-- DO → D1 -->
+  <line x1="480" y1="150" x2="400" y2="195" stroke="#999" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+
+  <!-- Browser -->
+  <rect x="180" y="430" width="160" height="70" rx="10" fill="#fff" stroke="#1B1B1B" stroke-width="2"/>
+  <text x="260" y="460" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">Browser</text>
+  <text x="260" y="478" text-anchor="middle" font-size="11" fill="#888">React + WebSocket</text>
+  <text x="260" y="492" text-anchor="middle" font-size="11" fill="#888">REST API</text>
+
+  <!-- fal.ai -->
+  <rect x="530" y="430" width="140" height="60" rx="10" fill="#fff" stroke="#E04E39" stroke-width="2"/>
+  <text x="600" y="458" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">fal.ai</text>
+  <text x="600" y="476" text-anchor="middle" font-size="11" fill="#888">Image Gen API</text>
+
+  <!-- Browser → CF -->
+  <line x1="220" y1="430" x2="140" y2="392" stroke="#1B1B1B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="260" y1="430" x2="340" y2="392" stroke="#1B1B1B" stroke-width="1.5" marker-end="url(#arr)"/>
+  <line x1="310" y1="430" x2="520" y2="392" stroke="#F6821F" stroke-width="2" marker-end="url(#arrO)"/>
+  <text x="400" y="425" text-anchor="middle" font-size="10" fill="#F6821F" font-weight="600">WebSocket</text>
+
+  <!-- fal.ai → Sandbox -->
+  <line x1="600" y1="430" x2="580" y2="392" stroke="#E04E39" stroke-width="1" stroke-dasharray="4 3" marker-end="url(#arr)"/>
+</svg>
+</div>
+
+<div class="callout callout-insight">
+  <strong>Key Architectural Insight</strong>
+  The Durable Object is the single coordination point. It owns both ends: the browser WebSocket <em>and</em> the Sandbox container. No cross-machine relay, no pub/sub, no EventEmitter. The SDK streams directly into the DO, which writes directly to the WebSocket. This collapses three processes into one actor.
+</div>
+
+<!-- ==================== 2. WHAT LIVES WHERE ==================== -->
+<h2 id="s2"><span class="num">02</span> What Lives Where</h2>
+
+<table>
+  <thead>
+    <tr><th>Current Component</th><th>Current Location</th><th>Cloudflare Service</th><th>Notes</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>React static build</td><td><code>client/dist/</code></td><td><strong>Pages</strong></td><td>Global CDN, zero-config</td></tr>
+    <tr><td>Express/Hono server</td><td><code>server/sdk-server.ts</code></td><td><strong>Worker</strong></td><td>REST routes only, no WS</td></tr>
+    <tr><td>WebSocket handler</td><td><code>websocket-handler.ts</code></td><td><strong>Durable Object</strong></td><td>Full WS lifecycle</td></tr>
+    <tr><td>AI client (SDK)</td><td><code>ai-client.ts</code></td><td><strong>Inside Sandbox</strong></td><td>SDK runs in Linux container</td></tr>
+    <tr><td>Session manager</td><td><code>session-manager.ts</code></td><td><strong>DO</strong> + <strong>R2</strong></td><td>DO state + R2 transcripts</td></tr>
+    <tr><td>Event buffer</td><td><code>event-buffer.ts</code></td><td><strong>DO</strong> (in-memory)</td><td>Per-DO, no shared state</td></tr>
+    <tr><td>MCP server</td><td><code>nano-banana-mcp.ts</code></td><td><strong>Inside Sandbox</strong></td><td>Part of SDK process</td></tr>
+    <tr><td>Image events bridge</td><td><code>image-events.ts</code></td><td><span class="badge badge-removed">Eliminated</span></td><td>DO parses stdout directly</td></tr>
+    <tr><td>Database (SQLite)</td><td><code>creative_agent.db</code></td><td><strong>D1</strong></td><td>Same SQL, async API</td></tr>
+    <tr><td>Generated images</td><td><code>generated-images/</code></td><td><strong>R2</strong></td><td>Per-user prefix</td></tr>
+    <tr><td>SDK JSONL sessions</td><td><code>~/.claude/projects/</code></td><td><strong>R2</strong> (FUSE mount)</td><td>Per-user prefix in sandbox</td></tr>
+    <tr><td>Agent ecosystem</td><td><code>agent/.claude/</code></td><td><strong>Inside Sandbox</strong></td><td>Baked into Docker image</td></tr>
+    <tr><td>Auth (Clerk)</td><td><code>auth.ts</code></td><td><strong>Worker</strong></td><td>JWT at edge</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 3. DURABLE OBJECT ==================== -->
+<h2 id="s3"><span class="num">03</span> Durable Object Design</h2>
+
+<h3>CampaignSession</h3>
+<p>Each DO instance is identified by user ID &mdash; one DO per user handles all their campaigns.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 700 320" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <!-- DO box -->
+  <rect x="20" y="10" width="660" height="300" rx="14" fill="#FFF7ED" stroke="#F6821F" stroke-width="2"/>
+  <text x="350" y="38" text-anchor="middle" font-size="14" font-weight="700" fill="#1B1B1B">CampaignSession (Durable Object)</text>
+
+  <!-- WebSocket -->
+  <rect x="50" y="58" width="170" height="100" rx="8" fill="#fff" stroke="#003682" stroke-width="1.5"/>
+  <text x="135" y="82" text-anchor="middle" font-size="12" font-weight="600" fill="#003682">WebSocket</text>
+  <text x="135" y="100" text-anchor="middle" font-size="11" fill="#888">Browser connection</text>
+  <text x="135" y="118" text-anchor="middle" font-size="11" fill="#888">send() / close()</text>
+  <text x="135" y="136" text-anchor="middle" font-size="11" fill="#888">hibernation support</text>
+
+  <!-- Sandbox Handle -->
+  <rect x="260" y="58" width="170" height="100" rx="8" fill="#fff" stroke="#7C3AED" stroke-width="1.5"/>
+  <text x="345" y="82" text-anchor="middle" font-size="12" font-weight="600" fill="#7C3AED">Sandbox Handle</text>
+  <text x="345" y="100" text-anchor="middle" font-size="11" fill="#888">Container reference</text>
+  <text x="345" y="118" text-anchor="middle" font-size="11" fill="#888">execStream()</text>
+  <text x="345" y="136" text-anchor="middle" font-size="11" fill="#888">mountBucket()</text>
+
+  <!-- Event Buffer -->
+  <rect x="470" y="58" width="170" height="100" rx="8" fill="#fff" stroke="#2BAD66" stroke-width="1.5"/>
+  <text x="555" y="82" text-anchor="middle" font-size="12" font-weight="600" fill="#2BAD66">Event Buffer</text>
+  <text x="555" y="100" text-anchor="middle" font-size="11" fill="#888">events[] + nextId</text>
+  <text x="555" y="118" text-anchor="middle" font-size="11" fill="#888">append() / replay()</text>
+  <text x="555" y="136" text-anchor="middle" font-size="11" fill="#888">reconnect resilience</text>
+
+  <!-- Flow arrow -->
+  <path d="M345,158 L345,185 L135,185 L135,175" stroke="#F6821F" stroke-width="2" fill="none" marker-end="url(#arrO)"/>
+  <text x="240" y="180" text-anchor="middle" font-size="10" fill="#F6821F" font-weight="600">SDK stdout</text>
+
+  <!-- Pipeline -->
+  <rect x="50" y="200" width="590" height="40" rx="8" fill="#fff" stroke="#ddd" stroke-width="1"/>
+  <text x="135" y="225" text-anchor="middle" font-size="11" font-weight="600" fill="#1B1B1B">Parse SDK msg</text>
+  <text x="60" y="225" font-size="14" fill="#F6821F">&rarr;</text>
+  <text x="310" y="225" text-anchor="middle" font-size="11" font-weight="600" fill="#1B1B1B">Emit WS event</text>
+  <text x="235" y="225" font-size="14" fill="#F6821F">&rarr;</text>
+  <text x="470" y="225" text-anchor="middle" font-size="11" font-weight="600" fill="#1B1B1B">Buffer event</text>
+  <text x="395" y="225" font-size="14" fill="#F6821F">&rarr;</text>
+  <text x="590" y="225" text-anchor="middle" font-size="11" font-weight="600" fill="#1B1B1B">Persist to D1</text>
+  <text x="530" y="225" font-size="14" fill="#F6821F">&rarr;</text>
+
+  <!-- State -->
+  <text x="50" y="268" font-size="11" fill="#888"><tspan font-weight="600" fill="#1B1B1B">State:</tspan> sessionId, campaignId, userId, isGenerating, abortFlag, imageCounter, blockBuilder</text>
+  <text x="50" y="290" font-size="11" fill="#888"><tspan font-weight="600" fill="#1B1B1B">Bindings:</tspan> D1 (database), R2 (storage), SANDBOX (namespace)</text>
+</svg>
+</div>
+
+<h3>Concurrency Model</h3>
+<p>Durable Objects are single-threaded JavaScript actors. Only one message is processed at a time. This eliminates race conditions between WebSocket messages and sandbox output. While awaiting chunks from <code>execStream()</code>, the DO can still receive WebSocket messages (like <code>cancel</code> or <code>ping</code>) &mdash; the runtime interleaves I/O awaits.</p>
+
+<h3>Hibernation</h3>
+<p>When no generation is running, the DO hibernates via <code>state.acceptWebSocket(ws)</code>. The WebSocket stays connected, but the DO stops billing for compute. Incoming messages (generate, follow_up, ping) wake it automatically.</p>
+
+<h3>Connection Replacement</h3>
+<p>On reconnect: the DO closes the old WebSocket (code 4001), stores the new one, replays buffered events since <code>lastEventId</code>, and resumes forwarding if generation is still running.</p>
+
+<!-- ==================== 4. SANDBOX ==================== -->
+<h2 id="s4"><span class="num">04</span> Sandbox Container Design</h2>
+
+<h3>Dockerfile</h3>
+<pre><span class="kw">FROM</span> node:22-slim
+
+<span class="cm"># Install Claude CLI globally</span>
+<span class="kw">RUN</span> npm install -g @anthropic-ai/claude-code@latest
+
+<span class="cm"># Install project dependencies</span>
+<span class="kw">WORKDIR</span> /app
+<span class="kw">COPY</span> sandbox/package.json sandbox/package-lock.json ./
+<span class="kw">RUN</span> npm ci --production
+
+<span class="cm"># Copy agent ecosystem</span>
+<span class="kw">COPY</span> agent/ /app/agent/
+<span class="kw">COPY</span> agent/.claude/ /app/agent/.claude/
+
+<span class="cm"># Copy sandbox entry point</span>
+<span class="kw">COPY</span> sandbox/agent-runner.ts /app/agent-runner.ts
+<span class="kw">COPY</span> sandbox/orchestrator-prompt.ts /app/orchestrator-prompt.ts
+<span class="kw">COPY</span> sandbox/nano-banana-mcp.ts /app/nano-banana-mcp.ts
+
+<span class="kw">RUN</span> chmod -R a+rX /app
+
+<span class="cm"># R2 FUSE-mounted at /mnt/r2 by the DO at runtime</span>
+<span class="kw">CMD</span> [<span class="str">"sleep"</span>, <span class="str">"infinity"</span>]</pre>
+
+<h3>How the DO Invokes the Sandbox</h3>
+<pre><span class="cm">// Inside CampaignSession Durable Object</span>
+
+<span class="cm">// 1. Get or create sandbox (lazy start)</span>
+<span class="kw">const</span> sandbox = <span class="fn">getSandbox</span>(this.env.SANDBOX, <span class="str">`user-${this.userId}`</span>, {
+  sleepAfter: <span class="num">600</span>,  <span class="cm">// 10 min idle -> sleep</span>
+});
+
+<span class="cm">// 2. Mount R2 for persistent storage</span>
+<span class="kw">await</span> sandbox.<span class="fn">mountBucket</span>(<span class="str">'creative-agent-storage'</span>, <span class="str">'/mnt/r2'</span>, {
+  endpoint: <span class="str">`https://${this.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`</span>,
+  provider: <span class="str">'r2'</span>,
+  prefix: <span class="str">`/users/${this.userId}/`</span>,
+});
+
+<span class="cm">// 3. Start agent-runner with streaming</span>
+<span class="kw">const</span> stream = <span class="kw">await</span> sandbox.<span class="fn">execStream</span>(
+  <span class="str">'npx tsx /app/agent-runner.ts'</span>,
+  {
+    env: {
+      ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
+      FAL_KEY: this.env.FAL_KEY,
+      PROMPT: prompt,
+      SESSION_ID: sessionId,
+      RESUME_SDK_SESSION_ID: sdkSessionId || <span class="str">''</span>,
+      HOME: <span class="str">'/mnt/r2'</span>,  <span class="cm">// JSONL to $HOME/.claude/</span>
+    },
+  }
+);
+
+<span class="cm">// 4. Parse SSE stream</span>
+<span class="kw">for await</span> (<span class="kw">const</span> event <span class="kw">of</span> <span class="fn">parseSSEStream</span>(stream)) {
+  <span class="kw">if</span> (event.type === <span class="str">'stdout'</span>) {
+    <span class="kw">const</span> sdkMsg = JSON.<span class="fn">parse</span>(event.data);
+    <span class="kw">await</span> this.<span class="fn">processSDKMessage</span>(sdkMsg);
+  }
+}</pre>
+
+<h3>Instance Sizing</h3>
+<table>
+  <thead><tr><th>Type</th><th>vCPU</th><th>RAM</th><th>Disk</th><th>Fit</th></tr></thead>
+  <tbody>
+    <tr><td>lite</td><td>1/16</td><td>256 MB</td><td>2 GB</td><td style="color:#999">Too small</td></tr>
+    <tr><td>basic</td><td>1/4</td><td>1 GB</td><td>4 GB</td><td style="color:#999">Possibly tight</td></tr>
+    <tr style="background:#FFF7ED"><td><strong>standard-1</strong></td><td><strong>1/2</strong></td><td><strong>4 GB</strong></td><td><strong>8 GB</strong></td><td style="color:var(--cf-green)"><strong>Recommended</strong></td></tr>
+    <tr><td>standard-2</td><td>1</td><td>6 GB</td><td>12 GB</td><td style="color:#999">If needed</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-note">
+  <strong>JSONL Persistence via R2 FUSE</strong>
+  Setting <code>HOME=/mnt/r2</code> causes the SDK to write JSONL transcripts to <code>/mnt/r2/.claude/projects/{hash}/{sdkSessionId}.jsonl</code>. This maps to R2 key <code>users/{userId}/.claude/projects/...</code>. On follow-up, the same path is available via FUSE mount &mdash; enabling resume with zero orchestration. FUSE adds ~1-10ms per file op, negligible vs Claude API latency (seconds).
+</div>
+
+<!-- ==================== 5. DATA FLOW ==================== -->
+<h2 id="s5"><span class="num">05</span> Data Flow</h2>
+
+<h3>5.1 Initial Generation</h3>
+<div class="flow">
+  <div class="step">
+    <div class="label">Browser sends WebSocket message</div>
+    <div class="detail"><code>{ type: "generate", prompt: "...", sessionId: "abc-123" }</code></div>
+  </div>
+  <div class="step">
+    <div class="label">Worker routes to Durable Object</div>
+    <div class="detail">Verifies Clerk JWT &rarr; <code>env.CAMPAIGN_SESSION.idFromName(userId)</code></div>
+  </div>
+  <div class="step">
+    <div class="label">DO creates campaign in D1</div>
+    <div class="detail">Status: "generating". Sends <code>{ type: "ack", campaignId, sessionId }</code></div>
+  </div>
+  <div class="step">
+    <div class="label">DO starts Sandbox + mounts R2</div>
+    <div class="detail"><code>getSandbox()</code> &rarr; <code>mountBucket()</code> &rarr; <code>execStream("npx tsx agent-runner.ts")</code></div>
+  </div>
+  <div class="step">
+    <div class="label">Stream processing loop</div>
+    <div class="sub">system.init &rarr; save sdk_session_id to D1</div>
+    <div class="sub">tool_use "Task" &rarr; WS <code>{ type: "phase", phase: "research" }</code></div>
+    <div class="sub">tool_use "Skill" &rarr; WS <code>{ type: "phase", phase: "hooks" / "art" }</code></div>
+    <div class="sub">tool_use "Write" &rarr; WS <code>{ type: "file" }</code> + save to D1</div>
+    <div class="sub">tool_use MCP &rarr; WS <code>{ type: "phase", phase: "images" }</code></div>
+    <div class="sub">tool_result images &rarr; WS <code>{ type: "image" }</code> + save to D1</div>
+    <div class="sub">result &rarr; WS <code>{ type: "complete" }</code> + D1 status = "complete"</div>
+  </div>
+  <div class="step">
+    <div class="label">All events buffered in DO memory</div>
+    <div class="detail">Sequential IDs for reconnect replay</div>
+  </div>
+</div>
+
+<h3>5.2 Follow-Up / Resume</h3>
+<div class="flow">
+  <div class="step">
+    <div class="label">Browser sends follow_up</div>
+    <div class="detail"><code>{ type: "follow_up", prompt: "...", campaignId: "camp_xyz" }</code></div>
+  </div>
+  <div class="step">
+    <div class="label">DO looks up sdk_session_id from D1</div>
+    <div class="detail">Same DO (same userId), retrieves session state</div>
+  </div>
+  <div class="step">
+    <div class="label">Wake/create Sandbox, mount R2</div>
+    <div class="detail">R2 FUSE mount restores JSONL access automatically</div>
+  </div>
+  <div class="step">
+    <div class="label">execStream with RESUME_SDK_SESSION_ID</div>
+    <div class="detail">SDK reads JSONL from R2, resumes conversation. Same stream processing.</div>
+  </div>
+</div>
+
+<h3>5.3 Reconnection / Recovery</h3>
+<div class="flow">
+  <div class="step"><div class="label">Browser reconnects (new WebSocket)</div></div>
+  <div class="step"><div class="label">DO replaces WebSocket ref, closes old with code 4001</div></div>
+  <div class="step"><div class="label">Browser sends <code>subscribe</code> with <code>lastEventId</code></div></div>
+  <div class="step"><div class="label">DO replays buffered events, sends <code>subscribed</code></div></div>
+</div>
+
+<h3>5.4 Cancellation</h3>
+<div class="flow">
+  <div class="step"><div class="label">Browser sends <code>cancel</code></div></div>
+  <div class="step"><div class="label">DO kills sandbox process, updates D1 status = "cancelled"</div></div>
+  <div class="step"><div class="label">Sends <code>{ type: "complete", message: "Cancelled" }</code></div></div>
+</div>
+
+<!-- ==================== 6. PERSISTENCE ==================== -->
+<h2 id="s6"><span class="num">06</span> Persistence Strategy</h2>
+
+<h3>R2 Bucket Layout</h3>
+<pre>creative-agent-storage/
+<span class="cm">&boxvr;&boxh;&boxh;</span> users/
+    <span class="cm">&boxvr;&boxh;&boxh;</span> {userId}/
+        <span class="cm">&boxvr;&boxh;&boxh;</span> .claude/                        <span class="cm"># SDK JSONL transcripts</span>
+        <span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> projects/
+        <span class="cm">&boxv;</span>       <span class="cm">&boxvr;&boxh;&boxh;</span> {projectHash}/
+        <span class="cm">&boxv;</span>           <span class="cm">&boxvr;&boxh;&boxh;</span> {sdkSessionId}.jsonl
+        <span class="cm">&boxvr;&boxh;&boxh;</span> images/                         <span class="cm"># Generated campaign images</span>
+        <span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> {sessionId}/
+        <span class="cm">&boxv;</span>       <span class="cm">&boxvr;&boxh;&boxh;</span> 1738000000_1_stat_hook.png
+        <span class="cm">&boxv;</span>       <span class="cm">&boxvr;&boxh;&boxh;</span> 1738000000_2_story_hook.png
+        <span class="cm">&boxvr;&boxh;&boxh;</span> uploads/                        <span class="cm"># User-uploaded assets</span></pre>
+
+<h3>Storage Mapping</h3>
+<table>
+  <thead><tr><th>Data</th><th>Service</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Campaign metadata</td><td><strong>D1</strong></td><td>Structured queries by user_id, status</td></tr>
+    <tr><td>Campaign files (research, hooks, prompts)</td><td><strong>D1</strong></td><td>TEXT columns, queried by campaign_id</td></tr>
+    <tr><td>Campaign image metadata</td><td><strong>D1</strong></td><td>Structured, queried by campaign_id</td></tr>
+    <tr><td>Chat messages + blocks</td><td><strong>D1</strong></td><td>Structured, queried by campaign_id</td></tr>
+    <tr><td>Generated image blobs</td><td><strong>R2</strong></td><td>Binary, large, CDN-served, zero egress</td></tr>
+    <tr><td>SDK JSONL transcripts</td><td><strong>R2</strong> (FUSE)</td><td>Session resume, per-user isolated</td></tr>
+    <tr><td>Event buffer</td><td><strong>DO memory</strong></td><td>Transient, generation-lifetime only</td></tr>
+    <tr><td>Connection state</td><td><strong>DO memory</strong></td><td>Transient, per-connection</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 7. D1 ==================== -->
+<h2 id="s7"><span class="num">07</span> Database Migration (D1)</h2>
+
+<p>D1 uses SQLite. The schema is identical to the current <code>better-sqlite3</code> schema, verified against <code>server/lib/database.ts</code>.</p>
+
+<h3>API Differences</h3>
+<table>
+  <thead><tr><th>Aspect</th><th>Current (better-sqlite3)</th><th>D1</th></tr></thead>
+  <tbody>
+    <tr><td>API style</td><td>Sync: <code>db.prepare().run()</code></td><td>Async: <code>await env.DB.prepare().run()</code></td></tr>
+    <tr><td>Param binding</td><td><code>.run(val1, val2)</code></td><td><code>.bind(val1, val2).run()</code></td></tr>
+    <tr><td>Get one row</td><td><code>.get(...)</code></td><td><code>.bind(...).first()</code></td></tr>
+    <tr><td>Get all rows</td><td><code>.all(...)</code></td><td><code>.bind(...).all()</code> then <code>.results</code></td></tr>
+    <tr><td>Transactions</td><td><code>db.transaction(fn)</code></td><td><code>env.DB.batch([stmt1, stmt2])</code></td></tr>
+    <tr><td>WAL mode</td><td>Manual PRAGMA</td><td>Managed by D1</td></tr>
+    <tr><td>Foreign keys</td><td><code>PRAGMA foreign_keys = ON</code></td><td>Enabled by default</td></tr>
+  </tbody>
+</table>
+
+<h3>Migration Steps</h3>
+<ol>
+  <li><code>npx wrangler d1 create creative-agent-db</code></li>
+  <li><code>npx wrangler d1 execute creative-agent-db --file=./schema.sql</code></li>
+  <li>Rewrite <code>server/lib/db/*.ts</code> to async D1 API</li>
+  <li>One-time data migration script: SQLite &rarr; D1</li>
+</ol>
+
+<!-- ==================== 8. IMAGES ==================== -->
+<h2 id="s8"><span class="num">08</span> Image Pipeline</h2>
+
+<div class="diagram">
+<svg viewBox="0 0 780 200" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <!-- Current -->
+  <text x="10" y="30" font-size="12" font-weight="700" fill="#999">CURRENT</text>
+  <rect x="10" y="40" width="80" height="36" rx="6" fill="#FEE2E2" stroke="#E04E39" stroke-width="1"/>
+  <text x="50" y="63" text-anchor="middle" font-size="10" fill="#1B1B1B">fal.ai</text>
+  <text x="110" y="63" font-size="14" fill="#999">&rarr;</text>
+  <rect x="130" y="40" width="100" height="36" rx="6" fill="#F3E8FF" stroke="#7C3AED" stroke-width="1"/>
+  <text x="180" y="63" text-anchor="middle" font-size="10" fill="#1B1B1B">MCP tool</text>
+  <text x="250" y="63" font-size="14" fill="#999">&rarr;</text>
+  <rect x="270" y="40" width="100" height="36" rx="6" fill="#DBEAFE" stroke="#003682" stroke-width="1"/>
+  <text x="320" y="63" text-anchor="middle" font-size="10" fill="#1B1B1B">Local disk</text>
+  <text x="390" y="63" font-size="14" fill="#999">&rarr;</text>
+  <rect x="410" y="40" width="110" height="36" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-width="1"/>
+  <text x="465" y="63" text-anchor="middle" font-size="10" fill="#1B1B1B">EventEmitter</text>
+  <text x="540" y="63" font-size="14" fill="#999">&rarr;</text>
+  <rect x="555" y="40" width="100" height="36" rx="6" fill="#DCFCE7" stroke="#16A34A" stroke-width="1"/>
+  <text x="605" y="63" text-anchor="middle" font-size="10" fill="#1B1B1B">Express serve</text>
+  <text x="670" y="63" font-size="14" fill="#999">&rarr;</text>
+  <rect x="685" y="40" width="75" height="36" rx="6" fill="#fff" stroke="#1B1B1B" stroke-width="1"/>
+  <text x="722" y="63" text-anchor="middle" font-size="10" fill="#1B1B1B">Browser</text>
+
+  <!-- Cloudflare -->
+  <text x="10" y="120" font-size="12" font-weight="700" fill="#F6821F">CLOUDFLARE</text>
+  <rect x="10" y="130" width="80" height="36" rx="6" fill="#FEE2E2" stroke="#E04E39" stroke-width="1"/>
+  <text x="50" y="153" text-anchor="middle" font-size="10" fill="#1B1B1B">fal.ai</text>
+  <text x="110" y="153" font-size="14" fill="#F6821F">&rarr;</text>
+  <rect x="130" y="130" width="100" height="36" rx="6" fill="#F3E8FF" stroke="#7C3AED" stroke-width="1"/>
+  <text x="180" y="153" text-anchor="middle" font-size="10" fill="#1B1B1B">MCP (sandbox)</text>
+  <text x="250" y="153" font-size="14" fill="#F6821F">&rarr;</text>
+  <rect x="270" y="130" width="130" height="36" rx="6" fill="#DCFCE7" stroke="#2BAD66" stroke-width="2"/>
+  <text x="335" y="153" text-anchor="middle" font-size="10" fill="#1B1B1B">R2 (FUSE mount)</text>
+  <text x="420" y="153" font-size="14" fill="#F6821F">&rarr;</text>
+  <rect x="440" y="130" width="130" height="36" rx="6" fill="#FFF7ED" stroke="#F6821F" stroke-width="2"/>
+  <text x="505" y="148" text-anchor="middle" font-size="10" fill="#1B1B1B">DO parses stdout</text>
+  <text x="505" y="160" text-anchor="middle" font-size="9" fill="#888">direct, no EventEmitter</text>
+  <text x="590" y="153" font-size="14" fill="#F6821F">&rarr;</text>
+  <rect x="610" y="130" width="75" height="36" rx="6" fill="#fff" stroke="#1B1B1B" stroke-width="1"/>
+  <text x="647" y="153" text-anchor="middle" font-size="10" fill="#1B1B1B">Browser</text>
+
+  <!-- Strikethrough on EventEmitter -->
+  <line x1="410" y1="58" x2="520" y2="58" stroke="#E04E39" stroke-width="2" opacity="0.3"/>
+</svg>
+</div>
+
+<p>URL format is unchanged: <code>/images/{sessionId}/{filename}</code>. Worker proxies to R2 with immutable cache headers (<code>max-age=31536000</code>).</p>
+
+<!-- ==================== 9. EVENTEMITTER ==================== -->
+<h2 id="s9"><span class="num">09</span> EventEmitter Replacement</h2>
+
+<div class="callout callout-success">
+  <strong>Eliminated entirely</strong>
+  The <code>image-events.ts</code> module, <code>registerMcpSession()</code>, <code>resolveWsSessionId()</code>, and <code>unregisterByWsSession()</code> are all removed. The DO parses SDK stdout directly &mdash; it already knows its own userId, sessionId, and campaignId. The existing <code>processSDKMessage()</code> fallback path (lines 532-596 in <code>websocket-handler.ts</code>) becomes the primary and only path.
+</div>
+
+<!-- ==================== 10. FILE STRUCTURE ==================== -->
+<h2 id="s10"><span class="num">10</span> New File Structure</h2>
+
+<pre>creative-agent-cloudflare/
+<span class="cm">&boxvr;&boxh;&boxh;</span> wrangler.jsonc              <span class="cm"># CF config (Worker + DO + D1 + R2 + Sandbox)</span>
+<span class="cm">&boxvr;&boxh;&boxh;</span> package.json
+<span class="cm">&boxvr;&boxh;&boxh;</span> schema.sql                  <span class="cm"># D1 schema</span>
+<span class="cm">&boxv;</span>
+<span class="cm">&boxvr;&boxh;&boxh;</span> src/                        <span class="cm"># Worker + DO source</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> index.ts                <span class="cm"># Worker fetch handler (entry)</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> router.ts               <span class="cm"># API route dispatcher</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> auth.ts                 <span class="cm"># Clerk JWT verification</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> durable-objects/
+<span class="cm">&boxv;</span>   <span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> campaign-session.ts <span class="cm"># CampaignSession DO</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> routes/
+<span class="cm">&boxv;</span>   <span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> campaigns.ts        <span class="cm"># /api/campaigns/*</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> assets.ts           <span class="cm"># /api/assets/*</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> images.ts           <span class="cm"># /images/* (R2 proxy)</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> db/                     <span class="cm"># D1 access (async)</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> lib/
+<span class="cm">&boxv;</span>       <span class="cm">&boxvr;&boxh;&boxh;</span> sdk-message-parser.ts <span class="cm"># processSDKMessage()</span>
+<span class="cm">&boxv;</span>       <span class="cm">&boxvr;&boxh;&boxh;</span> block-builder.ts    <span class="cm"># BlockBuilder class</span>
+<span class="cm">&boxv;</span>       <span class="cm">&boxvr;&boxh;&boxh;</span> event-buffer.ts     <span class="cm"># Per-DO event buffer</span>
+<span class="cm">&boxv;</span>
+<span class="cm">&boxvr;&boxh;&boxh;</span> sandbox/                    <span class="cm"># Container source</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> Dockerfile
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> agent-runner.ts         <span class="cm"># Entry point (invoked by DO)</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> orchestrator-prompt.ts
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> nano-banana-mcp.ts
+<span class="cm">&boxv;</span>
+<span class="cm">&boxvr;&boxh;&boxh;</span> agent/                      <span class="cm"># Agent ecosystem (into Docker)</span>
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> .claude/agents/
+<span class="cm">&boxv;</span>   <span class="cm">&boxvr;&boxh;&boxh;</span> .claude/skills/
+<span class="cm">&boxv;</span>
+<span class="cm">&boxvr;&boxh;&boxh;</span> client/                     <span class="cm"># React frontend (UNCHANGED)</span></pre>
+
+<!-- ==================== 11. SECRETS ==================== -->
+<h2 id="s11"><span class="num">11</span> Environment &amp; Secrets</h2>
+
+<h3>Secrets (<code>wrangler secret put</code>)</h3>
+<table>
+  <thead><tr><th>Secret</th><th>Purpose</th><th>Used By</th></tr></thead>
+  <tbody>
+    <tr><td><code>ANTHROPIC_API_KEY</code></td><td>Claude SDK API calls</td><td>Sandbox (per-command env)</td></tr>
+    <tr><td><code>FAL_KEY</code></td><td>fal.ai image generation</td><td>Sandbox (per-command env)</td></tr>
+    <tr><td><code>CLERK_SECRET_KEY</code></td><td>JWT verification</td><td>Worker (auth.ts)</td></tr>
+  </tbody>
+</table>
+
+<div class="callout callout-note">
+  <strong>API keys are never in the Docker image.</strong>
+  They're injected per-invocation via <code>sandbox.execStream({ env: {...} })</code>. The DO passes them from Worker secrets to the sandbox at runtime.
+</div>
+
+<!-- ==================== 12. COSTS ==================== -->
+<h2 id="s12"><span class="num">12</span> Cost Projections</h2>
+
+<h3>Per-Generation Breakdown</h3>
+<p>Assuming standard-1 (0.5 vCPU, 4GB RAM), 120 seconds per generation:</p>
+<table>
+  <thead><tr><th>Resource</th><th>Usage</th><th>Cost</th></tr></thead>
+  <tbody>
+    <tr><td>Sandbox CPU</td><td>120s &times; 0.5 vCPU = 60 vCPU-seconds</td><td>$0.0012</td></tr>
+    <tr><td>Sandbox RAM</td><td>120s &times; 4GB = 480 GB-seconds</td><td>$0.0012</td></tr>
+    <tr><td>D1 reads/writes</td><td>~35 operations</td><td>Free tier</td></tr>
+    <tr><td>R2 writes</td><td>~8 operations</td><td>Free tier</td></tr>
+    <tr><td>DO compute</td><td>~120s active</td><td>~$0.0001</td></tr>
+    <tr style="background:#FFF7ED; font-weight:600"><td>Total per generation</td><td></td><td>~$0.003</td></tr>
+  </tbody>
+</table>
+<p style="font-size:13px;color:#888">Claude API (~$0.05-0.20) and fal.ai (~$0.02-0.10) costs are additional and identical regardless of hosting.</p>
+
+<h3>Monthly Projections</h3>
+<table>
+  <thead><tr><th>Scale</th><th>Gens/mo</th><th>Workers plan</th><th>Sandbox</th><th>D1</th><th>R2</th><th>DO</th><th>Total</th></tr></thead>
+  <tbody>
+    <tr><td>10 users</td><td>100</td><td>$5</td><td>$0.24</td><td>Free</td><td>Free</td><td>Free</td><td><strong>~$5</strong></td></tr>
+    <tr><td>100 users</td><td>1,000</td><td>$5</td><td>$2.40</td><td>Free</td><td>Free</td><td>$0.04</td><td><strong>~$7</strong></td></tr>
+    <tr><td>1,000 users</td><td>10,000</td><td>$5</td><td>$24.00</td><td>$0.75</td><td>$0.15</td><td>$0.38</td><td><strong>~$30</strong></td></tr>
+  </tbody>
+</table>
+
+<h3>vs Fly Machine + Sprites</h3>
+<table>
+  <thead><tr><th>Scale</th><th style="color:var(--cf-orange)">All Cloudflare</th><th>Fly + Sprites</th></tr></thead>
+  <tbody>
+    <tr><td>10 users</td><td style="color:var(--cf-green);font-weight:600">~$5/mo</td><td>~$47/mo</td></tr>
+    <tr><td>100 users</td><td style="color:var(--cf-green);font-weight:600">~$7/mo</td><td>~$269/mo</td></tr>
+    <tr><td>1,000 users</td><td style="color:var(--cf-green);font-weight:600">~$30/mo</td><td>~$2,634/mo</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 13. LOCAL DEV ==================== -->
+<h2 id="s13"><span class="num">13</span> Local Dev Story</h2>
+
+<pre><span class="cm"># Terminal 1: Worker + DO + D1 + R2 (all emulated locally)</span>
+npx wrangler dev
+
+<span class="cm"># Terminal 2: Client dev server</span>
+cd client && npm run dev</pre>
+
+<p><code>wrangler dev</code> provides local D1 (SQLite), local R2 (filesystem), local Durable Objects (in-memory), and hot reload.</p>
+
+<div class="callout callout-warning">
+  <strong>Sandbox SDK does NOT work with wrangler dev</strong>
+  R2 FUSE mount requires deployed infrastructure. For local development, the DO detects <code>AI_BACKEND=local</code> and runs the SDK directly in-process &mdash; same as the current <code>ai-client.ts</code> architecture. Zero Docker, same DX.
+</div>
+
+<!-- ==================== 14. MIGRATION ==================== -->
+<h2 id="s14"><span class="num">14</span> Migration Path</h2>
+
+<h3>Phase 1: Data Layer (D1 + R2)</h3>
+<p>Create D1 database, apply schema, rewrite DB modules to async, create R2 bucket, migrate existing data.</p>
+
+<h3>Phase 2: Worker (API Routes)</h3>
+<p>Create Worker fetch handler, port REST routes (campaigns, assets, images, health), port Clerk auth.</p>
+
+<h3>Phase 3: Durable Object (WebSocket)</h3>
+<p>Implement CampaignSession DO, port WS message handling, port processSDKMessage(), event buffer, BlockBuilder.</p>
+
+<h3>Phase 4: Sandbox (AI Execution)</h3>
+<p>Build Docker image, implement agent-runner.ts, configure R2 FUSE mount, test end-to-end flows.</p>
+
+<h3>Phase 5: Pages (Frontend)</h3>
+<p>Deploy client/dist/ to Pages, configure custom domain, set up routing rules.</p>
+
+<h3>Change Matrix</h3>
+<table>
+  <thead><tr><th>Component</th><th>Status</th><th>Details</th></tr></thead>
+  <tbody>
+    <tr><td>Client React code</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Zero changes to components, store, hooks, types</td></tr>
+    <tr><td>WebSocket protocol</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Same 12 event types, same shapes</td></tr>
+    <tr><td>REST API contract</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Same endpoints, same request/response</td></tr>
+    <tr><td>Image URL format</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Still <code>/images/{sessionId}/{filename}</code></td></tr>
+    <tr><td>Database schema</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Same tables, columns, SQL</td></tr>
+    <tr><td>Orchestrator prompt</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Copied verbatim to sandbox</td></tr>
+    <tr><td>Agent ecosystem</td><td><span class="badge badge-unchanged">Unchanged</span></td><td>Copied verbatim to Docker image</td></tr>
+    <tr><td>MCP tool</td><td><span class="badge badge-minor">Minor</span></td><td>Image output path &rarr; R2 mount path</td></tr>
+    <tr><td>DB access layer</td><td><span class="badge badge-rewritten">Rewritten</span></td><td>Sync &rarr; async (better-sqlite3 &rarr; D1)</td></tr>
+    <tr><td>Server entry point</td><td><span class="badge badge-rewritten">Rewritten</span></td><td>Express &rarr; Worker fetch handler</td></tr>
+    <tr><td>WebSocket handler</td><td><span class="badge badge-rewritten">Rewritten</span></td><td>ws library &rarr; DO WebSocket API</td></tr>
+    <tr><td>Session manager</td><td><span class="badge badge-rewritten">Rewritten</span></td><td>In-memory Map &rarr; DO state + R2</td></tr>
+    <tr><td>Image events bridge</td><td><span class="badge badge-removed">Removed</span></td><td>Not needed (DO owns both ends)</td></tr>
+    <tr><td>AI client</td><td><span class="badge badge-moved">Moved</span></td><td>Server &rarr; sandbox container</td></tr>
+    <tr><td>File serving</td><td><span class="badge badge-moved">Moved</span></td><td>Local disk &rarr; R2 via Worker proxy</td></tr>
+  </tbody>
+</table>
+
+<!-- ==================== 15. CLIENT ==================== -->
+<h2 id="s15"><span class="num">15</span> Client Changes</h2>
+
+<div class="callout callout-success">
+  <strong>There are no client changes.</strong>
+  Same WebSocket protocol (12 event types, same shapes). Same REST API. Same image URLs. Same Clerk auth flow. Same reconnection behavior. Same event ID sequencing. Verified against <code>client/src/types/websocket.ts</code>.
+</div>
+
+<h3>Production URL Routing</h3>
+<div class="diagram">
+<svg viewBox="0 0 700 160" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+  <rect x="20" y="20" width="160" height="50" rx="8" fill="#fff" stroke="#1B1B1B" stroke-width="2"/>
+  <text x="100" y="50" text-anchor="middle" font-size="13" font-weight="700" fill="#1B1B1B">yourdomain.com</text>
+
+  <!-- /ws -->
+  <rect x="260" y="8" width="180" height="32" rx="6" fill="#FFF7ED" stroke="#F6821F" stroke-width="1.5"/>
+  <text x="350" y="29" text-anchor="middle" font-size="11" fill="#1B1B1B"><tspan font-weight="600">/ws</tspan> &rarr; Worker &rarr; DO</text>
+  <line x1="180" y1="35" x2="258" y2="24" stroke="#F6821F" stroke-width="1.5" marker-end="url(#arrO)"/>
+
+  <!-- /api/* -->
+  <rect x="260" y="48" width="180" height="32" rx="6" fill="#F0F9FF" stroke="#003682" stroke-width="1.5"/>
+  <text x="350" y="69" text-anchor="middle" font-size="11" fill="#1B1B1B"><tspan font-weight="600">/api/*</tspan> &rarr; Worker &rarr; D1</text>
+  <line x1="180" y1="45" x2="258" y2="60" stroke="#003682" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- /images/* -->
+  <rect x="260" y="88" width="180" height="32" rx="6" fill="#F0FDF4" stroke="#2BAD66" stroke-width="1.5"/>
+  <text x="350" y="109" text-anchor="middle" font-size="11" fill="#1B1B1B"><tspan font-weight="600">/images/*</tspan> &rarr; Worker &rarr; R2</text>
+  <line x1="180" y1="55" x2="258" y2="100" stroke="#2BAD66" stroke-width="1.5" marker-end="url(#arr)"/>
+
+  <!-- /* -->
+  <rect x="260" y="128" width="180" height="32" rx="6" fill="#FEF3C7" stroke="#D97706" stroke-width="1.5"/>
+  <text x="350" y="149" text-anchor="middle" font-size="11" fill="#1B1B1B"><tspan font-weight="600">/*</tspan> &rarr; Pages (CDN)</text>
+  <line x1="180" y1="65" x2="258" y2="140" stroke="#D97706" stroke-width="1.5" marker-end="url(#arr)"/>
+</svg>
+</div>
+
+</main>
+
+<script>
+// Highlight active nav link on scroll
+const sections = document.querySelectorAll('h2[id]');
+const navLinks = document.querySelectorAll('nav a');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      navLinks.forEach(link => link.classList.remove('active'));
+      const id = entry.target.id;
+      const link = document.querySelector(`nav a[href="#${id}"]`);
+      if (link) link.classList.add('active');
+    }
+  });
+}, { rootMargin: '-20% 0px -70% 0px' });
+
+sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

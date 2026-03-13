@@ -7,10 +7,7 @@ import type {
   HookType,
   GeneratedImage,
   ChatMessage,
-  MessageBlock,
   ThinkingBlockData,
-  TextBlockData,
-  StatusBlockData,
   ThinkingChild,
 } from '../types/chat'
 import { campaignsApi, assetsApi } from '../lib/api'
@@ -488,7 +485,6 @@ export const useStore = create<Store>((set, get) => ({
 
   resumeGeneration: (sessionId, campaignId) => {
     const campaign = get().campaigns.find(c => c.id === campaignId)
-    const existingImages = campaign?.images.length || 0
 
     // Derive expected count from prompts file if available
     let expectedTotal = get().generationExpectedImages
@@ -499,8 +495,6 @@ export const useStore = create<Store>((set, get) => ({
         if (Array.isArray(prompts) && prompts.length > 0) expectedTotal = prompts.length
       } catch { /* keep default */ }
     }
-    const remainingImages = Math.max(0, expectedTotal - existingImages)
-
     const userMessageId = generateId('msg')
     const assistantMessageId = generateId('msg')
 
@@ -530,7 +524,6 @@ export const useStore = create<Store>((set, get) => ({
 
   reconstructForRecovery: (sessionId, prompt, campaignId) => {
     const campaign = get().campaigns.find(c => c.id === campaignId)
-    const existingImages = campaign?.images.length || 0
 
     // Derive expected count: parse prompt first, then check prompts file
     let expectedTotal = parseExpectedImageCount(prompt)
@@ -607,7 +600,7 @@ export const useStore = create<Store>((set, get) => ({
       chatMessages: {
         ...state.chatMessages,
         [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
-          msg.id === messageId ? { ...msg, content: summary } : msg
+          msg.id === messageId ? { ...msg, content: msg.content || summary } : msg
         )
       }
     }))

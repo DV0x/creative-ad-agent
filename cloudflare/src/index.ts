@@ -9,16 +9,20 @@ export { Sandbox } from '@cloudflare/sandbox';
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
+    const method = request.method;
 
     // WebSocket upgrade → route to Durable Object
     if (url.pathname === '/ws') {
+      console.log(`[trace][worker][ws_upgrade] method=${method}`);
       if (request.headers.get('Upgrade') !== 'websocket') {
         return new Response('Expected WebSocket', { status: 426 });
       }
 
       const token = url.searchParams.get('token');
       const userId = await verifyWebSocketToken(token, env);
+      console.log(`[trace][worker][ws_auth] userId=${userId || 'null'} tokenPresent=${!!token}`);
       if (!userId) {
+        console.log('[trace][worker][ws_rejected] reason=no_userId');
         return new Response('Unauthorized', { status: 401 });
       }
 
@@ -28,6 +32,7 @@ export default {
 
       const doRequest = new Request(request.url, request);
       doRequest.headers.set('X-User-Id', userId);
+      console.log(`[trace][worker][ws_forward] userId=${userId}`);
       return stub.fetch(doRequest);
     }
 
@@ -37,9 +42,13 @@ export default {
       url.pathname.startsWith('/images/') ||
       url.pathname === '/health'
     ) {
-      return handleApiRequest(request, env);
+      console.log(`[trace][worker][api] method=${method} path=${url.pathname}`);
+      const response = await handleApiRequest(request, env);
+      console.log(`[trace][worker][api_done] method=${method} path=${url.pathname} status=${response.status}`);
+      return response;
     }
 
-    return new Response('Not Found', { status: 404 });
+    // Serve static assets (React SPA) for all other routes
+    return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;

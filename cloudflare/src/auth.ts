@@ -19,12 +19,22 @@ interface ClerkJWTPayload {
  * Returns null on verification failure.
  */
 export async function verifyToken(token: string | null, env: Env): Promise<string | null> {
-  if (!env.CLERK_SECRET_KEY || !token) return 'anonymous';
+  if (!env.CLERK_SECRET_KEY) {
+    console.log('[AUTH] No CLERK_SECRET_KEY, returning anonymous');
+    return 'anonymous';
+  }
+  if (!token) {
+    console.log('[AUTH] No token provided, returning null');
+    return null;
+  }
 
   try {
     // Decode JWT header to get key ID
     const parts = token.split('.');
-    if (parts.length !== 3) return null;
+    if (parts.length !== 3) {
+      console.log('[AUTH] Invalid JWT: not 3 parts');
+      return null;
+    }
 
     const header = JSON.parse(atob(parts[0]));
     const kid = header.kid;
@@ -69,16 +79,23 @@ export async function verifyToken(token: string | null, env: Env): Promise<strin
       data,
     );
 
-    if (!valid) return null;
+    if (!valid) {
+      console.log('[AUTH] JWT signature invalid');
+      return null;
+    }
 
     // Check expiration
     const payload = payloadRaw as ClerkJWTPayload;
     const now = Math.floor(Date.now() / 1000);
-    if (payload.exp < now) return null;
+    if (payload.exp < now) {
+      console.log(`[AUTH] JWT expired: exp=${payload.exp}, now=${now}`);
+      return null;
+    }
 
+    console.log(`[AUTH] JWT verified OK: sub=${payload.sub}, iss=${payload.iss}`);
     return payload.sub || 'anonymous';
   } catch (err) {
-    console.warn('JWT verification failed:', (err as Error).message);
+    console.warn('[AUTH] JWT verification error:', (err as Error).message);
     return null;
   }
 }
@@ -121,7 +138,8 @@ export async function authenticateRequest(
  * Returns userId or null.
  */
 export async function verifyWebSocketToken(token: string | null, env: Env): Promise<string | null> {
-  if (!env.CLERK_SECRET_KEY || !token) return 'anonymous';
+  if (!env.CLERK_SECRET_KEY) return 'anonymous';
+  if (!token) return null;
   return verifyToken(token, env);
 }
 

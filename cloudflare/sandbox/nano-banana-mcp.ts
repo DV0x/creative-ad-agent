@@ -65,6 +65,14 @@ async function downloadImage(url: string, filepath: string): Promise<number> {
   const arrayBuffer = await response.arrayBuffer();
   const buffer = Buffer.from(arrayBuffer);
   fs.writeFileSync(filepath, buffer);
+
+  // Verify the write persisted (catches silent FUSE failures)
+  const stat = fs.statSync(filepath);
+  if (stat.size !== buffer.length) {
+    throw new Error(`Image write verification failed: wrote ${buffer.length} bytes but file is ${stat.size} bytes at ${filepath}`);
+  }
+  console.log(`   Write verified: ${filepath} (${stat.size} bytes)`);
+
   return buffer.length;
 }
 
@@ -267,6 +275,7 @@ export const nanoBananaMcpServer = createSdkMcpServer({
                 imageIndex,
                 hookType: getHookTypeForIndex(imageIndex),
                 filename: filename,
+                filepath: filepath,
                 url: url,
                 originalUrl: image.url,
                 prompt: prompt,
@@ -281,6 +290,12 @@ export const nanoBananaMcpServer = createSdkMcpServer({
                 mode: mode,
                 description: data.description || '',
               });
+
+              // Track generated image for completion marker (append-only)
+              try {
+                const trackEntry = JSON.stringify({ filename, path: `images/${filename}` }) + '\n';
+                fs.appendFileSync('/app/generated-images.jsonl', trackEntry);
+              } catch { /* non-critical */ }
 
               console.log(`   Image ${i + 1} complete`);
 

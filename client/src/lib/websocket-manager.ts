@@ -26,6 +26,7 @@ let reconnectAttempts = 0;
 let reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
 let pingInterval: ReturnType<typeof setInterval> | null = null;
 let subscriberCount = 0;
+let unsubscribeTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // Stored token getter — set once by connectWithAuth(), reused on reconnect
 let storedTokenGetter: (() => Promise<string | null>) | null = null;
@@ -60,6 +61,11 @@ export function setCallbacks(cbs: {
  */
 export function subscribe(): void {
   subscriberCount++;
+  // Cancel any pending disconnect from a recent unsubscribe (component transition)
+  if (unsubscribeTimeout) {
+    clearTimeout(unsubscribeTimeout);
+    unsubscribeTimeout = null;
+  }
   // connect() has internal guards for OPEN/CONNECTING state
   if (authReady) {
     connect();
@@ -68,12 +74,19 @@ export function subscribe(): void {
 
 /**
  * Called when a useWebSocket hook unmounts.
- * Disconnect only when the LAST subscriber unmounts.
+ * Uses a grace period before disconnecting so that component transitions
+ * (e.g. EmptyState → ResultsView) don't kill the socket between unmount/mount.
  */
 export function unsubscribe(): void {
   subscriberCount = Math.max(0, subscriberCount - 1);
   if (subscriberCount === 0) {
-    disconnect();
+    // Grace period: if another subscriber mounts within 200ms, skip disconnect
+    unsubscribeTimeout = setTimeout(() => {
+      unsubscribeTimeout = null;
+      if (subscriberCount === 0) {
+        disconnect();
+      }
+    }, 200);
   }
 }
 
@@ -130,12 +143,17 @@ export async function connect(): Promise<void> {
 
   // Build URL with auth token from stored getter
   let wsUrl = WS_BASE_URL;
+  console.log(`[WS-MGR] connect(): hasTokenGetter=${!!storedTokenGetter}, authReady=${authReady}, attempt=${reconnectAttempts}`);
   try {
     const token = storedTokenGetter ? await storedTokenGetter() : null;
+    console.log(`[WS-MGR] token result: ${token ? `present (${token.length} chars)` : 'null/empty'}`);
     if (token) {
       wsUrl = `${WS_BASE_URL}?token=${encodeURIComponent(token)}`;
+    } else {
+      console.warn('[WS-MGR] No token available — WS will connect without auth');
     }
-  } catch {
+  } catch (err) {
+    console.warn('[WS-MGR] Token getter threw:', err);
     // Continue without token (dev mode)
   }
 
@@ -171,9 +189,12 @@ export async function connect(): Promise<void> {
     };
 
     ws.onclose = (event: CloseEvent) => {
-      if (myGeneration !== connectionGeneration) return;
+      if (myGeneration !== connectionGeneration) {
+        console.log(`[WS-MGR] onclose ignored (stale gen ${myGeneration} vs ${connectionGeneration})`);
+        return;
+      }
 
-      console.log('WebSocket: Disconnected', event.code, event.reason);
+      console.log(`[WS-MGR] onclose: code=${event.code}, reason="${event.reason}", wasClean=${event.wasClean}`);
       activeSocket = null;
 
       if (pingInterval) {

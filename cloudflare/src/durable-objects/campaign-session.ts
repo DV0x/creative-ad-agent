@@ -4,35 +4,456 @@
 
 import type { Env } from '../env.js';
 import type { ClientMessage, ServerMessage } from '../lib/types.js';
-import { extractCampaignName, HOOK_TYPE_ORDER } from '../lib/types.js';
+import { extractCampaignName, HOOK_TYPE_ORDER, getHookTypeForIndex } from '../lib/types.js';
+import type { HookType } from '../lib/types.js';
 import { EventBuffer } from '../lib/event-buffer.js';
 import { BlockBuilder } from '../lib/block-builder.js';
-import { processSDKMessage, type TextAccumulator, type ParserContext } from '../lib/sdk-message-parser.js';
+import { processSDKMessage, stripImageUrls, type TextAccumulator, type ParserContext } from '../lib/sdk-message-parser.js';
 import * as db from '../db/index.js';
-import { getSandbox } from '@cloudflare/sandbox';
+import { getSandbox, parseSSEStream } from '@cloudflare/sandbox';
 import { fal } from '@fal-ai/client';
 
 export class CampaignSession implements DurableObject {
-  // Per-generation state (transient, lost on eviction — acceptable)
-  private ws: WebSocket | null = null;
+  // Per-generation state (transient, lost on eviction)
   private userId: string = 'anonymous';
   private sessionId: string | null = null;
   private campaignId: string | null = null;
   private isGenerating = false;
   private abortController: AbortController | null = null;
   private sandbox: any = null;
+  private agentProcessId: string | null = null;
   private eventBuffer: EventBuffer = new EventBuffer();
+  private tailLogs: string[] = [];
+  private generationStartedAt: number = 0; // Timestamp for max age safety net
+  private currentRequestId: string | null = null; // Per-turn ID for staleness check (null = initial gen)
+
+  // Trace instrumentation
+  private traceSeq = 0;
+  private alarmIteration = 0;
+  private lastContainerLogLen = 0; // Track how much of container stdout we've relayed
 
   constructor(
     private state: DurableObjectState,
     private env: Env,
   ) {}
 
+  // ─── Tail-visible logging ────────────────────────────────────
+  // Background promises (fire-and-forget generation) run outside handler
+  // context, so their console.log calls don't appear in wrangler tail.
+  // Buffer them here and flush during alarm(), which IS a handler invocation.
+
+  private log(msg: string): void {
+    this.tailLogs.push(msg);
+    if (this.tailLogs.length > 500) {
+      this.tailLogs.splice(0, 250);
+    }
+  }
+
+  private flushTailLogs(): void {
+    if (this.tailLogs.length === 0) return;
+    const batch = this.tailLogs.splice(0);
+    for (const msg of batch) {
+      console.log(msg);
+    }
+  }
+
+  // ─── Structured trace logging ──────────────────────────────────
+  // Format: [T{seq}][{component}][{action}] cid={campaignId} key=value ...
+  // Appears in wrangler tail via the tailLogs buffer + alarm flush.
+
+  private trace(component: string, action: string, data?: Record<string, any>): void {
+    const seq = ++this.traceSeq;
+    const parts = [`[T${seq}][${component}][${action}]`];
+    if (this.campaignId) parts.push(`cid=${this.campaignId}`);
+    if (data) {
+      for (const [k, v] of Object.entries(data)) {
+        parts.push(`${k}=${v}`);
+      }
+    }
+    this.log(parts.join(' '));
+  }
+
+  /** Wrap a sandbox RPC call with trace logging and timing */
+  private async timedRPC<T>(label: string, fn: () => Promise<T>): Promise<T> {
+    const start = Date.now();
+    this.trace('rpc', `${label}.start`);
+    try {
+      const result = await fn();
+      this.trace('rpc', `${label}.done`, { ms: Date.now() - start });
+      return result;
+    } catch (err: any) {
+      this.trace('rpc', `${label}.error`, { ms: Date.now() - start, err: err?.message?.substring(0, 100) });
+      throw err;
+    }
+  }
+
+  // ─── Keep-alive heartbeat (prevents hibernation during generation) ───
+
+  private startKeepAlive(): void {
+    this.state.storage.setAlarm(Date.now() + 10_000).catch((err) => {
+      console.warn('[alarm] startKeepAlive setAlarm failed:', err?.message || err);
+    });
+  }
+
+  async alarm(): Promise<void> {
+    const alarmStart = Date.now();
+    this.alarmIteration++;
+    const iter = this.alarmIteration;
+    const ageSec = this.generationStartedAt ? Math.round((Date.now() - this.generationStartedAt) / 1000) : 0;
+
+    try {
+      this.flushTailLogs();
+
+      this.trace('alarm', 'enter', {
+        iter,
+        gen: this.isGenerating,
+        cid: this.campaignId || 'null',
+        sandbox: !!this.sandbox,
+        agent: this.agentProcessId || 'null',
+        ageSec,
+        userId: this.userId,
+        wsCount: this.state.getWebSockets().length,
+      });
+
+      // Self-heal after DO reset: restore state if we have nothing in memory
+      if (!this.campaignId) {
+        this.trace('alarm', 'restoreSession.needed', { reason: 'no_campaignId' });
+        await this.restoreSession();
+      }
+
+      if (!this.isGenerating || !this.campaignId) {
+        this.trace('alarm', 'exit.noop', { gen: this.isGenerating, cid: this.campaignId || 'null', ms: Date.now() - alarmStart });
+        return;
+      }
+
+      // Safety net: 2h timeout
+      const MAX_GENERATION_AGE = 2 * 60 * 60 * 1000;
+      if (this.generationStartedAt && (Date.now() - this.generationStartedAt) > MAX_GENERATION_AGE) {
+        this.trace('alarm', 'safetyNet.triggered', { ageSec });
+        try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch (_) {}
+        this.isGenerating = false;
+        await this.persistSession();
+        return;
+      }
+
+      // Reconnect sandbox after DO reset
+      if (!this.sandbox && this.userId && this.userId !== 'anonymous') {
+        const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
+        this.trace('alarm', 'sandbox.reconnect', { sandboxId });
+        this.sandbox = getSandbox(this.env.SANDBOX, sandboxId, {
+          sleepAfter: '2h',
+          normalizeId: true,
+        });
+        this.trace('alarm', 'sandbox.reconnected');
+      }
+
+      if (this.sandbox) {
+        // Crash detection: check if agent process is still alive
+        if (this.agentProcessId) {
+          try {
+            const processes = await this.timedRPC('listProcesses', () => this.sandbox.listProcesses()) as any[];
+            const agentProc = processes.find((p: any) => p.id === this.agentProcessId);
+            const alive = agentProc?.status === 'running';
+            this.trace('alarm', 'agentCheck', {
+              alive,
+              status: agentProc?.status || 'not_found',
+              processCount: processes.length,
+            });
+
+            if (!alive) {
+              // Process died — check if it completed before dying
+              const finalized = await this.tryFinalize(this.campaignId, this.sessionId!);
+              if (finalized) {
+                this.trace('alarm', 'exit.finalized_after_crash', { ms: Date.now() - alarmStart });
+                return;
+              }
+
+              // Process dead and no result — mark incomplete
+              this.trace('alarm', 'agent.dead_no_result');
+              this.emitEvent({
+                type: 'error',
+                timestamp: new Date().toISOString(),
+                error: 'Generation agent crashed unexpectedly. Please try again.',
+              });
+              try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+              this.isGenerating = false;
+              await this.persistSession();
+              this.trace('alarm', 'exit.incomplete', { ms: Date.now() - alarmStart });
+              return;
+            }
+          } catch (err: any) {
+            this.trace('alarm', 'listProcesses.catch', { err: err?.message?.substring(0, 100) });
+            // Can't list processes — sandbox may be disconnected. Try turn-result.json anyway
+          }
+
+          // Relay container logs: call getProcessLogs() to see what agent is doing
+          try {
+            const logs = await this.timedRPC('getProcessLogs', () => this.sandbox.getProcessLogs(this.agentProcessId)) as any;
+            const stdout: string = typeof logs === 'string' ? logs : (logs?.stdout || '');
+            const newLen = stdout.length;
+            if (newLen > this.lastContainerLogLen) {
+              const newContent = stdout.substring(this.lastContainerLogLen);
+              // Extract last few lines for the trace
+              const newLines = newContent.trim().split('\n');
+              const recentLines = newLines.slice(-3);
+              for (const line of recentLines) {
+                // Parse JSON lines for type, otherwise truncate raw text
+                try {
+                  const parsed = JSON.parse(line);
+                  this.trace('container', 'log', { type: parsed.type, subtype: parsed.subtype || '' });
+                } catch {
+                  this.trace('container', 'log.raw', { line: line.substring(0, 150) });
+                }
+              }
+              this.trace('alarm', 'containerLogs', { newBytes: newLen - this.lastContainerLogLen, totalLines: newLines.length });
+              this.lastContainerLogLen = newLen;
+            } else {
+              this.trace('alarm', 'containerLogs.noNew', { totalLen: newLen });
+            }
+          } catch (err: any) {
+            this.trace('alarm', 'getProcessLogs.catch', { err: err?.message?.substring(0, 100) });
+          }
+        }
+
+        // Check if turn-result.json exists (agent completed this turn)
+        const finalized = await this.tryFinalize(this.campaignId, this.sessionId!);
+        if (finalized) {
+          this.trace('alarm', 'exit.finalized', { ms: Date.now() - alarmStart });
+          return;
+        }
+      } else {
+        this.trace('alarm', 'no_sandbox', { userId: this.userId });
+      }
+
+      // Reschedule
+      if (this.isGenerating) {
+        await this.state.storage.setAlarm(Date.now() + 10_000);
+        this.trace('alarm', 'reschedule', { nextIn: 10000 });
+      }
+      this.trace('alarm', 'exit.ok', { iter, ms: Date.now() - alarmStart });
+    } catch (err: any) {
+      this.trace('alarm', 'exit.error', { iter, err: err?.message?.substring(0, 200), ms: Date.now() - alarmStart });
+      console.warn('[alarm] alarm handler error:', err?.message || err);
+      if (this.isGenerating) {
+        try {
+          await this.state.storage.setAlarm(Date.now() + 10_000);
+          this.trace('alarm', 'reschedule.afterError');
+        } catch (e: any) {
+          this.trace('alarm', 'reschedule.failed', { err: e?.message?.substring(0, 100) });
+        }
+      }
+    }
+  }
+
+  // ─── Single completion path: read turn-result.json, reconcile, save to D1 ───
+
+  private async tryFinalize(campaignId: string, sessionId: string): Promise<boolean> {
+    if (!this.sandbox) return false;
+    try {
+      const raw = await this.timedRPC('readTurnResult', () => this.sandbox.readFile('/app/turn-result.json')) as any;
+      const content = typeof raw === 'string' ? raw : raw.content;
+      const result = JSON.parse(content);
+
+      // Verify it's for the current turn (not stale from previous turn)
+      if (this.currentRequestId && result.requestId && result.requestId !== this.currentRequestId) {
+        this.trace('finalize', 'staleResult', { got: result.requestId, expected: this.currentRequestId });
+        return false;
+      }
+
+      this.trace('finalize', 'found', {
+        images: result.images?.length || 0,
+        files: Object.keys(result.files || {}).length,
+        requestId: result.requestId || 'initial',
+      });
+      await this.finalizeGeneration(campaignId, sessionId, result);
+      return true;
+    } catch {
+      // File doesn't exist yet or can't be parsed — agent still working
+      return false;
+    }
+  }
+
+  private async finalizeGeneration(
+    campaignId: string,
+    sessionId: string,
+    turnResult: { images?: any[]; files?: Record<string, string>; text?: string; blocks?: any[]; requestId?: string },
+  ): Promise<void> {
+    if (!this.isGenerating) return;
+
+    const images = turnResult.images || [];
+    const files = turnResult.files || {};
+    const text = turnResult.text || '';
+    const blocks = turnResult.blocks || [];
+
+    // 1. Reconcile images (dedup against existing D1 records)
+    const existingImages = await db.getCampaignImages(this.env.DB, campaignId);
+    const knownPaths = new Set(existingImages.map((i: any) => i.file_path));
+    let imagesAdded = 0;
+
+    for (const img of images) {
+      const urlPath = img.path?.startsWith('/images/') ? img.path : `/images/${img.filename}`;
+      if (knownPaths.has(urlPath)) continue;
+
+      const imageIndex = existingImages.length + imagesAdded + 1;
+      const hookType = getHookTypeForIndex(imageIndex);
+
+      await db.addCampaignImage(this.env.DB, {
+        campaignId,
+        imageIndex,
+        hookType: hookType as HookType,
+        filePath: urlPath,
+      });
+
+      this.emitEvent({
+        type: 'image',
+        timestamp: new Date().toISOString(),
+        id: `image_${imageIndex}`,
+        urlPath,
+        prompt: '',
+        filename: img.filename,
+        hookType,
+        imageIndex,
+      });
+
+      imagesAdded++;
+    }
+
+    // 2. Reconcile files (research, hooks, prompts)
+    for (const [fileType, fileContent] of Object.entries(files)) {
+      if (!fileContent || typeof fileContent !== 'string') continue;
+      await db.updateCampaignFile(this.env.DB, campaignId, fileType as any, fileContent);
+    }
+
+    // 3. Save assistant message to D1 (FULL text, not truncated)
+    const msgContent = text ? stripImageUrls(text) : 'Generation complete.';
+    await db.addMessage(this.env.DB, {
+      campaignId,
+      role: 'assistant',
+      content: msgContent,
+      blocks,
+    });
+
+    // 4. Emit complete event (summary for client, can be truncated)
+    const summary = text ? stripImageUrls(text).substring(0, 500) : 'Generation complete.';
+    this.emitEvent({
+      type: 'complete',
+      timestamp: new Date().toISOString(),
+      sessionId,
+      campaignId,
+      duration: 0,
+      imageCount: existingImages.length + imagesAdded,
+      summary,
+    });
+
+    // 5. Update D1 status
+    await db.updateCampaignStatus(this.env.DB, campaignId, 'complete');
+
+    // 6. Cleanup
+    this.isGenerating = false;
+    await this.persistSession();
+    this.trace('finalize', 'complete', { campaignId, imagesAdded, filesReconciled: Object.keys(files).length });
+  }
+
+  // ─── Session persistence (survives DO reset / hibernation) ───
+
+  private async persistSession(): Promise<void> {
+    if (this.sessionId && this.campaignId) {
+      this.trace('session', 'persist', { gen: this.isGenerating, requestId: this.currentRequestId || 'null' });
+      await this.state.storage.put('activeSession', {
+        sessionId: this.sessionId,
+        campaignId: this.campaignId,
+        userId: this.userId,
+        isGenerating: this.isGenerating,
+        generationStartedAt: this.generationStartedAt,
+        currentRequestId: this.currentRequestId,
+      });
+    }
+  }
+
+  private async restoreSession(): Promise<boolean> {
+    // Restore userId from storage if lost to hibernation
+    if (this.userId === 'anonymous') {
+      const storedUserId = await this.state.storage.get<string>('userId');
+      if (storedUserId && storedUserId !== 'anonymous') {
+        this.userId = storedUserId;
+        this.trace('session', 'restore.userId', { from: 'storage', userId: storedUserId });
+      }
+    }
+    // Always try to restore agentProcessId (persisted independently from activeSession)
+    if (!this.agentProcessId) {
+      const storedProcessId = await this.state.storage.get<string>('agentProcessId');
+      if (storedProcessId) {
+        this.agentProcessId = storedProcessId;
+        this.trace('session', 'restore.agentProcessId', { processId: storedProcessId });
+      }
+    }
+    if (this.sessionId) return true; // already loaded
+    const stored = await this.state.storage.get<{
+      sessionId: string;
+      campaignId: string;
+      userId: string;
+      isGenerating: boolean;
+      generationStartedAt?: number;
+      currentRequestId?: string | null;
+    }>('activeSession');
+    if (stored) {
+      this.trace('session', 'restore.found', {
+        session: stored.sessionId,
+        campaign: stored.campaignId,
+        gen: stored.isGenerating,
+        userId: stored.userId,
+      });
+      this.sessionId = stored.sessionId;
+      this.campaignId = stored.campaignId;
+      // Only restore userId if we don't already have a fresh one from the request header
+      if (this.userId === 'anonymous' && stored.userId !== 'anonymous') {
+        this.userId = stored.userId;
+      }
+      this.isGenerating = stored.isGenerating;
+      this.generationStartedAt = stored.generationStartedAt || 0;
+      this.currentRequestId = stored.currentRequestId || null;
+      // Staleness check: if isGenerating is true but D1 says otherwise, reset it
+      if (this.isGenerating && stored.campaignId) {
+        try {
+          const campaign = await db.getCampaignBySessionId(this.env.DB, stored.sessionId);
+          if (!campaign || campaign.status !== 'generating') {
+            console.log(`[restoreSession] Stale isGenerating detected — D1 status=${campaign?.status ?? 'not found'}, resetting`);
+            this.isGenerating = false;
+            await this.persistSession();
+          }
+        } catch (err: any) {
+          console.warn('[restoreSession] D1 staleness check failed:', err?.message);
+          // If D1 check fails, reset to be safe — better than being stuck forever
+          this.isGenerating = false;
+          await this.persistSession();
+        }
+      }
+      return true;
+    }
+    return false;
+  }
+
+  private async clearPersistedSession(): Promise<void> {
+    await this.state.storage.delete('activeSession');
+    // NOTE: Do NOT delete 'userId' here — it must survive across generations
+    // so that follow-up messages after DO hibernation can still identify the user.
+  }
+
   // ─── WebSocket Hibernation API ────────────────────────────────
 
   async fetch(request: Request): Promise<Response> {
     // Extract userId from internal header (Worker verifies JWT, passes to DO)
     this.userId = request.headers.get('X-User-Id') || 'anonymous';
+    const url = new URL(request.url);
+    this.trace('do', 'fetch', { userId: this.userId, path: url.pathname, upgrade: request.headers.get('Upgrade') || 'none' });
+
+    // Persist userId immediately so it survives hibernation (DO may be evicted
+    // between fetch() and the first webSocketMessage(), losing instance vars)
+    if (this.userId !== 'anonymous') {
+      await this.state.storage.put('userId', this.userId);
+    }
+    // Restore session state if DO was reset
+    await this.restoreSession();
 
     const upgradeHeader = request.headers.get('Upgrade');
     if (upgradeHeader !== 'websocket') {
@@ -44,10 +465,10 @@ export class CampaignSession implements DurableObject {
 
     // Accept with Hibernation API
     this.state.acceptWebSocket(server);
-    this.ws = server;
+    this.trace('do', 'ws.accepted', { wsCount: this.state.getWebSockets().length });
 
-    // Send initial ack
-    this.sendWS({
+    // Send initial ack to THIS connection only
+    this.sendToWS(server, {
       type: 'ack',
       timestamp: new Date().toISOString(),
       message: 'Connected to Creative Machine',
@@ -57,16 +478,18 @@ export class CampaignSession implements DurableObject {
   }
 
   async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer): Promise<void> {
-    // Keep ws ref current
-    this.ws = ws;
+    // Restore session after DO reset / hibernation wake
+    await this.restoreSession();
 
     let message: ClientMessage;
     try {
       message = JSON.parse(typeof data === 'string' ? data : new TextDecoder().decode(data));
     } catch {
-      this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Invalid message format' });
+      this.sendToWS(ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Invalid message format' });
       return;
     }
+
+    this.trace('ws', 'message', { type: message.type, gen: this.isGenerating, session: this.sessionId || 'null' });
 
     switch (message.type) {
       case 'generate':
@@ -82,7 +505,7 @@ export class CampaignSession implements DurableObject {
         break;
 
       case 'cancel':
-        this.handleCancel();
+        await this.handleCancel();
         break;
 
       case 'subscribe':
@@ -99,25 +522,23 @@ export class CampaignSession implements DurableObject {
   }
 
   async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
+    this.trace('ws', 'close', { code, reason: reason || 'none', session: this.sessionId || 'null', gen: this.isGenerating, wsRemaining: this.state.getWebSockets().length - 1 });
     console.log(`WS closed: session=${this.sessionId}, code=${code}, reason=${reason}`);
-    // Clear ws ref — do NOT abort generation (it continues in background,
-    // events are buffered for reconnect)
-    if (this.ws === ws) {
-      this.ws = null;
-    }
+    // No cleanup needed — getWebSockets() automatically excludes closed connections
   }
 
   async webSocketError(ws: WebSocket, error: unknown): Promise<void> {
+    this.trace('ws', 'error', { err: String(error).substring(0, 200), session: this.sessionId || 'null', gen: this.isGenerating });
     console.error('WS error:', error);
-    if (this.ws === ws) {
-      this.ws = null;
-    }
+    // No cleanup needed — getWebSockets() automatically excludes errored connections
   }
 
   // ─── Message Handlers ─────────────────────────────────────────
 
   private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[]): Promise<void> {
+    this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0 });
     if (this.isGenerating) {
+      this.trace('handler', 'generate.blocked', { reason: 'already_generating' });
       this.sendWS({
         type: 'error',
         timestamp: new Date().toISOString(),
@@ -126,6 +547,8 @@ export class CampaignSession implements DurableObject {
       return;
     }
     this.isGenerating = true;
+    this.generationStartedAt = Date.now();
+    this.currentRequestId = null;
 
     const sessionId = requestedSessionId || `ws-${Date.now()}`;
     this.sessionId = sessionId;
@@ -137,6 +560,11 @@ export class CampaignSession implements DurableObject {
       let campaign = await db.getCampaignBySessionId(this.env.DB, sessionId);
       if (!campaign) {
         campaign = await db.createCampaign(this.env.DB, this.userId, campaignName, sessionId);
+      } else if (campaign.user_id !== this.userId) {
+        // Fix stale user_id from a previous DO reset that created campaign as 'anonymous'
+        await this.env.DB.prepare('UPDATE campaigns SET user_id = ? WHERE id = ?')
+          .bind(this.userId, campaign.id).run();
+        console.log(`[gen] Fixed campaign ${campaign.id} user_id: ${campaign.user_id} → ${this.userId}`);
       }
       this.campaignId = campaign.id;
 
@@ -149,6 +577,9 @@ export class CampaignSession implements DurableObject {
     } catch (err) {
       console.error('Failed to create campaign:', err);
     }
+
+    // Persist session so it survives DO resets
+    await this.persistSession();
 
     // Send ack with campaign ID
     this.emitEvent({
@@ -176,12 +607,23 @@ export class CampaignSession implements DurableObject {
       }
     }
 
-    // Run generation via sandbox
-    await this.runGeneration(aiPrompt, sessionId);
+    // Start alarm heartbeat — prevents DO from hibernating while generation runs
+    this.startKeepAlive();
+    this.trace('handler', 'generate.fireAndForget', { sessionId, campaignId: this.campaignId });
+
+    // Fire and forget — return immediately so the DO can process pings/subscribes.
+    // runGeneration() has its own try/catch/finally that handles all cleanup
+    // (D1 status updates, isGenerating reset, session clearing).
+    this.runGeneration(aiPrompt, sessionId).catch((err) => {
+      this.trace('handler', 'generate.unhandledError', { err: err?.message?.substring(0, 200) });
+      console.error('[gen] Unhandled runGeneration error:', err);
+    });
   }
 
   private async handleFollowUp(prompt: string, campaignId: string, assetFileIds?: string[]): Promise<void> {
+    this.trace('handler', 'followUp.enter', { promptLen: prompt.length, campaignId, assets: assetFileIds?.length || 0 });
     if (this.isGenerating) {
+      this.trace('handler', 'followUp.blocked', { reason: 'already_generating' });
       this.sendWS({
         type: 'error',
         timestamp: new Date().toISOString(),
@@ -190,26 +632,36 @@ export class CampaignSession implements DurableObject {
       return;
     }
     this.isGenerating = true;
+    this.generationStartedAt = Date.now();
+    this.currentRequestId = null;
+
+    // --- Setup phase (may fail — needs cleanup before returning) ---
+    let wsSessionId = '';
+    let sdkSessionId: string | undefined;
+    let aiPrompt = prompt;
 
     try {
       // Look up campaign
       const campaign = await db.getCampaignById(this.env.DB, campaignId, this.userId);
       if (!campaign) {
         this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Campaign not found' });
+        this.isGenerating = false;
         return;
       }
 
-      const sdkSessionId = await db.getSdkSessionId(this.env.DB, campaignId);
-      if (!sdkSessionId) {
+      const rawSdkSessionId = await db.getSdkSessionId(this.env.DB, campaignId);
+      sdkSessionId = rawSdkSessionId ?? undefined;
+      if (!rawSdkSessionId) {
         console.log(`No SDK session for campaign ${campaignId} (status: ${campaign.status}) — will start fresh`);
       }
 
       if (!campaign.session_id) {
         this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Campaign has no session' });
+        this.isGenerating = false;
         return;
       }
 
-      const wsSessionId = campaign.session_id;
+      wsSessionId = campaign.session_id;
       this.sessionId = wsSessionId;
       this.campaignId = campaignId;
       this.abortController = new AbortController();
@@ -223,6 +675,9 @@ export class CampaignSession implements DurableObject {
       // Update campaign status
       await db.updateCampaignStatus(this.env.DB, campaignId, 'generating');
 
+      // Persist session so it survives DO resets
+      await this.persistSession();
+
       // Send ack
       this.emitEvent({
         type: 'ack',
@@ -232,17 +687,14 @@ export class CampaignSession implements DurableObject {
       });
 
       // Resolve asset reference URLs and prepend to prompt
-      let aiPrompt = prompt;
       if (assetFileIds && assetFileIds.length > 0) {
         const referenceUrls = await this.resolveAssetUrls(assetFileIds);
         if (referenceUrls.length > 0) {
           aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
         }
       }
-
-      // Run generation with SDK session for resume
-      await this.runGeneration(aiPrompt, wsSessionId, sdkSessionId ?? undefined);
     } catch (err) {
+      // Setup failed — clean up and return
       const errorMsg = err instanceof Error ? err.message : 'Unknown error';
       this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
       if (this.campaignId) {
@@ -250,20 +702,92 @@ export class CampaignSession implements DurableObject {
           await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
         } catch { /* ignore */ }
       }
-    } finally {
       this.isGenerating = false;
       this.abortController = null;
+      await this.clearPersistedSession();
+      return;
+    }
+
+    // Start alarm heartbeat — prevents DO from hibernating while generation runs
+    this.startKeepAlive();
+
+    // --- Check if agent-runner is alive for fast path ---
+    const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
+    const sandbox = getSandbox(this.env.SANDBOX, sandboxId, {
+      sleepAfter: '2h',
+      normalizeId: true,
+    });
+
+    const agentAlive = await this.isAgentProcessAlive(sandbox);
+    this.trace('handler', 'followUp.pathCheck', { agentAlive, agentProcessId: this.agentProcessId || 'null' });
+
+    if (agentAlive) {
+      // FAST PATH — agent alive, write prompt file, stream output (~30-60s)
+      this.sandbox = sandbox;
+      this.trace('handler', 'followUp.fastPath');
+      this.runFollowUpFast(sandbox, aiPrompt, wsSessionId, campaignId).catch((err) => {
+        this.trace('handler', 'followUp.fastPath.error', { err: err?.message?.substring(0, 200) });
+      });
+    } else {
+      // SLOW PATH — agent dead, full cold start (~3 min)
+      this.trace('handler', 'followUp.slowPath');
+      this.agentProcessId = null;
+      await this.state.storage.delete('agentProcessId');
+
+      // Fix 2: Append context about existing files so agent doesn't restart research
+      if (sdkSessionId) {
+        try {
+          const files = await db.getCampaignFiles(this.env.DB, campaignId);
+          if (files.length > 0) {
+            const FILE_PATHS: Record<string, string> = {
+              research: '/app/agent/files/research/restored_research.md',
+              hooks: '/app/agent/.claude/skills/hook-methodology/hook-bank/restored_hooks.md',
+              prompts: '/app/agent/files/creatives/restored_prompts.json',
+            };
+            aiPrompt += `\n\n[SYSTEM NOTE: This is a follow-up to an existing campaign. Research, hooks, and prompt files have already been generated and restored to disk. Do NOT restart the research workflow or ask for a URL. Use the existing files:\n`;
+            for (const file of files) {
+              const targetPath = FILE_PATHS[file.file_type];
+              if (targetPath) aiPrompt += `- ${file.file_type}: ${targetPath}\n`;
+            }
+            aiPrompt += `Read these files with Glob/Read tools if needed. Continue from where the conversation left off.]`;
+            this.log(`[gen] Appended cold resume context (${files.length} files) to prompt`);
+          }
+        } catch (err: any) {
+          this.log(`[gen] Failed to query files for cold resume context: ${err?.message}`);
+        }
+      }
+
+      // Load conversation history from D1 for context (agent may not have JSONL on cold start)
+      try {
+        const messages = await db.getMessages(this.env.DB, campaignId);
+        if (messages.length > 0) {
+          let history = '\n\n[PREVIOUS CONVERSATION:\n';
+          for (const msg of messages) {
+            const role = msg.role === 'user' ? 'User' : 'Assistant';
+            const content = msg.content.substring(0, 2000);
+            history += `${role}: ${content}\n---\n`;
+          }
+          history += 'Continue the conversation from here.]\n';
+          aiPrompt += history;
+          this.log(`[gen] Appended conversation history (${messages.length} messages) to prompt`);
+        }
+      } catch (err: any) {
+        this.log(`[gen] Failed to load conversation history: ${err?.message}`);
+      }
+
+      this.runGeneration(aiPrompt, wsSessionId, sdkSessionId).catch((err) => {
+        console.error('[gen] Unhandled runGeneration error:', err);
+      });
     }
   }
 
-  private handleCancel(): void {
+  private async handleCancel(): Promise<void> {
+    this.trace('handler', 'cancel.enter', { hasAbort: !!this.abortController, session: this.sessionId || 'null', gen: this.isGenerating });
     if (this.abortController) {
       console.log(`Cancelling generation for session ${this.sessionId}`);
+      // Only set the abort signal — let runGeneration/runFollowUpFast handle
+      // killing the agent and unmounting R2. They know which agent THEY started.
       this.abortController.abort();
-      if (this.sandbox) {
-        this.sandbox.destroy().catch(() => {});
-        this.sandbox = null;
-      }
       this.sendWS({
         type: 'ack',
         timestamp: new Date().toISOString(),
@@ -272,116 +796,225 @@ export class CampaignSession implements DurableObject {
     }
   }
 
-  private handleSubscribe(ws: WebSocket, sessionId?: string, lastEventId?: number): void {
+  private async handleSubscribe(ws: WebSocket, sessionId?: string, lastEventId?: number): Promise<void> {
+    this.trace('handler', 'subscribe.enter', { sessionId: sessionId || 'null', lastEventId: lastEventId ?? 'null', hasEvents: this.eventBuffer.hasEvents(), gen: this.isGenerating });
     if (!sessionId) {
-      this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Session ID required for subscribe' });
+      this.sendToWS(ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Session ID required for subscribe' });
       return;
     }
 
+    // Try to restore session from storage if event buffer is empty (DO was reset)
     if (!this.eventBuffer.hasEvents()) {
-      this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Session not found or expired' });
-      return;
+      this.trace('handler', 'subscribe.doReset', { reason: 'empty_event_buffer' });
+      const restored = await this.restoreSession();
+      if (!restored || this.sessionId !== sessionId) {
+        this.trace('handler', 'subscribe.notFound', { restored, storedSession: this.sessionId || 'null', requestedSession: sessionId });
+        this.sendToWS(ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Session not found or expired' });
+        return;
+      }
+
+      // Verify the generation is actually still running by checking D1
+      // (DO reset kills the sandbox process, but persisted session remains)
+      if (this.campaignId) {
+        try {
+          const campaign = await db.getCampaignById(this.env.DB, this.campaignId, this.userId);
+          const d1Status = campaign?.status ?? 'not found';
+          this.trace('handler', 'subscribe.d1Check', { d1Status, campaignId: this.campaignId });
+          if (!campaign || campaign.status !== 'generating') {
+            this.trace('handler', 'subscribe.stale', { d1Status });
+            await this.clearPersistedSession();
+            this.sessionId = null;
+            this.campaignId = null;
+            this.isGenerating = false;
+            this.sendToWS(ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Session not found or expired' });
+            return;
+          }
+
+          // DO was reset (event buffer empty) but D1 still says 'generating'.
+          // Restart alarm — it will reconnect sandbox and poll turn-result.json.
+          this.trace('handler', 'subscribe.restartAlarm', { reason: 'DO_reset_while_generating' });
+          this.startKeepAlive();
+        } catch (err: any) {
+          this.trace('handler', 'subscribe.d1Error', { err: err?.message?.substring(0, 100) });
+        }
+      }
+
+      this.trace('handler', 'subscribe.restoredFromStorage');
     }
 
-    // Attach this WebSocket
-    this.ws = ws;
     this.sessionId = sessionId;
 
-    // Replay missed events
+    // Replay missed events to THIS WebSocket only (not all tabs)
     const missedEvents = this.eventBuffer.getEventsSince(lastEventId ?? 0);
+    this.trace('handler', 'subscribe.replay', { eventCount: missedEvents.length, lastEventId: lastEventId ?? 0 });
     for (const entry of missedEvents) {
-      this.sendWS({ ...entry.event, id: entry.id });
+      this.sendToWS(ws, { ...entry.event, id: entry.id });
     }
 
-    // Send subscription confirmation
-    this.sendWS({
+    // Send subscription confirmation to THIS WebSocket only
+    this.sendToWS(ws, {
       type: 'subscribed',
       timestamp: new Date().toISOString(),
       sessionId,
       message: `Replayed ${missedEvents.length} events`,
       success: true,
     });
+
   }
 
   private handlePing(): void {
     this.sendWS({ type: 'pong', timestamp: new Date().toISOString() });
   }
 
-  // ─── Generation (Phase 4: Sandbox execution) ─────────────────
+  // ─── Agent Process Health Check ─────────────────────────────────
 
-  private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string): Promise<void> {
-    // Local dev: bypass sandbox, run SDK in-process
-    if (this.env.AI_BACKEND === 'local') {
-      return this.runGenerationLocal(prompt, sessionId, sdkSessionId);
-    }
-
-    const startTime = Date.now();
-
-    // Set up streaming state
-    const blockBuilder = new BlockBuilder();
-    blockBuilder.openThinkingBlock('Parsing Request');
-
-    const textAccumulator: TextAccumulator = { text: '' };
-    const processedFilenames = new Set<string>();
-    const existingImageCount = this.campaignId
-      ? (await db.getImageCount(this.env.DB, this.campaignId)) || 0
-      : 0;
-    const imageCounter = { next: existingImageCount + 1 };
-    let generationCompleted = false;
-    let wasCancelled = false;
-
-    const ctx: ParserContext = {
-      emitEvent: (event) => this.emitEvent(event),
-      campaignId: this.campaignId,
-      d1: this.env.DB,
-      processedFilenames,
-      textAccumulator,
-      blockBuilder,
-      imageCounter,
-    };
-
+  private async isAgentProcessAlive(sandbox: any): Promise<boolean> {
+    if (!this.agentProcessId) return false;
     try {
-      // 0. Debug: verify API key reaches DO correctly
-      const keyLen = this.env.ANTHROPIC_API_KEY?.length || 0;
-      const keyPrefix = this.env.ANTHROPIC_API_KEY?.substring(0, 10) || '(none)';
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] API key check: len=${keyLen}, prefix=${keyPrefix}` });
+      const processes = await sandbox.listProcesses();
+      const agent = processes.find((p: any) =>
+        p.id === this.agentProcessId && p.status === 'running'
+      );
+      if (!agent) return false;
 
-      // Quick API test from DO (bypasses sandbox entirely)
+      // Check status file for staleness
       try {
-        const testResp = await fetch('https://api.anthropic.com/v1/messages', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'x-api-key': this.env.ANTHROPIC_API_KEY,
-            'anthropic-version': '2023-06-01',
-          },
-          body: JSON.stringify({
-            model: 'claude-haiku-4-5-20251001',
-            max_tokens: 5,
-            messages: [{ role: 'user', content: 'hi' }],
-          }),
-        });
-        this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] API key test from DO: ${testResp.status}` });
-      } catch (e: any) {
-        this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] API key test error: ${e.message}` });
+        const statusFile = await sandbox.readFile('/app/agent-status.json');
+        const statusText = typeof statusFile === 'string' ? statusFile : statusFile.content;
+        const status = JSON.parse(statusText);
+        if (status.status === 'processing') {
+          return false; // still processing previous turn
+        }
+        if (status.status === 'idle' && Date.now() - status.timestamp < 7200000) {
+          return true; // alive and idle within 2h
+        }
+      } catch {
+        // Status file missing — process might be starting. Process list check was enough.
+        return true;
       }
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
-      // 1. Get or create sandbox
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Getting sandbox...' });
-      const sandbox = getSandbox(this.env.SANDBOX, `user-${this.userId}`, {
-        sleepAfter: '10m',
+  // ─── Shared: Stream sandbox logs for live UI ────────────────────
+  // Best-effort only — alarm handles actual completion detection.
+  // Returns true if generation was cancelled during streaming.
+
+  private async streamForLiveUI(
+    logStream: ReadableStream,
+    ctx: ParserContext,
+    options?: { skipUntilRequestId?: string; label?: string },
+  ): Promise<boolean> {
+    const skipRequestId = options?.skipUntilRequestId;
+    const label = options?.label || 'stream';
+    let stdoutBuffer = '';
+    let skippingReplay = !!skipRequestId;
+    const skipTimeout = skipRequestId ? Date.now() + 120_000 : 0;
+    const streamStartTime = Date.now();
+    let lineCount = 0;
+    this.trace('stream', 'enter', { label, skipRequestId: skipRequestId || 'none' });
+
+    let cancelled = false;
+    let error: string | undefined;
+    try {
+      for await (const event of parseSSEStream(logStream)) {
+        if (this.abortController?.signal.aborted) {
+          cancelled = true;
+          return true;
+        }
+
+        if (skippingReplay && Date.now() > skipTimeout) {
+          this.log(`[${label}] Stream timeout waiting for turn_start`);
+          break;
+        }
+
+        const rawData = (event as any).data;
+        if (!rawData) continue;
+
+        stdoutBuffer += rawData;
+        const lines = stdoutBuffer.split('\n');
+        stdoutBuffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          lineCount++;
+          try {
+            const msg = JSON.parse(line);
+
+            if (skippingReplay) {
+              if (msg.type === 'turn_start' && msg.requestId === skipRequestId) {
+                skippingReplay = false;
+                this.log(`[${label}] Found turn_start after ${Date.now() - streamStartTime}ms`);
+              }
+              continue;
+            }
+
+            // Debug: log every parsed line type for duplication investigation
+            this.log(`[${label}][line ${lineCount}] type=${msg.type} uuid=${msg.uuid?.substring(0, 8) || '-'}`);
+
+            if (msg.type === 'turn_complete' || msg.type === 'result') break;
+            await processSDKMessage(msg, ctx);
+          } catch {
+            // Non-JSON line — ignore
+          }
+        }
+      }
+      return false;
+    } catch (err: any) {
+      error = err?.message || String(err);
+      throw err;
+    } finally {
+      this.trace('stream', 'exit', { label, lines: lineCount, ms: Date.now() - streamStartTime, cancelled, error });
+    }
+  }
+
+  // ─── Shared: Setup sandbox with IP retry, R2 mount, workspace prep ───
+
+  private async setupSandbox(options: {
+    prompt: string;
+    sessionId: string;
+    sdkSessionId?: string;
+  }): Promise<any> {
+    const setupStart = Date.now();
+    const { prompt, sessionId, sdkSessionId } = options;
+    this.trace('setup', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, userId: this.userId });
+
+    // 1. Get sandbox with pre-flight IP retry
+    const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
+    let sandbox: any = null;
+
+    const MAX_SANDBOX_RETRIES = 3;
+    for (let attempt = 1; attempt <= MAX_SANDBOX_RETRIES; attempt++) {
+      const retryId = attempt === 1
+        ? sandboxId
+        : `user-${this.userId.toLowerCase()}-v2-${Date.now()}`;
+
+      this.log(`[gen] Getting sandbox (attempt ${attempt}/${MAX_SANDBOX_RETRIES})`);
+      sandbox = getSandbox(this.env.SANDBOX, retryId, {
+        sleepAfter: '2h',
+        normalizeId: true,
       });
-      this.sandbox = sandbox;
 
-      // 2. Clean mount point (unmount stale FUSE, clear residual files)
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Cleaning mount point...' });
-      console.log(`[gen] Cleaning mount point...`);
-      await sandbox.exec('fusermount -u /mnt/r2 2>/dev/null; umount /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2');
+      // Clean up completed processes from previous generations
+      await this.timedRPC('cleanupProcesses', () => sandbox.cleanupCompletedProcesses()).catch(() => {});
 
-      // 3. Mount R2 for per-user storage via S3-compatible FUSE
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Mounting R2 bucket...' });
-      console.log(`[gen] Mounting R2 bucket...`);
-      await sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
+      // Kill agent-runner FIRST — it holds /mnt/r2 open (HOME=/mnt/r2),
+      // which prevents fusermount/umount from detaching the FUSE mount.
+      this.trace('setup', 'killAgent', { attempt });
+      await this.timedRPC('killAgent', () => sandbox.exec('pkill -f agent-runner 2>/dev/null || true'));
+      this.agentProcessId = null;
+      await this.state.storage.delete('agentProcessId');
+
+      // Clean any stale R2 mount (from previous gen's unmount or partial state)
+      this.trace('setup', 'cleanMount', { attempt });
+      try { await this.timedRPC('unmountBucket', () => sandbox.unmountBucket('/mnt/r2')); } catch (_) {}
+      await this.timedRPC('cleanFuse', () => sandbox.exec('pkill -9 s3fs 2>/dev/null; umount -f /mnt/r2 2>/dev/null; fusermount -u /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2'));
+
+      // Mount R2
+      this.trace('setup', 'mountR2', { attempt });
+      await this.timedRPC('mountBucket', () => sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
         endpoint: `https://${this.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
         provider: 'r2',
         credentials: {
@@ -390,229 +1023,305 @@ export class CampaignSession implements DurableObject {
         },
         readOnly: false,
         prefix: `/users/${this.userId}`,
-      });
+      }));
 
-      // 3. Clean stale Claude CLI auth cache (may contain corrupted key from previous sessions)
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Cleaning CLI auth cache...' });
-      await sandbox.exec('rm -f /mnt/r2/.claude/.credentials /mnt/r2/.claude/config.json /mnt/r2/.claude/auth.json 2>/dev/null; ls -la /mnt/r2/.claude/ 2>/dev/null || true');
+      // Clean stale Claude CLI auth cache
+      await this.timedRPC('cleanAuthCache', () => sandbox.exec('rm -f /mnt/r2/.claude/.credentials /mnt/r2/.claude/config.json /mnt/r2/.claude/auth.json 2>/dev/null; ls -la /mnt/r2/.claude/ 2>/dev/null || true'));
 
-      // 4. Debug: comprehensive network test from sandbox
-      const netTest = await sandbox.exec(
+      // Pre-flight: test Anthropic API from sandbox to check if IP is blocked
+      this.trace('setup', 'preflight', { attempt });
+      const netTest = await this.timedRPC('preflight', () => sandbox.exec(
         `node -e "
           async function test() {
-            // Test 1: with API key
             const r1 = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})});
-            const t1 = await r1.text();
             console.log('WITH_KEY='+r1.status);
-            // Test 2: without API key (should get 401 if network works)
-            const r2 = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':'sk-ant-bad-key','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})});
-            console.log('BAD_KEY='+r2.status);
-            // Test 3: simple GET to external site
             const r3 = await fetch('https://httpbin.org/ip');
             const t3 = await r3.text();
-            console.log('HTTPBIN='+r3.status+' '+t3.substring(0,100));
+            console.log('IP='+t3.trim());
           }
           test().catch(e=>console.log('ERR='+e.message));
         "`,
         { env: { ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY } }
-      );
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Net test: ${netTest?.stdout?.substring(0, 400) || JSON.stringify(netTest).substring(0, 400)}` });
+      ));
+      const netOutput = (netTest as any)?.stdout || '';
+      this.trace('setup', 'preflight.result', { attempt, output: netOutput.substring(0, 200) });
 
-      // 5. Start agent-runner with streaming
-      const messageQueue: any[] = [];
-      let execDone = false;
-      let stdoutBuffer = ''; // Accumulate partial lines across chunks
+      if (netOutput.includes('WITH_KEY=200')) {
+        this.trace('setup', 'preflight.ok', { attempt });
+        break;
+      }
 
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] Starting agent-runner exec...' });
-      console.log(`[gen] Starting agent-runner for session=${sessionId}, campaign=${this.campaignId}`);
+      // IP is blocked (403) — destroy and retry with a new sandbox ID
+      if (attempt < MAX_SANDBOX_RETRIES) {
+        this.trace('setup', 'preflight.blocked', { attempt });
+        try { await sandbox.destroy(); } catch (_) {}
+        sandbox = null;
+      } else {
+        this.trace('setup', 'preflight.allBlocked', { attempts: MAX_SANDBOX_RETRIES });
+      }
+    }
+    this.sandbox = sandbox;
 
-      let outputChunkCount = 0;
-      const execPromise = sandbox.exec('npx tsx /app/agent-runner.ts', {
-        cwd: '/app',
-        env: {
-          ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
-          FAL_KEY: this.env.FAL_KEY,
-          PROMPT: prompt,
-          SESSION_ID: sessionId,
-          RESUME_SDK_SESSION_ID: sdkSessionId || '',
-          CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
-          CLAUDE_CODE_MAX_OUTPUT_TOKENS: '16384',
-          HOME: '/mnt/r2',
-          IMAGE_OUTPUT_DIR: '/mnt/r2/images',
-        },
-        stream: true,
-        onOutput: (stream: string, data: string) => {
-          outputChunkCount++;
-          if (stream === 'stdout') {
-            // Buffer partial lines — only parse complete lines ending with \n
-            stdoutBuffer += data;
-            const lines = stdoutBuffer.split('\n');
-            // Keep the last element (incomplete line or empty string after trailing \n)
-            stdoutBuffer = lines.pop() || '';
+    // 2. Clean previous campaign's workspace files + stale tracking data
+    this.trace('setup', 'cleanWorkspace');
+    await this.timedRPC('cleanWorkspace', () => sandbox.exec('rm -f /app/generated-images.jsonl /app/turn-result.json 2>/dev/null || true'));
+    if (!sdkSessionId) {
+      await sandbox.exec('rm -rf /app/agent/files/* 2>/dev/null; rm -rf /app/agent/.claude/skills/hook-methodology/hook-bank/*.md 2>/dev/null || true');
+      this.log('[gen] Cleaned workspace for new campaign');
+    }
 
-            for (const line of lines) {
-              if (!line.trim()) continue;
-              try {
-                const parsed = JSON.parse(line);
-                messageQueue.push(parsed);
-                console.log(`[gen] SDK message: type=${parsed.type}${parsed.subtype ? '/' + parsed.subtype : ''}`);
-                // Debug: send all SDK message types to WS
-                this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] SDK msg: ${parsed.type}${parsed.subtype ? '/' + parsed.subtype : ''}` });
-              } catch {
-                console.warn(`[gen] Non-JSON stdout line: ${line.substring(0, 120)}`);
-                this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Non-JSON stdout: ${line.substring(0, 80)}` });
-              }
-            }
-          } else if (stream === 'stderr') {
-            console.log(`[gen] stderr: ${data.substring(0, 200)}`);
-            this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] stderr: ${data.substring(0, 100)}` });
+    // 3. Hydrate agent files from D1 (for cold-start follow-up)
+    if (sdkSessionId && this.campaignId) {
+      try {
+        const files = await db.getCampaignFiles(this.env.DB, this.campaignId);
+        if (files.length > 0) {
+          await sandbox.exec('mkdir -p /app/agent/files/research /app/agent/files/creatives /app/agent/.claude/skills/hook-methodology/hook-bank');
+
+          const FILE_PATHS: Record<string, string> = {
+            research: '/app/agent/files/research/restored_research.md',
+            hooks: '/app/agent/.claude/skills/hook-methodology/hook-bank/restored_hooks.md',
+            prompts: '/app/agent/files/creatives/restored_prompts.json',
+          };
+
+          for (const file of files) {
+            const targetPath = FILE_PATHS[file.file_type];
+            if (!targetPath || !file.content) continue;
+            await sandbox.exec(
+              `node -e "require('fs').writeFileSync(process.env.TARGET_PATH, process.env.FILE_CONTENT)"`,
+              { env: { TARGET_PATH: targetPath, FILE_CONTENT: file.content } }
+            );
+            this.log(`[gen] Hydrated ${file.file_type} → ${targetPath} (${file.content.length} chars)`);
           }
-        },
-      }).then((result: any) => {
-        // Flush remaining buffer
-        if (stdoutBuffer.trim()) {
-          try {
-            const parsed = JSON.parse(stdoutBuffer);
-            messageQueue.push(parsed);
-            console.log(`[gen] SDK message (flush): type=${parsed.type}`);
-          } catch {
-            console.warn(`[gen] Non-JSON final buffer: ${stdoutBuffer.substring(0, 120)}`);
-          }
+          this.log(`[gen] Hydrated ${files.length} files from D1`);
         }
-        execDone = true;
-        console.log(`[gen] Sandbox exec finished, exit=${result?.exitCode}, messages queued=${messageQueue.length}`);
-        this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] exec done: exit=${result?.exitCode}, stdout chunks=${outputChunkCount}, msgs=${messageQueue.length}` });
-        return result;
+      } catch (err: any) {
+        this.log(`[gen] ERROR: Failed to hydrate files from D1: ${err?.message || err}`);
+      }
+    }
+
+    // 4. Check if cancelled before starting agent
+    if (this.abortController?.signal.aborted) {
+      this.log('[gen] Aborted before starting agent — skipping');
+      throw new DOMException('Aborted', 'AbortError');
+    }
+
+    // 5. Start agent-runner as long-lived background process
+    this.trace('setup', 'startProcess', { sessionId, campaignId: this.campaignId, hasSdkSession: !!sdkSessionId });
+
+    const agentProcess = await this.timedRPC('startProcess', () => sandbox.startProcess('node /app/dist/agent-runner.js', {
+      cwd: '/app',
+      env: {
+        ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
+        FAL_KEY: this.env.FAL_KEY,
+        PROMPT: prompt,
+        SESSION_ID: sessionId,
+        CAMPAIGN_ID: this.campaignId || '',
+        RESUME_SDK_SESSION_ID: sdkSessionId || '',
+        CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
+        CLAUDE_CODE_MAX_OUTPUT_TOKENS: '16384',
+        HOME: '/mnt/r2',
+        IMAGE_OUTPUT_DIR: '/mnt/r2/images',
+      },
+    }));
+
+    // Persist process ID so we can reconnect after DO hibernation
+    const proc = agentProcess as any;
+    this.agentProcessId = proc.id;
+    this.lastContainerLogLen = 0; // Reset for new process
+    await this.state.storage.put('agentProcessId', this.agentProcessId);
+    this.trace('setup', 'agentStarted', { processId: proc.id, pid: proc.pid, ms: Date.now() - setupStart });
+
+    return sandbox;
+  }
+
+  // ─── Create streaming context for SDK message processing ──────
+
+  private async createStreamingContext(
+    campaignId: string | null,
+    label: string,
+  ): Promise<{ ctx: ParserContext; blockBuilder: BlockBuilder }> {
+    const blockBuilder = new BlockBuilder();
+    blockBuilder.openThinkingBlock(label);
+
+    const textAccumulator: TextAccumulator = { text: '' };
+    const processedFilenames = new Set<string>();
+    const existingImageCount = campaignId
+      ? (await db.getImageCount(this.env.DB, campaignId)) || 0
+      : 0;
+    const imageCounter = { next: existingImageCount + 1 };
+
+    const ctx: ParserContext = {
+      emitEvent: (event) => this.emitEvent(event),
+      campaignId,
+      d1: this.env.DB,
+      processedFilenames,
+      textAccumulator,
+      blockBuilder,
+      imageCounter,
+    };
+
+    return { ctx, blockBuilder };
+  }
+
+  // ─── Fast Follow-Up (agent alive, ~30-60s) ─────────────────────
+  // Stream = live UI updates only. Completion = alarm-based turn-result.json polling.
+
+  private async runFollowUpFast(
+    sandbox: any,
+    prompt: string,
+    sessionId: string,
+    campaignId: string,
+  ): Promise<void> {
+    const fastStart = Date.now();
+    this.trace('gen-fast', 'enter', { campaignId, sessionId, promptLen: prompt.length });
+    const { ctx } = await this.createStreamingContext(campaignId, 'Processing Follow-Up');
+    let wasCancelled = false;
+
+    try {
+      // 1. Set unique request ID for this turn (alarm uses it for staleness check)
+      const requestId = `req_${Date.now()}`;
+      this.currentRequestId = requestId;
+      this.lastContainerLogLen = 0; // Reset for new turn
+      await this.persistSession();
+      this.trace('gen-fast', 'requestId', { requestId });
+
+      // 2. Start streaming logs BEFORE writing prompt (avoid race condition)
+      const logStream = await this.timedRPC('streamProcessLogs', () => sandbox.streamProcessLogs(this.agentProcessId!)) as ReadableStream;
+
+      // 3. Write prompt file — triggers agent-runner to process next turn
+      await this.timedRPC('writePromptFile', () => sandbox.writeFile('/app/next-prompt.json', JSON.stringify({
+        prompt,
+        campaignId,
+        requestId,
+      })));
+      this.trace('gen-fast', 'promptWritten');
+
+      // 4. Stream for live UI — skip replayed history, then show new output
+      wasCancelled = await this.streamForLiveUI(logStream, ctx, {
+        skipUntilRequestId: requestId,
+        label: 'gen-fast',
       });
 
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: '[debug] R2 mounted, agent-runner started. Draining queue...' });
-      console.log(`[gen] R2 mounted, agent-runner started. Draining message queue...`);
-
-      // 4. Concurrent drain loop — process messages as they arrive
-      let lastOutputTime = Date.now();
-      let heartbeatCount = 0;
-      while (true) {
-        if (messageQueue.length > 0) {
-          const msg = messageQueue.shift()!;
-          lastOutputTime = Date.now();
-
-          // Check for abort
-          if (this.abortController?.signal.aborted) {
-            wasCancelled = true;
-            break;
-          }
-
-          await processSDKMessage(msg, ctx);
-
-          // Detect completion
-          if (msg.type === 'result' && !wasCancelled) {
-            generationCompleted = true;
-          }
-        } else if (execDone) {
-          break;
-        } else {
-          // Yield to let exec fill queue
-          await new Promise(r => setTimeout(r, 10));
-
-          // Heartbeat: send status every 60s of silence
-          const silenceSecs = Math.floor((Date.now() - lastOutputTime) / 1000);
-          if (silenceSecs > 0 && silenceSecs % 60 === 0) {
-            heartbeatCount++;
-            if (heartbeatCount % 60 === 1) { // Once per minute
-              this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Waiting for SDK output... ${silenceSecs}s since last message, chunks=${outputChunkCount}` });
-            }
-          }
-        }
-      }
-
-      // 5. Wait for exec to finish (should already be done)
-      const result = await execPromise;
-
-      // 6. Drain any remaining messages
-      while (messageQueue.length > 0) {
-        const msg = messageQueue.shift()!;
-        await processSDKMessage(msg, ctx);
-        if (msg.type === 'result') generationCompleted = true;
-      }
-
-      // 7. Handle completion
-      if (generationCompleted && this.campaignId) {
-        const duration = Date.now() - startTime;
-        const imageCount = imageCounter.next - 1;
-        const summary = this.generateSummary(textAccumulator, imageCounter);
-
-        this.emitEvent({
-          type: 'complete',
-          timestamp: new Date().toISOString(),
-          sessionId,
-          campaignId: this.campaignId,
-          duration,
-          imageCount,
-          summary,
-        });
-
-        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'complete');
-        blockBuilder.closeThinkingBlock('complete');
+      if (wasCancelled && campaignId) {
+        await db.updateCampaignStatus(this.env.DB, campaignId, 'cancelled');
         await db.addMessage(this.env.DB, {
-          campaignId: this.campaignId,
-          role: 'assistant',
-          content: summary || 'Generation complete.',
-          blocks: blockBuilder.getBlocks(),
-        });
-      } else if (!wasCancelled && !generationCompleted && this.campaignId) {
-        // Stream ended without a result message
-        this.emitEvent({
-          type: 'incomplete',
-          timestamp: new Date().toISOString(),
-          error: 'generation_ended_unexpectedly',
-        });
-        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete');
-      }
-
-      if (wasCancelled && this.campaignId) {
-        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
-        blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
-        await db.addMessage(this.env.DB, {
-          campaignId: this.campaignId,
+          campaignId,
           role: 'assistant',
           content: 'Generation was cancelled.',
-          blocks: blockBuilder.getBlocks(),
+          blocks: [],
         });
       }
 
     } catch (error: any) {
-      this.sendWS({ type: 'status', timestamp: new Date().toISOString(), message: `[debug] Generation error: ${error.message?.substring(0, 150) || error}` });
       const isAbort = error.name === 'AbortError' || this.abortController?.signal.aborted;
       if (isAbort) {
         wasCancelled = true;
-        if (this.campaignId) {
-          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
-          blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
-          await db.addMessage(this.env.DB, {
-            campaignId: this.campaignId,
-            role: 'assistant',
-            content: 'Generation was cancelled.',
-            blocks: blockBuilder.getBlocks(),
-          });
+        this.trace('gen-fast', 'cancelled');
+        if (campaignId) {
+          await db.updateCampaignStatus(this.env.DB, campaignId, 'cancelled');
         }
+      } else if (this.agentProcessId) {
+        // Stream error is non-fatal — agent is still running in sandbox, alarm handles completion
+        this.trace('gen-fast', 'streamError.nonFatal', { err: error.message?.substring(0, 200), agent: this.agentProcessId });
+        this.emitEvent({ type: 'status', timestamp: new Date().toISOString(), message: 'Live updates paused — generation still in progress...' });
       } else {
-        const errorMsg = error.message || 'Unknown error';
-        this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
-        if (this.campaignId) {
-          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
-          blockBuilder.addStatusBlock(`Error: ${errorMsg}`, 'error');
-          await db.addMessage(this.env.DB, {
-            campaignId: this.campaignId,
-            role: 'assistant',
-            content: `Error: ${errorMsg}`,
-            blocks: blockBuilder.getBlocks(),
-          });
+        // Agent not running — fatal error
+        this.trace('gen-fast', 'error.fatal', { err: error.message?.substring(0, 200) });
+        this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: `Follow-up failed: ${error.message}` });
+        if (campaignId) {
+          await db.updateCampaignStatus(this.env.DB, campaignId, 'error');
         }
+        this.isGenerating = false;
+        await this.clearPersistedSession();
       }
     } finally {
-      this.isGenerating = false;
       this.abortController = null;
-      this.sandbox = null;
+      if (wasCancelled) {
+        this.trace('gen-fast', 'finally.cancelled');
+        this.isGenerating = false;
+        if (this.sandbox && this.agentProcessId) {
+          try { await this.sandbox.killProcess(this.agentProcessId); } catch (_) {}
+          this.agentProcessId = null;
+          await this.state.storage.delete('agentProcessId');
+        }
+        if (this.sandbox) {
+          try { await this.sandbox.unmountBucket('/mnt/r2'); } catch (_) {}
+        }
+        await this.clearPersistedSession();
+      }
+      this.trace('gen-fast', 'exit', { wasCancelled, ms: Date.now() - fastStart });
+    }
+  }
+
+  // ─── Generation (Phase 4: Sandbox execution) ─────────────────
+
+  private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string): Promise<void> {
+    if (this.env.AI_BACKEND === 'local') {
+      return this.runGenerationLocal(prompt, sessionId, sdkSessionId);
+    }
+    const genStart = Date.now();
+    this.trace('gen', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, promptLen: prompt.length });
+
+    const { ctx } = await this.createStreamingContext(this.campaignId, 'Parsing Request');
+    let wasCancelled = false;
+
+    try {
+      // Setup sandbox: IP retry, R2 mount, workspace prep, start agent
+      const sandbox = await this.setupSandbox({ prompt, sessionId, sdkSessionId });
+
+      // Stream logs for live UI only (best-effort, not for completion)
+      this.trace('gen', 'streamProcessLogs.start');
+      const logStream = await this.timedRPC('streamProcessLogs', () => sandbox.streamProcessLogs(this.agentProcessId!)) as ReadableStream;
+      wasCancelled = await this.streamForLiveUI(logStream, ctx, { label: 'gen' });
+
+      if (wasCancelled && this.campaignId) {
+        await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
+        await db.addMessage(this.env.DB, {
+          campaignId: this.campaignId,
+          role: 'assistant',
+          content: 'Generation was cancelled.',
+          blocks: [],
+        });
+      }
+
+    } catch (error: any) {
+      const isAbort = error.name === 'AbortError' || this.abortController?.signal.aborted;
+      if (isAbort) {
+        wasCancelled = true;
+        this.trace('gen', 'cancelled');
+        if (this.campaignId) {
+          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
+        }
+      } else if (this.agentProcessId) {
+        // Stream error is non-fatal — agent is still running in sandbox, alarm handles completion
+        this.trace('gen', 'streamError.nonFatal', { err: error.message?.substring(0, 200), agent: this.agentProcessId });
+        this.emitEvent({ type: 'status', timestamp: new Date().toISOString(), message: 'Live updates paused — generation still in progress...' });
+      } else {
+        // Setup failed before agent started — this IS fatal, no alarm can recover
+        this.trace('gen', 'setupError.fatal', { err: error.message?.substring(0, 200) });
+        this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: `Setup failed: ${error.message}` });
+        if (this.campaignId) {
+          await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
+        }
+        this.isGenerating = false;
+        await this.clearPersistedSession();
+      }
+    } finally {
+      this.abortController = null;
+      if (wasCancelled) {
+        this.trace('gen', 'finally.cancelled');
+        this.isGenerating = false;
+        if (this.sandbox && this.agentProcessId) {
+          try { await this.sandbox.killProcess(this.agentProcessId); } catch (_) {}
+          this.agentProcessId = null;
+          await this.state.storage.delete('agentProcessId');
+        }
+        if (this.sandbox) {
+          try { await this.sandbox.unmountBucket('/mnt/r2'); } catch (_) {}
+        }
+        await this.clearPersistedSession();
+      }
+      this.trace('gen', 'exit', { wasCancelled, ms: Date.now() - genStart });
     }
   }
 
@@ -722,22 +1431,17 @@ export class CampaignSession implements DurableObject {
           });
         }
       } else {
+        // Local dev — no sandbox/alarm, this is a real error
         const errorMsg = error.message || 'Unknown error';
         this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: errorMsg });
         if (this.campaignId) {
           await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
-          blockBuilder.addStatusBlock(`Error: ${errorMsg}`, 'error');
-          await db.addMessage(this.env.DB, {
-            campaignId: this.campaignId,
-            role: 'assistant',
-            content: `Error: ${errorMsg}`,
-            blocks: blockBuilder.getBlocks(),
-          });
         }
       }
     } finally {
       this.isGenerating = false;
       this.abortController = null;
+      await this.clearPersistedSession();
     }
   }
 
@@ -786,34 +1490,34 @@ export class CampaignSession implements DurableObject {
 
   // ─── Helpers ──────────────────────────────────────────────────
 
-  /** Emit an event: buffer it AND send to connected WS */
+  /** Emit an event: buffer it AND broadcast to all connected WebSockets */
   private emitEvent(event: ServerMessage): void {
     const eventId = this.eventBuffer.append(event);
-
-    if (this.ws) {
-      try {
-        this.ws.send(JSON.stringify({ ...event, id: eventId }));
-      } catch {
-        // WS may have closed — event is still buffered for replay
-      }
+    const wsCount = this.state.getWebSockets().length;
+    this.trace('emit', event.type, { eventId, wsCount });
+    const payload = JSON.stringify({ ...event, id: eventId });
+    for (const ws of this.state.getWebSockets()) {
+      try { ws.send(payload); } catch { /* closed — ignore */ }
     }
   }
 
-  /** Send without buffering (for ack, pong, errors that don't need replay) */
+  /** Broadcast without buffering (for ack, pong, errors that don't need replay) */
   private sendWS(event: ServerMessage): void {
-    if (this.ws) {
-      try {
-        this.ws.send(JSON.stringify(event));
-      } catch {
-        // WS may have closed
-      }
+    const payload = JSON.stringify(event);
+    for (const ws of this.state.getWebSockets()) {
+      try { ws.send(payload); } catch { /* closed — ignore */ }
     }
+  }
+
+  /** Send to a specific WebSocket (for subscribe replay, not broadcast) */
+  private sendToWS(ws: WebSocket, event: ServerMessage): void {
+    try { ws.send(JSON.stringify(event)); } catch { /* closed — ignore */ }
   }
 
   /** Generate summary from text accumulator with hook-based fallback */
   private generateSummary(textAccumulator: TextAccumulator, imageCounter: { next: number }): string {
     if (textAccumulator.text.trim()) {
-      return textAccumulator.text.trim();
+      return stripImageUrls(textAccumulator.text);
     }
 
     const imageCount = imageCounter.next - 1;

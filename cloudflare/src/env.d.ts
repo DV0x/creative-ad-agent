@@ -1,6 +1,9 @@
 import type { Sandbox } from '@cloudflare/sandbox';
 
 export interface Env {
+  // Static assets (React client)
+  ASSETS: Fetcher;
+
   // D1 database
   DB: D1Database;
 

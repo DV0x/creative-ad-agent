@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "target": "es2022",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "esModuleInterop": true,
+    "outDir": "./dist",
+    "rootDir": ".",
+    "strict": false,
+    "skipLibCheck": true,
+    "declaration": false
+  },
+  "include": ["agent-runner.ts", "orchestrator-prompt.ts", "nano-banana-mcp.ts", "block-builder.ts"]
+}

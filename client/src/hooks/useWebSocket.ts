@@ -54,11 +54,6 @@ function saveLastEventId(sessionId: string, eventId: number): void {
   localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId), String(eventId));
 }
 
-function getLastEventId(sessionId: string): number {
-  const saved = localStorage.getItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId));
-  return saved ? parseInt(saved, 10) || 0 : 0;
-}
-
 // Extract campaign name from prompt (e.g., "nike.com" -> "Nike")
 function extractCampaignName(prompt: string): string {
   const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
@@ -150,6 +145,8 @@ export function useWebSocket(): UseWebSocketReturn {
             if (message.message.toLowerCase().includes('cancelled') && campaignId && messageId) {
               store.cancelGeneration(campaignId, messageId);
               clearActiveSession();
+            } else if (campaignId && messageId) {
+              store.addThinkingChild(campaignId, messageId, { kind: 'status', text: message.message, variant: 'info' });
             }
           }
           break;

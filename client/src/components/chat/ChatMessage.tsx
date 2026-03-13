@@ -63,15 +63,14 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {/* Assistant message */}
         {!isUser && (
           <div className="space-y-2">
-            {hasBlocks ? (
+            {hasBlocks && (
               <BlockRenderer blocks={message.blocks!} onToggleThinking={handleToggleBlock} />
-            ) : (
-              /* Plain text content (DB-loaded historical messages) */
-              message.content && (
-                <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2 overflow-hidden">
-                  <p className="whitespace-pre-wrap break-words" style={{ overflowWrap: 'anywhere' }}>{message.content}</p>
-                </div>
-              )
+            )}
+            {/* Show content if no blocks, or if blocks exist but don't contain a text block */}
+            {message.content && (!hasBlocks || !message.blocks!.some(b => b.type === 'text')) && (
+              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2 overflow-hidden">
+                <p className="whitespace-pre-wrap break-words" style={{ overflowWrap: 'anywhere' }}>{message.content}</p>
+              </div>
             )}
           </div>
         )}

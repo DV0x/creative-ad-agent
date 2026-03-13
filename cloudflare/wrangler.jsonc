@@ -31,7 +31,7 @@
     "class_name": "Sandbox",
     "image": "./sandbox/Dockerfile",
     "instance_type": "standard-2",
-    "max_instances": 10
+    "max_instances": 50
   }],
 
   // Durable Objects (Phase 3 + Phase 4 Sandbox)
@@ -60,10 +60,21 @@
     }
   ],
 
+  // Static assets — serves React client from same origin
+  "assets": {
+    "directory": "../client/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application"
+  },
+
   // Container observability (enables container logs in dashboard)
   "observability": {
     "enabled": true
   },
+
+  // NOTE: WebSocket transport (SANDBOX_TRANSPORT=websocket) has a hardcoded 120s
+  // stream timeout that kills waitForLog prematurely. Stick with HTTP (default).
+  // R2 alarm polling is the safety net for silent HTTP SSE hangs.
 
   // Local dev environment (wrangler dev --env dev)
   "env": {

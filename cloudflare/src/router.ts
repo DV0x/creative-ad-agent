@@ -3,6 +3,7 @@ import { authenticateRequest } from './auth.js';
 import { handleHealthRequest } from './routes/health.js';
 import { handleImageRequest } from './routes/images.js';
 import * as campaigns from './routes/campaigns.js';
+import * as recovery from './routes/recovery.js';
 import * as assets from './routes/assets.js';
 
 /**
@@ -114,6 +115,12 @@ async function routeCampaigns(
   if (statusMatch) {
     const campaignId = statusMatch[1];
     if (method === 'GET') return campaigns.getCampaignStatus(env, userId, campaignId);
+  }
+
+  // Match /:id/recover
+  const recoverMatch = sub.match(/^\/([^/]+)\/recover$/);
+  if (recoverMatch) {
+    if (method === 'POST') return recovery.recoverCampaign(env, userId, recoverMatch[1]);
   }
 
   return new Response('Not Found', { status: 404 });

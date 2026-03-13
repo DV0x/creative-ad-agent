@@ -24,6 +24,20 @@ export interface ParserContext {
   imageCounter: { next: number };
 }
 
+// Strip image URLs and file paths — images are shown in the gallery, not in chat text
+export function stripImageUrls(text: string): string {
+  let cleaned = text;
+  // Remove fal.ai URLs
+  cleaned = cleaned.replace(/https?:\/\/[^\s]*fal\.(media|ai)[^\s]*/g, '');
+  // Remove /mnt/r2/images/... paths
+  cleaned = cleaned.replace(/\/mnt\/r2\/images\/[^\s)"]*/g, '');
+  // Remove **Image URL:** lines
+  cleaned = cleaned.replace(/[-–•*]*\s*\*?\*?Image URL:?\*?\*?:?\s*[^\n]*/gi, '');
+  // Collapse multiple blank lines
+  cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+  return cleaned.trim();
+}
+
 const TOOL_DISPLAY_NAMES: Record<string, string> = {
   'WebFetch': 'Fetching webpage',
   'WebSearch': 'Searching the web',
@@ -51,20 +65,30 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
     }
   }
 
+  // Debug: log every SDK message type processed
+  console.log(`[sdk-parser] msg.type=${message.type} uuid=${message.uuid?.substring(0, 8) || 'none'}`);
+
   if (message.type === 'assistant') {
     const content = message.message?.content;
     if (!Array.isArray(content)) return;
+
+    const blockTypes = content.map((b: any) => b.type).join(',');
+    console.log(`[sdk-parser] assistant content: ${content.length} blocks [${blockTypes}]`);
 
     for (const block of content) {
       if (block.type === 'text' && block.text) {
         // Accumulate text for DB persistence
         textAccumulator.text += (textAccumulator.text ? '\n' : '') + block.text;
 
-        emitEvent({
-          type: 'message',
-          timestamp: new Date().toISOString(),
-          text: block.text,
-        });
+        const cleanedText = stripImageUrls(block.text);
+        console.log(`[sdk-parser] EMIT message text (${cleanedText.length} chars): ${cleanedText.substring(0, 80)}`);
+        if (cleanedText) {
+          emitEvent({
+            type: 'message',
+            timestamp: new Date().toISOString(),
+            text: cleanedText,
+          });
+        }
       } else if (block.type === 'tool_use') {
         emitEvent({
           type: 'tool_start',

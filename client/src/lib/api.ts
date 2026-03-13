@@ -208,6 +208,21 @@ function transformMessage(api: ApiMessage): ChatMessage {
   };
 }
 
+// Authenticated blob fetch (for images behind auth)
+export async function authFetchBlob(url: string): Promise<string> {
+  const headers: HeadersInit = {};
+  if (IS_AUTH_ENABLED && tokenGetter) {
+    const token = await tokenGetter();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  const response = await fetch(url, { headers });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const blob = await response.blob();
+  return URL.createObjectURL(blob);
+}
+
 // ============================================
 // Campaigns API
 // ============================================
@@ -269,6 +284,44 @@ export const campaignsApi = {
       method: 'PUT',
       body: JSON.stringify({ content }),
     });
+  },
+
+  async recover(id: string): Promise<{
+    recovered: boolean;
+    reason?: string;
+    campaign?: Campaign;
+    messages?: ChatMessage[];
+    imagesAdded?: number;
+    filesUpdated?: number;
+  }> {
+    const response = await apiFetch<{
+      success: boolean;
+      recovered: boolean;
+      reason?: string;
+      imagesAdded?: number;
+      filesUpdated?: number;
+      campaign?: ApiCampaign;
+      files?: ApiCampaignFile[];
+      images?: ApiImage[];
+      messages?: ApiMessage[];
+    }>(`/campaigns/${id}/recover`, { method: 'POST' });
+
+    if (!response.recovered || !response.campaign) {
+      return { recovered: false, reason: response.reason };
+    }
+
+    return {
+      recovered: true,
+      imagesAdded: response.imagesAdded,
+      filesUpdated: response.filesUpdated,
+      campaign: transformCampaign(
+        response.campaign,
+        response.files || [],
+        response.images || [],
+        response.messages || [],
+      ),
+      messages: (response.messages || []).map(transformMessage),
+    };
   },
 
   async getStatus(id: string): Promise<{

@@ -43,7 +43,7 @@ Art skill auto-detects from user request:
 
 ## Rules
 
-1. Always need a URL - ask if not provided
+1. For new campaigns: need a URL - ask if not provided. For follow-ups: check if research/hooks/prompts files already exist on disk (use Glob to search agent/files/ and agent/.claude/skills/). If they exist, use them — do NOT ask for a URL again.
 2. Sequential: research → hooks → art → images (each depends on previous)
 3. Pass brand name to skills (extracted from URL domain)
 4. Trust skills - don't micromanage their creative process

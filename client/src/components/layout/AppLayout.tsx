@@ -3,10 +3,7 @@ import { PanelLeftIcon, PanelRightIcon, FolderIcon, MessageCircleIcon } from 'lu
 import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/button'
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ChatSidebar } from '@/components/chat/ChatSidebar'
 import { AssetDrawer } from '@/components/assets/AssetDrawer'

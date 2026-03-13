@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Download, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { AuthImage } from '@/components/AuthImage'
+import { authFetchBlob } from '@/lib/api'
 
 interface ImageCardProps {
   url: string
@@ -29,14 +31,26 @@ export function ImageCard({
     onView?.()
   }
 
-  const handleDownload = (e: React.MouseEvent) => {
+  const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation()
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `image-${index}.png`
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
+    try {
+      const blobUrl = await authFetchBlob(url)
+      const link = document.createElement('a')
+      link.href = blobUrl
+      link.download = `image-${index}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(blobUrl)
+    } catch {
+      // Fallback to direct download
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `image-${index}.png`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 
   return (
@@ -63,7 +77,7 @@ export function ImageCard({
 
         {/* Actual image */}
         {!isLoading && (
-          <img
+          <AuthImage
             src={url}
             alt={`Image ${index}`}
             className={cn(

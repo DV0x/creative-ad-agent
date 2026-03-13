@@ -7,19 +7,26 @@ COPY --from=docker.io/cloudflare/sandbox:0.7.8 /container-server/sandbox /sandbo
 RUN apt-get update && apt-get install -y s3fs fuse && rm -rf /var/lib/apt/lists/*
 
 # Install Claude CLI globally
-RUN npm install -g @anthropic-ai/claude-code@latest
+RUN npm install -g @anthropic-ai/claude-code@2.1.64
 
 # Install sandbox dependencies
 WORKDIR /app
-COPY package.json ./
-RUN npm install --production
+COPY package.json package-lock.json ./
+RUN npm ci --production
 
 # Copy agent ecosystem (skills, agents, workflows)
 COPY agent/ /app/agent/
 COPY agent/.claude/ /app/agent/.claude/
 
 # Copy sandbox entry point and supporting modules
-COPY agent-runner.ts orchestrator-prompt.ts nano-banana-mcp.ts ./
+COPY agent-runner.ts orchestrator-prompt.ts nano-banana-mcp.ts block-builder.ts ./
+COPY tsconfig.json ./
+
+# Install TypeScript compiler + pre-compile to JavaScript
+# (saves ~30s per run vs runtime tsx compilation)
+RUN npm install -g typescript && \
+    npm install --save-dev @types/node && \
+    tsc -p tsconfig.json
 
 RUN chmod -R a+rX /app
 

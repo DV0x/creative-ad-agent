@@ -10,6 +10,7 @@ export async function handleHealthRequest(env: Env): Promise<Response> {
       status: 'ok',
       d1: { connected: true, campaigns: result?.count ?? 0 },
       r2: { bound: !!env.R2_BUCKET },
+      auth: { clerkKeySet: !!env.CLERK_SECRET_KEY },
       timestamp: new Date().toISOString(),
     });
   } catch (err: any) {
