@@ -242,7 +242,7 @@ function writeCompletionMarker(blocks: MessageBlock[], text: string): void {
     }
 
     // Write to local disk for reliable reading by DO alarm (no FUSE dependency)
-    fs.writeFileSync('/app/turn-result.json', JSON.stringify({ images, files, text, blocks, requestId: currentRequestId || 'initial' }));
+    fs.writeFileSync('/app/turn-result.json', JSON.stringify({ images, files, text, blocks, requestId: currentRequestId || 'initial', campaignId }));
 
     console.log(`[marker] Wrote turn-result.json (${images.length} images, ${Object.keys(files).length} files, ${blocks.length} blocks)`);
   } catch (err: any) {

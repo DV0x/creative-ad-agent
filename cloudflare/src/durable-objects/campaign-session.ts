@@ -25,6 +25,7 @@ export class CampaignSession implements DurableObject {
   private eventBuffer: EventBuffer = new EventBuffer();
   private tailLogs: string[] = [];
   private generationStartedAt: number = 0; // Timestamp for max age safety net
+  private sandboxSetupInProgress = false; // Prevents alarm from creating competing sandbox connection
   private currentRequestId: string | null = null; // Per-turn ID for staleness check (null = initial gen)
 
   // Trace instrumentation
@@ -73,12 +74,17 @@ export class CampaignSession implements DurableObject {
     this.log(parts.join(' '));
   }
 
-  /** Wrap a sandbox RPC call with trace logging and timing */
-  private async timedRPC<T>(label: string, fn: () => Promise<T>): Promise<T> {
+  /** Wrap a sandbox RPC call with trace logging, timing, and timeout */
+  private async timedRPC<T>(label: string, fn: () => Promise<T>, timeoutMs = 60_000): Promise<T> {
     const start = Date.now();
     this.trace('rpc', `${label}.start`);
     try {
-      const result = await fn();
+      const result = await Promise.race([
+        fn(),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error(`RPC ${label} timed out after ${timeoutMs}ms`)), timeoutMs)
+        ),
+      ]);
       this.trace('rpc', `${label}.done`, { ms: Date.now() - start });
       return result;
     } catch (err: any) {
@@ -136,8 +142,9 @@ export class CampaignSession implements DurableObject {
         return;
       }
 
-      // Reconnect sandbox after DO reset
-      if (!this.sandbox && this.userId && this.userId !== 'anonymous') {
+      // Reconnect sandbox after DO reset — but NOT if setupSandbox is already running
+      // (creating a second connection cancels in-flight RPCs on the first)
+      if (!this.sandbox && !this.sandboxSetupInProgress && this.userId && this.userId !== 'anonymous') {
         const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
         this.trace('alarm', 'sandbox.reconnect', { sandboxId });
         this.sandbox = getSandbox(this.env.SANDBOX, sandboxId, {
@@ -145,6 +152,25 @@ export class CampaignSession implements DurableObject {
           normalizeId: true,
         });
         this.trace('alarm', 'sandbox.reconnected');
+      }
+
+      // Zombie detection: isGenerating=true but no agent process and setup not running
+      // If no agent started after 5 minutes, something went wrong — mark incomplete
+      if (!this.agentProcessId && !this.sandboxSetupInProgress) {
+        const ZOMBIE_THRESHOLD = 5 * 60 * 1000; // 5 minutes
+        if (this.generationStartedAt && (Date.now() - this.generationStartedAt) > ZOMBIE_THRESHOLD) {
+          this.trace('alarm', 'zombie.detected', { ageSec });
+          this.emitEvent({
+            type: 'error',
+            timestamp: new Date().toISOString(),
+            error: 'Generation failed — no agent running. Please try again.',
+          });
+          try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+          this.isGenerating = false;
+          await this.persistSession();
+          return;
+        }
+        this.trace('alarm', 'zombie.waiting', { ageSec, threshold: ZOMBIE_THRESHOLD / 1000 });
       }
 
       if (this.sandbox) {
@@ -253,6 +279,12 @@ export class CampaignSession implements DurableObject {
       const raw = await this.timedRPC('readTurnResult', () => this.sandbox.readFile('/app/turn-result.json')) as any;
       const content = typeof raw === 'string' ? raw : raw.content;
       const result = JSON.parse(content);
+
+      // Verify it's for the current campaign (not stale from a different campaign)
+      if (result.campaignId && result.campaignId !== campaignId) {
+        this.trace('finalize', 'wrongCampaign', { got: result.campaignId, expected: campaignId });
+        return false;
+      }
 
       // Verify it's for the current turn (not stale from previous turn)
       if (this.currentRequestId && result.requestId && result.requestId !== this.currentRequestId) {
@@ -719,9 +751,17 @@ export class CampaignSession implements DurableObject {
     });
 
     const agentAlive = await this.isAgentProcessAlive(sandbox);
-    this.trace('handler', 'followUp.pathCheck', { agentAlive, agentProcessId: this.agentProcessId || 'null' });
+    const agentCampaignId = await this.state.storage.get<string>('agentCampaignId');
+    const campaignMatch = agentCampaignId === campaignId;
+    this.trace('handler', 'followUp.pathCheck', {
+      agentAlive,
+      agentProcessId: this.agentProcessId || 'null',
+      campaignMatch,
+      agentCampaign: agentCampaignId || 'null',
+      requestedCampaign: campaignId,
+    });
 
-    if (agentAlive) {
+    if (agentAlive && campaignMatch) {
       // FAST PATH — agent alive, write prompt file, stream output (~30-60s)
       this.sandbox = sandbox;
       this.trace('handler', 'followUp.fastPath');
@@ -733,6 +773,7 @@ export class CampaignSession implements DurableObject {
       this.trace('handler', 'followUp.slowPath');
       this.agentProcessId = null;
       await this.state.storage.delete('agentProcessId');
+      await this.state.storage.delete('agentCampaignId');
 
       // Fix 2: Append context about existing files so agent doesn't restart research
       if (sdkSessionId) {
@@ -979,6 +1020,7 @@ export class CampaignSession implements DurableObject {
   }): Promise<any> {
     const setupStart = Date.now();
     const { prompt, sessionId, sdkSessionId } = options;
+    this.sandboxSetupInProgress = true;
     this.trace('setup', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, userId: this.userId });
 
     // 1. Get sandbox with pre-flight IP retry
@@ -1006,11 +1048,12 @@ export class CampaignSession implements DurableObject {
       await this.timedRPC('killAgent', () => sandbox.exec('pkill -f agent-runner 2>/dev/null || true'));
       this.agentProcessId = null;
       await this.state.storage.delete('agentProcessId');
+      await this.state.storage.delete('agentCampaignId');
 
       // Clean any stale R2 mount (from previous gen's unmount or partial state)
       this.trace('setup', 'cleanMount', { attempt });
       try { await this.timedRPC('unmountBucket', () => sandbox.unmountBucket('/mnt/r2')); } catch (_) {}
-      await this.timedRPC('cleanFuse', () => sandbox.exec('pkill -9 s3fs 2>/dev/null; umount -f /mnt/r2 2>/dev/null; fusermount -u /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2'));
+      await this.timedRPC('cleanFuse', () => sandbox.exec('pkill -9 s3fs 2>/dev/null; umount -l /mnt/r2 2>/dev/null; fusermount -u /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2'));
 
       // Mount R2
       this.trace('setup', 'mountR2', { attempt });
@@ -1116,7 +1159,7 @@ export class CampaignSession implements DurableObject {
         PROMPT: prompt,
         SESSION_ID: sessionId,
         CAMPAIGN_ID: this.campaignId || '',
-        RESUME_SDK_SESSION_ID: sdkSessionId || '',
+        RESUME_SDK_SESSION_ID: '', // Never resume SDK session on cloudflare — JSONL via s3fs is unreliable. D1 hydration handles context.
         CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
         CLAUDE_CODE_MAX_OUTPUT_TOKENS: '16384',
         HOME: '/mnt/r2',
@@ -1129,8 +1172,10 @@ export class CampaignSession implements DurableObject {
     this.agentProcessId = proc.id;
     this.lastContainerLogLen = 0; // Reset for new process
     await this.state.storage.put('agentProcessId', this.agentProcessId);
-    this.trace('setup', 'agentStarted', { processId: proc.id, pid: proc.pid, ms: Date.now() - setupStart });
+    await this.state.storage.put('agentCampaignId', this.campaignId);
+    this.trace('setup', 'agentStarted', { processId: proc.id, pid: proc.pid, campaignId: this.campaignId, ms: Date.now() - setupStart });
 
+    this.sandboxSetupInProgress = false;
     return sandbox;
   }
 
@@ -1243,6 +1288,7 @@ export class CampaignSession implements DurableObject {
           try { await this.sandbox.killProcess(this.agentProcessId); } catch (_) {}
           this.agentProcessId = null;
           await this.state.storage.delete('agentProcessId');
+          await this.state.storage.delete('agentCampaignId');
         }
         if (this.sandbox) {
           try { await this.sandbox.unmountBucket('/mnt/r2'); } catch (_) {}
@@ -1307,6 +1353,7 @@ export class CampaignSession implements DurableObject {
         await this.clearPersistedSession();
       }
     } finally {
+      this.sandboxSetupInProgress = false;
       this.abortController = null;
       if (wasCancelled) {
         this.trace('gen', 'finally.cancelled');
@@ -1315,6 +1362,7 @@ export class CampaignSession implements DurableObject {
           try { await this.sandbox.killProcess(this.agentProcessId); } catch (_) {}
           this.agentProcessId = null;
           await this.state.storage.delete('agentProcessId');
+          await this.state.storage.delete('agentCampaignId');
         }
         if (this.sandbox) {
           try { await this.sandbox.unmountBucket('/mnt/r2'); } catch (_) {}

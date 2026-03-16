@@ -7,5 +7,8 @@
     "@fal-ai/client": "^1.0.0",
     "tsx": "^4.0.0",
     "zod": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^25.5.0"
   }
 }
