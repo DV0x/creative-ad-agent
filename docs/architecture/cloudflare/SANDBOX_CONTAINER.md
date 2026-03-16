@@ -161,7 +161,8 @@ mcpServers: { 'nano-banana': nanoBananaMcpServer }
 ```
 
 **Environment variables:**
-- `RESUME_SDK_SESSION_ID` — If set, the SDK resumes an existing session instead of starting fresh. Used for follow-ups on warm containers. If resume fails (e.g., session expired), falls back to a fresh session automatically.
+- `RESUME_SDK_SESSION_ID` — Always set to `''` on cloudflare (disabled). SDK session JSONL files stored on R2 via s3fs get null-byte corruption, causing the SDK to hang on resume. All conversation context comes from D1 hydration instead (messages + files appended to prompt). The agent starts fresh every cold start.
+- `CAMPAIGN_ID` — Passed to agent-runner so `turn-result.json` includes `campaignId` for cross-campaign validation.
 
 ### Completion Marker (`writeCompletionMarker()`)
 
@@ -247,7 +248,7 @@ The prompt also defines the agent workspace layout, file paths, and output forma
 **Mount flow (in DO's runGeneration):**
 1. `sandbox.exec('pkill -f agent-runner ...')` — kill stale agent first (holds mount open)
 2. `sandbox.unmountBucket('/mnt/r2')` — unmount SDK-level tracking
-3. `sandbox.exec('pkill -9 s3fs ...; umount -f ...; rm -rf /mnt/r2; mkdir -p /mnt/r2')` — clean stale FUSE
+3. `sandbox.exec('pkill -9 s3fs ...; umount -l ...; rm -rf /mnt/r2; mkdir -p /mnt/r2')` — clean stale FUSE (lazy unmount)
 4. `sandbox.mountBucket('creative-agent-assets', '/mnt/r2', { endpoint, provider, credentials, prefix })`
 
 **Signature:** `mountBucket(bucketName, mountPath, options)` — bucket name is FIRST arg, NOT in options

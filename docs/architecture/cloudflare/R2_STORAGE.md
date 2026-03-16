@@ -100,7 +100,7 @@ The sandbox mounts R2 at `/mnt/r2` via s3fs:
 // 1. Kill stale agent + clean mount
 await sandbox.exec('pkill -f agent-runner 2>/dev/null || true');
 try { await sandbox.unmountBucket('/mnt/r2'); } catch (_) {}
-await sandbox.exec('pkill -9 s3fs 2>/dev/null; umount -f /mnt/r2 2>/dev/null; '
+await sandbox.exec('pkill -9 s3fs 2>/dev/null; umount -l /mnt/r2 2>/dev/null; '
   + 'fusermount -u /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2');
 
 // 2. Mount R2 — NOTE: bucket name is FIRST arg, mount path is SECOND

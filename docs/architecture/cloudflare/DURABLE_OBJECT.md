@@ -33,6 +33,7 @@ completionRetries: number         // waitForLog re-attach counter
 'activeSession' → { sessionId, campaignId, userId, isGenerating, generationStartedAt }
 'userId' → string                   // Persisted immediately on fetch()
 'agentProcessId' → string           // Persisted when agent starts
+'agentCampaignId' → string          // Which campaign the running agent belongs to
 ```
 
 ---
@@ -119,6 +120,34 @@ Does NOT abort generation. No cleanup needed — `getWebSockets()` automatically
 
 7. (Returns — listeners run as fire-and-forget promises)
 ```
+
+### `handleFollowUp(prompt, campaignId)` — Path Selection
+
+```
+                                ┌─────────────────────────┐
+                                │  isAgentProcessAlive()?  │
+                                └──────────┬──────────────┘
+                                           │
+                              ┌────────────┼────────────┐
+                              │ YES                     │ NO
+                              ▼                         ▼
+                   ┌──────────────────┐         ┌──────────────┐
+                   │ agentCampaignId  │         │  SLOW PATH   │
+                   │ === campaignId?  │         │  (cold start)│
+                   └────────┬─────────┘         └──────────────┘
+                            │
+                   ┌────────┼────────┐
+                   │ YES             │ NO (campaign switch)
+                   ▼                 ▼
+            ┌──────────────┐  ┌──────────────┐
+            │  FAST PATH   │  │  SLOW PATH   │
+            │  (~30-60s)   │  │  (kill old   │
+            │              │  │   agent,     │
+            │              │  │   start new) │
+            └──────────────┘  └──────────────┘
+```
+
+**Campaign mismatch detection:** `agentCampaignId` is stored in DO storage when the agent starts (`setupSandbox`). Before fast path, we compare it against the requested `campaignId`. If different, the alive agent belongs to a different campaign — its SDK session has the wrong conversation history. We must kill it and cold start with the correct context.
 
 ### `runFollowUpFast(sandbox, prompt, sessionId, campaignId)`
 
@@ -217,7 +246,7 @@ Client calls `POST /api/campaigns/:id/recover`. Route handler (`routes/recovery.
 ## Alarm Heartbeat
 
 ```
-startKeepAlive() → setAlarm(now + 30s)
+startKeepAlive() → setAlarm(now + 10s)
 
 alarm():
   │
@@ -229,17 +258,23 @@ alarm():
       │
       ├── a. Safety net: generation > 2h → mark incomplete, stop alarm
       │
-      ├── b. pollR2CompletionMarker() → if found, complete + RETURN
-      │
-      ├── c. Log snapshot: getProcessLogs() → if turn_complete found,
-      │      reconcile + complete + RETURN
-      │
-      ├── d. If !sandbox (DO was reset):
+      ├── b. Sandbox reconnect (if !sandbox && !sandboxSetupInProgress)
       │      → getSandbox() to reconnect
-      │      → attachCompletionHandler() (re-attach waitForLog)
-      │      → attachStreamHandler() (re-attach live UI)
+      │      ⚠️ NEVER reconnect if setupSandbox is running!
+      │         Two connections cancel each other's RPCs.
       │
-      └── e. Reschedule: setAlarm(now + 30s)
+      ├── c. Zombie detection (if !agentProcessId && !sandboxSetupInProgress)
+      │      → If 5+ min with no agent → mark incomplete, stop alarm
+      │      → Catches: timedRPC timeout, setup failure, etc.
+      │
+      ├── d. If sandbox available:
+      │      ├── Crash detection: listProcesses() → agent still running?
+      │      │   └── Dead? → tryFinalize, else mark incomplete
+      │      ├── Log relay: getProcessLogs() → trace recent output
+      │      └── tryFinalize() → read turn-result.json
+      │          └── Validates result.campaignId matches current campaign
+      │
+      └── e. Reschedule: setAlarm(now + 10s)
 ```
 
 The alarm is the **only** way to keep a DO alive during fire-and-forget generation. Without it, the Hibernation API destroys the DO instance after the handler returns.
@@ -247,6 +282,39 @@ The alarm is the **only** way to keep a DO alive during fire-and-forget generati
 **Error resilience:** If the alarm handler throws, it catches the error and still reschedules (prevents generation from getting stuck with no alarm).
 
 **Self-termination:** When `isGenerating` becomes false (generation completed/failed), the alarm is not rescheduled. The DO can then hibernate normally.
+
+### Alarm Safety Mechanisms (Session 55)
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│                   ALARM SAFETY LAYERS                          │
+├────────────────────────────────────────────────────────────────┤
+│                                                                │
+│  1. sandboxSetupInProgress flag                                │
+│     ─────────────────────────                                  │
+│     Set TRUE at start of setupSandbox()                        │
+│     Set FALSE at end + in runGeneration finally block          │
+│     Alarm checks this BEFORE reconnecting sandbox              │
+│     Prevents: two getSandbox() connections canceling RPCs      │
+│                                                                │
+│  2. Zombie detection                                           │
+│     ────────────────                                           │
+│     If isGenerating=true, agentProcessId=null,                 │
+│     sandboxSetupInProgress=false, and 5+ min elapsed           │
+│     → mark incomplete, notify user, stop alarm                 │
+│     Prevents: infinite alarm loop when setup silently fails    │
+│                                                                │
+│  3. turn-result.json campaign validation                       │
+│     ────────────────────────────────────                       │
+│     tryFinalize checks result.campaignId !== campaignId        │
+│     → skip if mismatch (stale result from previous campaign)   │
+│     Prevents: saving wrong campaign's data during switch       │
+│                                                                │
+│  4. 2h safety net (unchanged)                                  │
+│     → mark incomplete if generation exceeds 2 hours            │
+│                                                                │
+└────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
@@ -359,6 +427,25 @@ Buffers logs to `tailLogs[]` (max 500, trims to 250 on overflow). Flushed by ala
 
 ---
 
+## RPC Safety — `timedRPC` Wrapper
+
+Every sandbox RPC call is wrapped with a 60s timeout via `Promise.race`:
+
+```
+timedRPC(label, fn, timeoutMs = 60_000)
+  │
+  ├── trace(rpc, label.start)
+  ├── Promise.race([ fn(), setTimeout(60s → reject) ])
+  ├── On success → trace(rpc, label.done, { ms })
+  └── On error/timeout → trace(rpc, label.error, { ms, err }) → throw
+```
+
+**Why:** Sandbox RPCs can hang indefinitely if the container is unstable or if two `getSandbox()` connections collide (the Sandbox DO cancels in-flight RPCs when a second connection arrives). Without the timeout, `setupSandbox()` hangs forever and the catch block never runs.
+
+**Observed RPC times:** Most calls complete in <500ms. `mountBucket` ~365ms. `preflight` (API test) ~700ms. Any call exceeding 60s is broken.
+
+---
+
 ## Critical Gotchas
 
 1. **DO resets lose all in-memory state** — Code deploys trigger resets. Must restore from `this.state.storage`
@@ -370,8 +457,12 @@ Buffers logs to `tailLogs[]` (max 500, trims to 250 on overflow). Flushed by ala
 7. **`file.content` NOT `file.contents`** — `sandbox.readFile()` returns `{ content: string }`. The `contents` (with 's') property is undefined. This typo caused weeks of silent failures in `reconcileImages`/`reconcileFiles` (fixed Session 31)
 8. **`streamProcessLogs()` replays ALL history** — Despite the name, it replays the entire accumulated stdout. Must use `turn_start` sentinel to skip replay
 9. **`waitForLog` hangs on RPC disconnect** — HTTP SSE transport has no heartbeat. If TCP drops silently, `reader.read()` blocks forever. R2 alarm polling is the safety net
-10. **DO `idFromName(userId)`** — One DO per user (not per campaign). All campaigns for a user route to the same DO instance
+10. **DO `idFromName(userId)`** — One DO per user (not per campaign). All campaigns for a user route to the same DO instance. `isGenerating` is a per-user lock
 11. **Multi-tab broadcast** — `emitEvent()` and `sendWS()` broadcast to ALL connected WebSockets via `this.state.getWebSockets()`. Subscribe replay uses `sendToWS(ws)` for targeted delivery to only the reconnecting tab
+12. **Two `getSandbox()` connections cancel each other** — The Sandbox DO treats a second connection as a replacement, canceling in-flight RPCs on the first. Never create two connections simultaneously (alarm uses `sandboxSetupInProgress` flag)
+13. **SDK JSONL via s3fs gets null-byte corruption** — s3fs pre-allocates file size with `\x00` then writes content. If read mid-flush, you get null bytes. **Never use `RESUME_SDK_SESSION_ID`** on cloudflare. D1 conversation history + file hydration is the reliable context path
+14. **`agentCampaignId` must match before fast path** — The running agent belongs to one campaign. Sending a different campaign's prompt to it produces wrong answers. Always check `storage.get('agentCampaignId') === requestedCampaignId`
+15. **`turn-result.json` can be stale across campaigns** — `tryFinalize()` validates `result.campaignId` matches the current campaign. Skips stale results from previous campaigns during alarm finalization
 
 ---
 

@@ -102,15 +102,13 @@
 
 ---
 
-### 9a. s3fs mount failure after cancel (8ms race condition)
+### 9a. s3fs mount failure on campaign switch (stale FUSE mount)
 
-**Where:** `campaign-session.ts` — R2 mount sequence after cancel
+**Where:** `campaign-session.ts` — R2 mount sequence in `setupSandbox()`
 
-**Problem:** After cancelling a campaign, `pkill -9 s3fs` + `umount` runs, then `mountBucket()` follows 8ms later. The kernel-level unmount may not have propagated — `mountBucket` fails with `Success: false`.
+**Problem:** After a generation completes normally, R2 stays mounted (by design — warm container for fast follow-ups). When a different campaign uses the same container, `setupSandbox()` tries to clean up but fails: (1) `unmountBucket()` says "No active mount" because the Sandbox DO lost tracking after hibernation, (2) `cleanFuse` used `umount -f` which could fail against a live FUSE mount, with errors silently swallowed.
 
-**Mitigation deployed (Session 24):** `unmountBucket('/mnt/r2')` is now called in the `finally` block of both `runGeneration` and `runFollowUpFast`. Before re-mounting, the setup sequence calls `sandbox.unmountBucket('/mnt/r2')` (try/catch) followed by `pkill -9 s3fs; umount -f; fusermount -u; rm -rf /mnt/r2; mkdir -p /mnt/r2`. This reduces but may not fully eliminate the race.
-
-**Remaining risk:** Kernel-level unmount propagation delay could still cause `mountBucket` to fail in rare cases. A small delay or `mountpoint -q` check would fully close the gap.
+**Fix deployed (Session 53):** Changed `umount -f` to `umount -l` (lazy unmount) in the `cleanFuse` exec command. Lazy unmount immediately detaches the mountpoint from the filesystem, allowing `rm -rf` and subsequent `mountBucket` to succeed. The cleanup command is: `pkill -9 s3fs; umount -l; fusermount -u; rm -rf /mnt/r2; mkdir -p /mnt/r2`.
 
 ---
 
@@ -170,7 +168,7 @@
 
 ## Resolved Issues (for reference)
 
-These were fixed in sessions 10-33. Kept here for context:
+These were fixed in sessions 10-55. Kept here for context:
 
 - WS component transition killing connection (Session 10) — 200ms grace period
 - DO reset losing all state (Session 11) — persist to `this.state.storage`
@@ -189,6 +187,10 @@ These were fixed in sessions 10-33. Kept here for context:
 - Debug diagnostics overhead (Session 39) — replaced `sendWS` with `this.log()`
 - Agent crash detection (Session 39) — `waitForExit()` for instant detection
 - Log snapshot polling (Session 39) — `getProcessLogs()` in alarm for reliable backup
+- **Stuck follow-up from canceled RPC (Session 55)** — `timedRPC` 60s timeout + `sandboxSetupInProgress` flag prevents alarm from creating competing sandbox connection + zombie detection after 5 min with no agent
+- **Campaign switching context contamination (Session 55)** — `agentCampaignId` in DO storage, checked before fast path. Mismatch → slow path
+- **Stale turn-result.json across campaigns (Session 55)** — `tryFinalize` validates `result.campaignId` matches current campaign
+- **SDK JSONL null-byte corruption (Session 55)** — `RESUME_SDK_SESSION_ID` disabled on cloudflare. s3fs FUSE causes null-byte corruption in JSONL files. D1 conversation history + file hydration is the reliable context path
 
 ---
 

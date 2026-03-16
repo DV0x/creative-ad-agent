@@ -121,7 +121,7 @@ DO (runGeneration)
   │
   ├── Clean stale R2 mount
   │   sandbox.unmountBucket('/mnt/r2')
-  │   sandbox.exec('pkill -9 s3fs; umount -f ...; rm -rf /mnt/r2; mkdir -p /mnt/r2')
+  │   sandbox.exec('pkill -9 s3fs; umount -l ...; rm -rf /mnt/r2; mkdir -p /mnt/r2')
   │
   ├── Mount R2 bucket
   │   sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
@@ -155,7 +155,8 @@ DO (runGeneration, continued)
   │     env: {
   │       ANTHROPIC_API_KEY, FAL_KEY,
   │       PROMPT, SESSION_ID, CAMPAIGN_ID,
-  │       HOME: '/mnt/r2',                    ◀── SDK session JSONL on R2
+  │       RESUME_SDK_SESSION_ID: '',           ◀── always empty on cloudflare (JSONL unreliable)
+  │       HOME: '/mnt/r2',                    ◀── images + completion markers on R2
   │       IMAGE_OUTPUT_DIR: '/mnt/r2/images',  ◀── images on R2 via FUSE
   │     }
   │   })
@@ -374,29 +375,42 @@ Client sends { type: 'follow_up', prompt, campaignId }
   DO (handleFollowUp)
   │
   ├── Look up campaign in D1
-  ├── Get sdkSessionId (for Claude SDK session resume)
+  ├── Get sdkSessionId (for file hydration decisions)
   │
   ├── isAgentProcessAlive()?
   │   │
   │   ├── Check process list (sandbox.listProcesses)
   │   ├── Check /app/agent-status.json (idle vs processing)
   │   │
-  │   ├── YES (warm, idle) ──────────────────▶ FAST PATH (~30-60s)
+  │   ├── YES (warm, idle)
   │   │   │
-  │   │   ├── attachCompletionHandler()
-  │   │   ├── Start streaming logs
-  │   │   ├── Write /app/next-prompt.json    ◀── triggers agent-runner
-  │   │   │   { prompt, campaignId, requestId }
+  │   │   ├── agentCampaignId === campaignId?     ◀── campaign mismatch check
+  │   │   │   │
+  │   │   │   ├── YES ──────────────────────────▶ FAST PATH (~30-60s)
+  │   │   │   │   │
+  │   │   │   │   ├── attachCompletionHandler()
+  │   │   │   │   ├── Start streaming logs
+  │   │   │   │   ├── Write /app/next-prompt.json  ◀── triggers agent-runner
+  │   │   │   │   │   { prompt, campaignId, requestId }
+  │   │   │   │   │
+  │   │   │   │   └── agent-runner sees file → feeds prompt to existing SDK session
+  │   │   │   │       (no cold start, same conversation context)
+  │   │   │   │
+  │   │   │   └── NO (different campaign) ──────▶ SLOW PATH (kill + restart)
+  │   │   │       Agent has wrong campaign context in memory.
+  │   │   │       Must kill old agent and start fresh.
   │   │   │
-  │   │   └── agent-runner sees file → feeds prompt to existing SDK session
-  │   │       (no cold start, no CLI init, same conversation context)
+  │   │   └── (agentCampaignId from DO storage — set by setupSandbox)
   │   │
-  │   └── NO (dead/sleeping) ───────────────▶ SLOW PATH (~3-5 min)
+  │   └── NO (dead/sleeping) ───────────────────▶ SLOW PATH (~3-5 min)
   │       │
   │       ├── Full runGeneration() with container setup
   │       ├── Hydrate files from D1 (restore research/hooks/prompts)
-  │       └── Append context to prompt so agent doesn't restart research
+  │       ├── Append conversation history (all D1 messages) to prompt
+  │       └── Agent starts fresh — NO SDK session resume (JSONL unreliable via s3fs)
 ```
+
+**Why no SDK session resume on cloudflare?** The SDK stores conversation state in a JSONL file on R2 via s3fs FUSE mount. s3fs pre-allocates file size with null bytes, then writes content. If the file is read mid-flush or the container restarts during write, the JSONL gets null-byte corruption — the SDK hangs trying to parse it. D1 conversation history + file hydration provides all the context reliably.
 
 ---
 
