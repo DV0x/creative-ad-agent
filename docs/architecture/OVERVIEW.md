@@ -53,7 +53,7 @@ Simple. The Express server calls Claude SDK directly as an async iterator. Image
 
 ### Wrangler Dev Mode (Hybrid)
 
-A third mode exists for testing Worker logic without containers: set `AI_BACKEND=local` in wrangler.jsonc. The Worker runs the Claude SDK in-process via `local-ai-runner.ts` (376 lines). Uses D1 + R2 like production but skips sandbox containers entirely. Useful for testing routing, auth, and DO logic.
+A third mode exists for testing Worker logic without containers: set `AI_BACKEND=local` in wrangler.jsonc. The Worker runs the Claude SDK in-process via `local-ai-runner.ts` (287 lines). Uses D1 + R2 like production but skips sandbox containers entirely. Useful for testing routing, auth, and DO logic.
 
 **Key file:** `cloudflare/src/lib/local-ai-runner.ts`
 

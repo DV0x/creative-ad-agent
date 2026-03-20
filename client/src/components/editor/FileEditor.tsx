@@ -2,16 +2,40 @@ import { useEffect, useCallback, useRef, useState } from 'react'
 import { useEditor, EditorContent } from '@tiptap/react'
 import StarterKit from '@tiptap/starter-kit'
 import Placeholder from '@tiptap/extension-placeholder'
+import { marked } from 'marked'
 import { X, Undo2, Redo2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useStore, type CampaignFileType } from '@/store'
+import { PromptsViewer } from './PromptsViewer'
 import { cn } from '@/lib/utils'
+
+// Configure marked for clean HTML output
+marked.setOptions({ breaks: true, gfm: true })
+
+// Detect if content is already HTML (from TipTap save) vs raw markdown (from agent)
+function isHtml(text: string): boolean {
+  const trimmed = text.trim()
+  return trimmed.startsWith('<') && (
+    trimmed.startsWith('<p>') ||
+    trimmed.startsWith('<h') ||
+    trimmed.startsWith('<ul') ||
+    trimmed.startsWith('<ol') ||
+    trimmed.startsWith('<div') ||
+    trimmed.startsWith('<blockquote')
+  )
+}
+
+// Convert markdown to HTML if needed
+function ensureHtml(content: string): string {
+  if (!content || isHtml(content)) return content
+  return marked.parse(content) as string
+}
 
 // File type to display name mapping
 const FILE_NAMES: Record<CampaignFileType, string> = {
   research: 'research.md',
   hooks: 'hooks.md',
-  prompts: 'prompts.md',
+  prompts: 'prompts.json',
 }
 
 // Save status type
@@ -87,7 +111,7 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
         placeholder: 'Start writing...',
       }),
     ],
-    content: content,
+    content: ensureHtml(content),
     editorProps: {
       attributes: {
         class:
@@ -103,9 +127,10 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
   // Update editor content when activeFileType changes
   useEffect(() => {
     if (editor && activeFileType) {
-      const newContent = getActiveFileContent()
-      if (editor.getHTML() !== newContent) {
-        editor.commands.setContent(newContent, { emitUpdate: false })
+      const rawContent = getActiveFileContent()
+      const htmlContent = ensureHtml(rawContent)
+      if (editor.getHTML() !== htmlContent) {
+        editor.commands.setContent(htmlContent, { emitUpdate: false })
         setSaveStatus('saved')
       }
     }
@@ -195,27 +220,31 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
         </div>
 
         <div className="flex items-center gap-1 shrink-0">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleUndo}
-            disabled={!canUndo}
-            className={cn(!canUndo && 'opacity-50')}
-            title="Undo (Cmd+Z)"
-          >
-            <Undo2 className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleRedo}
-            disabled={!canRedo}
-            className={cn(!canRedo && 'opacity-50')}
-            title="Redo (Cmd+Shift+Z)"
-          >
-            <Redo2 className="w-4 h-4" />
-          </Button>
-          <div className="w-px h-5 bg-border mx-1" />
+          {activeFileType !== 'prompts' && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleUndo}
+                disabled={!canUndo}
+                className={cn(!canUndo && 'opacity-50')}
+                title="Undo (Cmd+Z)"
+              >
+                <Undo2 className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={handleRedo}
+                disabled={!canRedo}
+                className={cn(!canRedo && 'opacity-50')}
+                title="Redo (Cmd+Shift+Z)"
+              >
+                <Redo2 className="w-4 h-4" />
+              </Button>
+              <div className="w-px h-5 bg-border mx-1" />
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon-sm"
@@ -227,9 +256,13 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
         </div>
       </div>
 
-      {/* Editor - scrollable container */}
+      {/* Content area - scrollable */}
       <div className="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
-        <EditorContent editor={editor} />
+        {activeFileType === 'prompts' ? (
+          <PromptsViewer content={content} />
+        ) : (
+          <EditorContent editor={editor} />
+        )}
       </div>
     </aside>
   )

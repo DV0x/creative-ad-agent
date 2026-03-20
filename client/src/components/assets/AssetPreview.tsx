@@ -1,4 +1,6 @@
 import { XIcon, Trash2Icon, DownloadIcon, ImageIcon, FileIcon } from 'lucide-react'
+import { AuthImage } from '@/components/AuthImage'
+import { authFetchBlob } from '@/lib/api'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -31,14 +33,16 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
     onClose()
   }
 
-  const handleDownload = () => {
-    // Create a download link
+  const handleDownload = async () => {
+    // Fetch with auth headers, then create download link
+    const blobUrl = await authFetchBlob(file.url)
     const link = document.createElement('a')
-    link.href = file.url
+    link.href = blobUrl
     link.download = file.name
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
+    URL.revokeObjectURL(blobUrl)
   }
 
   return (
@@ -102,7 +106,7 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
         {/* Image preview */}
         <div className="relative bg-black/90 flex items-center justify-center min-h-[300px] max-h-[70vh]">
           {file.type === 'image' ? (
-            <img
+            <AuthImage
               src={file.url}
               alt={file.name}
               className="max-w-full max-h-[70vh] object-contain"

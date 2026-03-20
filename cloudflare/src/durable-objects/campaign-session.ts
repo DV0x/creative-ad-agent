@@ -633,10 +633,15 @@ export class CampaignSession implements DurableObject {
     // Resolve asset reference URLs and prepend to prompt
     let aiPrompt = prompt;
     if (assetFileIds && assetFileIds.length > 0) {
+      this.log(`[ASSET] Resolving ${assetFileIds.length} asset(s): ${JSON.stringify(assetFileIds)}`);
       const referenceUrls = await this.resolveAssetUrls(assetFileIds);
+      this.log(`[ASSET] Resolved ${referenceUrls.length} fal.ai URL(s): ${referenceUrls.map((u, i) => `\n  ${i + 1}. ${u}`).join('')}`);
       if (referenceUrls.length > 0) {
         aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
+        this.log(`[ASSET] Prompt injected with ${referenceUrls.length} reference URL(s)`);
       }
+    } else {
+      this.log(`[ASSET] No assetFileIds — generating without reference images`);
     }
 
     // Start alarm heartbeat — prevents DO from hibernating while generation runs
@@ -720,10 +725,15 @@ export class CampaignSession implements DurableObject {
 
       // Resolve asset reference URLs and prepend to prompt
       if (assetFileIds && assetFileIds.length > 0) {
+        this.log(`[ASSET] Follow-up resolving ${assetFileIds.length} asset(s): ${JSON.stringify(assetFileIds)}`);
         const referenceUrls = await this.resolveAssetUrls(assetFileIds);
+        this.log(`[ASSET] Follow-up resolved ${referenceUrls.length} fal.ai URL(s)`);
         if (referenceUrls.length > 0) {
           aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
+          this.log(`[ASSET] Follow-up prompt injected with ${referenceUrls.length} reference URL(s)`);
         }
+      } else {
+        this.log(`[ASSET] Follow-up — no assetFileIds`);
       }
     } catch (err) {
       // Setup failed — clean up and return

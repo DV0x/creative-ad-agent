@@ -9,6 +9,7 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer'
 import { BlockRenderer } from '@/components/chat/blocks/BlockRenderer'
+import { MarkdownContent } from '@/components/chat/MarkdownContent'
 import { ChatInput } from '@/components/chat/ChatInput'
 import { useStore, type ChatMessage, type CampaignFileType } from '@/store'
 import { useWebSocket } from '@/hooks/useWebSocket'
@@ -150,8 +151,8 @@ function MobileChatMessage({ message }: MobileChatMessageProps) {
             <BlockRenderer blocks={message.blocks!} onToggleThinking={handleToggleBlock} />
           ) : (
             message.content && (
-              <div className="px-3 py-2 rounded-lg text-sm bg-bg-elevated text-text-secondary border border-border rounded-bl-sm">
-                <p className="whitespace-pre-wrap break-words">{message.content}</p>
+              <div className="px-4 py-3 rounded-lg bg-bg-elevated text-text-secondary border border-border rounded-bl-sm">
+                <MarkdownContent content={message.content} />
               </div>
             )
           )}

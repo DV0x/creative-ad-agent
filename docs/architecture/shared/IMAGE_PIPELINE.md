@@ -224,7 +224,7 @@ When the same `image_index` is regenerated during a follow-up, `addCampaignImage
 
 ## Known Issues
 
-1. **`writeCompletionMarker()` scans ALL user images** — not filtered by campaign. Fix written but not deployed
+1. ~~`writeCompletionMarker()` scans ALL user images`~~ — **FIXED (Session 55)**. Now reads `/app/generated-images.jsonl` tracking file (per-turn only), no longer scans `/mnt/r2/images/`
 2. **Browser HTTP cache hides missing R2 data** — `Cache-Control: immutable` means browser serves stale data even after hard refresh
 3. **No R2 cleanup on campaign deletion** — images persist in R2 after DB records are deleted
 

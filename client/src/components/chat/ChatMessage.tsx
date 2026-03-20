@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { BlockRenderer } from './blocks/BlockRenderer'
+import { MarkdownContent } from './MarkdownContent'
 import { useStore } from '@/store'
 import type { ChatMessage as ChatMessageType } from '@/types/chat'
 
@@ -23,9 +24,9 @@ export function ChatMessage({ message }: ChatMessageProps) {
       {/* Main message bubble */}
       <div
         className={cn(
-          'max-w-[90%] min-w-0 rounded-lg text-sm overflow-hidden',
+          'min-w-0 rounded-lg text-sm',
           isUser
-            ? 'bg-accent text-white rounded-br-sm px-3 py-2'
+            ? 'max-w-[90%] overflow-hidden bg-accent text-white rounded-br-sm px-3 py-2'
             : 'w-full rounded-bl-sm'
         )}
       >
@@ -68,8 +69,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
             )}
             {/* Show content if no blocks, or if blocks exist but don't contain a text block */}
             {message.content && (!hasBlocks || !message.blocks!.some(b => b.type === 'text')) && (
-              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-3 py-2 overflow-hidden">
-                <p className="whitespace-pre-wrap break-words" style={{ overflowWrap: 'anywhere' }}>{message.content}</p>
+              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3">
+                <MarkdownContent content={message.content} />
               </div>
             )}
           </div>

@@ -1,6 +1,6 @@
 # Durable Object — CampaignSession
 
-> Part of [Architecture Documentation](../INDEX.md) | **File:** `cloudflare/src/durable-objects/campaign-session.ts` (~1690 lines)
+> Part of [Architecture Documentation](../INDEX.md) | **File:** `cloudflare/src/durable-objects/campaign-session.ts` (~1581 lines)
 
 This is the heart of the production system. One DO per user, handles everything: WebSocket connections, generation orchestration, sandbox management, completion detection, and recovery.
 
@@ -18,11 +18,11 @@ isGenerating: boolean             // Guard against concurrent generation
 abortController: AbortController  // For cancel
 sandbox: any                      // Sandbox container reference
 agentProcessId: string | null     // Long-running agent process ID
-agentProcess: any                 // Process object (has waitForLog/waitForExit)
 eventBuffer: EventBuffer          // Ring buffer for event replay
 tailLogs: string[]                // Log buffer (flushed by alarm)
 generationStartedAt: number       // For max-age safety net
-completionRetries: number         // waitForLog re-attach counter
+sandboxSetupInProgress: boolean   // Guard against concurrent getSandbox()
+currentRequestId: string | null   // Per-turn ID for staleness check
 ```
 
 **No `ws` field** — uses `this.state.getWebSockets()` to broadcast to ALL connected tabs. No single-socket tracking needed.
@@ -176,9 +176,9 @@ Layer 1:        Layer 2:        Layer 3:           Layer 4:
 waitForLog      waitForExit     Alarm polling      /recover
 ────────────    ───────────     ─────────────      ────────
 Primary.        Crash detect.   Every 30s:         Client POST
-Watches for     Fires if agent  a) R2 marker       reads R2
-turn_complete   process exits.  b) Log snapshot    marker.
-in stdout.      Checks logs +      (getProcessLogs)
+Watches for     Fires if agent  a) R2 marker       checks D1 for
+turn_complete   process exits.  b) Log snapshot    existing data
+in stdout.      Checks logs +      (getProcessLogs) (images/files).
 On fail:        R2 marker
 re-attach 10x.  before marking
                 incomplete.
@@ -239,7 +239,7 @@ Every 30s in the alarm handler, two independent checks:
 
 ### Layer 4: API Recovery — Last Resort
 
-Client calls `POST /api/campaigns/:id/recover`. Route handler (`routes/recovery.ts`) reads completion marker from R2 and updates D1. Auto-triggered on page load when client detects an `incomplete` campaign.
+Client calls `POST /api/campaigns/:id/recover`. Route handler (`routes/recovery.ts`) checks D1 for existing images, files, and messages — if any data exists, it creates a synthetic assistant message (if missing), marks the campaign `complete`, and returns the full campaign. No R2 dependency — D1 is the sole source of truth. Auto-triggered on page load when client detects a stuck (`incomplete`/`generating`/`error`) campaign.
 
 ---
 

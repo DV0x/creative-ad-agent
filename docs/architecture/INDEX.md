@@ -17,6 +17,7 @@ This is the master index for all architecture documentation. Each doc is self-co
 | Fix a WebSocket client bug | [WebSocket Client](./client/WEBSOCKET_CLIENT.md) |
 | Understand production infra | [Cloudflare Overview](./cloudflare/CLOUDFLARE_OVERVIEW.md) |
 | Debug the Durable Object | [Durable Object](./cloudflare/DURABLE_OBJECT.md) |
+| Visualize DO state transitions | [DO State Machine](./cloudflare/DO_STATE_MACHINE.md) |
 | Fix sandbox/container issues | [Sandbox Container](./cloudflare/SANDBOX_CONTAINER.md) |
 | Debug the streaming pipeline | [Streaming Pipeline](./cloudflare/STREAMING_PIPELINE.md) |
 | Query D1 or fix schema | [D1 Database](./cloudflare/D1_DATABASE.md) |
@@ -29,6 +30,7 @@ This is the master index for all architecture documentation. Each doc is self-co
 | Find an API endpoint | [REST API Reference](./shared/REST_API.md) |
 | Understand the AI agent | [AI Agent Pipeline](./shared/AI_AGENT_PIPELINE.md) |
 | Debug image generation | [Image Pipeline](./shared/IMAGE_PIPELINE.md) |
+| Trace error flows | [Error Propagation](./shared/ERROR_PROPAGATION.md) |
 | Deploy to production | [Deployment](./ops/DEPLOYMENT.md) |
 | Debug production issues | [Debugging](./ops/DEBUGGING.md) |
 | Check known issues | [Known Issues](./ops/KNOWN_ISSUES.md) |
@@ -53,6 +55,7 @@ docs/architecture/
 ├── cloudflare/ ....................... Production Backend
 │   ├── CLOUDFLARE_OVERVIEW.md ....... Worker entry, routing, static assets
 │   ├── DURABLE_OBJECT.md ............ CampaignSession lifecycle, state, handlers
+│   ├── DO_STATE_MACHINE.md .......... Visual state transitions, race conditions
 │   ├── D1_DATABASE.md ............... Schema, access layer, migrations
 │   ├── R2_STORAGE.md ................ Key structure, FUSE mount, serving
 │   ├── SANDBOX_CONTAINER.md ......... Dockerfile, agent-runner, IPC, lifecycle
@@ -68,7 +71,8 @@ docs/architecture/
 │   ├── WEBSOCKET_PROTOCOL.md ........ Full protocol spec (both directions)
 │   ├── REST_API.md .................. Complete API reference with examples
 │   ├── AI_AGENT_PIPELINE.md ......... Orchestrator, subagents, tools, MCP
-│   └── IMAGE_PIPELINE.md ............ Generation → storage → serving → display
+│   ├── IMAGE_PIPELINE.md ............ Generation → storage → serving → display
+│   └── ERROR_PROPAGATION.md ........ Error flows from origin → user, recovery
 │
 └── ops/ .............................. Operations
     ├── DEPLOYMENT.md ................ Deploy commands, secrets, gotchas
@@ -117,8 +121,8 @@ docs/architecture/
 | Images per generation | 6 (one per hook type) |
 | WS keep-alive interval | 25s ping/pong |
 | Event buffer | Max 1000 events, trim to 500, sequential IDs |
-| Alarm heartbeat | 30s (keeps DO alive during generation) |
-| Completion paths | 3 layers: waitForLog → R2 polling → client /recover |
+| Alarm heartbeat | 10s (keeps DO alive during generation) |
+| Completion paths | 4 layers: waitForLog → waitForExit → alarm polling → client /recover |
 | Max generation age | 2h safety net (matches container sleepAfter) |
 | waitForLog timeout | 2h |
 | DO routing | One DO per user (`idFromName(userId)`) |

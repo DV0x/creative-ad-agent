@@ -30,7 +30,7 @@ A Docker container running on Cloudflare's container infrastructure. Contains a 
 FROM node:22-slim
 
 # Cloudflare sandbox runtime
-COPY --from=docker.io/cloudflare/sandbox:0.7.10 /container-server/sandbox /sandbox
+COPY --from=docker.io/cloudflare/sandbox:0.7.8 /container-server/sandbox /sandbox
 
 # s3fs-fuse for R2 FUSE mount
 RUN apt-get update && apt-get install -y s3fs fuse
@@ -103,7 +103,7 @@ getSandbox(id: user-{userId}-v2, sleepAfter: '2h')
 
 ---
 
-## Agent Runner (`cloudflare/sandbox/agent-runner.ts` — 205 lines)
+## Agent Runner (`cloudflare/sandbox/agent-runner.ts` — 351 lines)
 
 Long-lived process that stays alive between turns via file-based IPC.
 

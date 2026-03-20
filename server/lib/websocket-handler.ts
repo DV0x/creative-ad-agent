@@ -12,6 +12,7 @@ import { appendEvent, getEventsSince, getLatestEventId, hasBuffer, clearBuffer }
 import * as db from './db/index.js';
 import { verifyWebSocketToken, IS_CLERK_CONFIGURED } from './auth.js';
 import { imageEvents, ImageSavedEvent, registerMcpSession, resolveWsSessionId, unregisterByWsSession } from './image-events.js';
+import { BlockBuilder } from './block-builder.js';
 
 // Client → Server message types
 interface ClientMessage {
@@ -247,113 +248,7 @@ interface TextAccumulator {
   text: string;
 }
 
-/**
- * BlockBuilder: Builds the blocks array during streaming for DB persistence.
- * Mirrors the client-side block structure so it can be rendered after refresh.
- */
-class BlockBuilder {
-  private blocks: db.MessageBlock[] = [];
-  private currentThinkingBlock: db.ThinkingBlockData | null = null;
-  private idCounter = 0;
-
-  private generateId(): string {
-    return `block_${Date.now()}_${++this.idCounter}`;
-  }
-
-  /** Open a new thinking block (e.g., when a phase starts) */
-  openThinkingBlock(label: string, expectedImages: number = 0): void {
-    // Close any existing thinking block first
-    if (this.currentThinkingBlock) {
-      this.closeThinkingBlock('complete');
-    }
-
-    this.currentThinkingBlock = {
-      type: 'thinking',
-      id: this.generateId(),
-      label,
-      status: 'active',
-      expanded: false,  // Collapsed by default when persisted
-      children: [],
-      completedImages: 0,
-      expectedImages,
-    };
-    this.blocks.push(this.currentThinkingBlock);
-  }
-
-  /** Add a child to the current thinking block */
-  addThinkingChild(kind: db.ThinkingChild['kind'], text: string, variant?: 'info' | 'success' | 'error'): void {
-    if (!this.currentThinkingBlock) {
-      // Auto-open a thinking block if none exists
-      this.openThinkingBlock('Processing');
-    }
-
-    this.currentThinkingBlock!.children.push({
-      id: this.generateId(),
-      kind,
-      text,
-      timestamp: new Date().toISOString(),
-      variant,
-    });
-  }
-
-  /** Update expected images count */
-  setExpectedImages(count: number): void {
-    if (this.currentThinkingBlock) {
-      this.currentThinkingBlock.expectedImages = count;
-    }
-  }
-
-  /** Increment completed images count */
-  incrementCompletedImages(): void {
-    if (this.currentThinkingBlock) {
-      this.currentThinkingBlock.completedImages++;
-    }
-  }
-
-  /** Close the current thinking block */
-  closeThinkingBlock(status: 'complete' | 'error'): void {
-    if (this.currentThinkingBlock) {
-      this.currentThinkingBlock.status = status;
-      this.currentThinkingBlock = null;
-    }
-  }
-
-  /** Add a text block (for the final summary) */
-  addTextBlock(content: string): void {
-    if (content.trim()) {
-      this.blocks.push({
-        type: 'text',
-        id: this.generateId(),
-        content,
-      });
-    }
-  }
-
-  /** Add a status block */
-  addStatusBlock(text: string, variant: 'info' | 'success' | 'error'): void {
-    this.blocks.push({
-      type: 'status',
-      id: this.generateId(),
-      text,
-      variant,
-    });
-  }
-
-  /** Get the final blocks array for persistence */
-  getBlocks(): db.MessageBlock[] {
-    // Close any open thinking block
-    if (this.currentThinkingBlock) {
-      this.closeThinkingBlock('complete');
-    }
-    // Filter out empty thinking blocks (no children and no images)
-    return this.blocks.filter(block => {
-      if (block.type === 'thinking') {
-        return block.children.length > 0 || block.completedImages > 0;
-      }
-      return true;
-    });
-  }
-}
+// BlockBuilder extracted to ./block-builder.ts for reuse and parity with cloudflare version
 
 // Process SDK messages and convert to WebSocket events
 function processSDKMessage(message: any, state: ConnectionState, instrumentor: SDKInstrumentor, processedFilenames?: Set<string>, textAccumulator?: TextAccumulator, blockBuilder?: BlockBuilder, imageCounter?: { next: number }) {
@@ -757,11 +652,19 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     let resolvedAttachments: ResolvedAssets['attachments'] | undefined;
     let aiPrompt = prompt;
     if (assetFileIds && assetFileIds.length > 0) {
+      console.log(`📎 [ASSET DEBUG] Resolving ${assetFileIds.length} asset file(s): ${JSON.stringify(assetFileIds)}`);
       const resolved = await resolveAssetAttachments(assetFileIds);
+      console.log(`📎 [ASSET DEBUG] Resolved: ${resolved.attachments.length} base64 attachment(s), ${resolved.referenceUrls.length} fal.ai URL(s)`);
+      if (resolved.referenceUrls.length > 0) {
+        console.log(`📎 [ASSET DEBUG] fal.ai URLs:\n${resolved.referenceUrls.map((u, i) => `   ${i + 1}. ${u}`).join('\n')}`);
+      }
       resolvedAttachments = resolved.attachments.length > 0 ? resolved.attachments : undefined;
       if (resolved.referenceUrls.length > 0) {
         aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${resolved.referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
       }
+      console.log(`📎 [ASSET DEBUG] Final prompt injected:\n${aiPrompt.slice(-300)}`);
+    } else {
+      console.log(`📎 [ASSET DEBUG] No assetFileIds — generating without reference images`);
     }
 
     // Process SDK stream — pass the handler's abort controller so cancel
@@ -1174,11 +1077,19 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     let resolvedAttachments: ResolvedAssets['attachments'] | undefined;
     let aiPrompt = prompt;
     if (assetFileIds && assetFileIds.length > 0) {
+      console.log(`📎 [ASSET DEBUG] Follow-up resolving ${assetFileIds.length} asset file(s): ${JSON.stringify(assetFileIds)}`);
       const resolved = await resolveAssetAttachments(assetFileIds);
+      console.log(`📎 [ASSET DEBUG] Follow-up resolved: ${resolved.attachments.length} base64, ${resolved.referenceUrls.length} fal.ai URL(s)`);
+      if (resolved.referenceUrls.length > 0) {
+        console.log(`📎 [ASSET DEBUG] fal.ai URLs:\n${resolved.referenceUrls.map((u, i) => `   ${i + 1}. ${u}`).join('\n')}`);
+      }
       resolvedAttachments = resolved.attachments.length > 0 ? resolved.attachments : undefined;
       if (resolved.referenceUrls.length > 0) {
         aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${resolved.referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
       }
+      console.log(`📎 [ASSET DEBUG] Follow-up final prompt tail:\n${aiPrompt.slice(-300)}`);
+    } else {
+      console.log(`📎 [ASSET DEBUG] Follow-up — no assetFileIds`);
     }
 
     let wasCancelled = false;
@@ -1532,6 +1443,7 @@ export function initWebSocket(server: Server): WebSocketServer {
         switch (message.type) {
           case 'generate':
             if (message.prompt) {
+              console.log(`📎 [ASSET DEBUG] WS 'generate' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
               handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds);
             }
             break;
@@ -1550,6 +1462,7 @@ export function initWebSocket(server: Server): WebSocketServer {
 
           case 'follow_up':
             if (message.prompt && message.campaignId) {
+              console.log(`📎 [ASSET DEBUG] WS 'follow_up' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
               handleFollowUp(state, message.prompt, message.campaignId, message.assetFileIds);
             }
             break;

@@ -80,9 +80,9 @@ checkForRecovery() — runs after data loads
       │   3. WS auto-connects → handleConnected() → subscribes
       │
       ├── Agent STOPPED:
-      │   1. campaignsApi.recover(id) → R2 completion marker
-      │   2. If recovered → update store with campaign + messages
-      │   3. If no marker → mark campaign 'incomplete' (local + API)
+      │   1. campaignsApi.recover(id) → D1 data sync (checks existing images/files/messages)
+      │   2. If data found → mark complete, update store with campaign + messages
+      │   3. If no data → mark campaign 'incomplete' (local + API)
       │
       └── Error → mark 'incomplete'
 ```
@@ -117,7 +117,8 @@ App.tsx (336 lines)
                   │             └── ImageLightbox (162 lines — full-screen viewer)
                   │
                   ├── FileEditorPanel (286 lines — TipTap rich text, below main)
-                  │     (exported as both `FileEditorPanel` and `FileEditor` alias for backwards compat)
+                  │     ├── (exported as both `FileEditorPanel` and `FileEditor` alias for backwards compat)
+                  │     └── PromptsViewer (178 lines — structured prompts.json viewer)
                   │
                   └── RightSidebar ── ChatSidebar (91 lines)
                                         ├── ChatMessage list (89 lines per message)
@@ -127,6 +128,7 @@ App.tsx (336 lines)
                                         │                 ├── ThinkingBlock (185 lines — phases, tools, image counter)
                                         │                 ├── TextBlock (17 lines — streaming content)
                                         │                 └── StatusBlock (34 lines — info/success/error)
+                                        ├── MarkdownContent (129 lines — styled markdown renderer)
                                         ├── ChatInput (144 lines)
                                         │     ├── ImageChip (100 lines — selected image pill)
                                         │     └── AssetMention (473 lines — @-mention asset picker + inline chips)
@@ -214,6 +216,8 @@ client/src/
     ├── ImageLightbox.tsx ...... 162 lines
     ├── AuthImage.tsx .......... 65 lines
     ├── editor/FileEditor.tsx .. 286 lines  (exports FileEditorPanel + FileEditor alias)
+    ├── editor/PromptsViewer.tsx  178 lines  — structured prompts.json viewer
+    ├── chat/MarkdownContent.tsx  129 lines  — styled markdown renderer (react-markdown + Tailwind)
     └── ui/ .................... shadcn primitives (button, card, dialog, input, etc.)
 ```
 

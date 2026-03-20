@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { AuthImage } from '@/components/AuthImage'
 import {
   FolderIcon,
   FolderOpenIcon,
@@ -640,7 +641,7 @@ function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
       onClick={onPreview}
     >
       {file.type === 'image' && file.url ? (
-        <img
+        <AuthImage
           src={file.url}
           alt={file.name}
           className="w-4 h-4 rounded object-cover shrink-0"

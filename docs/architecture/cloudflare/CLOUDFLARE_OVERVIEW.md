@@ -76,7 +76,7 @@ cloudflare/src/
 ├── auth.ts ......................... 159 lines  — Clerk JWT verification (REST + WS)
 ├── env.d.ts ........................ 31 lines  — TypeScript bindings
 ├── durable-objects/
-│   └── campaign-session.ts ......... ~1605 lines — THE BIG ONE (see DURABLE_OBJECT.md)
+│   └── campaign-session.ts ......... ~1581 lines — THE BIG ONE (see DURABLE_OBJECT.md)
 ├── db/
 │   ├── index.ts .................... barrel export
 │   ├── utils.ts .................... query helpers

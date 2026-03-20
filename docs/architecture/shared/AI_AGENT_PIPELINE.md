@@ -108,14 +108,28 @@ Saves to `.claude/skills/hook-methodology/hook-bank/hooks.md`
 
 ### Step 3: Art Direction
 
-Uses the `art-style` skill to define visual style. Auto-detects from user request keywords:
+Uses the `art-style` skill to define visual style. The skill auto-selects 3-4 styles by brand category if no keyword specified, or routes to a specific workflow based on user keywords.
 
-| Keyword | Style |
-|---|---|
-| "clay", "anderson", "diorama", "theatrical" | Anderson Clay Diorama (default) |
-| "brutalism", "brutalist" | Soft Brutalism Clay |
-| "surreal", "dreamlike" | Surrealist Scale (future) |
-| "minimal", "clean", "photography" | Minimal Photography (future) |
+**14 Art Style Workflows** (`agent/.claude/skills/art-style/workflows/`):
+
+| Workflow | Description | Keyword Triggers |
+|---|---|---|
+| `anderson-clay-diorama` | Wes Anderson diorama in handcrafted clay (default) | "clay", "anderson", "diorama", "theatrical" |
+| `soft-brutalism-clay` | Neo-brutalist borders + warm 3D clay elements | "brutalism", "brutalist" |
+| `bold-energy` | Saturated color blocks, dynamic product, oversized type | "bold", "energy", "dynamic" |
+| `clean-premium` | Dark/moody with colored aura glow, glass overlays | "premium", "dark", "moody", "minimal" |
+| `editorial-cutout` | Magazine-editorial with artistic cut-out edges | "editorial", "magazine", "cutout" |
+| `product-on-gradient` | Clean product isolation on rich gradient backgrounds | "gradient", "product", "clean" |
+| `typography-dominant` | Bold type IS the hero (60-70% of frame) | "typography", "type", "text", "poster" |
+| `infographic-data-visual` | Data visualization, structured info, flat icons | "data", "infographic", "stats" |
+| `lifestyle-render-hybrid` | Atmospheric environmental rendering, warm scenes | "lifestyle", "environment", "scene" |
+| `dream-sketch-hybrid` | Real person composited into illustrated environment | "sketch", "dream", "illustration" |
+| `service-realism` | Photorealistic lifestyle with graphic overlays | "realism", "photorealistic", "service" |
+| `analog-craft` | Lo-fi film grain, torn paper collage, hand-cut elements | "analog", "craft", "vintage", "retro" |
+| `split-comparison` | Dual-composition: before/after, problem/solution | "split", "comparison", "before", "versus" |
+| `ugc-aesthetic-static` | Simulated UGC — screenshot framing, star ratings | "ugc", "review", "testimonial" |
+
+Each workflow defines composition rules, color treatment, typography guidelines, and prompt modifiers.
 
 Output: `files/creatives/{brand}_prompts.json` with image prompts + art direction
 
@@ -171,17 +185,21 @@ On follow-up, the agent can:
 │           ├── tools/
 │           │   ├── generate-images.ts         # Image generation helper
 │           │   └── run-generate.sh            # Shell wrapper
-│           └── workflows/
-│               ├── anderson-clay-diorama.md   # Default style
-│               ├── soft-brutalism-clay.md     # Alternative style
-│               ├── clean-premium.md           # Clean/minimal
-│               ├── bold-energy.md             # Bold/energetic
-│               ├── editorial-cutout.md        # Editorial
-│               ├── product-on-gradient.md     # Product-focused
-│               ├── typography-dominant.md     # Typography-led
+│           └── workflows/                     # 14 art style workflows
+│               ├── anderson-clay-diorama.md   # Default — Wes Anderson clay diorama
+│               ├── soft-brutalism-clay.md     # Neo-brutalist + warm clay
+│               ├── bold-energy.md             # Saturated color blocks, dynamic
+│               ├── clean-premium.md           # Dark/moody, aura glow
+│               ├── editorial-cutout.md        # Magazine-editorial cutout
+│               ├── product-on-gradient.md     # Product isolation on gradient
+│               ├── typography-dominant.md     # Bold type as hero
 │               ├── infographic-data-visual.md # Data visualization
-│               ├── lifestyle-render-hybrid.md # Lifestyle
-│               └── ugc-aesthetic-static.md    # UGC style
+│               ├── lifestyle-render-hybrid.md # Atmospheric environmental
+│               ├── dream-sketch-hybrid.md     # Real person + illustrated world
+│               ├── service-realism.md         # Photorealistic lifestyle + overlays
+│               ├── analog-craft.md            # Lo-fi film grain, collage
+│               ├── split-comparison.md        # Dual-composition before/after
+│               └── ugc-aesthetic-static.md    # Simulated UGC screenshots
 ├── files/
 │   ├── research/{brand}_research.md           # Research output (per brand)
 │   └── creatives/{brand}_prompts.json         # Image prompts (per brand)
