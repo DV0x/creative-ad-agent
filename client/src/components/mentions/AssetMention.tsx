@@ -1,8 +1,12 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react'
 import { FolderIcon, XIcon, FileTextIcon, ImageIcon, FileIcon, LayoutGrid } from 'lucide-react'
 import { useStore, type AssetFolder, type AssetFile, type CampaignFileType, type GeneratedImage } from '@/store'
 import { cn } from '@/lib/utils'
 import { HOOK_TYPE_LABELS } from '@/types/chat'
+
+export interface AssetMentionHandle {
+  openDropdown: () => void
+}
 
 // Types for mention items
 type MentionItemType = 'campaign-file' | 'asset-folder' | 'asset-file' | 'campaign-image'
@@ -39,7 +43,7 @@ interface AssetMentionProps {
   // No explicit props needed - component reads/writes to store directly
 }
 
-export function AssetMention({
+export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(function AssetMention({
   value,
   onChange,
   onFolderMention,
@@ -51,7 +55,7 @@ export function AssetMention({
   placeholder = 'Type a message... Use @ to mention files',
   className,
   autoFocus
-}: AssetMentionProps) {
+}, ref) {
   const {
     assetFolders,
     getActiveCampaign,
@@ -64,6 +68,17 @@ export function AssetMention({
   const [mentionStartIndex, setMentionStartIndex] = useState(-1)
 
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Expose openDropdown to parent via ref
+  useImperativeHandle(ref, () => ({
+    openDropdown: () => {
+      setShowDropdown(true)
+      setMentionQuery('')
+      setMentionStartIndex(value.length)
+      setSelectedIndex(0)
+      inputRef.current?.focus()
+    }
+  }), [value])
   const dropdownRef = useRef<HTMLDivElement>(null)
   const itemRefs = useRef<(HTMLDivElement | null)[]>([])
 
@@ -470,4 +485,4 @@ export function AssetMention({
       )}
     </div>
   )
-}
+})

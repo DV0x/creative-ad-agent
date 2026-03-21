@@ -63,13 +63,13 @@ export function ChatMessage({ message }: ChatMessageProps) {
 
         {/* Assistant message */}
         {!isUser && (
-          <div className="space-y-2">
+          <div className="space-y-2 min-w-0 overflow-hidden">
             {hasBlocks && (
               <BlockRenderer blocks={message.blocks!} onToggleThinking={handleToggleBlock} />
             )}
             {/* Show content if no blocks, or if blocks exist but don't contain a text block */}
             {message.content && (!hasBlocks || !message.blocks!.some(b => b.type === 'text')) && (
-              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3">
+              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3 overflow-hidden">
                 <MarkdownContent content={message.content} />
               </div>
             )}

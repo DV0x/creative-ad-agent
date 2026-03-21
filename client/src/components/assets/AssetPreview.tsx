@@ -1,4 +1,5 @@
-import { XIcon, Trash2Icon, DownloadIcon, ImageIcon, FileIcon } from 'lucide-react'
+import { useEffect, useCallback } from 'react'
+import { XIcon, Trash2Icon, DownloadIcon, ImageIcon, FileIcon, ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import { AuthImage } from '@/components/AuthImage'
 import { authFetchBlob } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -9,11 +10,14 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useStore, type AssetFile } from '@/store'
+import { cn } from '@/lib/utils'
 
 interface AssetPreviewProps {
-  file: AssetFile | null
+  files: AssetFile[]
+  currentIndex: number
   isOpen: boolean
   onClose: () => void
+  onNavigate: (index: number) => void
 }
 
 function formatFileSize(bytes?: number): string {
@@ -23,18 +27,44 @@ function formatFileSize(bytes?: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
 }
 
-export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
+export function AssetPreview({ files, currentIndex, isOpen, onClose, onNavigate }: AssetPreviewProps) {
   const { removeFile } = useStore()
+  const file = files[currentIndex]
+  const hasPrev = currentIndex > 0
+  const hasNext = currentIndex < files.length - 1
+
+  const handlePrev = useCallback(() => {
+    if (hasPrev) onNavigate(currentIndex - 1)
+  }, [hasPrev, currentIndex, onNavigate])
+
+  const handleNext = useCallback(() => {
+    if (hasNext) onNavigate(currentIndex + 1)
+  }, [hasNext, currentIndex, onNavigate])
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (!isOpen) return
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') handlePrev()
+      if (e.key === 'ArrowRight') handleNext()
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [isOpen, handlePrev, handleNext])
 
   if (!file) return null
 
   const handleDelete = () => {
     removeFile(file.id)
-    onClose()
+    // Navigate to prev or next, or close if last file
+    if (files.length <= 1) {
+      onClose()
+    } else if (currentIndex >= files.length - 1) {
+      onNavigate(currentIndex - 1)
+    }
   }
 
   const handleDownload = async () => {
-    // Fetch with auth headers, then create download link
     const blobUrl = await authFetchBlob(file.url)
     const link = document.createElement('a')
     link.href = blobUrl
@@ -47,7 +77,7 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden">
+      <DialogContent className="sm:max-w-2xl p-0 overflow-hidden" showCloseButton={false}>
         {/* Header with file info */}
         <DialogHeader className="px-4 py-3 border-b border-border">
           <div className="flex items-center justify-between">
@@ -67,6 +97,7 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
                 </DialogTitle>
                 <p className="text-xs text-text-muted">
                   {formatFileSize(file.size)}
+                  {files.length > 1 && ` · ${currentIndex + 1} of ${files.length}`}
                 </p>
               </div>
             </div>
@@ -103,7 +134,7 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
           </div>
         </DialogHeader>
 
-        {/* Image preview */}
+        {/* Image preview with navigation */}
         <div className="relative bg-black/90 flex items-center justify-center min-h-[300px] max-h-[70vh]">
           {file.type === 'image' ? (
             <AuthImage
@@ -117,6 +148,40 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
               <p className="text-text-muted">Preview not available</p>
             </div>
           )}
+
+          {/* Prev button */}
+          {hasPrev && (
+            <button
+              onClick={handlePrev}
+              className={cn(
+                'absolute left-3 top-1/2 -translate-y-1/2',
+                'w-10 h-10 rounded-full flex items-center justify-center',
+                'bg-bg-elevated/80 backdrop-blur-sm border border-border',
+                'text-text-secondary hover:text-text-primary hover:bg-bg-overlay',
+                'transition-all duration-150'
+              )}
+              title="Previous file"
+            >
+              <ChevronLeftIcon className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Next button */}
+          {hasNext && (
+            <button
+              onClick={handleNext}
+              className={cn(
+                'absolute right-3 top-1/2 -translate-y-1/2',
+                'w-10 h-10 rounded-full flex items-center justify-center',
+                'bg-bg-elevated/80 backdrop-blur-sm border border-border',
+                'text-text-secondary hover:text-text-primary hover:bg-bg-overlay',
+                'transition-all duration-150'
+              )}
+              title="Next file"
+            >
+              <ChevronRightIcon className="w-5 h-5" />
+            </button>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -127,27 +192,33 @@ export function AssetPreview({ file, isOpen, onClose }: AssetPreviewProps) {
 // Hook for managing preview state
 // ============================================
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 
 export function useAssetPreview() {
-  const [previewFile, setPreviewFile] = useState<AssetFile | null>(null)
+  const [previewFiles, setPreviewFiles] = useState<AssetFile[]>([])
+  const [currentIndex, setCurrentIndex] = useState(0)
   const [isOpen, setIsOpen] = useState(false)
 
-  const openPreview = useCallback((file: AssetFile) => {
-    setPreviewFile(file)
+  const openPreview = useCallback((file: AssetFile, allFiles: AssetFile[]) => {
+    setPreviewFiles(allFiles)
+    setCurrentIndex(allFiles.findIndex(f => f.id === file.id) || 0)
     setIsOpen(true)
   }, [])
 
   const closePreview = useCallback(() => {
     setIsOpen(false)
-    // Delay clearing file to allow close animation
-    setTimeout(() => setPreviewFile(null), 200)
+    setTimeout(() => {
+      setPreviewFiles([])
+      setCurrentIndex(0)
+    }, 200)
   }, [])
 
   return {
-    previewFile,
+    previewFiles,
+    previewIndex: currentIndex,
     isPreviewOpen: isOpen,
     openPreview,
-    closePreview
+    closePreview,
+    navigatePreview: setCurrentIndex,
   }
 }

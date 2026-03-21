@@ -1,6 +1,6 @@
-import { useState } from 'react'
-import { ArrowUp, Square } from 'lucide-react'
-import { AssetMention } from '@/components/mentions/AssetMention'
+import { useState, useRef } from 'react'
+import { ArrowUp, Square, Paperclip } from 'lucide-react'
+import { AssetMention, type AssetMentionHandle } from '@/components/mentions/AssetMention'
 import { ImageChip } from '@/components/chat/ImageChip'
 import { useStore, type AssetFolder, type AssetFile, type CampaignFileType } from '@/store'
 
@@ -24,6 +24,8 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
     clearImageSelection,
     getSelectedImages,
   } = useStore()
+
+  const mentionRef = useRef<AssetMentionHandle>(null)
 
   const [message, setMessage] = useState('')
   const [mentionedFolders, setMentionedFolders] = useState<AssetFolder[]>([])
@@ -99,10 +101,21 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
         )}
 
         {/* Input container */}
-        <div className="relative flex items-end gap-2 rounded-xl border border-border bg-bg-elevated p-1.5 pl-3 transition-colors focus-within:border-border-emphasis">
+        <div className="relative flex items-end gap-2 rounded-xl border border-border bg-bg-elevated p-1.5 pl-2 transition-colors focus-within:border-border-emphasis">
+          {/* Attach button */}
+          <button
+            type="button"
+            onClick={() => mentionRef.current?.openDropdown()}
+            className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center text-text-muted hover:text-text-secondary transition-colors"
+            title="Attach reference image"
+          >
+            <Paperclip className="w-4 h-4" />
+          </button>
+
           {/* Message input with @ mentions */}
           <div className="flex-1 min-w-0">
             <AssetMention
+              ref={mentionRef}
               value={message}
               onChange={setMessage}
               onFolderMention={setMentionedFolders}

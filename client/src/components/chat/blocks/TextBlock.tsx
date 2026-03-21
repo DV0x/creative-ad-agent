@@ -9,7 +9,7 @@ export function TextBlock({ block }: TextBlockProps) {
   if (!block.content) return null
 
   return (
-    <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3 overflow-x-auto">
+    <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3 min-w-0 overflow-hidden">
       <MarkdownContent content={block.content} />
     </div>
   )

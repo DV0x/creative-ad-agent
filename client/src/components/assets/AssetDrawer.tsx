@@ -37,7 +37,7 @@ const FILE_TYPE_LABELS: Record<CampaignFileType, string> = {
 }
 
 export function AssetDrawer() {
-  const { previewFile, isPreviewOpen, openPreview, closePreview } = useAssetPreview()
+  const { previewFiles, previewIndex, isPreviewOpen, openPreview, closePreview, navigatePreview } = useAssetPreview()
 
   return (
     <div className="flex flex-col h-full">
@@ -59,9 +59,11 @@ export function AssetDrawer() {
 
       {/* Asset Preview Modal */}
       <AssetPreview
-        file={previewFile}
+        files={previewFiles}
+        currentIndex={previewIndex}
         isOpen={isPreviewOpen}
         onClose={closePreview}
+        onNavigate={navigatePreview}
       />
     </div>
   )
@@ -378,7 +380,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
 // ============================================
 
 interface AssetsSectionProps {
-  onPreviewFile: (file: AssetFile) => void
+  onPreviewFile: (file: AssetFile, allFiles: AssetFile[]) => void
 }
 
 function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
@@ -490,7 +492,7 @@ interface FolderItemProps {
   isSelected: boolean
   onSelect: () => void
   onDelete: () => void
-  onPreviewFile: (file: AssetFile) => void
+  onPreviewFile: (file: AssetFile, allFiles: AssetFile[]) => void
 }
 
 function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: FolderItemProps) {
@@ -629,7 +631,7 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
       <CollapsibleContent>
         <div className="ml-4 pl-2 border-l border-border space-y-0.5 py-1">
           {folder.files.map((file) => (
-            <AssetFileItem key={file.id} file={file} onPreview={() => onPreviewFile(file)} />
+            <AssetFileItem key={file.id} file={file} onPreview={() => onPreviewFile(file, folder.files)} />
           ))}
         </div>
       </CollapsibleContent>

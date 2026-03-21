@@ -10,7 +10,7 @@ interface BlockRendererProps {
 
 export function BlockRenderer({ blocks, onToggleThinking }: BlockRendererProps) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-2 min-w-0 overflow-hidden">
       {blocks.map((block) => {
         switch (block.type) {
           case 'text':

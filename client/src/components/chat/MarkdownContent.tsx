@@ -85,7 +85,7 @@ const components: Components = {
     )
   },
   pre: ({ children }) => (
-    <pre className="bg-bg-elevated border border-border rounded-lg p-3 my-3 overflow-x-auto">
+    <pre className="bg-bg-elevated border border-border rounded-lg p-3 my-3 overflow-x-auto max-w-full">
       {children}
     </pre>
   ),
