@@ -419,8 +419,10 @@ Reads `/app/turn-result.json` `files` object from sandbox. Updates D1 `campaign_
 ### `isAgentProcessAlive(sandbox)`
 Two-step check: (1) `sandbox.listProcesses()` → find process by ID with status `'running'`. (2) Read `/app/agent-status.json` → if `processing`, return false (still on previous turn). If `idle` within 2h, return true.
 
-### `resolveAssetUrls(assetFileIds)`
-Queries D1 `asset_files` for each ID. Generates pre-signed R2 URLs via `R2_BUCKET.createMultipartUpload` workaround (R2 doesn't have native pre-signed URLs). Used for reference images in generation prompts.
+### `resolveAssetUrls(assetFileIds)` → `{ falUrls, sandboxPaths }`
+For each asset file ID: queries D1 for metadata, reads blob from R2, uploads to fal.ai storage (`fal.storage.upload`) → returns public URL. Also computes the R2 mount path (`/mnt/r2/uploads/{file_path}`) so the agent can `Read` the image from sandbox disk.
+
+Returns both: `falUrls` (for MCP tool's `referenceImageUrls`) and `sandboxPaths` (for agent to analyze via Read tool). Both are injected into the prompt — the agent reads images to understand the product, then passes fal.ai URLs to `generate_ad_images` for image-to-image generation.
 
 ### `pollR2CompletionMarker(campaignId, sessionId)`
 Called by the alarm handler every 30s. Reads `completion_{campaignId}.json` directly from R2 (bypasses sandbox/FUSE). If found: syncs images+files to D1, marks campaign complete, emits `complete` event, sets `isGenerating = false`. Returns `true` if recovery succeeded.

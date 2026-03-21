@@ -317,6 +317,40 @@ This means the agent can reference existing work but doesn't remember the conver
 
 ---
 
+## Reference Image Pipeline
+
+When a user uploads product photos and attaches them to a message, the pipeline changes significantly. The product image flows end-to-end from upload → agent analysis → fal.ai image-to-image generation.
+
+### Flow
+
+```
+1. User uploads image → R2: users/{userId}/uploads/{folderDir}/{filename}
+2. User attaches via @ mention or paperclip → assetFileIds in WS message
+3. DO resolveAssetUrls(assetFileIds):
+   a. Read blob from R2
+   b. Upload to fal.ai storage → public URL
+   c. Compute sandbox path: /mnt/r2/uploads/{file_path}
+   d. Return { falUrls, sandboxPaths }
+4. Prompt injection:
+   "## Reference Images
+    Read('/mnt/r2/uploads/...') — analyze product
+    When calling generate_ad_images, pass as referenceImageUrls: https://fal.ai/..."
+5. Agent reads image from sandbox disk (R2 FUSE mount) → sees the product
+6. Agent writes NEW scene/composition prompts (not product descriptions)
+7. Agent calls generate_ad_images with both prompts AND referenceImageUrls
+8. fal.ai /edit endpoint uses reference image → product appears in generated ad
+```
+
+### Key Design Decisions
+
+- **Agent sees the image** via Read tool on R2 mount path — informs hooks, art direction, and prompts
+- **Prompts describe the scene, NOT the product** — the reference image provides the product's appearance. Describing the product in text causes fal.ai to generate a new product and ignore the reference
+- **Art-style skill still runs** for style/composition direction, but agent writes fresh prompts instead of using prompts.json verbatim
+- **Dual return** from `resolveAssetUrls` — sandbox paths for agent vision, fal.ai URLs for MCP tool
+- **No extra file writes** — images are already accessible via R2 FUSE mount at `/mnt/r2/uploads/`
+
+---
+
 ## See Also
 
 - [Image Pipeline](./IMAGE_PIPELINE.md) — Generation → storage → serving → display

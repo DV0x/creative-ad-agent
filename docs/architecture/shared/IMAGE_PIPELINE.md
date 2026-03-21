@@ -49,7 +49,7 @@ The orchestrator agent creates a `prompts.json` file containing 6 image prompts 
 The agent calls `mcp__nano-banana__generate_ad_images` which:
 
 1. Sends prompts to **fal.ai API** (Nano Banana Pro model — Google Gemini image model)
-2. **Dual mode** — text-to-image by default (`fal-ai/nano-banana-pro`), but when `referenceImageUrls` are provided, auto-routes to the edit endpoint (`fal-ai/nano-banana-pro/edit`) with `image_urls` for style/subject consistency
+2. **Dual mode** — text-to-image by default (`fal-ai/nano-banana-pro`), but when `referenceImageUrls` are provided, auto-routes to the edit endpoint (`fal-ai/nano-banana-pro/edit`) with `image_urls`. The reference image provides the product appearance; the text prompt describes the ad scene/composition
 3. Supports 1K/2K/4K resolution, multiple aspect ratios, web search grounding
 4. Downloads generated images from fal.ai URLs
 5. Saves to local path and appends to `/app/generated-images.jsonl` tracking file
