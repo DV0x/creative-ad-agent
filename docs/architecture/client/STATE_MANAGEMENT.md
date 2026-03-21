@@ -18,6 +18,10 @@ interface Store {
   isCreatingCampaign: boolean
   isFollowUp: boolean                  // true during follow-up generation
 
+  // === "New from Existing" ===
+  sourceCampaignId: string | null         // Source campaign to copy research from
+  sourceCampaignName: string | null       // Display name of source campaign
+
   // === Chat Messages ===
   chatMessages: Record<string, ChatMessage[]>
   chatExpanded: boolean
@@ -63,6 +67,7 @@ interface Store {
 | `setAppState(state)` | Sets `appState` to `'landing'` or `'workspace'` |
 | `setActiveCampaignId(id)` | Sets active campaign; clears `activeFileType`, `isCreatingCampaign`, `selectedImageIds` |
 | `setIsCreatingCampaign(creating)` | Sets `isCreatingCampaign`; clears `activeCampaignId` when `true` |
+| `setSourceCampaign(id, name)` | Sets `sourceCampaignId` + `sourceCampaignName`; enters creating mode. Pass `(null, null)` to clear |
 | `setDataLoading(loading)` | Sets `dataLoading` flag |
 
 ### Selectors (synchronous getters via `get()`)

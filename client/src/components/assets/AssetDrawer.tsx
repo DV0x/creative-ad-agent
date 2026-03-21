@@ -12,7 +12,8 @@ import {
   SparklesIcon,
   PencilIcon,
   CheckIcon,
-  XIcon
+  XIcon,
+  CopyPlusIcon
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -303,6 +304,20 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
         {/* Actions */}
         {showActions && (
           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={(e) => {
+                e.stopPropagation()
+                const store = useStore.getState()
+                store.setSourceCampaign(campaign.id, campaign.name)
+                store.setIsCreatingCampaign(true)
+              }}
+              className="h-5 w-5 text-text-muted hover:text-accent"
+              title="New campaign from this brand"
+            >
+              <CopyPlusIcon className="w-3 h-3" />
+            </Button>
             <Button
               variant="ghost"
               size="icon-xs"

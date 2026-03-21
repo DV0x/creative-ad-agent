@@ -369,7 +369,11 @@ export function useWebSocket(): UseWebSocketReturn {
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
 
-    const campaignName = extractCampaignName(prompt);
+    // Use source campaign name as prefix when creating from existing campaign
+    const { sourceCampaignId, sourceCampaignName } = store;
+    const campaignName = sourceCampaignName
+      ? `${sourceCampaignName} — ${prompt.substring(0, 50)}`
+      : extractCampaignName(prompt);
     const { campaignId, messageId } = store.startGeneration(sessionId, campaignName, prompt);
 
     saveActiveSession(sessionId, prompt, campaignId, messageId);
@@ -380,8 +384,14 @@ export function useWebSocket(): UseWebSocketReturn {
       type: 'generate',
       prompt,
       sessionId,
+      ...(sourceCampaignId ? { sourceCampaignId } : {}),
       ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
     });
+
+    // Clear source campaign state after sending
+    if (sourceCampaignId) {
+      store.setSourceCampaign(null);
+    }
 
     if (!sent) {
       store.failGeneration(campaignId, messageId, 'WebSocket not connected');

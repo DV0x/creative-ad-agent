@@ -71,9 +71,12 @@ interface Store {
   campaigns: Campaign[]
   activeCampaignId: string | null
   isCreatingCampaign: boolean
+  sourceCampaignId: string | null
+  sourceCampaignName: string | null
   generatingCampaignId: string | null
   setActiveCampaignId: (id: string | null) => void
   setIsCreatingCampaign: (creating: boolean) => void
+  setSourceCampaign: (id: string | null, name?: string | null) => void
   getActiveCampaign: () => Campaign | null
   getGeneratingCampaign: () => Campaign | null
 
@@ -246,6 +249,8 @@ export const useStore = create<Store>((set, get) => ({
   campaigns: [],
   activeCampaignId: null,
   isCreatingCampaign: false,
+  sourceCampaignId: null,
+  sourceCampaignName: null,
   generatingCampaignId: null,
   isFollowUp: false,
   _pendingImages: {},
@@ -261,6 +266,11 @@ export const useStore = create<Store>((set, get) => ({
   setIsCreatingCampaign: (isCreatingCampaign) => set({
     isCreatingCampaign,
     activeCampaignId: isCreatingCampaign ? null : get().activeCampaignId
+  }),
+
+  setSourceCampaign: (id, name = null) => set({
+    sourceCampaignId: id,
+    sourceCampaignName: name ?? null,
   }),
 
   getActiveCampaign: () => {

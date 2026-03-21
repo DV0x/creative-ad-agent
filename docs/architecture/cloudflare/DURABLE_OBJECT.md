@@ -23,6 +23,7 @@ tailLogs: string[]                // Log buffer (flushed by alarm)
 generationStartedAt: number       // For max-age safety net
 sandboxSetupInProgress: boolean   // Guard against concurrent getSandbox()
 currentRequestId: string | null   // Per-turn ID for staleness check
+hasSourceResearch: boolean        // True when research was copied from a source campaign
 ```
 
 **No `ws` field** — uses `this.state.getWebSockets()` to broadcast to ALL connected tabs. No single-socket tracking needed.
@@ -75,19 +76,26 @@ Does NOT abort generation. No cleanup needed — `getWebSockets()` automatically
 
 ## Generation Flow
 
-### `handleGenerate(prompt, sessionId, assetFileIds?)`
+### `handleGenerate(prompt, sessionId, assetFileIds?, sourceCampaignId?)`
 
 ```
 1. Guard: if isGenerating → error
 2. Set isGenerating=true, create AbortController
 3. Create/get campaign in D1 (fix stale user_id if needed)
-4. Save user message to D1
-5. Persist session to storage
-6. Emit ACK + initial phase events
-7. Resolve asset URLs (if assetFileIds provided)
-8. Start alarm heartbeat (30s)
-9. Fire-and-forget: runGeneration(prompt, sessionId)
-   └── Returns immediately so DO can handle pings/subscribes
+4. If sourceCampaignId:
+   a. Verify ownership: getCampaignById(sourceCampaignId, userId)
+   b. Copy research from source's campaign_files to new campaign's campaign_files
+   c. Emit 'file' event (research content visible immediately in client)
+   d. Append system note to prompt: "read research → hook skill → art skill → images"
+   e. Set hasSourceResearch = true
+   f. Prefix campaign name: "{sourceName} — {brief}"
+5. Save user message to D1
+6. Persist session to storage
+7. Emit ACK + initial phase events
+8. Resolve asset URLs (if assetFileIds provided)
+9. Start alarm heartbeat (30s)
+10. Fire-and-forget: runGeneration(prompt, sessionId)
+    └── Returns immediately so DO can handle pings/subscribes
 ```
 
 ### `runGeneration(prompt, sessionId, sdkSessionId?)`
@@ -106,8 +114,9 @@ Does NOT abort generation. No cleanup needed — `getWebSockets()` automatically
    - If 403 → destroy, create new sandbox with unique ID
    - Max 3 attempts
 
-4. Hydrate files (if follow-up with cold start)
+4. Hydrate files (if follow-up with cold start OR hasSourceResearch)
    - Write research/hooks/prompts from D1 to sandbox filesystem
+   - For source-research campaigns: only research is hydrated (no hooks/prompts yet)
 
 5. Start agent-runner.ts via startProcess()
    - Pass env: PROMPT, SESSION_ID, CAMPAIGN_ID, API keys
@@ -148,6 +157,8 @@ Does NOT abort generation. No cleanup needed — `getWebSockets()` automatically
 ```
 
 **Campaign mismatch detection:** `agentCampaignId` is stored in DO storage when the agent starts (`setupSandbox`). Before fast path, we compare it against the requested `campaignId`. If different, the alive agent belongs to a different campaign — its SDK session has the wrong conversation history. We must kill it and cold start with the correct context.
+
+**Cold start hydration condition:** `if (sdkSessionId || this.hasSourceResearch)` — widens the hydration trigger to include campaigns created from a source. On cold resume of a source-research campaign where only research exists (no hooks/prompts yet), a smart follow-up note tells the agent to generate hooks and prompts from the pre-loaded research before generating images.
 
 ### `runFollowUpFast(sandbox, prompt, sessionId, campaignId)`
 

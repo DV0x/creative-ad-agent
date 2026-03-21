@@ -27,6 +27,7 @@ export class CampaignSession implements DurableObject {
   private generationStartedAt: number = 0; // Timestamp for max age safety net
   private sandboxSetupInProgress = false; // Prevents alarm from creating competing sandbox connection
   private currentRequestId: string | null = null; // Per-turn ID for staleness check (null = initial gen)
+  private hasSourceResearch = false; // True when research was copied from a source campaign
 
   // Trace instrumentation
   private traceSeq = 0;
@@ -398,6 +399,7 @@ export class CampaignSession implements DurableObject {
         isGenerating: this.isGenerating,
         generationStartedAt: this.generationStartedAt,
         currentRequestId: this.currentRequestId,
+        hasSourceResearch: this.hasSourceResearch,
       });
     }
   }
@@ -427,6 +429,7 @@ export class CampaignSession implements DurableObject {
       isGenerating: boolean;
       generationStartedAt?: number;
       currentRequestId?: string | null;
+      hasSourceResearch?: boolean;
     }>('activeSession');
     if (stored) {
       this.trace('session', 'restore.found', {
@@ -444,6 +447,7 @@ export class CampaignSession implements DurableObject {
       this.isGenerating = stored.isGenerating;
       this.generationStartedAt = stored.generationStartedAt || 0;
       this.currentRequestId = stored.currentRequestId || null;
+      this.hasSourceResearch = stored.hasSourceResearch || false;
       // Staleness check: if isGenerating is true but D1 says otherwise, reset it
       if (this.isGenerating && stored.campaignId) {
         try {
@@ -526,7 +530,7 @@ export class CampaignSession implements DurableObject {
     switch (message.type) {
       case 'generate':
         if (message.prompt) {
-          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds);
+          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId);
         }
         break;
 
@@ -567,8 +571,8 @@ export class CampaignSession implements DurableObject {
 
   // ─── Message Handlers ─────────────────────────────────────────
 
-  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[]): Promise<void> {
-    this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0 });
+  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string): Promise<void> {
+    this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0, source: sourceCampaignId || 'none' });
     if (this.isGenerating) {
       this.trace('handler', 'generate.blocked', { reason: 'already_generating' });
       this.sendWS({
@@ -599,6 +603,33 @@ export class CampaignSession implements DurableObject {
         console.log(`[gen] Fixed campaign ${campaign.id} user_id: ${campaign.user_id} → ${this.userId}`);
       }
       this.campaignId = campaign.id;
+
+      // Copy research from source campaign if provided
+      if (sourceCampaignId) {
+        try {
+          // SECURITY: Verify source campaign belongs to this user
+          const sourceCampaign = await db.getCampaignById(this.env.DB, sourceCampaignId, this.userId);
+          if (!sourceCampaign) {
+            this.log(`[gen] Source campaign ${sourceCampaignId} not found or not owned by user — skipping research copy`);
+          } else {
+            const sourceResearch = await db.getCampaignFile(this.env.DB, sourceCampaignId, 'research');
+            if (sourceResearch && sourceResearch.content && sourceResearch.content.trim()) {
+              await db.updateCampaignFile(this.env.DB, campaign.id, 'research', sourceResearch.content);
+              this.hasSourceResearch = true;
+              this.log(`[gen] Copied research from source campaign ${sourceCampaignId} (${sourceResearch.content.length} chars)`);
+              // Emit file event so client shows research immediately
+              this.emitEvent({
+                type: 'file',
+                timestamp: new Date().toISOString(),
+                fileType: 'research',
+                content: sourceResearch.content,
+              });
+            }
+          }
+        } catch (err: any) {
+          this.log(`[gen] Failed to copy source research: ${err?.message}`);
+        }
+      }
 
       // Persist user message
       await db.addMessage(this.env.DB, {
@@ -634,19 +665,24 @@ export class CampaignSession implements DurableObject {
     let aiPrompt = prompt;
     if (assetFileIds && assetFileIds.length > 0) {
       this.log(`[ASSET] Resolving ${assetFileIds.length} asset(s): ${JSON.stringify(assetFileIds)}`);
-      const referenceUrls = await this.resolveAssetUrls(assetFileIds);
-      this.log(`[ASSET] Resolved ${referenceUrls.length} fal.ai URL(s): ${referenceUrls.map((u, i) => `\n  ${i + 1}. ${u}`).join('')}`);
-      if (referenceUrls.length > 0) {
-        aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
-        this.log(`[ASSET] Prompt injected with ${referenceUrls.length} reference URL(s)`);
+      const { falUrls, sandboxPaths } = await this.resolveAssetUrls(assetFileIds);
+      this.log(`[ASSET] Resolved ${falUrls.length} asset(s)`);
+      if (falUrls.length > 0) {
+        aiPrompt = `${prompt}\n\n## Reference Images\nThe user uploaded ${falUrls.length} reference image(s). You MUST use these throughout the pipeline.\n\n### Step 1: Read and analyze each image\n${sandboxPaths.map((p, i) => `- Read("${p}") — analyze product, colors, style, details`).join('\n')}\n\n### Step 2: Use your analysis to inform hooks, art direction, and prompts\n\n### Step 3: When calling generate_ad_images, pass these as referenceImageUrls\n${falUrls.map((url, i) => `- ${url}`).join('\n')}\n\nThis ensures the actual product appears in every generated ad.`;
+        this.log(`[ASSET] Prompt injected with ${falUrls.length} reference image(s)`);
       }
     } else {
       this.log(`[ASSET] No assetFileIds — generating without reference images`);
     }
 
+    // Append system note for source-based campaigns (research already copied to D1)
+    if (this.hasSourceResearch) {
+      aiPrompt = `${aiPrompt}\n\n[SYSTEM NOTE: Brand research has already been completed and is available at /app/agent/files/research/restored_research.md. Do NOT run the research agent or ask for a URL. Follow these steps:\n1. Read the research file with the Read tool\n2. Run the hook-methodology skill to generate hooks based on the research AND the user's campaign brief\n3. Run the art-style skill to create visual prompts from the hooks\n4. Generate images using the MCP tool\nProceed now — start by reading the research file.]`;
+    }
+
     // Start alarm heartbeat — prevents DO from hibernating while generation runs
     this.startKeepAlive();
-    this.trace('handler', 'generate.fireAndForget', { sessionId, campaignId: this.campaignId });
+    this.trace('handler', 'generate.fireAndForget', { sessionId, campaignId: this.campaignId, hasSourceResearch: this.hasSourceResearch });
 
     // Fire and forget — return immediately so the DO can process pings/subscribes.
     // runGeneration() has its own try/catch/finally that handles all cleanup
@@ -726,11 +762,11 @@ export class CampaignSession implements DurableObject {
       // Resolve asset reference URLs and prepend to prompt
       if (assetFileIds && assetFileIds.length > 0) {
         this.log(`[ASSET] Follow-up resolving ${assetFileIds.length} asset(s): ${JSON.stringify(assetFileIds)}`);
-        const referenceUrls = await this.resolveAssetUrls(assetFileIds);
-        this.log(`[ASSET] Follow-up resolved ${referenceUrls.length} fal.ai URL(s)`);
-        if (referenceUrls.length > 0) {
-          aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
-          this.log(`[ASSET] Follow-up prompt injected with ${referenceUrls.length} reference URL(s)`);
+        const { falUrls, sandboxPaths } = await this.resolveAssetUrls(assetFileIds);
+        this.log(`[ASSET] Follow-up resolved ${falUrls.length} asset(s)`);
+        if (falUrls.length > 0) {
+          aiPrompt = `${prompt}\n\n## Reference Images\nThe user uploaded ${falUrls.length} reference image(s). You MUST use these.\n\n### Read and analyze each image\n${sandboxPaths.map((p, i) => `- Read("${p}")`).join('\n')}\n\n### When calling generate_ad_images, pass these as referenceImageUrls\n${falUrls.map((url, i) => `- ${url}`).join('\n')}`;
+          this.log(`[ASSET] Follow-up prompt injected with ${falUrls.length} reference image(s)`);
         }
       } else {
         this.log(`[ASSET] Follow-up — no assetFileIds`);
@@ -786,22 +822,30 @@ export class CampaignSession implements DurableObject {
       await this.state.storage.delete('agentCampaignId');
 
       // Fix 2: Append context about existing files so agent doesn't restart research
-      if (sdkSessionId) {
+      // Also applies when research was copied from a source campaign (hasSourceResearch)
+      if (sdkSessionId || this.hasSourceResearch) {
         try {
           const files = await db.getCampaignFiles(this.env.DB, campaignId);
-          if (files.length > 0) {
+          const readyFiles = files.filter(f => f.content && f.content.trim());
+          if (readyFiles.length > 0) {
             const FILE_PATHS: Record<string, string> = {
               research: '/app/agent/files/research/restored_research.md',
               hooks: '/app/agent/.claude/skills/hook-methodology/hook-bank/restored_hooks.md',
               prompts: '/app/agent/files/creatives/restored_prompts.json',
             };
-            aiPrompt += `\n\n[SYSTEM NOTE: This is a follow-up to an existing campaign. Research, hooks, and prompt files have already been generated and restored to disk. Do NOT restart the research workflow or ask for a URL. Use the existing files:\n`;
-            for (const file of files) {
+            const hasResearch = readyFiles.some(f => f.file_type === 'research');
+            const hasHooks = readyFiles.some(f => f.file_type === 'hooks');
+            aiPrompt += `\n\n[SYSTEM NOTE: This is a follow-up to an existing campaign. Do NOT restart the research workflow or ask for a URL. The following files are available on disk:\n`;
+            for (const file of readyFiles) {
               const targetPath = FILE_PATHS[file.file_type];
               if (targetPath) aiPrompt += `- ${file.file_type}: ${targetPath}\n`;
             }
-            aiPrompt += `Read these files with Glob/Read tools if needed. Continue from where the conversation left off.]`;
-            this.log(`[gen] Appended cold resume context (${files.length} files) to prompt`);
+            if (hasResearch && !hasHooks) {
+              aiPrompt += `Only research exists — hooks and prompts need to be generated. Read the research file, then run the hook-methodology skill followed by the art-style skill to generate hooks, prompts, and images based on the user's campaign brief.]`;
+            } else {
+              aiPrompt += `Read these files if needed. Continue from where the conversation left off.]`;
+            }
+            this.log(`[gen] Appended cold resume context (${readyFiles.length} files) to prompt`);
           }
         } catch (err: any) {
           this.log(`[gen] Failed to query files for cold resume context: ${err?.message}`);
@@ -1149,6 +1193,35 @@ export class CampaignSession implements DurableObject {
         }
       } catch (err: any) {
         this.log(`[gen] ERROR: Failed to hydrate files from D1: ${err?.message || err}`);
+      }
+    }
+
+    // 3b. Hydrate research from source campaign (for "New Campaign from Existing")
+    if (this.hasSourceResearch && !sdkSessionId && this.campaignId) {
+      try {
+        const files = await db.getCampaignFiles(this.env.DB, this.campaignId);
+        const readyFiles = files.filter(f => f.content && f.content.trim());
+        if (readyFiles.length > 0) {
+          await sandbox.exec('mkdir -p /app/agent/files/research /app/agent/files/creatives /app/agent/.claude/skills/hook-methodology/hook-bank');
+
+          const FILE_PATHS: Record<string, string> = {
+            research: '/app/agent/files/research/restored_research.md',
+            hooks: '/app/agent/.claude/skills/hook-methodology/hook-bank/restored_hooks.md',
+            prompts: '/app/agent/files/creatives/restored_prompts.json',
+          };
+
+          for (const file of readyFiles) {
+            const targetPath = FILE_PATHS[file.file_type];
+            if (!targetPath) continue;
+            await sandbox.exec(
+              `node -e "require('fs').writeFileSync(process.env.TARGET_PATH, process.env.FILE_CONTENT)"`,
+              { env: { TARGET_PATH: targetPath, FILE_CONTENT: file.content } }
+            );
+            this.log(`[gen] Hydrated ${file.file_type} from source → ${targetPath} (${file.content.length} chars)`);
+          }
+        }
+      } catch (err: any) {
+        this.log(`[gen] Failed to hydrate source files: ${err?.message}`);
       }
     }
 
@@ -1506,8 +1579,9 @@ export class CampaignSession implements DurableObject {
   // ─── Asset Resolution ────────────────────────────────────────
 
   /** Resolve asset file IDs → R2 objects → fal.ai public URLs for reference images */
-  private async resolveAssetUrls(assetFileIds: string[]): Promise<string[]> {
-    const urls: string[] = [];
+  private async resolveAssetUrls(assetFileIds: string[]): Promise<{ falUrls: string[]; sandboxPaths: string[] }> {
+    const falUrls: string[] = [];
+    const sandboxPaths: string[] = [];
 
     fal.config({ credentials: this.env.FAL_KEY });
 
@@ -1536,14 +1610,19 @@ export class CampaignSession implements DurableObject {
         const blob = await r2Object.blob();
         const uploadFile = new File([blob], file.name, { type: r2Object.httpMetadata?.contentType || 'image/png' });
         const publicUrl = await fal.storage.upload(uploadFile);
-        urls.push(publicUrl);
-        console.log(`Resolved asset: ${file.name} → ${publicUrl}`);
+        falUrls.push(publicUrl);
+
+        // R2 mount path — accessible on sandbox after mountBucket()
+        const sandboxPath = `/mnt/r2/uploads/${file.file_path}`;
+        sandboxPaths.push(sandboxPath);
+
+        console.log(`Resolved asset: ${file.name} → fal: ${publicUrl}, sandbox: ${sandboxPath}`);
       } catch (err) {
         console.error(`Failed to resolve asset ${fileId}:`, err);
       }
     }
 
-    return urls;
+    return { falUrls, sandboxPaths };
   }
 
   // ─── Helpers ──────────────────────────────────────────────────

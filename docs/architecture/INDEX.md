@@ -126,3 +126,4 @@ docs/architecture/
 | Max generation age | 2h safety net (matches container sleepAfter) |
 | waitForLog timeout | 2h |
 | DO routing | One DO per user (`idFromName(userId)`) |
+| "New from existing" research copy | ~0s (skips ~2 min research phase) |

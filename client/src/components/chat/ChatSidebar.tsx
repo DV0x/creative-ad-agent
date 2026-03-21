@@ -11,6 +11,7 @@ export function ChatSidebar() {
     getActiveChatMessages,
     activeCampaignId,
     isCreatingCampaign,
+    sourceCampaignName,
     currentGeneratingMessageId,
   } = useStore()
   const { isConnected, generate, followUp, cancel } = useWebSocket()
@@ -61,11 +62,15 @@ export function ChatSidebar() {
               <Sparkles className="w-5 h-5 text-accent" />
             </div>
             <p className="text-sm text-text-secondary mb-1">
-              {isCreatingCampaign ? 'New campaign' : 'Start creating'}
+              {isCreatingCampaign
+                ? (sourceCampaignName ? `New campaign for ${sourceCampaignName}` : 'New campaign')
+                : 'Start creating'}
             </p>
             <p className="text-xs text-text-muted">
               {isCreatingCampaign
-                ? 'Enter a website URL or describe a business below'
+                ? (sourceCampaignName
+                    ? 'Brand research loaded. Describe the campaign angle or brief below'
+                    : 'Enter a website URL or describe a business below')
                 : 'Enter a prompt to generate ad creatives'}
             </p>
           </div>

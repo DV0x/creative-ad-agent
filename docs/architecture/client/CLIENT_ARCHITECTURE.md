@@ -106,6 +106,7 @@ App.tsx (336 lines)
 └── [workspace] AppLayout (404 lines — 3-column resizable layout)
                   │
                   ├── LeftSidebar ── AssetDrawer (670 lines)
+                  │                    ├── Campaign list with hover actions (rename, delete, new-from-existing)
                   │                    ├── Folder tree (CRUD)
                   │                    ├── AssetPreview (149 lines — thumbnails)
                   │                    └── FileUpload (357 lines — drag-drop upload)
@@ -120,7 +121,7 @@ App.tsx (336 lines)
                   │     ├── (exported as both `FileEditorPanel` and `FileEditor` alias for backwards compat)
                   │     └── PromptsViewer (178 lines — structured prompts.json viewer)
                   │
-                  └── RightSidebar ── ChatSidebar (91 lines)
+                  └── RightSidebar ── ChatSidebar (91 lines — source-aware prompt when creating from existing)
                                         ├── ChatMessage list (89 lines per message)
                                         │     ├── User messages: plain content + refs
                                         │     └── Assistant messages: blocks[] + trailing content

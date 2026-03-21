@@ -116,16 +116,20 @@ On reconnect/subscribe, sends `lastEventId` — server replays only newer events
 
 ```typescript
 1. sessionId = crypto.randomUUID()
-2. store.startGeneration(sessionId, campaignName, prompt)  // creates campaign + messages
-3. saveActiveSession(sessionId, prompt, campaignId, messageId)
-4. store.openThinkingBlock(campaignId, messageId, ...)
-5. wsManager.sendMessage({
+2. Read sourceCampaignId from store (if "new from existing" flow)
+3. store.startGeneration(sessionId, campaignName, prompt)  // creates campaign + messages
+   - If sourceCampaignId set, campaign name is prefixed: "{sourceName} — {brief}"
+4. saveActiveSession(sessionId, prompt, campaignId, messageId)
+5. store.openThinkingBlock(campaignId, messageId, ...)
+6. wsManager.sendMessage({
      type: 'generate',
      prompt,
      sessionId,
+     ...(sourceCampaignId ? { sourceCampaignId } : {}),
      ...(assetFileIds?.length ? { assetFileIds } : {})
    })
-6. On send failure → failGeneration + clearActiveSession
+7. Clear sourceCampaignId from store after sending
+8. On send failure → failGeneration + clearActiveSession
 ```
 
 ### `followUp(campaignId, prompt, assetFileIds?)`
@@ -226,7 +230,7 @@ onConnected() fires
 ### Client → Server
 
 ```typescript
-{ type: 'generate',   prompt, sessionId, name, assetFileIds? }
+{ type: 'generate',   prompt, sessionId, name, assetFileIds?, sourceCampaignId? }
 { type: 'follow_up',  prompt, campaignId, sessionId }
 { type: 'cancel',     campaignId, sessionId }
 { type: 'subscribe',  sessionId, lastEventId? }

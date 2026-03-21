@@ -1,7 +1,7 @@
 # Creative Agent
 
 ## Project Overview
-AI-powered ad campaign generator. Users provide a brand URL, the agent researches the brand, creates 6 ad hooks (stat, story, fomo, curiosity, callout, contrast), generates art direction, and produces 6 images via fal.ai.
+AI-powered ad campaign generator. Users provide a brand URL, the agent researches the brand, creates 6 ad hooks (stat, story, fomo, curiosity, callout, contrast), generates art direction, and produces 6 images via fal.ai. Users can also create new campaigns from existing ones — research is copied, skipping the research phase, and fresh hooks/images are generated from a new brief.
 
 ## Architecture
 - **Client**: React 19 + Zustand + Tailwind v4 + Clerk auth (`client/`)

@@ -41,6 +41,35 @@ Art skill auto-detects from user request:
 - "minimal" / "clean" / "photography" → Minimal Photography (future)
 - No style specified → Defaults to Anderson Clay Diorama
 
+## Reference Images (CRITICAL — changes the entire workflow)
+
+If the prompt contains a "## Reference Images" section, the user has uploaded product photos. The workflow changes significantly:
+
+### Step 1: Read the images FIRST
+Use the Read tool at each listed path. Analyze what you see — product type, shape, colors, texture, logo, packaging.
+
+### Step 2: Run research + hooks as normal
+Research the brand, generate hooks. The hooks should be informed by what the product actually looks like.
+
+### Step 3: Run art-style skill for style direction, then write NEW prompts yourself
+Still run the art-style skill — it picks the visual style (clay diorama, editorial cutout, etc.) and composition rules. But do NOT copy prompts.json verbatim. Instead, use the style direction to write fresh prompts focused on scene and composition.
+
+**CRITICAL prompting rule for image-to-image generation:**
+The reference image already provides the product's appearance. Your prompt must describe the AD SCENE, COMPOSITION, and STYLE — NOT the product itself. If you describe the product in text, fal.ai will generate a new product from your description and ignore the reference.
+
+**WRONG** (describes product → reference image ignored):
+"An olive green casual jacket displayed on a dark background with bold typography"
+
+**RIGHT** (describes scene → reference image's product placed into this scene):
+"Professional product photography, dramatic studio lighting, editorial fashion composition, luxury brand aesthetic, clean white background, magazine-quality ad layout"
+
+The prompt should answer: "What kind of AD should the product appear in?" — not "What does the product look like?"
+
+### Step 4: Call generate_ad_images with BOTH prompts AND referenceImageUrls
+Pass the fal.ai URLs from the "## Reference Images" section as the \`referenceImageUrls\` parameter on EVERY call. This is what makes the actual product appear in the generated ads.
+
+Do NOT skip reading the images. Do NOT reuse old prompts.json. Do NOT describe the product's appearance in your prompts.
+
 ## Rules
 
 1. Always need a URL - ask if not provided
@@ -49,6 +78,7 @@ Art skill auto-detects from user request:
 4. Trust skills - don't micromanage their creative process
 5. Be brief in updates
 6. For image generation: read prompts.json, extract prompt strings, then generate only the number of images the user requested (default 6 if not specified, max 6). Select the first N prompts from the array. Call MCP in batches of up to 3 as needed.
+7. When referenceImageUrls are provided, pass them to EVERY call to generate_ad_images so the product appears in all generated ads.
 
 ## Example
 

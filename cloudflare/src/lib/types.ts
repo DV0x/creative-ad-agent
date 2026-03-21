@@ -9,6 +9,7 @@ export interface ClientMessage {
   campaignId?: string;
   lastEventId?: number;
   assetFileIds?: string[];
+  sourceCampaignId?: string;
 }
 
 // Hook types for ad concepts

@@ -165,6 +165,7 @@ interface ConnectionState {
   userId: string;             // User ID (placeholder until auth)
   abortController: AbortController | null;
   isGenerating: boolean;
+  hasSourceResearch: boolean;  // True when research was copied from a source campaign
   heartbeatInterval: NodeJS.Timeout | null;
 }
 
@@ -500,7 +501,7 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
   }
 }
 
-async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[]) {
+async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string) {
   if (state.isGenerating) {
     send(state.ws, {
       type: 'error',
@@ -542,6 +543,25 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       console.log(`💾 DB: Using existing campaign ${campaign.id} for session ${sessionId}`);
     }
     state.campaignId = campaign.id;
+
+    // Copy research from source campaign if provided
+    if (sourceCampaignId) {
+      try {
+        const sourceCampaign = db.getCampaignById(sourceCampaignId, state.userId);
+        if (!sourceCampaign) {
+          console.log(`[gen] Source campaign ${sourceCampaignId} not found or not owned by user`);
+        } else {
+          const sourceResearch = db.getCampaignFile(sourceCampaignId, 'research');
+          if (sourceResearch && sourceResearch.content && sourceResearch.content.trim()) {
+            db.updateCampaignFile(campaign.id, 'research', sourceResearch.content);
+            state.hasSourceResearch = true;
+            console.log(`[gen] Copied research from source campaign ${sourceCampaignId} (${sourceResearch.content.length} chars)`);
+          }
+        }
+      } catch (err: any) {
+        console.error(`[gen] Failed to copy source research: ${err?.message}`);
+      }
+    }
 
     // Persist user message (prompt) to DB
     try {
@@ -1416,6 +1436,7 @@ export function initWebSocket(server: Server): WebSocketServer {
       userId,
       abortController: null,
       isGenerating: false,
+      hasSourceResearch: false,
       heartbeatInterval: null
     };
 
@@ -1444,7 +1465,7 @@ export function initWebSocket(server: Server): WebSocketServer {
           case 'generate':
             if (message.prompt) {
               console.log(`📎 [ASSET DEBUG] WS 'generate' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
-              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds);
+              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId);
             }
             break;
 

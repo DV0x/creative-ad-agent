@@ -29,7 +29,8 @@
   "prompt": "Create ads for nike.com",
   "sessionId": "sess-1710000000-abc123",
   "name": "Nike Campaign",
-  "assetFileIds": ["file-1", "file-2"]   // optional — user-uploaded reference files
+  "assetFileIds": ["file-1", "file-2"],    // optional — user-uploaded reference files
+  "sourceCampaignId": "abc456"             // optional — copy research from this campaign (skip research phase)
 }
 ```
 

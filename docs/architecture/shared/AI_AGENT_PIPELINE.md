@@ -220,6 +220,43 @@ Routes to style-specific workflows based on user keywords. Auto-selects 3-4 styl
 
 ---
 
+## "New Campaign from Existing" — Skip Research Path
+
+When a user creates a new campaign from an existing one, the research phase is skipped entirely. The flow:
+
+```
+User selects "New Campaign" on existing campaign
+  → Client sets sourceCampaignId in store
+  → User submits a brief (not a URL)
+  → WS message: { type: 'generate', prompt, sessionId, sourceCampaignId }
+```
+
+### Server-Side (DO `handleGenerate`)
+
+1. **Ownership check:** `getCampaignById(sourceCampaignId, userId)` — verifies the user owns the source campaign
+2. **Research copy:** Copies `research` file from source's `campaign_files` to the new campaign's `campaign_files` in D1
+3. **`file` event emitted** — client shows research immediately in the file panel
+4. **System note appended** to the prompt: tells the agent to read the pre-loaded research, then run hook skill, art skill, and image generation (skipping the research subagent)
+5. **`hasSourceResearch` flag set** on the DO instance — used during sandbox setup to hydrate the research file to disk
+
+### Agent Behavior
+
+The agent starts, finds `restored_research.md` on disk, and enters the pipeline at Step 2 (hooks) instead of Step 1 (research). This saves ~2 minutes of research time.
+
+```
+Pre-loaded research on disk → Step 2: Hooks → Step 3: Art → Step 4: Prompts → Step 5: Images
+```
+
+### Key Design Decisions
+
+- Research is **copied** (not referenced) — the new campaign is fully independent
+- Only research is copied; hooks, prompts, and images are generated fresh from the new brief
+- `sourceCampaignId` is used once at creation time then forgotten — no persistent DB link between campaigns
+- No new database tables or schema changes required
+- Campaign name is prefixed: `"{sourceName} — {brief}"`
+
+---
+
 ## Follow-Up Context
 
 ### Warm Container (Fast Path)
@@ -238,6 +275,8 @@ Container was evicted. The DO:
 4. Starts a fresh SDK session (no conversation history — only the hydrated files provide context)
 
 This means the agent can reference existing work but doesn't remember the conversation itself.
+
+**Source-research campaigns:** The same hydration path is used for campaigns created via "New from Existing". The hydration condition is `if (sdkSessionId || hasSourceResearch)`. When only research exists (no hooks/prompts yet), a smart follow-up note tells the agent to generate hooks and prompts from the pre-loaded research.
 
 ---
 
