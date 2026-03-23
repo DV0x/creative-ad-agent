@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
     CHECK (status IN ('generating', 'complete', 'incomplete', 'error', 'cancelled')),
   session_id TEXT,
   sdk_session_id TEXT,
+  brand TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

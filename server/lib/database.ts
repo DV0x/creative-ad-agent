@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   status TEXT DEFAULT 'generating' CHECK (status IN ('generating', 'complete', 'incomplete', 'error', 'cancelled')),
   session_id TEXT,
   sdk_session_id TEXT,
+  brand TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -144,6 +145,11 @@ export function initDatabase(): void {
 
   // Index must be created after migration (column may not exist when SCHEMA_SQL runs)
   db.exec(`CREATE INDEX IF NOT EXISTS idx_campaigns_sdk_session_id ON campaigns(sdk_session_id)`);
+
+  // Migration: add brand column for brand grouping
+  try {
+    db.exec(`ALTER TABLE campaigns ADD COLUMN brand TEXT`);
+  } catch { /* column already exists */ }
 
   // Migration: add blocks column to messages for persisting thinking blocks
   try {

@@ -54,15 +54,24 @@ function saveLastEventId(sessionId: string, eventId: number): void {
   localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId), String(eventId));
 }
 
-// Extract campaign name from prompt (e.g., "nike.com" -> "Nike")
-function extractCampaignName(prompt: string): string {
+// Extract brand and campaign name from prompt
+// e.g., "bombayshirts.com - festive collection" -> { brand: "Bombayshirts", campaignName: "Festive Collection" }
+// e.g., "Local bakery in Austin" -> { brand: null, campaignName: "Local bakery in Austin" }
+function extractBrandAndName(prompt: string): { brand: string | null; campaignName: string } {
   const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
   if (domainMatch) {
-    const name = domainMatch[1];
-    return name.charAt(0).toUpperCase() + name.slice(1);
+    const brand = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
+    // Campaign name = everything after the URL, stripped of separators
+    const afterUrl = prompt.replace(domainMatch[0], '').replace(/^\s*[-–—:,]\s*/, '').trim();
+    const campaignName = afterUrl
+      ? afterUrl.charAt(0).toUpperCase() + afterUrl.slice(1)
+      : 'Campaign 1';
+    return { brand, campaignName };
   }
-  const firstWord = prompt.split(/\s+/)[0] || 'Campaign';
-  return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+  // No URL — no brand, use full prompt as campaign name
+  const trimmed = prompt.trim();
+  const campaignName = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+  return { brand: null, campaignName: campaignName.substring(0, 60) || 'Campaign' };
 }
 
 // ── Hook ───────────────────────────────────────────────────────
@@ -369,16 +378,29 @@ export function useWebSocket(): UseWebSocketReturn {
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
 
-    // Use source campaign name as prefix when creating from existing campaign
+    // Extract brand + campaign name from prompt, or inherit from source campaign
     const { sourceCampaignId, sourceCampaignName } = store;
-    const campaignName = sourceCampaignName
-      ? `${sourceCampaignName} — ${prompt.substring(0, 50)}`
-      : extractCampaignName(prompt);
-    const { campaignId, messageId } = store.startGeneration(sessionId, campaignName, prompt);
+    let brand: string | null;
+    let campaignName: string;
+
+    if (sourceCampaignId && sourceCampaignName) {
+      // Creating from existing brand — inherit brand, use prompt as campaign name
+      brand = sourceCampaignName;
+      const trimmed = prompt.trim();
+      campaignName = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
+      campaignName = campaignName.substring(0, 60) || 'New Campaign';
+    } else {
+      // New brand — extract from URL or use prompt
+      const extracted = extractBrandAndName(prompt);
+      brand = extracted.brand;
+      campaignName = extracted.campaignName;
+    }
+
+    const { campaignId, messageId } = store.startGeneration(sessionId, campaignName, prompt, brand);
 
     saveActiveSession(sessionId, prompt, campaignId, messageId);
 
-    store.openThinkingBlock(campaignId, messageId, `Starting generation for ${campaignName}...`);
+    store.openThinkingBlock(campaignId, messageId, `Starting generation for ${brand ? `${brand} — ${campaignName}` : campaignName}...`);
 
     const sent = wsManager.sendMessage({
       type: 'generate',
@@ -387,6 +409,7 @@ export function useWebSocket(): UseWebSocketReturn {
       ...(sourceCampaignId ? { sourceCampaignId } : {}),
       ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
       ...(aspectRatio ? { aspectRatio } : {}),
+      ...(brand ? { brand } : {}),
     });
 
     // Clear source campaign state after sending

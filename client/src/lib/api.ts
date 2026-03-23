@@ -54,6 +54,7 @@ interface ApiCampaign {
   id: string;
   user_id: string;
   name: string;
+  brand: string | null;
   status: CampaignStatus;
   session_id: string | null;
   created_at: string;
@@ -140,6 +141,7 @@ function transformCampaign(
   return {
     id: api.id,
     name: api.name,
+    brand: api.brand ?? null,
     createdAt: new Date(api.created_at),
     status: api.status,
     filesReady,

@@ -24,6 +24,7 @@ interface ClientMessage {
   assetFileIds?: string[];
   sourceCampaignId?: string;
   aspectRatio?: '4:5' | '1:1' | '9:16';
+  brand?: string;
 }
 
 // ── Asset attachment resolution ────────────────────────────────
@@ -503,7 +504,7 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
   }
 }
 
-async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string) {
+async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string, brand?: string) {
   if (state.isGenerating) {
     send(state.ws, {
       type: 'error',
@@ -539,7 +540,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   try {
     let campaign = db.getCampaignBySessionId(sessionId);
     if (!campaign) {
-      campaign = db.createCampaign(state.userId, campaignName, sessionId);
+      campaign = db.createCampaign(state.userId, campaignName, sessionId, brand);
       console.log(`💾 DB: Created campaign ${campaign.id} for session ${sessionId}`);
     } else {
       console.log(`💾 DB: Using existing campaign ${campaign.id} for session ${sessionId}`);
@@ -1477,7 +1478,7 @@ export function initWebSocket(server: Server): WebSocketServer {
           case 'generate':
             if (message.prompt) {
               console.log(`📎 [ASSET DEBUG] WS 'generate' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
-              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio);
+              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio, message.brand);
             }
             break;
 

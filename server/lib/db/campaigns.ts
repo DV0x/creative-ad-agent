@@ -4,6 +4,7 @@ export interface Campaign {
   id: string;
   user_id: string;
   name: string;
+  brand: string | null;
   status: 'generating' | 'complete' | 'incomplete' | 'error' | 'cancelled';
   session_id: string | null;
   sdk_session_id: string | null;
@@ -36,14 +37,15 @@ export function getCampaignBySessionId(sessionId: string): Campaign | undefined 
 export function createCampaign(
   userId: string,
   name: string,
-  sessionId?: string
+  sessionId?: string,
+  brand?: string
 ): Campaign {
   const id = generateId('campaign');
 
   db.prepare(`
-    INSERT INTO campaigns (id, user_id, name, status, session_id)
-    VALUES (?, ?, ?, 'generating', ?)
-  `).run(id, userId, name, sessionId ?? null);
+    INSERT INTO campaigns (id, user_id, name, status, session_id, brand)
+    VALUES (?, ?, ?, 'generating', ?, ?)
+  `).run(id, userId, name, sessionId ?? null, brand ?? null);
 
   // Create empty files for research, hooks, prompts
   const insertFile = db.prepare(`

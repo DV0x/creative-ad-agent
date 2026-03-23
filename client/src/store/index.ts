@@ -30,6 +30,7 @@ export interface CampaignFile {
 export interface Campaign {
   id: string
   name: string
+  brand: string | null
   createdAt: Date
   files: CampaignFile[]
   images: GeneratedImage[]
@@ -81,9 +82,10 @@ interface Store {
   getGeneratingCampaign: () => Campaign | null
 
   // Campaign CRUD
-  addCampaign: (name: string, status?: CampaignStatus, sessionId?: string) => string
+  addCampaign: (name: string, status?: CampaignStatus, sessionId?: string, brand?: string | null) => string
   removeCampaign: (id: string) => void
   renameCampaign: (id: string, name: string) => void
+  renameBrand: (campaignId: string, newBrand: string) => void
   replaceCampaignId: (oldId: string, newId: string) => void
 
   // Campaign Updates
@@ -129,7 +131,7 @@ interface Store {
   setGenerationExpectedImages: (count: number) => void
 
   // Generation flow
-  startGeneration: (sessionId: string, campaignName: string, prompt: string) => { campaignId: string; messageId: string }
+  startGeneration: (sessionId: string, campaignName: string, prompt: string, brand?: string | null) => { campaignId: string; messageId: string }
   resumeGeneration: (sessionId: string, campaignId: string) => { messageId: string }
   reconstructForRecovery: (sessionId: string, prompt: string, campaignId: string) => { messageId: string }
   cleanupFailedRecovery: () => void
@@ -286,12 +288,13 @@ export const useStore = create<Store>((set, get) => ({
   },
 
   // Campaign CRUD
-  addCampaign: (name, status = 'generating', sessionId?) => {
+  addCampaign: (name, status = 'generating', sessionId?, brand?) => {
     const id = generateId('campaign')
     set((state) => ({
       campaigns: [...state.campaigns, {
         id,
         name,
+        brand: brand ?? null,
         createdAt: new Date(),
         status,
         filesReady: { research: false, hooks: false, prompts: false },
@@ -323,6 +326,10 @@ export const useStore = create<Store>((set, get) => ({
 
   renameCampaign: (id, name) => set((state) => ({
     campaigns: state.campaigns.map(c => c.id === id ? { ...c, name } : c)
+  })),
+
+  renameBrand: (campaignId, newBrand) => set((state) => ({
+    campaigns: state.campaigns.map(c => c.id === campaignId ? { ...c, brand: newBrand } : c)
   })),
 
   replaceCampaignId: (oldId, newId) => set((state) => {
@@ -472,8 +479,8 @@ export const useStore = create<Store>((set, get) => ({
   setGenerationExpectedImages: (count) => set({ generationExpectedImages: count }),
 
   // Generation flow
-  startGeneration: (sessionId, campaignName, prompt) => {
-    const campaignId = get().addCampaign(campaignName, 'generating', sessionId)
+  startGeneration: (sessionId, campaignName, prompt, brand?) => {
+    const campaignId = get().addCampaign(campaignName, 'generating', sessionId, brand)
     const userMessageId = generateId('msg')
     const assistantMessageId = generateId('msg')
 

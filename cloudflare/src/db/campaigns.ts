@@ -4,6 +4,7 @@ export interface Campaign {
   id: string;
   user_id: string;
   name: string;
+  brand: string | null;
   status: 'generating' | 'complete' | 'incomplete' | 'error' | 'cancelled';
   session_id: string | null;
   sdk_session_id: string | null;
@@ -38,15 +39,16 @@ export async function createCampaign(
   db: D1Database,
   userId: string,
   name: string,
-  sessionId?: string
+  sessionId?: string,
+  brand?: string
 ): Promise<Campaign> {
   const id = generateId('campaign');
 
   await db.batch([
     db.prepare(`
-      INSERT INTO campaigns (id, user_id, name, status, session_id)
-      VALUES (?, ?, ?, 'generating', ?)
-    `).bind(id, userId, name, sessionId ?? null),
+      INSERT INTO campaigns (id, user_id, name, status, session_id, brand)
+      VALUES (?, ?, ?, 'generating', ?, ?)
+    `).bind(id, userId, name, sessionId ?? null, brand ?? null),
     db.prepare(`INSERT INTO campaign_files (campaign_id, file_type) VALUES (?, 'research')`).bind(id),
     db.prepare(`INSERT INTO campaign_files (campaign_id, file_type) VALUES (?, 'hooks')`).bind(id),
     db.prepare(`INSERT INTO campaign_files (campaign_id, file_type) VALUES (?, 'prompts')`).bind(id),

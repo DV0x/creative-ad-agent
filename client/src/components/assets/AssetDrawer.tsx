@@ -13,7 +13,7 @@ import {
   PencilIcon,
   CheckIcon,
   XIcon,
-  CopyPlusIcon
+  LayersIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -84,14 +84,51 @@ function CampaignsSection() {
     setAppState('workspace')
   }
 
-  const handleNewCampaign = () => {
+  const handleNewBrand = () => {
+    // Clear any source campaign — this is a fresh brand
+    const store = useStore.getState()
+    store.setSourceCampaign(null)
     setIsCreatingCampaign(true)
     setIsCollapsed(false)
-    // Stay in workspace and open the chat sidebar for prompt input
     if (isMobile) {
       setMobileDrawerOpen(true)
     } else {
       setRightOpen(true)
+    }
+  }
+
+  const handleNewCampaignForBrand = (brandName: string) => {
+    // Find the oldest campaign in this brand to use as research source
+    const brandCampaigns = campaigns
+      .filter(c => c.brand === brandName)
+      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+    const source = brandCampaigns[0]
+    if (!source) return
+
+    const store = useStore.getState()
+    store.setSourceCampaign(source.id, brandName)
+    setIsCreatingCampaign(true)
+    if (isMobile) {
+      setMobileDrawerOpen(true)
+    } else {
+      setRightOpen(true)
+    }
+  }
+
+  // Group campaigns by brand
+  const brandGroups: { brand: string; campaigns: Campaign[] }[] = []
+  const ungrouped: Campaign[] = []
+
+  for (const c of campaigns) {
+    if (c.brand) {
+      const existing = brandGroups.find(g => g.brand === c.brand)
+      if (existing) {
+        existing.campaigns.push(c)
+      } else {
+        brandGroups.push({ brand: c.brand, campaigns: [c] })
+      }
+    } else {
+      ungrouped.push(c)
     }
   }
 
@@ -119,18 +156,18 @@ function CampaignsSection() {
         <Button
           variant="ghost"
           size="icon-xs"
-          onClick={handleNewCampaign}
+          onClick={handleNewBrand}
           className="h-5 w-5 text-text-muted hover:text-text-primary"
-          title="New campaign"
+          title="New brand"
         >
           <PlusIcon className="w-3 h-3" />
         </Button>
       </div>
 
-      {/* Campaign List */}
+      {/* Campaign List grouped by brand */}
       {!isCollapsed && (
         <div className="space-y-1">
-          {/* New Campaign item (when creating) */}
+          {/* New Campaign indicator */}
           {isCreatingCampaign && (
             <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-accent/10 text-accent">
               <SparklesIcon className="w-4 h-4" />
@@ -138,14 +175,30 @@ function CampaignsSection() {
             </div>
           )}
 
-          {campaigns.map((campaign) => (
-            <CampaignItem
-              key={campaign.id}
-              campaign={campaign}
-              isActive={activeCampaignId === campaign.id && !isCreatingCampaign}
-              onSelect={() => handleCampaignClick(campaign.id)}
+          {/* Brand groups */}
+          {brandGroups.map((group) => (
+            <BrandGroup
+              key={group.brand}
+              brand={group.brand}
+              campaigns={group.campaigns}
+              activeCampaignId={activeCampaignId}
+              isCreatingCampaign={isCreatingCampaign}
+              onCampaignSelect={handleCampaignClick}
+              onNewCampaign={() => handleNewCampaignForBrand(group.brand)}
             />
           ))}
+
+          {/* Ungrouped campaigns */}
+          {ungrouped.length > 0 && (
+            <BrandGroup
+              brand="Ungrouped"
+              campaigns={ungrouped}
+              activeCampaignId={activeCampaignId}
+              isCreatingCampaign={isCreatingCampaign}
+              onCampaignSelect={handleCampaignClick}
+              isUngrouped
+            />
+          )}
 
           {campaigns.length === 0 && !isCreatingCampaign && (
             <div className="text-center py-4 px-2">
@@ -158,6 +211,137 @@ function CampaignsSection() {
         </div>
       )}
     </div>
+  )
+}
+
+// ============================================
+// Brand Group (collapsible folder)
+// ============================================
+
+interface BrandGroupProps {
+  brand: string
+  campaigns: Campaign[]
+  activeCampaignId: string | null
+  isCreatingCampaign: boolean
+  onCampaignSelect: (id: string) => void
+  onNewCampaign?: () => void
+  isUngrouped?: boolean
+}
+
+function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, onCampaignSelect, onNewCampaign, isUngrouped }: BrandGroupProps) {
+  const { deleteCampaignAsync } = useStore()
+  const hasActiveCampaign = campaigns.some(c => c.id === activeCampaignId && !isCreatingCampaign)
+  const [isOpen, setIsOpen] = useState(hasActiveCampaign || campaigns.length <= 3)
+  const [showActions, setShowActions] = useState(false)
+  const [isRenaming, setIsRenaming] = useState(false)
+  const [renameValue, setRenameValue] = useState(brand)
+
+  // Auto-expand when a campaign in this brand becomes active
+  useEffect(() => {
+    if (hasActiveCampaign) setIsOpen(true)
+  }, [hasActiveCampaign])
+
+  const handleRenameBrand = () => {
+    const newName = renameValue.trim()
+    if (newName && newName !== brand) {
+      // Update brand on all campaigns in this group
+      const store = useStore.getState()
+      for (const c of campaigns) {
+        store.renameBrand(c.id, newName)
+      }
+    }
+    setIsRenaming(false)
+  }
+
+  const handleDeleteBrand = () => {
+    for (const c of campaigns) {
+      deleteCampaignAsync(c.id)
+    }
+  }
+
+  const totalImages = campaigns.reduce((sum, c) => sum + c.images.length, 0)
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
+      <div
+        className="group relative flex items-center"
+        onMouseEnter={() => setShowActions(true)}
+        onMouseLeave={() => setShowActions(false)}
+      >
+        <CollapsibleTrigger asChild>
+          <button className="shrink-0 w-7 h-7 flex items-center justify-center rounded hover:bg-bg-elevated">
+            <ChevronRightIcon
+              className={cn(
+                'w-3.5 h-3.5 text-text-muted transition-transform duration-200',
+                isOpen && 'rotate-90'
+              )}
+            />
+          </button>
+        </CollapsibleTrigger>
+
+        {isRenaming ? (
+          <div className="flex-1 flex items-center gap-1 min-w-0">
+            <Input
+              autoFocus
+              value={renameValue}
+              onChange={(e) => setRenameValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleRenameBrand()
+                if (e.key === 'Escape') { setRenameValue(brand); setIsRenaming(false) }
+              }}
+              onBlur={handleRenameBrand}
+              className="h-6 text-xs bg-bg-elevated flex-1"
+            />
+          </div>
+        ) : (
+          <button
+            onClick={() => setIsOpen(!isOpen)}
+            className="flex-1 min-w-0 flex items-center gap-2 px-1.5 py-2 rounded-md text-sm hover:bg-bg-elevated transition-colors"
+          >
+            <LayersIcon className={cn('w-4 h-4 shrink-0', hasActiveCampaign ? 'text-accent' : 'text-text-muted')} />
+            <span className={cn('flex-1 text-left truncate font-medium', hasActiveCampaign ? 'text-accent' : 'text-text-secondary')}>
+              {brand}
+            </span>
+            {!showActions && totalImages > 0 && (
+              <span className="text-[10px] text-text-muted">{totalImages} img</span>
+            )}
+          </button>
+        )}
+
+        {/* Brand actions */}
+        {showActions && !isRenaming && !isUngrouped && (
+          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+            {onNewCampaign && (
+              <Button variant="ghost" size="icon-xs" onClick={(e) => { e.stopPropagation(); onNewCampaign() }}
+                className="h-5 w-5 text-text-muted hover:text-accent" title="New campaign for this brand">
+                <PlusIcon className="w-3 h-3" />
+              </Button>
+            )}
+            <Button variant="ghost" size="icon-xs" onClick={(e) => { e.stopPropagation(); setRenameValue(brand); setIsRenaming(true) }}
+              className="h-5 w-5 text-text-muted hover:text-text-primary" title="Rename brand">
+              <PencilIcon className="w-3 h-3" />
+            </Button>
+            <Button variant="ghost" size="icon-xs" onClick={(e) => { e.stopPropagation(); handleDeleteBrand() }}
+              className="h-5 w-5 text-text-muted hover:text-error" title="Delete brand">
+              <Trash2Icon className="w-3 h-3" />
+            </Button>
+          </div>
+        )}
+      </div>
+
+      <CollapsibleContent>
+        <div className="ml-3 pl-2 border-l border-border space-y-0.5 py-0.5">
+          {campaigns.map((campaign) => (
+            <CampaignItem
+              key={campaign.id}
+              campaign={campaign}
+              isActive={activeCampaignId === campaign.id && !isCreatingCampaign}
+              onSelect={() => onCampaignSelect(campaign.id)}
+            />
+          ))}
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
   )
 }
 
@@ -303,23 +487,9 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
           </span>
         </button>
 
-        {/* Actions */}
+        {/* Actions — rename + delete only */}
         {showActions && (
           <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={(e) => {
-                e.stopPropagation()
-                const store = useStore.getState()
-                store.setSourceCampaign(campaign.id, campaign.name)
-                store.setIsCreatingCampaign(true)
-              }}
-              className="h-5 w-5 text-text-muted hover:text-accent"
-              title="New campaign from this brand"
-            >
-              <CopyPlusIcon className="w-3 h-3" />
-            </Button>
             <Button
               variant="ghost"
               size="icon-xs"

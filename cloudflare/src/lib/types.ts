@@ -11,6 +11,7 @@ export interface ClientMessage {
   assetFileIds?: string[];
   sourceCampaignId?: string;
   aspectRatio?: '4:5' | '1:1' | '9:16';
+  brand?: string;
 }
 
 // Hook types for ad concepts

@@ -530,7 +530,7 @@ export class CampaignSession implements DurableObject {
     switch (message.type) {
       case 'generate':
         if (message.prompt) {
-          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio);
+          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio, message.brand);
         }
         break;
 
@@ -571,7 +571,7 @@ export class CampaignSession implements DurableObject {
 
   // ─── Message Handlers ─────────────────────────────────────────
 
-  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string): Promise<void> {
+  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string, brand?: string): Promise<void> {
     this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0, source: sourceCampaignId || 'none' });
     if (this.isGenerating) {
       this.trace('handler', 'generate.blocked', { reason: 'already_generating' });
@@ -595,7 +595,7 @@ export class CampaignSession implements DurableObject {
     try {
       let campaign = await db.getCampaignBySessionId(this.env.DB, sessionId);
       if (!campaign) {
-        campaign = await db.createCampaign(this.env.DB, this.userId, campaignName, sessionId);
+        campaign = await db.createCampaign(this.env.DB, this.userId, campaignName, sessionId, brand);
       } else if (campaign.user_id !== this.userId) {
         // Fix stale user_id from a previous DO reset that created campaign as 'anonymous'
         await this.env.DB.prepare('UPDATE campaigns SET user_id = ? WHERE id = ?')
