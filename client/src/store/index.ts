@@ -737,7 +737,7 @@ export const useStore = create<Store>((set, get) => ({
     chatMessages: {
       ...state.chatMessages,
       [campaignId]: (state.chatMessages[campaignId] || []).map(msg =>
-        msg.id === messageId ? { ...msg, content: (msg.content || '') + text } : msg
+        msg.id === messageId ? { ...msg, content: (msg.content || '') + (msg.content ? '\n' : '') + text } : msg
       )
     }
   })),
@@ -752,7 +752,7 @@ export const useStore = create<Store>((set, get) => ({
         const blocks = [...(msg.blocks || [])]
         const lastBlock = blocks[blocks.length - 1]
         if (lastBlock && lastBlock.type === 'text') {
-          blocks[blocks.length - 1] = { ...lastBlock, content: lastBlock.content + text }
+          blocks[blocks.length - 1] = { ...lastBlock, content: lastBlock.content + '\n' + text }
         } else {
           blocks.push({ type: 'text', id: generateBlockId('txt'), content: text })
         }
