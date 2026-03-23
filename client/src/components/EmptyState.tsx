@@ -14,7 +14,7 @@ const EXAMPLES = [
 ]
 
 export function EmptyState() {
-  const { prompt, setPrompt, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration } = useStore()
+  const { prompt, setPrompt, selectedAspectRatio, setSelectedAspectRatio, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration } = useStore()
   const { setMobileDrawerOpen, setMobileAssetsOpen } = useSidebars()
   const { isConnected, generate, connectionState } = useWebSocket()
   const { requireAuth } = useRequireAuth()
@@ -29,7 +29,7 @@ export function EmptyState() {
       requireAuth(() => {
         // Already signed in — clear saved prompt and generate immediately
         sessionStorage.removeItem('creative-agent:pendingPrompt')
-        generate(prompt.trim())
+        generate(prompt.trim(), undefined, selectedAspectRatio)
       })
     }
   }
@@ -42,7 +42,7 @@ export function EmptyState() {
       const savedPrompt = sessionStorage.getItem('creative-agent:pendingPrompt') || prompt
       if (savedPrompt.trim()) {
         sessionStorage.removeItem('creative-agent:pendingPrompt')
-        generate(savedPrompt.trim())
+        generate(savedPrompt.trim(), undefined, selectedAspectRatio)
       }
     }
   }, [pendingGeneration, isConnected, setPendingGeneration, generate, prompt])
@@ -117,6 +117,26 @@ export function EmptyState() {
             <ArrowRight className="w-4 h-4" />
           </Button>
         </form>
+
+        {/* Aspect ratio selector */}
+        <div className="flex justify-center">
+          <div className="inline-flex items-center gap-1 p-1 rounded-lg bg-bg-raised border border-border">
+            {(['4:5', '1:1', '9:16'] as const).map((ratio) => (
+              <button
+                key={ratio}
+                type="button"
+                onClick={() => setSelectedAspectRatio(ratio)}
+                className={`px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 ${
+                  selectedAspectRatio === ratio
+                    ? 'bg-accent text-white shadow-sm'
+                    : 'text-text-muted hover:text-text-secondary'
+                }`}
+              >
+                {ratio === '4:5' ? '4:5 Feed' : ratio === '1:1' ? '1:1 Square' : '9:16 Story'}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Connection status */}
         <div className="flex justify-center">

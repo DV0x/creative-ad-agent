@@ -109,6 +109,8 @@ interface Store {
   // Generation
   prompt: string
   setPrompt: (prompt: string) => void
+  selectedAspectRatio: '4:5' | '1:1' | '9:16'
+  setSelectedAspectRatio: (ratio: '4:5' | '1:1' | '9:16') => void
   pendingGeneration: boolean
   setPendingGeneration: (pending: boolean) => void
 
@@ -451,6 +453,8 @@ export const useStore = create<Store>((set, get) => ({
   // Generation
   prompt: '',
   setPrompt: (prompt) => set({ prompt }),
+  selectedAspectRatio: '4:5',
+  setSelectedAspectRatio: (selectedAspectRatio) => set({ selectedAspectRatio }),
   pendingGeneration: false,
   setPendingGeneration: (pendingGeneration) => set({ pendingGeneration }),
 

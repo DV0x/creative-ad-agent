@@ -71,10 +71,10 @@ export interface UseWebSocketReturn {
   connectionState: WSConnectionState;
   isConnected: boolean;
   isRecovering: boolean;
-  generate: (prompt: string, assetFileIds?: string[]) => void;
+  generate: (prompt: string, assetFileIds?: string[], aspectRatio?: string) => void;
   cancel: () => void;
   resume: (campaignId: string, resumePrompt: string) => void;
-  followUp: (campaignId: string, prompt: string, assetFileIds?: string[]) => void;
+  followUp: (campaignId: string, prompt: string, assetFileIds?: string[], aspectRatio?: string) => void;
 }
 
 export function useWebSocket(): UseWebSocketReturn {
@@ -361,7 +361,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
   // ── Actions ────────────────────────────────────────────────
 
-  const generate = useCallback((prompt: string, assetFileIds?: string[]) => {
+  const generate = useCallback((prompt: string, assetFileIds?: string[], aspectRatio?: string) => {
     if (!prompt.trim()) return;
 
     const store = useStore.getState();
@@ -386,6 +386,7 @@ export function useWebSocket(): UseWebSocketReturn {
       sessionId,
       ...(sourceCampaignId ? { sourceCampaignId } : {}),
       ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
+      ...(aspectRatio ? { aspectRatio } : {}),
     });
 
     // Clear source campaign state after sending
@@ -440,7 +441,7 @@ export function useWebSocket(): UseWebSocketReturn {
     }
   }, []);
 
-  const followUp = useCallback((campaignId: string, prompt: string, assetFileIds?: string[]) => {
+  const followUp = useCallback((campaignId: string, prompt: string, assetFileIds?: string[], aspectRatio?: string) => {
     if (!prompt.trim()) return;
 
     const store = useStore.getState();
@@ -461,6 +462,7 @@ export function useWebSocket(): UseWebSocketReturn {
       prompt,
       campaignId,
       ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
+      ...(aspectRatio ? { aspectRatio } : {}),
     });
 
     if (!sent) {

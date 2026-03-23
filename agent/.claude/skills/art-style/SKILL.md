@@ -166,7 +166,7 @@ For each hook-style pair:
   Pass the hook's Visual Direction note to the workflow — the visual must SHOW
     what the copy SAYS (anti-duplication: don't render the headline as the entire visual)
   Generate 1 prompt for the assigned hook
-  Specify aspect ratio (alternate across the set for coverage)
+  Use the aspect ratio specified in the user's prompt (look for [ASPECT RATIO: X:Y] instruction)
 ```
 
 ### Step 5: Validate Entity ID Distinctness
@@ -182,14 +182,16 @@ Combine all prompts into single {brand}_prompts.json
 Each concept includes its style identifier
 ```
 
-### Aspect Ratio Distribution
+### Aspect Ratio
 
-Across the 6 prompts, ensure coverage of all three aspect ratios:
-- 2x at 4:5 (1080x1350) — Feed optimized
-- 2x at 1:1 (1080x1080) — Feed standard / carousel
-- 2x at 9:16 (1080x1920) — Reels / Stories
+The user selects a single aspect ratio before generating. Look for `[ASPECT RATIO: X:Y]` in the prompt and use that ratio for ALL concepts. Do not vary or rotate ratios — every prompt gets the same one.
 
-Alternate aspect ratios across hooks — don't cluster all of one ratio in one style.
+Supported ratios and their dimensions:
+- 4:5 → 1080x1350 (Feed optimized)
+- 1:1 → 1080x1080 (Feed standard / carousel)
+- 9:16 → 1080x1920 (Reels / Stories)
+
+If no `[ASPECT RATIO]` instruction is present, default to 4:5.
 
 ---
 
@@ -265,8 +267,8 @@ When running multi-style, all prompts from all styles are combined into a single
         "...style-specific fields...": "varies per workflow"
       },
       "prompt": "Full prompt text...",
-      "aspectRatio": "4:5|1:1|9:16",
-      "dimensions": "1080x1350|1080x1080|1080x1920"
+      "aspectRatio": "user-specified ratio (4:5, 1:1, or 9:16)",
+      "dimensions": "matching dimensions (1080x1350, 1080x1080, or 1080x1920)"
     }
   ]
 }

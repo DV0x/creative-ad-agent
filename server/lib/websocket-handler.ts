@@ -22,6 +22,8 @@ interface ClientMessage {
   campaignId?: string;
   lastEventId?: number;
   assetFileIds?: string[];
+  sourceCampaignId?: string;
+  aspectRatio?: '4:5' | '1:1' | '9:16';
 }
 
 // ── Asset attachment resolution ────────────────────────────────
@@ -501,7 +503,7 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
   }
 }
 
-async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string) {
+async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string) {
   if (state.isGenerating) {
     send(state.ws, {
       type: 'error',
@@ -685,6 +687,11 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       console.log(`📎 [ASSET DEBUG] Final prompt injected:\n${aiPrompt.slice(-300)}`);
     } else {
       console.log(`📎 [ASSET DEBUG] No assetFileIds — generating without reference images`);
+    }
+
+    // Inject aspect ratio instruction
+    if (aspectRatio) {
+      aiPrompt = `${aiPrompt}\n\n[ASPECT RATIO: ${aspectRatio} — Generate ALL images at this aspect ratio. Do not vary or rotate aspect ratios across concepts. Every prompt in prompts.json must use aspectRatio "${aspectRatio}" with dimensions "${aspectRatio === '4:5' ? '1080x1350' : aspectRatio === '1:1' ? '1080x1080' : '1080x1920'}". Pass --aspect ${aspectRatio} to generate_ad_images.]`;
     }
 
     // Process SDK stream — pass the handler's abort controller so cancel
@@ -961,7 +968,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   }
 }
 
-async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string, assetFileIds?: string[]) {
+async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string, assetFileIds?: string[], aspectRatio?: string) {
   // Concurrency guard — reject if already processing
   if (state.isGenerating) {
     send(state.ws, {
@@ -1110,6 +1117,11 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       console.log(`📎 [ASSET DEBUG] Follow-up final prompt tail:\n${aiPrompt.slice(-300)}`);
     } else {
       console.log(`📎 [ASSET DEBUG] Follow-up — no assetFileIds`);
+    }
+
+    // Inject aspect ratio instruction
+    if (aspectRatio) {
+      aiPrompt = `${aiPrompt}\n\n[ASPECT RATIO: ${aspectRatio} — Generate ALL images at this aspect ratio. Do not vary or rotate aspect ratios across concepts. Every prompt in prompts.json must use aspectRatio "${aspectRatio}" with dimensions "${aspectRatio === '4:5' ? '1080x1350' : aspectRatio === '1:1' ? '1080x1080' : '1080x1920'}". Pass --aspect ${aspectRatio} to generate_ad_images.]`;
     }
 
     let wasCancelled = false;
@@ -1465,7 +1477,7 @@ export function initWebSocket(server: Server): WebSocketServer {
           case 'generate':
             if (message.prompt) {
               console.log(`📎 [ASSET DEBUG] WS 'generate' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
-              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId);
+              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio);
             }
             break;
 
@@ -1484,7 +1496,7 @@ export function initWebSocket(server: Server): WebSocketServer {
           case 'follow_up':
             if (message.prompt && message.campaignId) {
               console.log(`📎 [ASSET DEBUG] WS 'follow_up' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
-              handleFollowUp(state, message.prompt, message.campaignId, message.assetFileIds);
+              handleFollowUp(state, message.prompt, message.campaignId, message.assetFileIds, message.aspectRatio);
             }
             break;
 

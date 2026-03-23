@@ -10,6 +10,7 @@ export interface ClientMessage {
   lastEventId?: number;
   assetFileIds?: string[];
   sourceCampaignId?: string;
+  aspectRatio?: '4:5' | '1:1' | '9:16';
 }
 
 // Hook types for ad concepts

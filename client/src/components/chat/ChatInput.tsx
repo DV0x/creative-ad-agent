@@ -23,6 +23,8 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
     toggleImageSelection,
     clearImageSelection,
     getSelectedImages,
+    selectedAspectRatio,
+    setSelectedAspectRatio,
   } = useStore()
 
   const mentionRef = useRef<AssetMentionHandle>(null)
@@ -99,6 +101,24 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
             ))}
           </div>
         )}
+
+        {/* Aspect ratio selector */}
+        <div className="flex items-center gap-1 mb-1">
+          {(['4:5', '1:1', '9:16'] as const).map((ratio) => (
+            <button
+              key={ratio}
+              type="button"
+              onClick={() => setSelectedAspectRatio(ratio)}
+              className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all duration-150 ${
+                selectedAspectRatio === ratio
+                  ? 'bg-accent/20 text-accent border border-accent/30'
+                  : 'text-text-muted hover:text-text-secondary border border-transparent'
+              }`}
+            >
+              {ratio}
+            </button>
+          ))}
+        </div>
 
         {/* Input container */}
         <div className="relative flex items-end gap-2 rounded-xl border border-border bg-bg-elevated p-1.5 pl-2 transition-colors focus-within:border-border-emphasis">

@@ -33,16 +33,17 @@ export function ChatSidebar() {
     imageRefs: { imageId: number }[]
   }) => {
     const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
+    const { selectedAspectRatio } = useStore.getState()
 
     // When creating a new campaign, trigger generation via WebSocket
     if (isCreatingCampaign && message.content.trim() && isConnected) {
-      generate(message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined)
+      generate(message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined, selectedAspectRatio)
       return
     }
 
     // Existing campaign: send follow-up to AI
     if (activeCampaignId && message.content.trim()) {
-      followUp(activeCampaignId, message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined)
+      followUp(activeCampaignId, message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined, selectedAspectRatio)
     }
   }
 

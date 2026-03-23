@@ -530,13 +530,13 @@ export class CampaignSession implements DurableObject {
     switch (message.type) {
       case 'generate':
         if (message.prompt) {
-          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId);
+          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio);
         }
         break;
 
       case 'follow_up':
         if (message.prompt && message.campaignId) {
-          await this.handleFollowUp(message.prompt, message.campaignId, message.assetFileIds);
+          await this.handleFollowUp(message.prompt, message.campaignId, message.assetFileIds, message.aspectRatio);
         }
         break;
 
@@ -571,7 +571,7 @@ export class CampaignSession implements DurableObject {
 
   // ─── Message Handlers ─────────────────────────────────────────
 
-  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string): Promise<void> {
+  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string): Promise<void> {
     this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0, source: sourceCampaignId || 'none' });
     if (this.isGenerating) {
       this.trace('handler', 'generate.blocked', { reason: 'already_generating' });
@@ -680,6 +680,11 @@ export class CampaignSession implements DurableObject {
       aiPrompt = `${aiPrompt}\n\n[SYSTEM NOTE: Brand research has already been completed and is available at /app/agent/files/research/restored_research.md. Do NOT run the research agent or ask for a URL. Follow these steps:\n1. Read the research file with the Read tool\n2. Run the hook-methodology skill to generate hooks based on the research AND the user's campaign brief\n3. Run the art-style skill to create visual prompts from the hooks\n4. Generate images using the MCP tool\nProceed now — start by reading the research file.]`;
     }
 
+    // Inject aspect ratio instruction
+    if (aspectRatio) {
+      aiPrompt = `${aiPrompt}\n\n[ASPECT RATIO: ${aspectRatio} — Generate ALL images at this aspect ratio. Do not vary or rotate aspect ratios across concepts. Every prompt in prompts.json must use aspectRatio "${aspectRatio}" with dimensions "${aspectRatio === '4:5' ? '1080x1350' : aspectRatio === '1:1' ? '1080x1080' : '1080x1920'}". Pass --aspect ${aspectRatio} to generate_ad_images.]`;
+    }
+
     // Start alarm heartbeat — prevents DO from hibernating while generation runs
     this.startKeepAlive();
     this.trace('handler', 'generate.fireAndForget', { sessionId, campaignId: this.campaignId, hasSourceResearch: this.hasSourceResearch });
@@ -693,7 +698,7 @@ export class CampaignSession implements DurableObject {
     });
   }
 
-  private async handleFollowUp(prompt: string, campaignId: string, assetFileIds?: string[]): Promise<void> {
+  private async handleFollowUp(prompt: string, campaignId: string, assetFileIds?: string[], aspectRatio?: string): Promise<void> {
     this.trace('handler', 'followUp.enter', { promptLen: prompt.length, campaignId, assets: assetFileIds?.length || 0 });
     if (this.isGenerating) {
       this.trace('handler', 'followUp.blocked', { reason: 'already_generating' });
@@ -770,6 +775,11 @@ export class CampaignSession implements DurableObject {
         }
       } else {
         this.log(`[ASSET] Follow-up — no assetFileIds`);
+      }
+
+      // Inject aspect ratio instruction
+      if (aspectRatio) {
+        aiPrompt = `${aiPrompt}\n\n[ASPECT RATIO: ${aspectRatio} — Generate ALL images at this aspect ratio. Do not vary or rotate aspect ratios across concepts. Every prompt in prompts.json must use aspectRatio "${aspectRatio}" with dimensions "${aspectRatio === '4:5' ? '1080x1350' : aspectRatio === '1:1' ? '1080x1080' : '1080x1920'}". Pass --aspect ${aspectRatio} to generate_ad_images.]`;
       }
     } catch (err) {
       // Setup failed — clean up and return
@@ -1009,6 +1019,7 @@ export class CampaignSession implements DurableObject {
     const skipTimeout = skipRequestId ? Date.now() + 120_000 : 0;
     const streamStartTime = Date.now();
     let lineCount = 0;
+    const seenUuids = new Set<string>();
     this.trace('stream', 'enter', { label, skipRequestId: skipRequestId || 'none' });
 
     let cancelled = false;
@@ -1046,10 +1057,15 @@ export class CampaignSession implements DurableObject {
               continue;
             }
 
-            // Debug: log every parsed line type for duplication investigation
-            this.log(`[${label}][line ${lineCount}] type=${msg.type} uuid=${msg.uuid?.substring(0, 8) || '-'}`);
-
             if (msg.type === 'turn_complete' || msg.type === 'result') break;
+
+            // Deduplicate: SDK yields each message twice (streaming + final).
+            // Skip messages we've already processed by UUID.
+            if (msg.uuid) {
+              if (seenUuids.has(msg.uuid)) continue;
+              seenUuids.add(msg.uuid);
+            }
+
             await processSDKMessage(msg, ctx);
           } catch {
             // Non-JSON line — ignore
