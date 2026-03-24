@@ -1,7 +1,7 @@
 FROM node:22-slim
 
 # Add sandbox runtime from Cloudflare's image (must match @cloudflare/sandbox version)
-COPY --from=docker.io/cloudflare/sandbox:0.7.8 /container-server/sandbox /sandbox
+COPY --from=docker.io/cloudflare/sandbox:0.7.19 /container-server/sandbox /sandbox
 
 # Install s3fs-fuse + fuse for R2 bucket FUSE mount (required by sandbox.mountBucket())
 RUN apt-get update && apt-get install -y s3fs fuse && rm -rf /var/lib/apt/lists/*

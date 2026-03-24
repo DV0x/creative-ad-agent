@@ -300,7 +300,10 @@ export const nanoBananaMcpServer = createSdkMcpServer({
               console.log(`   Image ${i + 1} complete`);
 
             } catch (imageError: any) {
-              console.error(`   Failed to generate image ${i + 1}:`, imageError.message);
+              // Write to stdout (visible in DO logs) AND stderr
+              const errMsg = `[IMAGE_ERROR] Image ${i + 1} failed: ${imageError.message}`;
+              process.stdout.write(JSON.stringify({ type: 'trace', component: 'nano-banana', action: 'image_error', error: imageError.message, imageIndex: i + 1, ts: Date.now() }) + '\n');
+              console.error(errMsg);
               results.push({
                 id: `image_${i + 1}`,
                 error: imageError.message,

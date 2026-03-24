@@ -76,12 +76,90 @@
   // stream timeout that kills waitForLog prematurely. Stick with HTTP (default).
   // R2 alarm polling is the safety net for silent HTTP SSE hangs.
 
-  // Local dev environment (wrangler dev --env dev)
+  // --- Environments ---
+
   "env": {
+    // Local dev (wrangler dev --env dev)
     "dev": {
       "vars": {
         "AI_BACKEND": "local"
       }
+    },
+
+    // Staging: uses existing DB/R2, Clerk test keys
+    // Deploy: npx wrangler deploy --env staging
+    // URL: creative-agent-staging.alphasapien17.workers.dev
+    "staging": {
+      "name": "creative-agent-staging",
+      "vars": {
+        "R2_BUCKET_NAME": "creative-agent-assets"
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "creative-agent-db",
+          "database_id": "ddcd29d7-632c-4017-8f3b-9de6cdd8c5fe"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_BUCKET",
+          "bucket_name": "creative-agent-assets"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "CAMPAIGN_SESSION", "class_name": "CampaignSession" },
+          { "name": "SANDBOX", "class_name": "Sandbox" }
+        ]
+      },
+      "containers": [{
+        "class_name": "Sandbox",
+        "image": "./sandbox/Dockerfile",
+        "instance_type": "standard-2",
+        "max_instances": 50
+      }]
+    },
+
+    // Production: fresh DB/R2, Clerk live keys, custom domain
+    // Deploy: npx wrangler deploy --env production
+    // URL: app.creativemachines.xyz
+    "production": {
+      "name": "creative-agent-production",
+      "vars": {
+        "R2_BUCKET_NAME": "creative-agent-assets-prod"
+      },
+      "routes": [
+        {
+          "pattern": "app.creativemachines.xyz/*",
+          "zone_name": "creativemachines.xyz"
+        }
+      ],
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "creative-agent-db-prod",
+          "database_id": "8128f3b2-e5ba-4375-a601-825d400b259d"
+        }
+      ],
+      "r2_buckets": [
+        {
+          "binding": "R2_BUCKET",
+          "bucket_name": "creative-agent-assets-prod"
+        }
+      ],
+      "durable_objects": {
+        "bindings": [
+          { "name": "CAMPAIGN_SESSION", "class_name": "CampaignSession" },
+          { "name": "SANDBOX", "class_name": "Sandbox" }
+        ]
+      },
+      "containers": [{
+        "class_name": "Sandbox",
+        "image": "./sandbox/Dockerfile",
+        "instance_type": "standard-2",
+        "max_instances": 50
+      }]
     }
   }
 }

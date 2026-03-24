@@ -1127,7 +1127,7 @@ export class CampaignSession implements DurableObject {
 
       // Mount R2
       this.trace('setup', 'mountR2', { attempt });
-      await this.timedRPC('mountBucket', () => sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
+      await this.timedRPC('mountBucket', () => sandbox.mountBucket(this.env.R2_BUCKET_NAME, '/mnt/r2', {
         endpoint: `https://${this.env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
         provider: 'r2',
         credentials: {
@@ -1137,9 +1137,6 @@ export class CampaignSession implements DurableObject {
         readOnly: false,
         prefix: `/users/${this.userId}`,
       }));
-
-      // Clean stale Claude CLI auth cache
-      await this.timedRPC('cleanAuthCache', () => sandbox.exec('rm -f /mnt/r2/.claude/.credentials /mnt/r2/.claude/config.json /mnt/r2/.claude/auth.json 2>/dev/null; ls -la /mnt/r2/.claude/ 2>/dev/null || true'));
 
       // Pre-flight: test Anthropic API from sandbox to check if IP is blocked
       this.trace('setup', 'preflight', { attempt });
@@ -1261,7 +1258,7 @@ export class CampaignSession implements DurableObject {
         RESUME_SDK_SESSION_ID: '', // Never resume SDK session on cloudflare — JSONL via s3fs is unreliable. D1 hydration handles context.
         CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS: '1',
         CLAUDE_CODE_MAX_OUTPUT_TOKENS: '16384',
-        HOME: '/mnt/r2',
+        HOME: '/root',
         IMAGE_OUTPUT_DIR: '/mnt/r2/images',
       },
     }));

@@ -25,6 +25,7 @@ export interface Env {
 
   // Vars (set in wrangler.jsonc)
   CF_ACCOUNT_ID: string;
+  R2_BUCKET_NAME: string;
 
   // Optional: set to "local" for wrangler dev (bypasses sandbox, runs SDK in-process)
   AI_BACKEND?: string;
