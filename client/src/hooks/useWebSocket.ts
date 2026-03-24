@@ -141,11 +141,7 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'message':
           if (message.type === 'message' && 'text' in message && message.text && campaignId && messageId) {
             store.appendMessageContent(campaignId, messageId, message.text);
-            // Only show message text in UI during follow-ups (actual AI response).
-            // During initial generation, thinking blocks already show workflow progress.
-            if (store.isFollowUp) {
-              store.appendTextBlock(campaignId, messageId, message.text);
-            }
+            store.appendTextBlock(campaignId, messageId, message.text);
           }
           break;
 
