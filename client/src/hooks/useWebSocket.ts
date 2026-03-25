@@ -94,6 +94,7 @@ export function useWebSocket(): UseWebSocketReturn {
   // Session refs
   const sessionIdRef = useRef<string | null>(null);
   const lastEventIdRef = useRef<number>(0);
+  const seenTextsRef = useRef<Set<string>>(new Set());
 
   // ── Message handler ────────────────────────────────────────
 
@@ -140,7 +141,9 @@ export function useWebSocket(): UseWebSocketReturn {
 
         case 'message':
           if (message.type === 'message' && 'text' in message && message.text && campaignId && messageId) {
-            store.appendMessageContent(campaignId, messageId, message.text);
+            // Client-side dedup: skip if we've already seen this exact text
+            if (seenTextsRef.current.has(message.text)) break;
+            seenTextsRef.current.add(message.text);
             store.appendTextBlock(campaignId, messageId, message.text);
           }
           break;
@@ -373,6 +376,7 @@ export function useWebSocket(): UseWebSocketReturn {
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
+    seenTextsRef.current.clear();
 
     // Extract brand + campaign name from prompt, or inherit from source campaign
     const { sourceCampaignId, sourceCampaignName } = store;
@@ -441,6 +445,7 @@ export function useWebSocket(): UseWebSocketReturn {
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
+    seenTextsRef.current.clear();
 
     const { messageId } = store.resumeGeneration(sessionId, campaignId);
 
