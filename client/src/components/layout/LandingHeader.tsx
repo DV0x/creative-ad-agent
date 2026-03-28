@@ -1,6 +1,4 @@
-import { SignInButton, UserButton } from '@clerk/clerk-react';
-import { Sparkles } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { UserButton } from '@clerk/clerk-react';
 import { isDevMode } from '@/lib/auth';
 import { useRequireAuth } from '@/contexts/AuthContext';
 
@@ -8,43 +6,42 @@ export function LandingHeader() {
   const { isSignedIn, isLoaded } = useRequireAuth();
 
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 h-14 flex items-center justify-between px-4 md:px-6 bg-bg-base/80 backdrop-blur-sm border-b border-border/50">
-      {/* Logo */}
-      <div className="flex items-center gap-2">
-        <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-bg-elevated">
-          <Sparkles className="w-4 h-4 text-accent" />
-        </div>
-        <span className="font-semibold text-text-primary">Creative Agent</span>
-      </div>
+    <header className="fixed top-4 left-4 right-4 z-50 flex justify-center">
+      <div className="w-full max-w-5xl flex items-center justify-between px-5 py-2.5 rounded-full bg-[rgba(235,235,235,0.65)] backdrop-blur-2xl border border-white/70 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_4px_16px_rgba(0,0,0,0.04)]">
+        {/* Logo — two-weight wordmark */}
+        <span className="text-lg tracking-tight">
+          <span className="font-normal text-accent">Creative</span>
+          <span className="font-bold text-text-primary ml-1">Machines</span>
+        </span>
 
-      {/* Auth button */}
-      <div className="flex items-center gap-3">
-        {isDevMode() ? (
-          <span className="text-xs text-text-muted px-2 py-1 rounded bg-bg-raised">
-            Dev Mode
-          </span>
-        ) : !isLoaded ? (
-          <div className="w-20 h-9 rounded-lg bg-bg-raised animate-pulse" />
-        ) : isSignedIn ? (
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox: 'h-8 w-8',
-                userButtonPopoverCard: 'bg-bg-raised border border-border',
-                userButtonPopoverActionButton: 'text-text-primary hover:bg-bg-input',
-                userButtonPopoverActionButtonText: 'text-text-primary',
-                userButtonPopoverActionButtonIcon: 'text-text-muted',
-                userButtonPopoverFooter: 'hidden',
-              },
-            }}
-          />
-        ) : (
-          <SignInButton mode="modal">
-            <Button variant="outline" size="sm">
-              Log in
-            </Button>
-          </SignInButton>
-        )}
+        {/* Auth button — dark pill */}
+        <div className="flex items-center">
+          {isDevMode() ? (
+            <span className="text-xs text-text-muted px-3 py-1.5 rounded-full bg-bg-elevated">
+              Dev Mode
+            </span>
+          ) : isLoaded && isSignedIn ? (
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox: 'h-8 w-8',
+                  userButtonPopoverCard: 'bg-white border border-border shadow-lg',
+                  userButtonPopoverActionButton: 'text-text-primary hover:bg-bg-elevated',
+                  userButtonPopoverActionButtonText: 'text-text-primary',
+                  userButtonPopoverActionButtonIcon: 'text-text-muted',
+                  userButtonPopoverFooter: 'hidden',
+                },
+              }}
+            />
+          ) : (
+            <a
+              href="/sign-in"
+              className="px-4 py-2 rounded-full bg-text-primary text-white text-sm font-medium hover:bg-text-primary/90 transition-colors duration-150 no-underline"
+            >
+              Login or Sign up
+            </a>
+          )}
+        </div>
       </div>
     </header>
   );

@@ -12,7 +12,14 @@ function Root() {
   }
 
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY!}>
+    <ClerkProvider
+      publishableKey={CLERK_PUBLISHABLE_KEY!}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-in"
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+      afterSignOutUrl="/"
+    >
       <App />
     </ClerkProvider>
   )

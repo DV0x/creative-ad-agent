@@ -1,4 +1,4 @@
-/* Import fonts - Studio Dark typography */
+/* Import fonts */
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
 
 @import "tailwindcss";
@@ -12,35 +12,36 @@
   --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Studio Dark - Background Layers */
-  --color-bg-base: #0f0f0f;
-  --color-bg-raised: #171717;
-  --color-bg-elevated: #1f1f1f;
-  --color-bg-overlay: #262626;
+  /* Monochrome - Background Layers (soft creative-tool palette) */
+  --color-bg-base: #F3F4F6;
+  --color-bg-raised: #F9FAFB;
+  --color-bg-elevated: #EDEEF0;
+  --color-bg-overlay: #E5E7EB;
+  --color-bg-input: #FFFFFF;
 
-  /* Text */
-  --color-text-primary: #f5f5f5;
-  --color-text-secondary: #a3a3a3;
-  --color-text-muted: #666666;
+  /* Text - Pure monochrome */
+  --color-text-primary: #111111;
+  --color-text-secondary: #666666;
+  --color-text-muted: #999999;
 
-  /* Borders */
-  --color-border: #2a2a2a;
-  --color-border-emphasis: #3a3a3a;
+  /* Borders - Cool gray */
+  --color-border: #E0E1E4;
+  --color-border-emphasis: #D1D3D8;
 
-  /* Accent - Electric Coral */
-  --color-accent: #ff6b6b;
-  --color-accent-hover: #e85555;
-  --color-accent-glow: rgba(255, 107, 107, 0.25);
+  /* Accent - Coral */
+  --color-accent: #E8553A;
+  --color-accent-hover: #D4442B;
+  --color-accent-subtle: rgba(232, 85, 58, 0.08);
 
-  /* Pop - Deep Blue */
-  --color-pop: #4361ee;
-  --color-pop-hover: #3651d4;
+  /* Pop - Slate (for secondary actions, code) */
+  --color-pop: #475569;
+  --color-pop-hover: #334155;
 
   /* Status Colors */
-  --color-success: #22c55e;
-  --color-warning: #eab308;
-  --color-error: #ef4444;
-  --color-info: #7c8cf5;
+  --color-success: #16a34a;
+  --color-warning: #ca8a04;
+  --color-error: #dc2626;
+  --color-info: #6366f1;
 
   /* Semantic Aliases */
   --color-background: var(--color-bg-base);
@@ -61,15 +62,11 @@
   --radius-lg: 12px;
   --radius-xl: 16px;
 
-  /* Shadows - more dramatic for dark theme */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
-  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.5);
-  --shadow-xl: 0 8px 32px rgba(0, 0, 0, 0.6);
-
-  /* Glow effects */
-  --glow-accent: 0 0 20px var(--color-accent-glow);
-  --glow-accent-lg: 0 0 40px var(--color-accent-glow);
+  /* Shadows - subtle for light theme */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.10);
 
   /* Animation */
   --duration-fast: 150ms;
@@ -79,38 +76,38 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* CSS Variables for shadcn compatibility - Dark theme */
+/* CSS Variables for shadcn compatibility - Monochrome light */
 :root {
-  --background: 0 0% 6%;
-  --foreground: 0 0% 96%;
-  --card: 0 0% 9%;
-  --card-foreground: 0 0% 96%;
-  --popover: 0 0% 9%;
-  --popover-foreground: 0 0% 96%;
-  --primary: 0 100% 71%;
+  --background: 0 0% 98%;
+  --foreground: 0 0% 7%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 7%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 0 0% 7%;
+  --primary: 11 78% 57%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 12%;
-  --secondary-foreground: 0 0% 96%;
-  --muted: 0 0% 15%;
-  --muted-foreground: 0 0% 64%;
-  --accent: 0 0% 15%;
-  --accent-foreground: 0 0% 96%;
-  --destructive: 0 84% 60%;
+  --secondary: 0 0% 96%;
+  --secondary-foreground: 0 0% 7%;
+  --muted: 0 0% 96%;
+  --muted-foreground: 0 0% 40%;
+  --accent: 0 0% 96%;
+  --accent-foreground: 0 0% 7%;
+  --destructive: 0 72% 51%;
   --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 16%;
-  --input: 0 0% 16%;
-  --ring: 0 100% 71%;
+  --border: 0 0% 90%;
+  --input: 0 0% 90%;
+  --ring: 11 78% 57%;
   --radius: 0.5rem;
 
-  /* Sidebar - Dark theme */
-  --sidebar: 0 0% 9%;
-  --sidebar-foreground: 0 0% 96%;
-  --sidebar-primary: 0 100% 71%;
+  /* Sidebar - Monochrome */
+  --sidebar: 0 0% 100%;
+  --sidebar-foreground: 0 0% 7%;
+  --sidebar-primary: 11 78% 57%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 12%;
-  --sidebar-accent-foreground: 0 0% 96%;
-  --sidebar-border: 0 0% 16%;
-  --sidebar-ring: 0 100% 71%;
+  --sidebar-accent: 0 0% 96%;
+  --sidebar-accent-foreground: 0 0% 7%;
+  --sidebar-border: 0 0% 90%;
+  --sidebar-ring: 11 78% 57%;
 }
 
 /* Theme inline for Tailwind */
@@ -166,30 +163,29 @@ body {
   color: white;
 }
 
-/* Focus states with glow */
-:focus-visible {
+/* Focus states — skip inputs/textareas that handle their own focus */
+:focus-visible:not(input):not(textarea):not([data-slot="input"]) {
   outline: 2px solid var(--color-accent);
   outline-offset: 2px;
-  box-shadow: var(--glow-accent);
 }
 
-/* Scrollbar - Dark theme */
+/* Scrollbar - Light theme */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--color-bg-raised);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: var(--color-border-emphasis);
-  border-radius: var(--radius-sm);
+  border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4a4a4a;
+  background: var(--color-text-muted);
 }
 
 /* Utility classes */
@@ -199,15 +195,6 @@ body {
 
 .font-mono {
   font-family: var(--font-mono);
-}
-
-/* Glow utilities */
-.glow-accent {
-  box-shadow: var(--glow-accent);
-}
-
-.glow-accent-lg {
-  box-shadow: var(--glow-accent-lg);
 }
 
 /* Animations */
@@ -259,15 +246,6 @@ body {
   to { transform: rotate(360deg); }
 }
 
-@keyframes glow-pulse {
-  0%, 100% {
-    box-shadow: 0 0 20px var(--color-accent-glow);
-  }
-  50% {
-    box-shadow: 0 0 40px var(--color-accent-glow), 0 0 60px var(--color-accent-glow);
-  }
-}
-
 /* Gradient mesh animation for landing page */
 @keyframes mesh-float {
   0%, 100% {
@@ -313,11 +291,11 @@ body {
 @keyframes dot-pulse {
   0%, 100% {
     transform: scale(1);
-    box-shadow: 0 0 0 0 var(--color-accent-glow);
+    opacity: 1;
   }
   50% {
     transform: scale(1.2);
-    box-shadow: 0 0 20px 4px var(--color-accent-glow);
+    opacity: 0.7;
   }
 }
 
@@ -345,12 +323,20 @@ body {
   animation: spin 1s linear infinite;
 }
 
-.animate-glow-pulse {
-  animation: glow-pulse 2s var(--ease-in-out) infinite;
-}
-
 .animate-dot-pulse {
   animation: dot-pulse 2s var(--ease-in-out) infinite;
+}
+
+/* Bento grid image entrance */
+@keyframes bentoIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }
 
 /* Gradient mesh background */
@@ -366,8 +352,8 @@ body {
   content: '';
   position: absolute;
   border-radius: 50%;
-  filter: blur(100px);
-  opacity: 0.4;
+  filter: blur(120px);
+  opacity: 0.12;
 }
 
 .gradient-mesh::before {
@@ -395,8 +381,8 @@ body {
   height: 400px;
   border-radius: 50%;
   filter: blur(120px);
-  opacity: 0.25;
-  background: radial-gradient(circle, #4361ee 0%, transparent 70%);
+  opacity: 0.08;
+  background: radial-gradient(circle, var(--color-pop) 0%, transparent 70%);
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
@@ -448,13 +434,13 @@ body {
   }
 }
 
-/* Button glow animation on focus for accessibility */
-@keyframes focus-glow {
+/* Button focus ring for accessibility */
+@keyframes focus-ring {
   0%, 100% {
-    box-shadow: 0 0 0 3px var(--color-accent-glow);
+    box-shadow: 0 0 0 3px var(--color-accent-subtle);
   }
   50% {
-    box-shadow: 0 0 0 5px var(--color-accent-glow);
+    box-shadow: 0 0 0 4px var(--color-accent-subtle);
   }
 }
 
@@ -469,6 +455,31 @@ body {
 
 [data-slot="button"][data-size^="icon"]:active {
   transform: scale(0.95);
+}
+
+/* Orbital spinner animations
+   3D Y-axis rotation with perspective on the parent.
+   Dots orbit front-to-back (not flat clockwise).
+   perspective: 60px on container creates the depth effect. */
+@keyframes orbit3d {
+  from { transform: rotateY(0deg); }
+  to { transform: rotateY(360deg); }
+}
+
+/* Legacy 2D orbit (used by Atom, Helix, PulseOrbit variants) */
+@keyframes orbit {
+  from { transform: rotate(0deg) translateX(40%) rotate(0deg); }
+  to { transform: rotate(360deg) translateX(40%) rotate(-360deg); }
+}
+
+@keyframes orbitReverse {
+  from { transform: rotate(360deg) translateX(40%) rotate(-360deg); }
+  to { transform: rotate(0deg) translateX(40%) rotate(0deg); }
+}
+
+@keyframes pulseRing {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
 }
 
 /* Loading skeleton animation */
@@ -538,7 +549,7 @@ body {
   box-shadow: var(--shadow-lg);
 }
 
-/* TipTap Editor Styles - Notion-like dark theme */
+/* TipTap Editor Styles */
 .ProseMirror {
   outline: none;
 }
@@ -676,7 +687,7 @@ body {
 
 /* Selection */
 .ProseMirror ::selection {
-  background: var(--color-accent-glow);
+  background: var(--color-accent-subtle);
 }
 
 /* Focus state for editor container */

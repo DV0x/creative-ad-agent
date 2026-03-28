@@ -275,7 +275,10 @@ function LeftSidebar({ open, width, onToggle, onResizeStart, isResizing }: Sideb
         open ? 'justify-between' : 'justify-center'
       )}>
         {open && (
-          <span className="text-sm font-medium text-text-secondary">Assets</span>
+          <span className="text-base tracking-tight">
+            <span className="font-normal text-accent">Creative</span>
+            <span className="font-bold text-text-primary ml-1">Machines</span>
+          </span>
         )}
         <Button
           variant="ghost"

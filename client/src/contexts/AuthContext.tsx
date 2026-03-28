@@ -1,5 +1,5 @@
 import { createContext, useContext, useCallback, useEffect, useRef, type ReactNode } from 'react';
-import { useAuth, useClerk } from '@clerk/clerk-react';
+import { useAuth } from '@clerk/clerk-react';
 import { isDevMode } from '@/lib/auth';
 
 interface AuthContextValue {
@@ -13,7 +13,6 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 // Provider for production mode (with Clerk)
 function ClerkAuthProvider({ children }: { children: ReactNode }) {
   const { isSignedIn, isLoaded } = useAuth();
-  const clerk = useClerk();
   const pendingCallback = useRef<(() => void) | null>(null);
   const prevSignedIn = useRef<boolean | undefined>(undefined);
 
@@ -33,13 +32,10 @@ function ClerkAuthProvider({ children }: { children: ReactNode }) {
         callback();
       } else {
         pendingCallback.current = callback;
-        clerk.openSignIn({
-          afterSignInUrl: window.location.href,
-          afterSignUpUrl: window.location.href,
-        });
+        window.location.href = '/sign-in';
       }
     },
-    [isSignedIn, clerk]
+    [isSignedIn]
   );
 
   return (

@@ -123,7 +123,7 @@
 
     // Production: fresh DB/R2, Clerk live keys, custom domain
     // Deploy: npx wrangler deploy --env production
-    // URL: app.creativemachines.xyz
+    // URL: creativemachines.xyz
     "production": {
       "name": "creative-agent-production",
       "vars": {
@@ -131,7 +131,7 @@
       },
       "routes": [
         {
-          "pattern": "app.creativemachines.xyz/*",
+          "pattern": "creativemachines.xyz/*",
           "zone_name": "creativemachines.xyz"
         }
       ],

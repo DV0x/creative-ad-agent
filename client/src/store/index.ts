@@ -245,8 +245,8 @@ function parseExpectedImageCount(prompt: string): number {
 // ============================================
 
 export const useStore = create<Store>((set, get) => ({
-  // App State
-  appState: 'landing',
+  // App State — initial value derived from URL
+  appState: (typeof window !== 'undefined' && window.location.pathname === '/workspace') ? 'workspace' : 'landing',
   setAppState: (appState) => set({ appState }),
 
   // Campaigns

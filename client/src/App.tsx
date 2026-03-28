@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { LandingHeader } from '@/components/layout/LandingHeader'
 import { EmptyState } from '@/components/EmptyState'
 import { ResultsView } from '@/components/ResultsView'
+import { SignIn } from '@/components/auth/SignIn'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useStore } from '@/store'
 import { isDevMode } from '@/lib/auth'
@@ -34,6 +35,28 @@ function AppContent() {
   const devAuth = { isSignedIn: true, isLoaded: true }
   const clerkAuth = isDevMode() ? devAuth : useAuth()
   const { isSignedIn, isLoaded } = clerkAuth
+
+  // Sync appState → URL
+  useEffect(() => {
+    const targetPath = appState === 'workspace' ? '/workspace' : '/'
+    if (window.location.pathname !== targetPath && window.location.pathname !== '/sign-in') {
+      window.history.pushState({}, '', targetPath)
+    }
+  }, [appState])
+
+  // Handle browser back/forward
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname
+      if (path === '/workspace') {
+        setAppState('workspace')
+      } else if (path === '/') {
+        setAppState('landing')
+      }
+    }
+    window.addEventListener('popstate', handlePopState)
+    return () => window.removeEventListener('popstate', handlePopState)
+  }, [setAppState])
 
   // Load data when user is signed in
   useEffect(() => {
@@ -247,7 +270,7 @@ function AppContent() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-base">
         <div className="text-center max-w-md">
-          <p className="text-red-400 mb-4">{loadError}</p>
+          <p className="text-red-600 mb-4">{loadError}</p>
           <button
             onClick={() => {
               setDataLoaded(false)
@@ -328,6 +351,12 @@ function DevModeApp() {
 function App() {
   if (isDevMode()) {
     return <DevModeApp />
+  }
+
+  // Handle /sign-in route (no React Router — simple path check)
+  const pathname = window.location.pathname
+  if (pathname === '/sign-in' || pathname === '/sign-up') {
+    return <SignIn />
   }
 
   return <AuthenticatedApp />

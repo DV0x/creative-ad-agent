@@ -58,10 +58,10 @@ export function ImageCard({
       className={cn(
         'relative rounded-xl overflow-hidden bg-bg-raised border transition-all duration-200 cursor-pointer animate-fadeIn',
         selected
-          ? 'border-accent shadow-[0_0_20px_var(--color-accent-glow)] ring-2 ring-accent ring-offset-2 ring-offset-bg-base'
+          ? 'border-accent ring-2 ring-accent ring-offset-2 ring-offset-bg-base shadow-lg'
           : isHovered
-            ? 'shadow-[0_0_30px_var(--color-accent-glow)] border-accent/50 -translate-y-1'
-            : 'border-border shadow-lg hover:shadow-xl'
+            ? 'shadow-lg border-accent/50 -translate-y-1'
+            : 'border-border shadow-md hover:shadow-lg'
       )}
       style={{ animationDelay: `${index * 100}ms` }}
       onMouseEnter={() => setIsHovered(true)}

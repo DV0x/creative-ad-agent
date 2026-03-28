@@ -115,7 +115,7 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
     editorProps: {
       attributes: {
         class:
-          'prose prose-invert prose-sm max-w-none focus:outline-none px-4 py-4',
+          'prose prose-sm max-w-none focus:outline-none px-4 py-4',
       },
     },
     onUpdate: ({ editor }) => {

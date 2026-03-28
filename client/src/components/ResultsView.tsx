@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Download, FolderIcon, ImageIcon, MessageSquare, X, RefreshCw } from 'lucide-react'
+import { Download, FolderIcon, ImageIcon, MessageSquare, X, RefreshCw, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageCard, ImageCardSkeleton } from '@/components/ImageCard'
 import { ImageLightbox } from '@/components/ImageLightbox'
@@ -7,6 +7,7 @@ import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { formatCampaignName } from '@/lib/utils'
 import { useWebSocket } from '@/hooks/useWebSocket'
+import { authFetchBlob } from '@/lib/api'
 
 export function ResultsView() {
   const {
@@ -20,6 +21,7 @@ export function ResultsView() {
   // Lightbox state
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
+  const [isSavingAll, setIsSavingAll] = useState(false)
 
   const openLightbox = useCallback((index: number) => {
     setLightboxIndex(index)
@@ -61,6 +63,37 @@ Please continue from where we left off and complete the remaining images.`
 
     resume(campaign.id, resumePrompt)
   }
+
+  const handleSaveAll = useCallback(async () => {
+    if (!campaign || campaign.images.length === 0 || isSavingAll) return
+    setIsSavingAll(true)
+    const name = formatCampaignName(campaign.name).replace(/\s+/g, '-').toLowerCase()
+    for (let i = 0; i < campaign.images.length; i++) {
+      const img = campaign.images[i]
+      try {
+        const blobUrl = await authFetchBlob(img.url)
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.download = `${name}-${i + 1}.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(blobUrl)
+      } catch {
+        const link = document.createElement('a')
+        link.href = img.url
+        link.download = `${name}-${i + 1}.png`
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+      }
+      // Small delay between downloads so browser doesn't block them
+      if (i < campaign.images.length - 1) {
+        await new Promise(r => setTimeout(r, 300))
+      }
+    }
+    setIsSavingAll(false)
+  }, [campaign, isSavingAll])
 
   const handleMobileChatClick = () => {
     setMobileDrawerOpen(true)
@@ -121,9 +154,9 @@ Please continue from where we left off and complete the remaining images.`
               </Button>
             )}
             {campaign.images.length > 0 && (
-              <Button variant="outline" size="sm">
-                <Download className="w-4 h-4" />
-                <span className="hidden sm:inline">Save All</span>
+              <Button variant="outline" size="sm" onClick={handleSaveAll} disabled={isSavingAll}>
+                {isSavingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+                <span className="hidden sm:inline">{isSavingAll ? 'Saving...' : 'Save All'}</span>
               </Button>
             )}
           </div>
