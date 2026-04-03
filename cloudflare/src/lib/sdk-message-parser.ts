@@ -169,47 +169,54 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
           }
         }
 
-        // Detect phase from tool usage
+        // Detect phase from tool usage — enrich labels with context
         if (block.name === 'Task') {
           const agentType = block.input?.subagent_type;
           if (agentType === 'Explore' || block.input?.description?.toLowerCase().includes('research')) {
+            // Try to extract brand/URL from task description
+            const desc = (block.input?.description || block.input?.prompt || '') as string;
+            const urlMatch = desc.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)\.[a-z]+/i);
+            const label = urlMatch ? `Researching ${urlMatch[1]}` : 'Researching brand';
             emitEvent({
               type: 'phase',
               timestamp: new Date().toISOString(),
               phase: 'research',
-              label: 'Researching',
+              label,
             });
-            blockBuilder.openThinkingBlock('Researching');
+            blockBuilder.openThinkingBlock(label);
           }
         } else if (block.name === 'Skill') {
           const skillName = block.input?.skill;
           if (skillName === 'hook-methodology') {
+            const label = 'Writing 6 ad hooks';
             emitEvent({
               type: 'phase',
               timestamp: new Date().toISOString(),
               phase: 'hooks',
-              label: 'Generating Hooks',
+              label,
             });
-            blockBuilder.openThinkingBlock('Generating Hooks');
+            blockBuilder.openThinkingBlock(label);
           } else if (skillName === 'art-style') {
+            const label = 'Crafting art direction';
             emitEvent({
               type: 'phase',
               timestamp: new Date().toISOString(),
               phase: 'art',
-              label: 'Creating Art Direction',
+              label,
             });
-            blockBuilder.openThinkingBlock('Creating Art Direction');
+            blockBuilder.openThinkingBlock(label);
           }
         } else if (block.name === 'mcp__nano-banana__generate_ad_images') {
           const promptCount = Array.isArray(block.input?.prompts) ? block.input.prompts.length : undefined;
+          const label = promptCount ? `Generating ${promptCount} images` : 'Generating images';
           emitEvent({
             type: 'phase',
             timestamp: new Date().toISOString(),
             phase: 'images',
-            label: 'Generating Images',
+            label,
             imageCount: promptCount,
           });
-          blockBuilder.openThinkingBlock('Generating Images', promptCount || 0);
+          blockBuilder.openThinkingBlock(label, promptCount || 0);
         }
       }
     }

@@ -94,7 +94,6 @@ export function useWebSocket(): UseWebSocketReturn {
   // Session refs
   const sessionIdRef = useRef<string | null>(null);
   const lastEventIdRef = useRef<number>(0);
-  const seenTextsRef = useRef<Set<string>>(new Set());
 
   // ── Message handler ────────────────────────────────────────
 
@@ -158,10 +157,9 @@ export function useWebSocket(): UseWebSocketReturn {
           break;
 
         case 'message':
+          // Fallback for local runner and recovery — server-side hasStreamedDeltas
+          // suppresses this event when deltas were streamed
           if (message.type === 'message' && 'text' in message && message.text && campaignId && messageId) {
-            // Client-side dedup: skip if we've already seen this exact text
-            if (seenTextsRef.current.has(message.text)) break;
-            seenTextsRef.current.add(message.text);
             store.appendTextBlock(campaignId, messageId, message.text);
           }
           break;
@@ -213,9 +211,12 @@ export function useWebSocket(): UseWebSocketReturn {
               `Created ${imgCount} ad concept${imgCount !== 1 ? 's' : ''}. You can edit the hooks and prompts in the sidebar, or select images to regenerate them.`;
 
             store.closeThinkingBlock(campaignId, messageId, 'complete');
-            // Only add summary text block for initial generation (not follow-ups).
-            // Follow-ups already have the AI response in text blocks from message events.
-            if (!store.isFollowUp) {
+            // Only add summary text if no text blocks already exist from streaming.
+            // Follow-ups have streamed text; initial generation may also have deltas.
+            const msgs = store.chatMessages[campaignId] || [];
+            const msg = msgs.find(m => m.id === messageId);
+            const hasStreamedText = msg?.blocks?.some(b => b.type === 'text') ?? false;
+            if (!hasStreamedText && !store.isFollowUp) {
               store.appendTextBlock(campaignId, messageId, summary);
             }
             store.completeGeneration(campaignId, messageId, summary);
@@ -394,7 +395,6 @@ export function useWebSocket(): UseWebSocketReturn {
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
-    seenTextsRef.current.clear();
 
     // Extract brand + campaign name from prompt, or inherit from source campaign
     const { sourceCampaignId, sourceCampaignName } = store;
@@ -463,7 +463,6 @@ export function useWebSocket(): UseWebSocketReturn {
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
     lastEventIdRef.current = 0;
-    seenTextsRef.current.clear();
 
     const { messageId } = store.resumeGeneration(sessionId, campaignId);
 
