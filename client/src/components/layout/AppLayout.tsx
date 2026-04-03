@@ -18,6 +18,7 @@ import { useStore } from '@/store'
 const SIDEBAR_MIN_WIDTH = 200
 const SIDEBAR_MAX_WIDTH = 480
 const SIDEBAR_DEFAULT_WIDTH = 256 // 16rem
+const RIGHT_SIDEBAR_DEFAULT_WIDTH = 480 // max width — chat open wide by default
 const SIDEBAR_COLLAPSED_WIDTH = 48 // 3rem
 const EDITOR_MIN_WIDTH = 300
 const EDITOR_MAX_WIDTH = 600
@@ -73,7 +74,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [leftOpen, setLeftOpen] = React.useState(false)
   const [rightOpen, setRightOpen] = React.useState(false)
   const [leftWidth, setLeftWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_LEFT_WIDTH, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
-  const [rightWidth, setRightWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_RIGHT_WIDTH, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
+  const [rightWidth, setRightWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_RIGHT_WIDTH, RIGHT_SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
   const [editorWidth, setEditorWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_EDITOR_WIDTH, EDITOR_DEFAULT_WIDTH, EDITOR_MIN_WIDTH, EDITOR_MAX_WIDTH))
   const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false)
   const [mobileAssetsOpen, setMobileAssetsOpen] = React.useState(false)

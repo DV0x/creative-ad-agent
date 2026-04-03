@@ -9,7 +9,6 @@ import {
   FileIcon,
   FileTextIcon,
   ChevronRightIcon,
-  SparklesIcon,
   PencilIcon,
   CheckIcon,
   XIcon,
@@ -169,8 +168,8 @@ function CampaignsSection() {
         <div className="space-y-1">
           {/* New Campaign indicator */}
           {isCreatingCampaign && (
-            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-accent/10 text-accent">
-              <SparklesIcon className="w-4 h-4" />
+            <div className="flex items-center gap-2 px-2 py-1.5 rounded-md bg-accent/8 text-accent">
+              <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
               <span className="text-sm font-medium">New Campaign</span>
             </div>
           )}
@@ -202,7 +201,7 @@ function CampaignsSection() {
 
           {campaigns.length === 0 && !isCreatingCampaign && (
             <div className="text-center py-4 px-2">
-              <SparklesIcon className="w-5 h-5 text-text-muted mx-auto mb-2" />
+              <ImageIcon className="w-5 h-5 text-text-muted mx-auto mb-2" />
               <p className="text-xs text-text-muted">
                 No campaigns yet
               </p>
@@ -413,7 +412,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
   if (isRenaming) {
     return (
       <div className="flex items-center gap-1 px-2 py-1">
-        <SparklesIcon className="w-4 h-4 text-accent shrink-0" />
+        <span className="w-2 h-2 rounded-full bg-accent shrink-0" />
         <Input
           autoFocus
           value={renamingValue}
@@ -475,9 +474,9 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
             isActive && 'bg-accent/10 text-accent'
           )}
         >
-          <SparklesIcon className={cn(
-            'w-4 h-4 shrink-0',
-            isActive ? 'text-accent' : 'text-text-muted'
+          <span className={cn(
+            'w-2 h-2 rounded-full shrink-0',
+            isActive ? 'bg-accent' : 'bg-text-muted/40'
           )} />
           <span className={cn(
             'flex-1 text-left truncate',
