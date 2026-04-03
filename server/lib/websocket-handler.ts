@@ -203,15 +203,26 @@ export function abortSession(sessionId: string): boolean {
   return false;
 }
 
-// Extract campaign name from prompt (e.g., "nike.com" -> "Nike")
+const COMMAND_PREFIX_RE = /^(?:create|make|generate|design|build|do|run|produce)\s+(?:an?\s+)?(?:single\s+|two\s+|three\s+|four\s+|five\s+|six\s+|\d+\s+)?(?:\d+\s+)?(?:ads?|campaigns?|creatives?|images?|visuals?)\s+(?:for\s+)?/i;
+
+// Extract campaign name from prompt (e.g., "create 2 ads for traya.health/ targeting 30+" -> "Traya — Targeting 30+")
 function extractCampaignName(prompt: string): string {
   const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
   if (domainMatch) {
-    const name = domainMatch[1];
-    return name.charAt(0).toUpperCase() + name.slice(1);
+    const brand = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
+    const withoutUrl = prompt.replace(/(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+\.[a-z]+\/?/gi, ' ');
+    const withoutPrefix = withoutUrl.replace(COMMAND_PREFIX_RE, '').replace(/^\s*[-–—:,/]\s*/, '').trim();
+    if (withoutPrefix) {
+      const raw = withoutPrefix.charAt(0).toUpperCase() + withoutPrefix.slice(1);
+      const brief = raw.length <= 40 ? raw : raw.substring(0, 40).replace(/\s+\S*$/, '');
+      return brief ? `${brand} — ${brief}` : `${brand} Ads`;
+    }
+    return `${brand} Ads`;
   }
-  const firstWord = prompt.split(/\s+/)[0] || 'Campaign';
-  return firstWord.charAt(0).toUpperCase() + firstWord.slice(1);
+  const stripped = prompt.replace(COMMAND_PREFIX_RE, '').trim();
+  const meaningful = stripped || prompt.trim();
+  const raw = meaningful.charAt(0).toUpperCase() + meaningful.slice(1);
+  return (raw.length <= 50 ? raw : raw.substring(0, 50).replace(/\s+\S*$/, '')) || 'Campaign';
 }
 
 function send(ws: WebSocket, message: ServerMessage) {

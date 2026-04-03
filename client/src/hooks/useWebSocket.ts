@@ -54,24 +54,34 @@ function saveLastEventId(sessionId: string, eventId: number): void {
   localStorage.setItem(STORAGE_KEYS.LAST_EVENT_ID(sessionId), String(eventId));
 }
 
+// Strip common command prefixes from prompts to extract the meaningful part
+const COMMAND_PREFIX_RE = /^(?:create|make|generate|design|build|do|run|produce)\s+(?:an?\s+)?(?:single\s+|two\s+|three\s+|four\s+|five\s+|six\s+|\d+\s+)?(?:\d+\s+)?(?:ads?|campaigns?|creatives?|images?|visuals?)\s+(?:for\s+)?/i;
+
 // Extract brand and campaign name from prompt
-// e.g., "bombayshirts.com - festive collection" -> { brand: "Bombayshirts", campaignName: "Festive Collection" }
-// e.g., "Local bakery in Austin" -> { brand: null, campaignName: "Local bakery in Austin" }
+// e.g., "create 2 ads for https://traya.health/ targeting 30+" -> { brand: "Traya", campaignName: "Traya Ads" }
+// e.g., "bombayshirts.com - festive collection" -> { brand: "Bombayshirts", campaignName: "Bombayshirts — Festive Collection" }
+// e.g., "Local bakery in Austin targeting foodies" -> { brand: null, campaignName: "Local Bakery in Austin" }
 function extractBrandAndName(prompt: string): { brand: string | null; campaignName: string } {
   const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
   if (domainMatch) {
     const brand = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
-    // Campaign name = everything after the URL, stripped of separators
-    const afterUrl = prompt.replace(domainMatch[0], '').replace(/^\s*[-–—:,]\s*/, '').trim();
-    const campaignName = afterUrl
-      ? afterUrl.charAt(0).toUpperCase() + afterUrl.slice(1)
-      : 'Campaign 1';
-    return { brand, campaignName };
+    // Strip the URL and any command prefix, then extract meaningful brief
+    const withoutUrl = prompt.replace(/(?:https?:\/\/)?(?:www\.)?[a-zA-Z0-9-]+\.[a-z]+\/?/gi, ' ');
+    const withoutPrefix = withoutUrl.replace(COMMAND_PREFIX_RE, '').replace(/^\s*[-–—:,/]\s*/, '').trim();
+    // Take the remaining meaningful text as a brief (max 40 chars, clean word boundary)
+    if (withoutPrefix) {
+      const raw = withoutPrefix.charAt(0).toUpperCase() + withoutPrefix.slice(1);
+      const brief = raw.length <= 40 ? raw : raw.substring(0, 40).replace(/\s+\S*$/, '');
+      return { brand, campaignName: brief ? `${brand} — ${brief}` : `${brand} Ads` };
+    }
+    return { brand, campaignName: `${brand} Ads` };
   }
-  // No URL — no brand, use full prompt as campaign name
-  const trimmed = prompt.trim();
-  const campaignName = trimmed.charAt(0).toUpperCase() + trimmed.slice(1);
-  return { brand: null, campaignName: campaignName.substring(0, 60) || 'Campaign' };
+  // No URL — strip command prefix, use meaningful part
+  const stripped = prompt.replace(COMMAND_PREFIX_RE, '').trim();
+  const meaningful = stripped || prompt.trim();
+  const raw = meaningful.charAt(0).toUpperCase() + meaningful.slice(1);
+  const campaignName = raw.length <= 50 ? raw : raw.substring(0, 50).replace(/\s+\S*$/, '');
+  return { brand: null, campaignName: campaignName || 'Campaign' };
 }
 
 // ── Hook ───────────────────────────────────────────────────────

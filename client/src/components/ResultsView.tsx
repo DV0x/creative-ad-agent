@@ -187,8 +187,8 @@ Please continue from where we left off and complete the remaining images.`
               )}
             </div>
 
-            {/* Empty state for campaigns with no images */}
-            {campaign.images.length === 0 && (
+            {/* Empty state for campaigns with no images (hidden during generation) */}
+            {campaign.images.length === 0 && !isGenerating && (
               <div className="text-center py-16 animate-fadeIn">
                 <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-bg-elevated border border-border flex items-center justify-center">
                   <ImageIcon className="w-8 h-8 text-text-muted" />

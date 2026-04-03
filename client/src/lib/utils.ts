@@ -5,15 +5,10 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-/** Extract a clean display name from a raw campaign prompt */
+/** Display a campaign name — truncates cleanly if too long */
 export function formatCampaignName(name: string): string {
-  let cleaned = name
-    .replace(/^create\s+(an?\s+)?(single\s+|two\s+|three\s+|\d+\s+)?(\d+\s+)?ads?\s+for\s+/i, '')
-    .trim()
-  cleaned = cleaned.replace(/^https?:\/\/(www\.)?/i, '')
-  cleaned = cleaned.replace(/\/$/, '')
-  if (cleaned.length > 0) {
-    cleaned = cleaned.charAt(0).toUpperCase() + cleaned.slice(1)
-  }
-  return cleaned || name
+  const trimmed = name.trim()
+  if (!trimmed) return 'Untitled Campaign'
+  if (trimmed.length <= 50) return trimmed
+  return trimmed.substring(0, 47) + '...'
 }
