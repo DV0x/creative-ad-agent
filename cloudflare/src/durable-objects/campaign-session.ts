@@ -1293,12 +1293,14 @@ export class CampaignSession implements DurableObject {
 
     const ctx: ParserContext = {
       emitEvent: (event) => this.emitEvent(event),
+      sendEphemeral: (event) => this.sendWS(event),
       campaignId,
       d1: this.env.DB,
       processedFilenames,
       textAccumulator,
       blockBuilder,
       imageCounter,
+      hasStreamedDeltas: false,
     };
 
     return { ctx, blockBuilder };
@@ -1488,12 +1490,14 @@ export class CampaignSession implements DurableObject {
 
     const ctx: ParserContext = {
       emitEvent: (event) => this.emitEvent(event),
+      sendEphemeral: (event) => this.sendWS(event),
       campaignId: this.campaignId,
       d1: this.env.DB,
       processedFilenames,
       textAccumulator,
       blockBuilder,
       imageCounter,
+      hasStreamedDeltas: false,
     };
 
     try {

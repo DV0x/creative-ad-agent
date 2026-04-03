@@ -97,6 +97,7 @@ const baseOptions: Partial<Options> = {
   cwd,
   model: 'claude-haiku-4-5-20251001',
   maxTurns: 30,
+  includePartialMessages: true,
   settingSources: ['user', 'project'],
   allowedTools: [
     'Task', 'Skill', 'TodoWrite',
@@ -305,9 +306,36 @@ startHeartbeat();
 let blockBuilder = new BlockBuilder();
 blockBuilder.openThinkingBlock('Parsing Request');
 let textAccumulator = { text: '' };
+let inTextBlock = false;
 
 try {
   for await (const message of query({ prompt: promptStream(), options: baseOptions })) {
+    // Handle stream events — extract text deltas + block boundaries
+    if (message.type === 'stream_event') {
+      const evt = (message as any).event;
+      if (!evt) continue;
+
+      // Text block start: content_block_start with type 'text'
+      if (evt.type === 'content_block_start' && evt.content_block?.type === 'text') {
+        inTextBlock = true;
+        process.stdout.write(JSON.stringify({ type: 'text_start' }) + '\n');
+      }
+
+      // Token-level delta
+      if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
+        process.stdout.write(JSON.stringify({ type: 'text_delta', delta: evt.delta.text }) + '\n');
+      }
+
+      // Text block end: content_block_stop after a text block
+      if (evt.type === 'content_block_stop' && inTextBlock) {
+        inTextBlock = false;
+        process.stdout.write(JSON.stringify({ type: 'text_end' }) + '\n');
+      }
+
+      continue; // Skip blockBuilder, completion handling for stream events
+    }
+
+    // Complete messages — existing behavior unchanged
     process.stdout.write(JSON.stringify(message) + '\n');
 
     // Capture SDK session ID from init message
@@ -334,10 +362,11 @@ try {
         process.stdout.write(`COMPLETION:${currentRequestId}\n`);
       }
 
-      // Reset block builder for next turn
+      // Reset block builder and text block tracking for next turn
       blockBuilder = new BlockBuilder();
       blockBuilder.openThinkingBlock('Processing Follow-Up');
       textAccumulator = { text: '' };
+      inTextBlock = false;
     }
   }
 } catch (err: any) {

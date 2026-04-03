@@ -27,6 +27,7 @@ const TESTS = [
   { name: 'Cancel', script: 'test-e2e-cancel.mjs', fast: false },
   { name: 'Follow-Up / Resume', script: 'test-e2e-follow-up.mjs', fast: false },
   { name: 'Reconnect / Subscribe', script: 'test-e2e-reconnect.mjs', fast: false },
+  { name: 'Streaming Deltas', script: 'test-e2e-streaming.mjs', fast: false },
 ];
 
 const skipLong = process.argv.includes('--skip-long');

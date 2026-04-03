@@ -16,12 +16,14 @@ export interface TextAccumulator {
 
 export interface ParserContext {
   emitEvent: (event: ServerMessage) => void;
+  sendEphemeral: (event: ServerMessage) => void;
   campaignId: string | null;
   d1: D1Database;
   processedFilenames: Set<string>;
   textAccumulator: TextAccumulator;
   blockBuilder: BlockBuilder;
   imageCounter: { next: number };
+  hasStreamedDeltas: boolean;
 }
 
 // Strip image URLs and file paths — images are shown in the gallery, not in chat text
@@ -52,7 +54,32 @@ const TOOL_DISPLAY_NAMES: Record<string, string> = {
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export async function processSDKMessage(message: any, ctx: ParserContext): Promise<void> {
-  const { emitEvent, blockBuilder, textAccumulator, processedFilenames, imageCounter } = ctx;
+  const { emitEvent, sendEphemeral, blockBuilder, textAccumulator, processedFilenames, imageCounter } = ctx;
+
+  // Handle streaming delta events (ephemeral — not buffered in EventBuffer)
+  if (message.type === 'text_delta') {
+    sendEphemeral({
+      type: 'text_delta',
+      timestamp: new Date().toISOString(),
+      delta: message.delta,
+    });
+    ctx.hasStreamedDeltas = true;
+    return;
+  }
+  if (message.type === 'text_start') {
+    sendEphemeral({
+      type: 'text_start',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
+  if (message.type === 'text_end') {
+    sendEphemeral({
+      type: 'text_end',
+      timestamp: new Date().toISOString(),
+    });
+    return;
+  }
 
   // Capture SDK session ID for follow-up resume
   if (message.type === 'system' && message.subtype === 'init' && message.session_id) {
@@ -77,17 +104,22 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
 
     for (const block of content) {
       if (block.type === 'text' && block.text) {
-        // Accumulate text for DB persistence
+        // Always accumulate text for DB persistence (even when deltas were streamed)
         textAccumulator.text += (textAccumulator.text ? '\n' : '') + block.text;
 
-        const cleanedText = stripImageUrls(block.text);
-        console.log(`[sdk-parser] EMIT message text (${cleanedText.length} chars): ${cleanedText.substring(0, 80)}`);
-        if (cleanedText) {
-          emitEvent({
-            type: 'message',
-            timestamp: new Date().toISOString(),
-            text: cleanedText,
-          });
+        // Only emit 'message' event if text wasn't already streamed via deltas
+        if (!ctx.hasStreamedDeltas) {
+          const cleanedText = stripImageUrls(block.text);
+          console.log(`[sdk-parser] EMIT message text (${cleanedText.length} chars): ${cleanedText.substring(0, 80)}`);
+          if (cleanedText) {
+            emitEvent({
+              type: 'message',
+              timestamp: new Date().toISOString(),
+              text: cleanedText,
+            });
+          }
+        } else {
+          console.log(`[sdk-parser] SKIP message text (${block.text.length} chars) — already streamed via deltas`);
         }
       } else if (block.type === 'tool_use') {
         emitEvent({
