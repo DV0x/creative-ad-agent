@@ -139,6 +139,24 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'tool_end':
           break;
 
+        case 'text_start':
+          if (campaignId && messageId) {
+            store.setTextStreaming(campaignId, messageId, true);
+          }
+          break;
+
+        case 'text_delta':
+          if ('delta' in message && message.delta && campaignId && messageId) {
+            store.appendTextDelta(campaignId, messageId, message.delta);
+          }
+          break;
+
+        case 'text_end':
+          if (campaignId && messageId) {
+            store.setTextStreaming(campaignId, messageId, false);
+          }
+          break;
+
         case 'message':
           if (message.type === 'message' && 'text' in message && message.text && campaignId && messageId) {
             // Client-side dedup: skip if we've already seen this exact text

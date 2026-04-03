@@ -110,6 +110,19 @@ export interface WSIncompleteEvent extends WSBaseMessage {
   message: string;
 }
 
+export interface WSTextStartEvent extends WSBaseMessage {
+  type: 'text_start';
+}
+
+export interface WSTextDeltaEvent extends WSBaseMessage {
+  type: 'text_delta';
+  delta: string;
+}
+
+export interface WSTextEndEvent extends WSBaseMessage {
+  type: 'text_end';
+}
+
 // ============================================
 // Union Type for All Server Messages
 // ============================================
@@ -127,7 +140,10 @@ export type WSServerMessage =
   | WSIncompleteEvent
   | WSAckEvent
   | WSPongEvent
-  | WSSubscribedEvent;
+  | WSSubscribedEvent
+  | WSTextStartEvent
+  | WSTextDeltaEvent
+  | WSTextEndEvent;
 
 // ============================================
 // Type Guards

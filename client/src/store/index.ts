@@ -156,6 +156,9 @@ interface Store {
 
   // Block actions
   appendTextBlock: (campaignId: string, messageId: string, text: string) => void
+  appendTextDelta: (campaignId: string, messageId: string, delta: string) => void
+  setTextStreaming: (campaignId: string, messageId: string, streaming: boolean) => void
+  textStreamingMessageId: string | null
   openThinkingBlock: (campaignId: string, messageId: string, label: string, expectedImages?: number) => void
   addThinkingChild: (campaignId: string, messageId: string, child: { kind: ThinkingChild['kind']; text: string; variant?: ThinkingChild['variant'] }) => void
   closeThinkingBlock: (campaignId: string, messageId: string, status: 'complete' | 'error') => void
@@ -615,6 +618,7 @@ export const useStore = create<Store>((set, get) => ({
       isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
+      textStreamingMessageId: null,
       generationExpectedImages: 0,
       _pendingImages: {},
       _pendingFiles: {},
@@ -636,6 +640,7 @@ export const useStore = create<Store>((set, get) => ({
       isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
+      textStreamingMessageId: null,
       generationExpectedImages: 0,
       chatMessages: {
         ...state.chatMessages,
@@ -655,6 +660,7 @@ export const useStore = create<Store>((set, get) => ({
       isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
+      textStreamingMessageId: null,
       generationExpectedImages: 0,
       error,
       chatMessages: {
@@ -703,6 +709,7 @@ export const useStore = create<Store>((set, get) => ({
   chatMessages: {},
   chatExpanded: false,
   currentGeneratingMessageId: null,
+  textStreamingMessageId: null,
 
   getActiveChatMessages: () => {
     const state = get()
@@ -766,6 +773,51 @@ export const useStore = create<Store>((set, get) => ({
       })
     }
   })),
+
+  appendTextDelta: (() => {
+    let deltaBuffer = '';
+    let rafId: number | null = null;
+    let bufferedCampaignId = '';
+    let bufferedMessageId = '';
+
+    return (campaignId: string, messageId: string, delta: string) => {
+      deltaBuffer += delta;
+      bufferedCampaignId = campaignId;
+      bufferedMessageId = messageId;
+
+      if (!rafId) {
+        rafId = requestAnimationFrame(() => {
+          const flushed = deltaBuffer;
+          const cId = bufferedCampaignId;
+          const mId = bufferedMessageId;
+          deltaBuffer = '';
+          rafId = null;
+
+          set((state) => ({
+            chatMessages: {
+              ...state.chatMessages,
+              [cId]: (state.chatMessages[cId] || []).map(msg => {
+                if (msg.id !== mId) return msg
+                const blocks = [...(msg.blocks || [])]
+                // Append to last text block, or create a new one
+                const lastBlock = blocks[blocks.length - 1]
+                if (lastBlock && lastBlock.type === 'text') {
+                  blocks[blocks.length - 1] = { ...lastBlock, content: lastBlock.content + flushed }
+                } else {
+                  blocks.push({ type: 'text', id: generateBlockId('txt'), content: flushed })
+                }
+                return { ...msg, blocks }
+              })
+            }
+          }));
+        });
+      }
+    };
+  })(),
+
+  setTextStreaming: (_campaignId, messageId, streaming) => set({
+    textStreamingMessageId: streaming ? messageId : null,
+  }),
 
   openThinkingBlock: (campaignId, messageId, label, expectedImages = 0) => set((state) => ({
     chatMessages: {

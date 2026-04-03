@@ -9,10 +9,11 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const { toggleBlockExpanded, currentGeneratingMessageId } = useStore()
+  const { toggleBlockExpanded, currentGeneratingMessageId, textStreamingMessageId } = useStore()
   const isUser = message.role === 'user'
   const hasBlocks = message.blocks && message.blocks.length > 0
   const isActivelyGenerating = message.id === currentGeneratingMessageId
+  const isStreaming = message.id === textStreamingMessageId
 
   const handleToggleBlock = (blockId: string) => {
     if (message.campaignId) {
@@ -66,7 +67,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {!isUser && (
           <div className="space-y-2 min-w-0 overflow-hidden">
             {hasBlocks && (
-              <BlockRenderer blocks={message.blocks!} onToggleThinking={handleToggleBlock} />
+              <BlockRenderer blocks={message.blocks!} isStreaming={isStreaming} onToggleThinking={handleToggleBlock} />
             )}
             {/* Show content if no blocks, or if blocks exist but don't contain a text block.
                 Hide during active generation — thinking block already shows progress. */}
