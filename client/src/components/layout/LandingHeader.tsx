@@ -29,7 +29,7 @@ export function LandingHeader() {
                   userButtonPopoverActionButton: 'text-text-primary hover:bg-bg-elevated',
                   userButtonPopoverActionButtonText: 'text-text-primary',
                   userButtonPopoverActionButtonIcon: 'text-text-muted',
-                  userButtonPopoverFooter: 'hidden',
+                  userButtonPopoverFooter: '!hidden',
                 },
               }}
             />

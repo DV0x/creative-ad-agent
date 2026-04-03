@@ -19,6 +19,13 @@ function Root() {
       afterSignInUrl="/"
       afterSignUpUrl="/"
       afterSignOutUrl="/"
+      appearance={{
+        variables: { colorPrimary: '#E8553A' },
+        elements: {
+          footer: '!hidden',
+          userButtonPopoverFooter: '!hidden',
+        },
+      }}
     >
       <App />
     </ClerkProvider>

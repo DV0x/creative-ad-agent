@@ -32,7 +32,7 @@ export function UserMenu() {
           userButtonPopoverActionButton: 'text-text-primary hover:bg-bg-input',
           userButtonPopoverActionButtonText: 'text-text-primary',
           userButtonPopoverActionButtonIcon: 'text-text-muted',
-          userButtonPopoverFooter: 'hidden',
+          userButtonPopoverFooter: '!hidden',
         },
       }}
     />

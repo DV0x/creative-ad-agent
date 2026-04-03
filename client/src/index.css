@@ -3,6 +3,13 @@
 
 @import "tailwindcss";
 
+/* Hide "Secured by Clerk" branding on all Clerk components */
+.cl-footer,
+.cl-internal-b3fm6y,
+[class*="cl-footer"] {
+  display: none !important;
+}
+
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));

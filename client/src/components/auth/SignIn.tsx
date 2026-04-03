@@ -1,5 +1,53 @@
-import { SignInButton } from '@clerk/clerk-react';
+import { SignIn as ClerkSignIn } from '@clerk/clerk-react';
 import { isDevMode } from '@/lib/auth';
+
+const clerkAppearance = {
+  variables: {
+    colorPrimary: '#E8553A',
+    colorText: '#111111',
+    colorTextSecondary: '#999999',
+    colorBackground: '#FFFFFF',
+    colorInputBackground: '#FFFFFF',
+    colorInputText: '#111111',
+    borderRadius: '0.75rem',
+  },
+  elements: {
+    // Root card
+    rootBox: 'w-full',
+    cardBox: '!shadow-none',
+    card: '!bg-white !border !border-[#E5E5E5] !rounded-2xl !shadow-[0_2px_8px_rgba(0,0,0,0.06)]',
+    // Hide Clerk's header — we have our own wordmark above
+    header: '!hidden',
+    // Social buttons (Google, etc.)
+    socialButtonsBlockButton: '!border-[#E5E5E5] hover:!bg-[#F5F5F5] !rounded-xl !h-11',
+    socialButtonsBlockButtonText: '!text-sm !font-medium',
+    // Divider
+    dividerLine: '!bg-[#E5E5E5]',
+    dividerText: '!text-[#999999] !text-xs',
+    // Form fields
+    formFieldLabel: '!text-[#111111] !text-sm !font-medium',
+    formFieldInput: '!border-[#E5E5E5] !rounded-xl !h-11 !text-sm',
+    // Primary button (Continue) — coral
+    formButtonPrimary: '!bg-[#E8553A] hover:!bg-[#D4442B] !text-white !rounded-xl !h-11 !text-sm !font-medium !shadow-none !border-none',
+    // Footer — hide "Secured by Clerk"
+    footer: '!hidden',
+    // "Don't have an account? Sign up" link
+    footerActionLink: '!text-[#E8553A] hover:!text-[#D4442B]',
+    footerActionText: '!text-[#999999] !text-sm',
+    footerAction: '!mt-4',
+    // Internal links (edit email, resend code, back)
+    identityPreviewEditButton: '!text-[#E8553A]',
+    formResendCodeLink: '!text-[#E8553A]',
+    otpCodeFieldInput: '!border-[#E5E5E5]',
+    backLink: '!text-[#E8553A] hover:!text-[#D4442B]',
+    // Alert styling
+    alert: '!rounded-xl',
+  },
+  layout: {
+    socialButtonsPlacement: 'top' as const,
+    showOptionalFields: false,
+  },
+};
 
 export function SignIn() {
   if (isDevMode()) {
@@ -29,7 +77,7 @@ export function SignIn() {
       </div>
 
       {/* Wordmark */}
-      <div className="relative z-10 mb-10 text-center">
+      <div className="relative z-10 mb-8 text-center">
         <span className="text-3xl tracking-tight">
           <span className="font-normal text-accent">Creative</span>
           <span className="font-bold text-text-primary ml-1.5">Machines</span>
@@ -39,26 +87,17 @@ export function SignIn() {
         </p>
       </div>
 
-      {/* Sign-in card */}
+      {/* Embedded Clerk sign-in */}
       <div className="relative z-10 w-full max-w-sm">
-        <div className="bg-white border border-[#E5E5E5] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] p-8 text-center">
-          <h2 className="text-xl font-semibold text-text-primary mb-1">
-            Welcome back
-          </h2>
-          <p className="text-sm text-text-muted mb-6">
-            Sign in to continue to Creative Machines
-          </p>
-
-          <SignInButton mode="modal" forceRedirectUrl="/">
-            <button className="w-full py-3 px-4 rounded-xl bg-[#E8553A] hover:bg-[#D4442B] text-white font-medium transition-colors duration-150 text-sm">
-              Continue with Sign In
-            </button>
-          </SignInButton>
-        </div>
+        <ClerkSignIn
+          appearance={clerkAppearance}
+          forceRedirectUrl="/"
+          signUpUrl="/sign-in"
+        />
       </div>
 
       {/* Footer */}
-      <p className="relative z-10 mt-10 text-xs text-text-muted text-center">
+      <p className="relative z-10 mt-8 text-xs text-text-muted text-center">
         By continuing, you agree to our terms and privacy policy.
       </p>
     </div>
