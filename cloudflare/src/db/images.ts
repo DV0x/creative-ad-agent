@@ -48,6 +48,12 @@ export async function getLatestCampaignImages(db: D1Database, campaignId: string
 export async function addCampaignImage(db: D1Database, input: AddImageInput): Promise<CampaignImage> {
   const { campaignId, imageIndex, hookType, prompt, filePath } = input;
 
+  // Dedup: if this exact file_path already exists for this campaign, return the existing row
+  const dup = await db.prepare(`
+    SELECT * FROM campaign_images WHERE campaign_id = ? AND file_path = ? LIMIT 1
+  `).bind(campaignId, filePath).first<CampaignImage>();
+  if (dup) return dup;
+
   const existing = await db.prepare(`
     SELECT MAX(version) as max_version
     FROM campaign_images
@@ -74,6 +80,15 @@ export async function getImageCount(db: D1Database, campaignId: string): Promise
     WHERE campaign_id = ?
   `).bind(campaignId).first<{ count: number }>();
   return result?.count ?? 0;
+}
+
+export async function getMaxImageIndex(db: D1Database, campaignId: string): Promise<number> {
+  const result = await db.prepare(`
+    SELECT COALESCE(MAX(image_index), 0) as max_index
+    FROM campaign_images
+    WHERE campaign_id = ?
+  `).bind(campaignId).first<{ max_index: number }>();
+  return result?.max_index ?? 0;
 }
 
 export async function deleteImage(db: D1Database, imageId: number): Promise<void> {

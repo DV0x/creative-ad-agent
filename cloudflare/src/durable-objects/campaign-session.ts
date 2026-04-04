@@ -335,13 +335,14 @@ export class CampaignSession implements DurableObject {
     // 1. Reconcile images (dedup against existing D1 records)
     const existingImages = await db.getCampaignImages(this.env.DB, campaignId);
     const knownPaths = new Set(existingImages.map((i: any) => i.file_path));
+    let nextIndex = (await db.getMaxImageIndex(this.env.DB, campaignId)) + 1;
     let imagesAdded = 0;
 
     for (const img of images) {
       const urlPath = img.path?.startsWith('/images/') ? img.path : `/images/${img.filename}`;
       if (knownPaths.has(urlPath)) continue;
 
-      const imageIndex = existingImages.length + imagesAdded + 1;
+      const imageIndex = nextIndex++;
       const hookType = getHookTypeForIndex(imageIndex);
 
       await db.addCampaignImage(this.env.DB, {
@@ -381,6 +382,7 @@ export class CampaignSession implements DurableObject {
     });
 
     // 4. Emit complete event (summary for client, can be truncated)
+    const currentImageCount = await db.getImageCount(this.env.DB, campaignId);
     const summary = text ? stripImageUrls(text).substring(0, 500) : 'Generation complete.';
     this.emitEvent({
       type: 'complete',
@@ -388,22 +390,26 @@ export class CampaignSession implements DurableObject {
       sessionId,
       campaignId,
       duration: 0,
-      imageCount: existingImages.length + imagesAdded,
+      imageCount: currentImageCount,
       summary,
     });
 
     // 5. Update D1 status
     await db.updateCampaignStatus(this.env.DB, campaignId, 'complete');
 
-    // 6. Record cost and deduct credits (COST_MULTIPLIER applied for margin)
-    //    Image count from D1 (streaming parser already persisted them) — not from turn-result.json JSONL
-    const imagesThisTurn = Math.max(0, existingImages.length + imagesAdded - this.preGenImageCount);
+    // 6. Persist max image index for next turn's counter (survives alarm/handler race)
+    const currentMaxIndex = await db.getMaxImageIndex(this.env.DB, campaignId);
+    await this.state.storage.put(`maxImageIndex:${campaignId}`, currentMaxIndex);
+
+    // 7. Record cost and deduct credits (COST_MULTIPLIER applied for margin)
+    //    Both sides use getImageCount (DISTINCT indexes) — no row-count vs distinct mismatch
+    const imagesThisTurn = Math.max(0, currentImageCount - this.preGenImageCount);
     const claudeCost = turnResult.cost?.totalCostUsd ?? 0;
     if (claudeCost > 0 || imagesThisTurn > 0) {
       const imageCost = imagesThisTurn * 0.15;
       const rawCost = claudeCost + imageCost;
       const chargedCost = rawCost * COST_MULTIPLIER;
-      const isFollowUp = this.preGenImageCount > 0 || existingImages.length > imagesThisTurn;
+      const isFollowUp = this.preGenImageCount > 0;
 
       try {
         const result = await credits.recordUsage(this.env.DB, this.userId, campaignId, {
@@ -434,14 +440,14 @@ export class CampaignSession implements DurableObject {
       }
     }
 
-    // 7. Delete turn-result.json to prevent double-charge on crash recovery
+    // 8. Delete turn-result.json to prevent double-charge on crash recovery
     if (this.sandbox) {
       try {
         await this.timedRPC('deleteTurnResult', () => this.sandbox.exec('rm -f /app/turn-result.json'));
       } catch { /* sandbox may be gone */ }
     }
 
-    // 8. Cleanup
+    // 9. Cleanup
     this.isGenerating = false;
     await this.persistSession();
     this.trace('finalize', 'complete', { campaignId, imagesAdded, filesReconciled: Object.keys(files).length });
@@ -1421,11 +1427,19 @@ export class CampaignSession implements DurableObject {
 
     const textAccumulator: TextAccumulator = { text: '' };
     const processedFilenames = new Set<string>();
-    const existingImageCount = campaignId
+    // Billing baseline: distinct image count (apples-to-apples with post-turn count)
+    this.preGenImageCount = campaignId
       ? (await db.getImageCount(this.env.DB, campaignId)) || 0
       : 0;
-    this.preGenImageCount = existingImageCount;
-    const imageCounter = { next: existingImageCount + 1 };
+    // Image counter: use max index (not count) so new images always get fresh slots.
+    // Check DO storage first to survive the race between alarm finalization and next turn.
+    const storageKey = `maxImageIndex:${campaignId}`;
+    const storedMax = campaignId ? ((await this.state.storage.get<number>(storageKey)) || 0) : 0;
+    const dbMax = campaignId
+      ? await db.getMaxImageIndex(this.env.DB, campaignId)
+      : 0;
+    const maxIndex = Math.max(storedMax, dbMax);
+    const imageCounter = { next: maxIndex + 1 };
 
     const ctx: ParserContext = {
       emitEvent: (event) => this.emitEvent(event),
