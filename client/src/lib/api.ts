@@ -438,3 +438,34 @@ export const assetsApi = {
     };
   },
 };
+
+// ============================================
+// Credits API
+// ============================================
+
+export interface ApiCredits {
+  balance: number;
+  total_spent: number;
+  total_generations: number;
+}
+
+export interface ApiUsageEntry {
+  id: string;
+  campaign_id: string;
+  event_type: string;
+  total_cost_usd: number;
+  claude_cost_usd: number;
+  image_count: number;
+  image_cost_usd: number;
+  created_at: string;
+}
+
+export const creditsApi = {
+  async get(): Promise<ApiCredits> {
+    return apiFetch<ApiCredits>('/credits');
+  },
+
+  async getUsage(limit = 20, offset = 0): Promise<{ usage: ApiUsageEntry[] }> {
+    return apiFetch<{ usage: ApiUsageEntry[] }>(`/credits/usage?limit=${limit}&offset=${offset}`);
+  },
+};

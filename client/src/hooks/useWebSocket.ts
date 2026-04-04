@@ -1,7 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useStore } from '../store';
 import type { WSServerMessage, WSConnectionState } from '../types/websocket';
-import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEvent, isErrorEvent } from '../types/websocket';
+import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEvent, isErrorEvent, isCreditsUpdateEvent } from '../types/websocket';
 import { getHookTypeForIndex } from '../types/chat';
 import * as wsManager from '../lib/websocket-manager';
 import { campaignsApi } from '../lib/api';
@@ -235,10 +235,30 @@ export function useWebSocket(): UseWebSocketReturn {
           }
           break;
 
+        case 'credits_update':
+          if (isCreditsUpdateEvent(message)) {
+            store.setCreditBalance(message.balance);
+          }
+          break;
+
         case 'error':
           if (isErrorEvent(message)) {
             const errorMsg = message.error || 'Unknown error';
             console.error('WebSocket: Error event:', errorMsg);
+
+            // Insufficient credits — close spinner, show error in chat
+            if (message.code === 'INSUFFICIENT_CREDITS') {
+              const genCampaignId = store.generatingCampaignId;
+              const genMessageId = store.currentGeneratingMessageId;
+              if (genCampaignId && genMessageId) {
+                store.closeThinkingBlock(genCampaignId, genMessageId, 'error');
+                store.failGeneration(genCampaignId, genMessageId, errorMsg);
+              } else {
+                store.setError(errorMsg);
+              }
+              clearActiveSession();
+              break;
+            }
 
             if (errorMsg.includes('Session not found') || errorMsg.includes('expired')) {
               clearActiveSession();

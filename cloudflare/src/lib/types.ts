@@ -26,7 +26,7 @@ export function getHookTypeForIndex(index: number): HookType {
 
 // Server -> Client message types
 export interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'text_delta' | 'text_start' | 'text_end';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'credits_update' | 'text_delta' | 'text_start' | 'text_end';
   timestamp: string;
   id?: number | string;
   phase?: string;
@@ -46,7 +46,10 @@ export interface ServerMessage {
   content?: string;
   path?: string;
   delta?: string;
+  code?: string;
   error?: string;
+  balance?: number;
+  cost?: number;
   sessionId?: string;
   duration?: number;
   imageCount?: number;

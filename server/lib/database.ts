@@ -114,6 +114,44 @@ CREATE TABLE IF NOT EXISTS asset_files (
 CREATE INDEX IF NOT EXISTS idx_asset_files_folder_id ON asset_files(folder_id);
 
 -- ============================================
+-- USER CREDITS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS user_credits (
+  user_id TEXT PRIMARY KEY,
+  balance_usd REAL NOT NULL DEFAULT 0,
+  total_spent_usd REAL NOT NULL DEFAULT 0,
+  total_generations INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- USAGE LOG
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS usage_log (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  campaign_id TEXT NOT NULL,
+  request_id TEXT NOT NULL DEFAULT 'initial',
+  event_type TEXT NOT NULL,
+  claude_cost_usd REAL NOT NULL DEFAULT 0,
+  image_count INTEGER NOT NULL DEFAULT 0,
+  image_cost_usd REAL NOT NULL DEFAULT 0,
+  total_cost_usd REAL NOT NULL DEFAULT 0,
+  input_tokens INTEGER NOT NULL DEFAULT 0,
+  output_tokens INTEGER NOT NULL DEFAULT 0,
+  num_turns INTEGER NOT NULL DEFAULT 0,
+  duration_ms INTEGER NOT NULL DEFAULT 0,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  UNIQUE(campaign_id, request_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_usage_log_user_id ON usage_log(user_id);
+CREATE INDEX IF NOT EXISTS idx_usage_log_campaign_id ON usage_log(campaign_id);
+
+-- ============================================
 -- TRIGGERS FOR updated_at
 -- ============================================
 

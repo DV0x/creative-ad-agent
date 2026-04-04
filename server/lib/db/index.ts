@@ -57,6 +57,18 @@ export {
   type StatusBlockData,
 } from './messages.js';
 
+// Credits
+export {
+  getOrCreateCredits,
+  getBalance,
+  recordUsage,
+  addCredits,
+  getUsageLog,
+  type UserCredits,
+  type UsageLogEntry,
+  type RecordUsageInput,
+} from './credits.js';
+
 // Assets
 export {
   getFoldersByUser,

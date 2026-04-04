@@ -8,7 +8,7 @@ import { SignIn } from '@/components/auth/SignIn'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useStore } from '@/store'
 import { isDevMode } from '@/lib/auth'
-import { campaignsApi, assetsApi, setTokenGetter } from '@/lib/api'
+import { campaignsApi, assetsApi, creditsApi, setTokenGetter } from '@/lib/api'
 import * as wsManager from '@/lib/websocket-manager'
 
 function AppContent() {
@@ -20,6 +20,7 @@ function AppContent() {
     setDataLoading,
     setCampaigns,
     setAssetFolders,
+    setCreditBalance,
     setChatMessages,
     setActiveCampaignId,
     setAppState,
@@ -68,11 +69,16 @@ function AppContent() {
       setLoadError(null)
 
       try {
-        // Fetch campaigns and folders in parallel
-        const [campaignsList, folders] = await Promise.all([
+        // Fetch campaigns, folders, and credits in parallel
+        const [campaignsList, folders, creditsData] = await Promise.all([
           campaignsApi.list(),
           assetsApi.listFolders(),
+          creditsApi.get().catch(() => null),
         ])
+
+        if (creditsData) {
+          setCreditBalance(creditsData.balance)
+        }
 
         // For each folder, fetch its files
         const foldersWithFiles = await Promise.all(
@@ -132,7 +138,7 @@ function AppContent() {
     }
 
     loadData()
-  }, [isLoaded, isSignedIn, dataLoaded, setDataLoading, setCampaigns, setAssetFolders])
+  }, [isLoaded, isSignedIn, dataLoaded, setDataLoading, setCampaigns, setAssetFolders, setCreditBalance])
 
   // After data loads: restore pending prompt OR auto-navigate to workspace
   useEffect(() => {

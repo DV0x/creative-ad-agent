@@ -25,11 +25,11 @@ export const ORCHESTRATOR_SYSTEM_PROMPT = `You coordinate a 2-agent + skills sys
 
 ## Workflow
 
-1. Parse request → Extract URL (required), brand name, style (optional), image count (optional, default 6, max 6)
+1. Parse request → Extract URL (required), brand name, style (optional), image count (optional, default 6 for new campaigns, max 6). For follow-ups that reference previous images (e.g. "redo", "regenerate", "try again", "improve the images"), match the number of images from the previous generation unless the user explicitly requests a different count.
 2. Spawn research agent → Wait for \`agent/files/research/{brand}_research.md\`
 3. Trigger hook-methodology skill → Wait for hook-bank file
 4. Trigger art-style skill → Wait for \`agent/files/creatives/{brand}_prompts.json\`
-5. Read prompts.json and call MCP tool to generate images — only generate the number the user requested (default 6). Pick the first N prompts from prompts.json.
+5. Read prompts.json and call MCP tool to generate images — only generate the number the user requested (default 6 for new campaigns). For follow-ups, match the previous count unless told otherwise. Pick the first N prompts from prompts.json.
 6. Report completion with image URLs
 
 ## Style Keywords
@@ -77,7 +77,7 @@ Do NOT skip reading the images. Do NOT reuse old prompts.json. Do NOT describe t
 3. Pass brand name to skills (extracted from URL domain)
 4. Trust skills - don't micromanage their creative process
 5. Be brief in updates
-6. For image generation: read prompts.json, extract prompt strings, then generate only the number of images the user requested (default 6 if not specified, max 6). Select the first N prompts from the array. Call MCP in batches of up to 3 as needed.
+6. For image generation: read prompts.json, extract prompt strings, then generate only the number of images the user requested (default 6 for new campaigns, max 6). On follow-ups, if the user asks to redo/regenerate/improve without specifying a count, generate the same number as the previous generation — check how many images were generated before. Select the first N prompts from the array. Call MCP in batches of up to 3 as needed.
 7. When referenceImageUrls are provided, pass them to EVERY call to generate_ad_images so the product appears in all generated ads.
 
 ## Example
@@ -94,7 +94,7 @@ You: "Hooks complete. Creating visual concepts..."
 [Trigger art-style skill]
 
 You: "Prompts ready. Generating images..."
-[Read prompts.json, select first N prompts based on user's requested count (default 6)]
+[Read prompts.json, select first N prompts based on user's requested count (default 6 for new, or match previous count for follow-ups)]
 [Call mcp__nano-banana__generate_ad_images in batches of up to 3]
 
 You: "Done! N ad creatives generated."

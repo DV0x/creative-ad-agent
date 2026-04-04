@@ -188,6 +188,10 @@ interface Store {
   renameFolderAsync: (id: string, name: string) => Promise<void>
   deleteFileAsync: (fileId: string) => Promise<void>
 
+  // Credits
+  creditBalance: number | null
+  setCreditBalance: (balance: number) => void
+
   // Data Loading
   dataLoading: boolean
   setDataLoading: (loading: boolean) => void
@@ -1038,6 +1042,10 @@ export const useStore = create<Store>((set, get) => ({
     }
   },
 
+  // Credits
+  creditBalance: null,
+  setCreditBalance: (creditBalance) => set({ creditBalance }),
+
   // Data Loading
   dataLoading: false,
   setDataLoading: (dataLoading) => set({ dataLoading }),
@@ -1117,6 +1125,7 @@ export const useStore = create<Store>((set, get) => ({
     isFollowUp: false,
     currentGeneratingMessageId: null,
     generationExpectedImages: 0,
+    creditBalance: null,
     dataLoading: false,
   })
 }))

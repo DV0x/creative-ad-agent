@@ -5,6 +5,7 @@ import { handleImageRequest } from './routes/images.js';
 import * as campaigns from './routes/campaigns.js';
 import * as recovery from './routes/recovery.js';
 import * as assets from './routes/assets.js';
+import { handleCreditsRequest } from './routes/credits.js';
 
 /**
  * Route dispatcher for REST API and image serving.
@@ -42,6 +43,11 @@ export async function handleApiRequest(request: Request, env: Env): Promise<Resp
   // --- Campaign routes: /api/campaigns/* ---
   if (path.startsWith('/api/campaigns')) {
     return corsResponse(await routeCampaigns(request, env, userId, path, method));
+  }
+
+  // --- Credit routes: /api/credits/* ---
+  if (path.startsWith('/api/credits')) {
+    return corsResponse(await handleCreditsRequest(request, env, userId, path, method));
   }
 
   // --- Asset routes: /api/assets/* ---

@@ -46,7 +46,7 @@ function startHeartbeat(): void {
   if (heartbeatInterval) return;
   heartbeatInterval = setInterval(() => {
     heartbeatCount++;
-    trace('heartbeat', { count: heartbeatCount, sdkSessionId: sdkSessionId || 'none', requestId: currentRequestId || 'initial' });
+    trace('heartbeat', { count: heartbeatCount, sdkSessionId: sdkSessionId || 'none', requestId: currentRequestId || `turn_${Date.now()}` });
   }, 30_000);
 }
 
@@ -97,6 +97,7 @@ const baseOptions: Partial<Options> = {
   cwd,
   model: 'claude-haiku-4-5-20251001',
   maxTurns: 30,
+  maxBudgetUsd: 3.0,
   includePartialMessages: true,
   settingSources: ['user', 'project'],
   allowedTools: [
@@ -204,7 +205,15 @@ function processMessageForBlocks(message: any, blockBuilder: BlockBuilder, textA
 
 // ─── Completion marker ──────────────────────────────────────────
 
-function writeCompletionMarker(blocks: MessageBlock[], text: string): void {
+interface CostData {
+  totalCostUsd: number;
+  inputTokens: number;
+  outputTokens: number;
+  numTurns: number;
+  durationMs: number;
+}
+
+function writeCompletionMarker(blocks: MessageBlock[], text: string, costData?: CostData): void {
   if (!campaignId) return;
 
   try {
@@ -243,7 +252,7 @@ function writeCompletionMarker(blocks: MessageBlock[], text: string): void {
     }
 
     // Write to local disk for reliable reading by DO alarm (no FUSE dependency)
-    fs.writeFileSync('/app/turn-result.json', JSON.stringify({ images, files, text, blocks, requestId: currentRequestId || 'initial', campaignId }));
+    fs.writeFileSync('/app/turn-result.json', JSON.stringify({ images, files, text, blocks, requestId: currentRequestId || `turn_${Date.now()}`, campaignId, cost: costData ?? null }));
 
     console.log(`[marker] Wrote turn-result.json (${images.length} images, ${Object.keys(files).length} files, ${blocks.length} blocks)`);
   } catch (err: any) {
@@ -307,6 +316,7 @@ let blockBuilder = new BlockBuilder();
 blockBuilder.openThinkingBlock('Parsing Request');
 let textAccumulator = { text: '' };
 let inTextBlock = false;
+let previousCostUsd = 0; // Track cumulative SDK cost to compute per-turn delta
 
 try {
   for await (const message of query({ prompt: promptStream(), options: baseOptions })) {
@@ -348,12 +358,27 @@ try {
     processMessageForBlocks(message, blockBuilder, textAccumulator);
 
     if (message.type === 'result') {
+      // Extract cost data from SDK result message
+      // SDK total_cost_usd is cumulative across the session — compute per-turn delta
+      const cumulativeCost = (message as any).total_cost_usd ?? 0;
+      const turnCost = Math.max(0, cumulativeCost - previousCostUsd);
+      previousCostUsd = cumulativeCost;
+
+      const costData: CostData = {
+        totalCostUsd: turnCost,
+        inputTokens: (message as any).usage?.input_tokens ?? 0,
+        outputTokens: (message as any).usage?.output_tokens ?? 0,
+        numTurns: (message as any).num_turns ?? 0,
+        durationMs: (message as any).duration_ms ?? 0,
+      };
+      trace('cost', { cumulative: cumulativeCost.toFixed(4), turnCost: turnCost.toFixed(4), inTok: costData.inputTokens, outTok: costData.outputTokens, turns: costData.numTurns, ms: costData.durationMs });
+
       // Turn completed — write completion marker with accumulated blocks/text
-      trace('turn_end', { requestId: currentRequestId || 'initial', textLen: textAccumulator.text.length, blocks: blockBuilder.getBlocks().length });
+      trace('turn_end', { requestId: currentRequestId || `turn_${Date.now()}`, textLen: textAccumulator.text.length, blocks: blockBuilder.getBlocks().length });
       blockBuilder.closeThinkingBlock('complete');
       const blocks = blockBuilder.getBlocks();
       const text = textAccumulator.text;
-      writeCompletionMarker(blocks, text);
+      writeCompletionMarker(blocks, text, costData);
 
       // Generic marker (for alarm log snapshot fallback)
       process.stdout.write(JSON.stringify({ type: 'turn_complete' }) + '\n');

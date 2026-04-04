@@ -124,7 +124,7 @@ function getHookTypeForIndex(index: number): HookType {
 
 // Server → Client message types
 interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'credits_update';
   timestamp: string;
   // Event/Image ID (number for event tracking, string for image IDs)
   id?: number | string;
@@ -151,6 +151,10 @@ interface ServerMessage {
   path?: string;
   // Error events
   error?: string;
+  code?: string;
+  // Credits events
+  balance?: number;
+  cost?: number;
   // Complete events
   sessionId?: string;
   duration?: number;
@@ -526,6 +530,23 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   }
   state.isGenerating = true;
 
+  // Pre-flight credit check
+  try {
+    const balance = db.getBalance(state.userId);
+    if (balance <= 0) {
+      state.isGenerating = false;
+      send(state.ws, {
+        type: 'error',
+        timestamp: new Date().toISOString(),
+        error: 'Insufficient credits. Please top up to continue.',
+        code: 'INSUFFICIENT_CREDITS',
+      });
+      return;
+    }
+  } catch (err: any) {
+    console.log(`[credits] Pre-flight check failed: ${err?.message} — allowing generation`);
+  }
+
   const sessionId = requestedSessionId || `ws-${Date.now()}`;
   state.sessionId = sessionId;
   state.abortController = new AbortController();
@@ -785,6 +806,41 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
           } catch (dbError) {
             console.error('❌ DB: Failed to update campaign status:', dbError);
           }
+
+          // Record cost and deduct credits (COST_MULTIPLIER for margin)
+          try {
+            const COST_MULTIPLIER = 5;
+            const costUsd = instrumentor.totalCost || 0;
+            if (costUsd > 0 && state.campaignId) {
+              const imageCostUsd = imageCount * 0.15;
+              const rawCost = costUsd + imageCostUsd;
+              const chargedCost = rawCost * COST_MULTIPLIER;
+              const result = db.recordUsage(state.userId, state.campaignId, {
+                requestId: 'initial',
+                eventType: 'generation',
+                claudeCostUsd: costUsd,
+                imageCount,
+                imageCostUsd,
+                totalCostUsd: chargedCost,
+                inputTokens: instrumentor.inputTokens || 0,
+                outputTokens: instrumentor.outputTokens || 0,
+                numTurns: instrumentor.numTurns || 0,
+                durationMs: duration,
+              });
+              if (!result.alreadyRecorded) {
+                const CREDITS_PER_USD = 10;
+                broadcastToConnection(state, {
+                  type: 'credits_update',
+                  timestamp: new Date().toISOString(),
+                  balance: Math.round(result.newBalance * CREDITS_PER_USD * 10) / 10,
+                  cost: Math.round(chargedCost * CREDITS_PER_USD * 10) / 10,
+                });
+              }
+              console.log(`💰 Credits: COGS $${rawCost.toFixed(4)}, charged $${chargedCost.toFixed(4)} (${COST_MULTIPLIER}x), balance: $${result.newBalance.toFixed(2)}`);
+            }
+          } catch (creditErr) {
+            console.error('❌ Credits: Failed to record usage:', creditErr);
+          }
         }
       }
     }
@@ -1013,6 +1069,23 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       return;
     }
 
+    // Pre-flight credit check
+    try {
+      const balance = db.getBalance(state.userId);
+      if (balance <= 0) {
+        state.isGenerating = false;
+        send(state.ws, {
+          type: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'Insufficient credits. Please top up to continue.',
+          code: 'INSUFFICIENT_CREDITS',
+        });
+        return;
+      }
+    } catch (err: any) {
+      console.log(`[credits] Pre-flight check failed: ${err?.message} — allowing follow-up`);
+    }
+
     // Always attempt to load SDK session ID for resume — the AI client has
     // fallback logic (try resume → fall back to fresh session if JSONL is invalid).
     const sdkSessionId = db.getSdkSessionId(campaignId);
@@ -1188,6 +1261,41 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
             content: summary,
             blocks: blockBuilder.getBlocks(),
           });
+
+          // Record cost and deduct credits (COST_MULTIPLIER for margin)
+          try {
+            const COST_MULTIPLIER = 5;
+            const costUsd = instrumentor.totalCost || 0;
+            if (costUsd > 0) {
+              const imageCostUsd = imageCount * 0.15;
+              const rawCost = costUsd + imageCostUsd;
+              const chargedCost = rawCost * COST_MULTIPLIER;
+              const result = db.recordUsage(state.userId, state.campaignId, {
+                requestId: `followup-${Date.now()}`,
+                eventType: 'follow_up',
+                claudeCostUsd: costUsd,
+                imageCount,
+                imageCostUsd,
+                totalCostUsd: chargedCost,
+                inputTokens: instrumentor.inputTokens || 0,
+                outputTokens: instrumentor.outputTokens || 0,
+                numTurns: instrumentor.numTurns || 0,
+                durationMs: duration,
+              });
+              if (!result.alreadyRecorded) {
+                const CREDITS_PER_USD = 10;
+                broadcastToConnection(state, {
+                  type: 'credits_update',
+                  timestamp: new Date().toISOString(),
+                  balance: Math.round(result.newBalance * CREDITS_PER_USD * 10) / 10,
+                  cost: Math.round(chargedCost * CREDITS_PER_USD * 10) / 10,
+                });
+              }
+              console.log(`💰 Credits: COGS $${rawCost.toFixed(4)}, charged $${chargedCost.toFixed(4)} (${COST_MULTIPLIER}x follow-up), balance: $${result.newBalance.toFixed(2)}`);
+            }
+          } catch (creditErr) {
+            console.error('❌ Credits: Failed to record follow-up usage:', creditErr);
+          }
         }
 
         console.log(`✅ WebSocket: Follow-up complete for campaign ${campaignId} (${duration}ms)`);

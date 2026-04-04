@@ -10,6 +10,8 @@ import { EventBuffer } from '../lib/event-buffer.js';
 import { BlockBuilder } from '../lib/block-builder.js';
 import { processSDKMessage, stripImageUrls, type TextAccumulator, type ParserContext } from '../lib/sdk-message-parser.js';
 import * as db from '../db/index.js';
+import * as credits from '../db/credits.js';
+import { CREDITS_PER_USD, COST_MULTIPLIER } from '../db/credits.js';
 import { getSandbox, parseSSEStream } from '@cloudflare/sandbox';
 import { fal } from '@fal-ai/client';
 
@@ -28,6 +30,7 @@ export class CampaignSession implements DurableObject {
   private sandboxSetupInProgress = false; // Prevents alarm from creating competing sandbox connection
   private currentRequestId: string | null = null; // Per-turn ID for staleness check (null = initial gen)
   private hasSourceResearch = false; // True when research was copied from a source campaign
+  private preGenImageCount = 0; // Image count before current generation (for cancel cost calc)
 
   // Trace instrumentation
   private traceSeq = 0;
@@ -300,8 +303,12 @@ export class CampaignSession implements DurableObject {
       });
       await this.finalizeGeneration(campaignId, sessionId, result);
       return true;
-    } catch {
-      // File doesn't exist yet or can't be parsed — agent still working
+    } catch (err: any) {
+      // FileNotFoundError = agent still working (normal). Anything else = bug.
+      const msg = err?.message || String(err);
+      if (!msg.includes('FileNotFoundError') && !msg.includes('File not found')) {
+        this.log(`[finalize] ERROR in tryFinalize: ${msg.substring(0, 300)}`);
+      }
       return false;
     }
   }
@@ -309,7 +316,14 @@ export class CampaignSession implements DurableObject {
   private async finalizeGeneration(
     campaignId: string,
     sessionId: string,
-    turnResult: { images?: any[]; files?: Record<string, string>; text?: string; blocks?: any[]; requestId?: string },
+    turnResult: {
+      images?: any[];
+      files?: Record<string, string>;
+      text?: string;
+      blocks?: any[];
+      requestId?: string;
+      cost?: { totalCostUsd: number; inputTokens: number; outputTokens: number; numTurns: number; durationMs: number };
+    },
   ): Promise<void> {
     if (!this.isGenerating) return;
 
@@ -381,10 +395,97 @@ export class CampaignSession implements DurableObject {
     // 5. Update D1 status
     await db.updateCampaignStatus(this.env.DB, campaignId, 'complete');
 
-    // 6. Cleanup
+    // 6. Record cost and deduct credits (COST_MULTIPLIER applied for margin)
+    //    Image count from D1 (streaming parser already persisted them) — not from turn-result.json JSONL
+    const imagesThisTurn = Math.max(0, existingImages.length + imagesAdded - this.preGenImageCount);
+    const claudeCost = turnResult.cost?.totalCostUsd ?? 0;
+    if (claudeCost > 0 || imagesThisTurn > 0) {
+      const imageCost = imagesThisTurn * 0.15;
+      const rawCost = claudeCost + imageCost;
+      const chargedCost = rawCost * COST_MULTIPLIER;
+      const isFollowUp = this.preGenImageCount > 0 || existingImages.length > imagesThisTurn;
+
+      try {
+        const result = await credits.recordUsage(this.env.DB, this.userId, campaignId, {
+          requestId: turnResult.requestId || `finalize_${Date.now()}`,
+          eventType: isFollowUp ? 'follow_up' : 'generation',
+          claudeCostUsd: claudeCost,
+          imageCount: imagesThisTurn,
+          imageCostUsd: imageCost,
+          totalCostUsd: chargedCost,
+          inputTokens: turnResult.cost?.inputTokens ?? 0,
+          outputTokens: turnResult.cost?.outputTokens ?? 0,
+          numTurns: turnResult.cost?.numTurns ?? 0,
+          durationMs: turnResult.cost?.durationMs ?? 0,
+        });
+
+        this.trace('credits', 'recorded', { cogs: rawCost.toFixed(4), charged: chargedCost.toFixed(4), multiplier: COST_MULTIPLIER, newBalance: result.newBalance.toFixed(2), dup: result.alreadyRecorded });
+
+        if (!result.alreadyRecorded) {
+          this.sendWS({
+            type: 'credits_update',
+            timestamp: new Date().toISOString(),
+            balance: Math.round(result.newBalance * CREDITS_PER_USD * 10) / 10,
+            cost: Math.round(chargedCost * CREDITS_PER_USD * 10) / 10,
+          } as any);
+        }
+      } catch (err: any) {
+        this.log(`[credits] Failed to record usage: ${err?.message}`);
+      }
+    }
+
+    // 7. Delete turn-result.json to prevent double-charge on crash recovery
+    if (this.sandbox) {
+      try {
+        await this.timedRPC('deleteTurnResult', () => this.sandbox.exec('rm -f /app/turn-result.json'));
+      } catch { /* sandbox may be gone */ }
+    }
+
+    // 8. Cleanup
     this.isGenerating = false;
     await this.persistSession();
     this.trace('finalize', 'complete', { campaignId, imagesAdded, filesReconciled: Object.keys(files).length });
+  }
+
+  // ─── Cancel credit deduction (charge for images already generated) ───
+
+  private async recordCancelledUsage(campaignId: string): Promise<void> {
+    try {
+      const currentImageCount = await db.getImageCount(this.env.DB, campaignId);
+      const imagesAdded = Math.max(0, currentImageCount - this.preGenImageCount);
+      if (imagesAdded === 0) return; // No images generated, nothing to charge
+
+      const imageCost = imagesAdded * 0.15;
+      const chargedCost = imageCost * COST_MULTIPLIER;
+      // Stable requestId for idempotency — repeated cancels for the same generation won't double-charge
+      const requestId = this.currentRequestId || `cancel_${campaignId}`;
+
+      const result = await credits.recordUsage(this.env.DB, this.userId, campaignId, {
+        requestId,
+        eventType: 'cancelled',
+        claudeCostUsd: 0,
+        imageCount: imagesAdded,
+        imageCostUsd: imageCost,
+        totalCostUsd: chargedCost,
+        inputTokens: 0,
+        outputTokens: 0,
+        numTurns: 0,
+        durationMs: 0,
+      });
+
+      this.trace('credits', 'cancelled_usage', { images: imagesAdded, cogs: imageCost.toFixed(4), charged: chargedCost.toFixed(4), newBalance: result.newBalance.toFixed(2) });
+
+      if (!result.alreadyRecorded) {
+        this.sendWS({
+          type: 'credits_update',
+          timestamp: new Date().toISOString(),
+          balance: Math.round(result.newBalance * CREDITS_PER_USD * 10) / 10,
+          cost: Math.round(chargedCost * CREDITS_PER_USD * 10) / 10,
+        } as any);
+      }
+    } catch (err: any) {
+      this.log(`[credits] Failed to record cancelled usage: ${err?.message}`);
+    }
   }
 
   // ─── Session persistence (survives DO reset / hibernation) ───
@@ -586,6 +687,23 @@ export class CampaignSession implements DurableObject {
     this.generationStartedAt = Date.now();
     this.currentRequestId = null;
 
+    // Pre-flight credit check — before any D1 writes to avoid orphan campaigns
+    try {
+      const balance = await credits.getBalance(this.env.DB, this.userId);
+      if (balance <= 0) {
+        this.isGenerating = false;
+        this.sendWS({
+          type: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'Insufficient credits. Please top up to continue.',
+          code: 'INSUFFICIENT_CREDITS',
+        });
+        return;
+      }
+    } catch (err: any) {
+      this.log(`[credits] Pre-flight check failed: ${err?.message} — allowing generation`);
+    }
+
     const sessionId = requestedSessionId || `ws-${Date.now()}`;
     this.sessionId = sessionId;
     this.abortController = new AbortController();
@@ -725,6 +843,23 @@ export class CampaignSession implements DurableObject {
         this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Campaign not found' });
         this.isGenerating = false;
         return;
+      }
+
+      // Pre-flight credit check — before saving message or updating status
+      try {
+        const balance = await credits.getBalance(this.env.DB, this.userId);
+        if (balance <= 0) {
+          this.isGenerating = false;
+          this.sendWS({
+            type: 'error',
+            timestamp: new Date().toISOString(),
+            error: 'Insufficient credits. Please top up to continue.',
+            code: 'INSUFFICIENT_CREDITS',
+          });
+          return;
+        }
+      } catch (err: any) {
+        this.log(`[credits] Pre-flight check failed: ${err?.message} — allowing follow-up`);
       }
 
       const rawSdkSessionId = await db.getSdkSessionId(this.env.DB, campaignId);
@@ -1289,6 +1424,7 @@ export class CampaignSession implements DurableObject {
     const existingImageCount = campaignId
       ? (await db.getImageCount(this.env.DB, campaignId)) || 0
       : 0;
+    this.preGenImageCount = existingImageCount;
     const imageCounter = { next: existingImageCount + 1 };
 
     const ctx: ParserContext = {
@@ -1381,6 +1517,8 @@ export class CampaignSession implements DurableObject {
       this.abortController = null;
       if (wasCancelled) {
         this.trace('gen-fast', 'finally.cancelled');
+        // Charge for images generated before cancel
+        if (campaignId) await this.recordCancelledUsage(campaignId);
         this.isGenerating = false;
         if (this.sandbox && this.agentProcessId) {
           try { await this.sandbox.killProcess(this.agentProcessId); } catch (_) {}
@@ -1455,6 +1593,8 @@ export class CampaignSession implements DurableObject {
       this.abortController = null;
       if (wasCancelled) {
         this.trace('gen', 'finally.cancelled');
+        // Charge for images generated before cancel
+        if (this.campaignId) await this.recordCancelledUsage(this.campaignId);
         this.isGenerating = false;
         if (this.sandbox && this.agentProcessId) {
           try { await this.sandbox.killProcess(this.agentProcessId); } catch (_) {}

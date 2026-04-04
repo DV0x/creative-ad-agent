@@ -86,6 +86,7 @@ export interface WSCompleteEvent extends WSBaseMessage {
 export interface WSErrorEvent extends WSBaseMessage {
   type: 'error';
   error: string;
+  code?: string;
 }
 
 export interface WSAckEvent extends WSBaseMessage {
@@ -108,6 +109,12 @@ export interface WSIncompleteEvent extends WSBaseMessage {
   type: 'incomplete';
   error: string;
   message: string;
+}
+
+export interface WSCreditsUpdateEvent extends WSBaseMessage {
+  type: 'credits_update';
+  balance: number;
+  cost: number;
 }
 
 export interface WSTextStartEvent extends WSBaseMessage {
@@ -141,6 +148,7 @@ export type WSServerMessage =
   | WSAckEvent
   | WSPongEvent
   | WSSubscribedEvent
+  | WSCreditsUpdateEvent
   | WSTextStartEvent
   | WSTextDeltaEvent
   | WSTextEndEvent;
@@ -171,6 +179,10 @@ export function isCompleteEvent(msg: WSServerMessage): msg is WSCompleteEvent {
 
 export function isErrorEvent(msg: WSServerMessage): msg is WSErrorEvent {
   return msg.type === 'error';
+}
+
+export function isCreditsUpdateEvent(msg: WSServerMessage): msg is WSCreditsUpdateEvent {
+  return msg.type === 'credits_update';
 }
 
 // WebSocket connection state

@@ -9,7 +9,10 @@ export class SDKInstrumentor {
   private toolCalls: any[] = [];
   private campaignId: string;
   private startTime: number;
-  private totalCost: number = 0;
+  totalCost: number = 0;
+  inputTokens: number = 0;
+  outputTokens: number = 0;
+  numTurns: number = 0;
   private processedMessageIds = new Set<string>();
 
   constructor(campaignId: string, url?: string, platform?: string) {
@@ -74,11 +77,14 @@ export class SDKInstrumentor {
         if (message.subtype === 'success') {
           // Extract SDK-provided cost - this is authoritative
           this.totalCost = message.total_cost_usd || 0;
+          this.inputTokens = message.usage?.input_tokens || 0;
+          this.outputTokens = message.usage?.output_tokens || 0;
+          this.numTurns = message.num_turns || 0;
 
           this.logEvent('COMPLETE', {
             duration: `${message.duration_ms}ms`,
             cost: `$${this.totalCost.toFixed(4)}`,
-            turns: message.num_turns || 0,
+            turns: this.numTurns,
             usage: message.usage
           });
         }

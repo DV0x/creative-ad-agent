@@ -85,7 +85,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const activeFileType = useStore(state => state.activeFileType)
   const appState = useStore(state => state.appState)
   const generatingCampaignId = useStore(state => state.generatingCampaignId)
-
   const isEditorOpen = activeFileType !== null
 
   // Show workspace (sidebars) when in workspace mode
