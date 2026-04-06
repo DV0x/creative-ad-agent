@@ -214,7 +214,24 @@ export class CampaignSession implements DurableObject {
             }
           } catch (err: any) {
             this.trace('alarm', 'listProcesses.catch', { err: err?.message?.substring(0, 100) });
-            // Can't list processes — sandbox may be disconnected. Try turn-result.json anyway
+            // Fatal sandbox error — connection is dead, clean up and let user retry
+            if (err?.message?.includes('object to be reset') || err?.message?.includes('Network connection lost')) {
+              this.trace('alarm', 'sandbox.fatal', { err: err?.message?.substring(0, 100) });
+              this.sandbox = null;
+              this.emitEvent({
+                type: 'error',
+                timestamp: new Date().toISOString(),
+                error: 'Creative engine had a brief hiccup — your work is saved! Just resend your last message and we\'ll pick right back up.',
+              });
+              try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+              this.isGenerating = false;
+              this.agentProcessId = null;
+              await this.state.storage.delete('agentProcessId');
+              await this.state.storage.delete('agentCampaignId');
+              await this.clearPersistedSession();
+              this.trace('alarm', 'exit.sandboxFatal', { ms: Date.now() - alarmStart });
+              return;
+            }
           }
 
           // Relay container logs: call getProcessLogs() to see what agent is doing
