@@ -150,27 +150,32 @@ export function useWebSocket(): UseWebSocketReturn {
 
         case 'text_start':
           if (campaignId && messageId) {
+            // Commit any leftover streaming text from a missed text_end (safety net)
+            store.commitStreamingText();
             store.setTextStreaming(campaignId, messageId, true);
           }
           break;
 
         case 'text_delta':
-          if ('delta' in message && message.delta && campaignId && messageId) {
-            store.appendTextDelta(campaignId, messageId, message.delta);
+          if ('delta' in message && message.delta && store.generatingCampaignId) {
+            store.appendTextDelta(message.delta);
           }
           break;
 
         case 'text_end':
           if (campaignId && messageId) {
+            store.commitStreamingText();
             store.setTextStreaming(campaignId, messageId, false);
           }
           break;
 
         case 'message':
-          // Fallback for local runner and recovery — server-side hasStreamedDeltas
-          // suppresses this event when deltas were streamed
+          // Fallback for local runner — only fires when NOT actively streaming.
+          // During streaming, deltas go to streamingText scratch pad instead.
           if (message.type === 'message' && 'text' in message && message.text && campaignId && messageId) {
-            store.appendTextBlock(campaignId, messageId, message.text);
+            if (!store.streamingText) {
+              store.appendTextBlock(campaignId, messageId, message.text);
+            }
           }
           break;
 
@@ -221,12 +226,15 @@ export function useWebSocket(): UseWebSocketReturn {
               `Created ${imgCount} ad concept${imgCount !== 1 ? 's' : ''}. You can edit the hooks and prompts in the sidebar, or select images to regenerate them.`;
 
             store.closeThinkingBlock(campaignId, messageId, 'complete');
-            // Only add summary text if no text blocks already exist from streaming.
-            // Follow-ups have streamed text; initial generation may also have deltas.
-            const msgs = store.chatMessages[campaignId] || [];
+            // Commit any remaining streaming text (safety net if text_end was missed)
+            store.commitStreamingText();
+            // Merge all text blocks into one + strip image URLs for visual parity with D1
+            store.mergeAndStripTextBlocks(campaignId, messageId);
+            // Only add summary text if no text blocks exist at all
+            const msgs = useStore.getState().chatMessages[campaignId] || [];
             const msg = msgs.find(m => m.id === messageId);
-            const hasStreamedText = msg?.blocks?.some(b => b.type === 'text') ?? false;
-            if (!hasStreamedText && !store.isFollowUp) {
+            const hasText = msg?.blocks?.some(b => b.type === 'text') ?? false;
+            if (!hasText) {
               store.appendTextBlock(campaignId, messageId, summary);
             }
             store.completeGeneration(campaignId, messageId, summary);
@@ -479,6 +487,8 @@ export function useWebSocket(): UseWebSocketReturn {
     const messageId = store.currentGeneratingMessageId;
     if (campaignId && messageId) {
       store.closeThinkingBlock(campaignId, messageId, 'error');
+      // Discard any in-progress streaming text before adding cancel message
+      store.commitStreamingText();
       store.appendTextBlock(campaignId, messageId, 'Generation was cancelled.');
       store.cancelGeneration(campaignId, messageId);
     }

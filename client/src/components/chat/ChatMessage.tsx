@@ -9,11 +9,13 @@ interface ChatMessageProps {
 }
 
 export function ChatMessage({ message }: ChatMessageProps) {
-  const { toggleBlockExpanded, currentGeneratingMessageId, textStreamingMessageId } = useStore()
+  const { toggleBlockExpanded, currentGeneratingMessageId } = useStore()
+  const streamingText = useStore(state =>
+    message.id === state.textStreamingMessageId ? state.streamingText : null
+  )
   const isUser = message.role === 'user'
   const hasBlocks = message.blocks && message.blocks.length > 0
   const isActivelyGenerating = message.id === currentGeneratingMessageId
-  const isStreaming = message.id === textStreamingMessageId
 
   const handleToggleBlock = (blockId: string) => {
     if (message.campaignId) {
@@ -67,11 +69,20 @@ export function ChatMessage({ message }: ChatMessageProps) {
         {!isUser && (
           <div className="space-y-2 min-w-0 overflow-hidden">
             {hasBlocks && (
-              <BlockRenderer blocks={message.blocks!} isStreaming={isStreaming} onToggleThinking={handleToggleBlock} />
+              <BlockRenderer blocks={message.blocks!} isStreaming={false} onToggleThinking={handleToggleBlock} />
             )}
-            {/* Show content if no blocks, or if blocks exist but don't contain a text block.
-                Hide during active generation — thinking block already shows progress. */}
-            {message.content && !isActivelyGenerating && (!hasBlocks || !message.blocks!.some(b => b.type === 'text')) && (
+            {/* Live streaming text preview — separate from committed blocks */}
+            {streamingText && (
+              <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3 overflow-hidden">
+                <p className="whitespace-pre-wrap break-words text-sm">
+                  {streamingText}
+                  <span className="inline-block w-0.5 h-4 bg-accent/70 ml-0.5 align-middle animate-pulse" />
+                </p>
+              </div>
+            )}
+            {/* Fallback: show msg.content if no text blocks and not streaming */}
+            {message.content && !isActivelyGenerating && !streamingText &&
+             (!hasBlocks || !message.blocks!.some(b => b.type === 'text')) && (
               <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3 overflow-hidden">
                 <MarkdownContent content={message.content} />
               </div>

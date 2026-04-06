@@ -81,6 +81,99 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
     return;
   }
 
+  // Handle tool_use events from stream (written by agent-runner at content_block_stop)
+  if (message.type === 'tool_use_event') {
+    const block = message; // { type, name, id, input }
+
+    emitEvent({
+      type: 'tool_start',
+      timestamp: new Date().toISOString(),
+      tool: block.name,
+      toolId: block.id,
+      input: block.input,
+    });
+
+    // Add tool to block builder with friendly names
+    const displayName = TOOL_DISPLAY_NAMES[block.name] || block.name;
+    blockBuilder.addThinkingChild('tool', displayName);
+
+    // Detect file writes (Write tool with campaign files)
+    if (block.name === 'Write' && block.input?.file_path && block.input?.content) {
+      const filePath = block.input.file_path as string;
+      const fileContent = block.input.content as string;
+
+      let fileType: 'research' | 'hooks' | 'prompts' | null = null;
+      if (filePath.includes('research')) {
+        fileType = 'research';
+      } else if (filePath.includes('hook')) {
+        fileType = 'hooks';
+      } else if (filePath.includes('prompt')) {
+        fileType = 'prompts';
+      }
+
+      if (fileType) {
+        emitEvent({
+          type: 'file',
+          timestamp: new Date().toISOString(),
+          fileType,
+          content: fileContent,
+          path: filePath,
+        });
+
+        blockBuilder.addThinkingChild('status', `${fileType}.md created`, 'success');
+
+        if (ctx.campaignId) {
+          try {
+            await db.updateCampaignFile(ctx.d1, ctx.campaignId, fileType, fileContent);
+          } catch (err) {
+            console.error(`Failed to save ${fileType}:`, err);
+          }
+        }
+      }
+    }
+
+    // Detect phase from tool usage — enrich labels with context
+    if (block.name === 'Task') {
+      const agentType = block.input?.subagent_type;
+      if (agentType === 'Explore' || block.input?.description?.toLowerCase().includes('research')) {
+        const desc = (block.input?.description || block.input?.prompt || '') as string;
+        const urlMatch = desc.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)\.[a-z]+/i);
+        const label = urlMatch ? `Researching ${urlMatch[1]}` : 'Researching brand';
+        emitEvent({
+          type: 'phase',
+          timestamp: new Date().toISOString(),
+          phase: 'research',
+          label,
+        });
+        blockBuilder.openThinkingBlock(label);
+      }
+    } else if (block.name === 'Skill') {
+      const skillName = block.input?.skill;
+      if (skillName === 'hook-methodology') {
+        const label = 'Writing 6 ad hooks';
+        emitEvent({ type: 'phase', timestamp: new Date().toISOString(), phase: 'hooks', label });
+        blockBuilder.openThinkingBlock(label);
+      } else if (skillName === 'art-style') {
+        const label = 'Crafting art direction';
+        emitEvent({ type: 'phase', timestamp: new Date().toISOString(), phase: 'art', label });
+        blockBuilder.openThinkingBlock(label);
+      }
+    } else if (block.name === 'mcp__nano-banana__generate_ad_images') {
+      const promptCount = Array.isArray(block.input?.prompts) ? block.input.prompts.length : undefined;
+      const label = promptCount ? `Generating ${promptCount} images` : 'Generating images';
+      emitEvent({
+        type: 'phase',
+        timestamp: new Date().toISOString(),
+        phase: 'images',
+        label,
+        imageCount: promptCount,
+      });
+      blockBuilder.openThinkingBlock(label, promptCount || 0);
+    }
+
+    return;
+  }
+
   // Capture SDK session ID for follow-up resume
   if (message.type === 'system' && message.subtype === 'init' && message.session_id) {
     if (ctx.campaignId) {
@@ -122,6 +215,9 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
           console.log(`[sdk-parser] SKIP message text (${block.text.length} chars) — already streamed via deltas`);
         }
       } else if (block.type === 'tool_use') {
+        // Note: On Cloudflare, tool_use is handled via 'tool_use_event' from stream events (above).
+        // This path only fires for local dev (runGenerationLocal) where assembled messages are
+        // processed directly without streaming.
         emitEvent({
           type: 'tool_start',
           timestamp: new Date().toISOString(),

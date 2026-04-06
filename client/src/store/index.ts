@@ -156,8 +156,11 @@ interface Store {
 
   // Block actions
   appendTextBlock: (campaignId: string, messageId: string, text: string) => void
-  appendTextDelta: (campaignId: string, messageId: string, delta: string) => void
+  appendTextDelta: (delta: string) => void
+  commitStreamingText: () => void
+  mergeAndStripTextBlocks: (campaignId: string, messageId: string) => void
   setTextStreaming: (campaignId: string, messageId: string, streaming: boolean) => void
+  streamingText: string | null
   textStreamingMessageId: string | null
   openThinkingBlock: (campaignId: string, messageId: string, label: string, expectedImages?: number) => void
   addThinkingChild: (campaignId: string, messageId: string, child: { kind: ThinkingChild['kind']; text: string; variant?: ThinkingChild['variant'] }) => void
@@ -250,6 +253,12 @@ function parseExpectedImageCount(prompt: string): number {
 // ============================================
 // Store Implementation
 // ============================================
+
+// Module-scoped RAF buffer for text deltas — shared between appendTextDelta and commitStreamingText.
+// appendTextDelta batches deltas via RAF for smooth rendering. commitStreamingText must flush
+// this buffer synchronously before committing, otherwise trailing deltas are lost (truncation bug).
+let _textDeltaBuf = '';
+let _textDeltaRaf: number | null = null;
 
 export const useStore = create<Store>((set, get) => ({
   // App State — initial value derived from URL
@@ -622,6 +631,7 @@ export const useStore = create<Store>((set, get) => ({
       isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
+      streamingText: null,
       textStreamingMessageId: null,
       generationExpectedImages: 0,
       _pendingImages: {},
@@ -644,6 +654,7 @@ export const useStore = create<Store>((set, get) => ({
       isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
+      streamingText: null,
       textStreamingMessageId: null,
       generationExpectedImages: 0,
       chatMessages: {
@@ -664,6 +675,7 @@ export const useStore = create<Store>((set, get) => ({
       isFollowUp: false,
       sessionId: null,
       currentGeneratingMessageId: null,
+      streamingText: null,
       textStreamingMessageId: null,
       generationExpectedImages: 0,
       error,
@@ -713,6 +725,7 @@ export const useStore = create<Store>((set, get) => ({
   chatMessages: {},
   chatExpanded: false,
   currentGeneratingMessageId: null,
+  streamingText: null,
   textStreamingMessageId: null,
 
   getActiveChatMessages: () => {
@@ -778,49 +791,88 @@ export const useStore = create<Store>((set, get) => ({
     }
   })),
 
+  // Streaming text scratch pad — deltas accumulate here, NOT in msg.blocks.
+  // Committed to blocks atomically on text_end (like Claude Code's pattern).
+  // Buffer + RAF handle are module-scoped so commitStreamingText can flush them.
   appendTextDelta: (() => {
-    let deltaBuffer = '';
-    let rafId: number | null = null;
-    let bufferedCampaignId = '';
-    let bufferedMessageId = '';
-
-    return (campaignId: string, messageId: string, delta: string) => {
-      deltaBuffer += delta;
-      bufferedCampaignId = campaignId;
-      bufferedMessageId = messageId;
-
-      if (!rafId) {
-        rafId = requestAnimationFrame(() => {
-          const flushed = deltaBuffer;
-          const cId = bufferedCampaignId;
-          const mId = bufferedMessageId;
-          deltaBuffer = '';
-          rafId = null;
-
-          set((state) => ({
-            chatMessages: {
-              ...state.chatMessages,
-              [cId]: (state.chatMessages[cId] || []).map(msg => {
-                if (msg.id !== mId) return msg
-                const blocks = [...(msg.blocks || [])]
-                // Append to last text block, or create a new one
-                const lastBlock = blocks[blocks.length - 1]
-                if (lastBlock && lastBlock.type === 'text') {
-                  blocks[blocks.length - 1] = { ...lastBlock, content: lastBlock.content + flushed }
-                } else {
-                  blocks.push({ type: 'text', id: generateBlockId('txt'), content: flushed })
-                }
-                return { ...msg, blocks }
-              })
-            }
-          }));
+    return (delta: string) => {
+      _textDeltaBuf += delta;
+      if (!_textDeltaRaf) {
+        _textDeltaRaf = requestAnimationFrame(() => {
+          const flushed = _textDeltaBuf;
+          _textDeltaBuf = '';
+          _textDeltaRaf = null;
+          set((state) => ({ streamingText: (state.streamingText ?? '') + flushed }));
         });
       }
     };
   })(),
 
+  // Atomically move streamingText into msg.blocks as a committed text block.
+  // Flushes any pending RAF-buffered deltas first to prevent truncation.
+  commitStreamingText: () => {
+    // Flush pending deltas synchronously — RAF may not have fired yet
+    if (_textDeltaBuf) {
+      if (_textDeltaRaf) { cancelAnimationFrame(_textDeltaRaf); _textDeltaRaf = null; }
+      const flushed = _textDeltaBuf;
+      _textDeltaBuf = '';
+      set((state) => ({ streamingText: (state.streamingText ?? '') + flushed }));
+    }
+
+    set((state) => {
+      const text = state.streamingText;
+      const cId = state.generatingCampaignId;
+      const mId = state.currentGeneratingMessageId;
+      if (!text || !cId || !mId) return { streamingText: null };
+
+      return {
+        streamingText: null,
+        chatMessages: {
+          ...state.chatMessages,
+          [cId]: (state.chatMessages[cId] || []).map(msg => {
+            if (msg.id !== mId) return msg;
+            const blocks = [...(msg.blocks || [])];
+            blocks.push({ type: 'text', id: generateBlockId('txt'), content: text });
+            return { ...msg, blocks };
+          })
+        }
+      };
+    });
+  },
+
+  // On completion: merge all text blocks into one + strip image URLs for visual parity with D1
+  mergeAndStripTextBlocks: (campaignId, messageId) => set((state) => ({
+    chatMessages: {
+      ...state.chatMessages,
+      [campaignId]: (state.chatMessages[campaignId] || []).map(msg => {
+        if (msg.id !== messageId) return msg;
+        const blocks = msg.blocks || [];
+        const textBlocks = blocks.filter(b => b.type === 'text');
+        if (textBlocks.length === 0) return msg;
+
+        // Merge all text block content
+        let merged = textBlocks.map(b => b.content).join('\n\n');
+
+        // Strip image URLs (same regexes as server-side stripImageUrls)
+        merged = merged.replace(/https?:\/\/[^\s]*fal\.(media|ai)[^\s]*/g, '');
+        merged = merged.replace(/\/mnt\/r2\/images\/[^\s)"]*/g, '');
+        merged = merged.replace(/[-–•*]*\s*\*?\*?Image URL:?\*?\*?:?\s*[^\n]*/gi, '');
+        merged = merged.replace(/\n{3,}/g, '\n\n');
+        merged = merged.trim();
+
+        if (!merged) return msg;
+
+        // Replace all text blocks with a single merged one, keep non-text blocks in order
+        const nonTextBlocks = blocks.filter(b => b.type !== 'text');
+        const mergedBlock = { type: 'text' as const, id: generateBlockId('txt'), content: merged };
+        return { ...msg, blocks: [...nonTextBlocks, mergedBlock] };
+      })
+    }
+  })),
+
   setTextStreaming: (_campaignId, messageId, streaming) => set({
     textStreamingMessageId: streaming ? messageId : null,
+    ...(streaming ? { streamingText: '' } : {}),
   }),
 
   openThinkingBlock: (campaignId, messageId, label, expectedImages = 0) => set((state) => ({

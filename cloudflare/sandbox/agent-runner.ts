@@ -316,37 +316,71 @@ let blockBuilder = new BlockBuilder();
 blockBuilder.openThinkingBlock('Parsing Request');
 let textAccumulator = { text: '' };
 let inTextBlock = false;
+let inToolUseBlock = false;
+let toolUseName = '';
+let toolUseId = '';
+let toolInputBuffer = '';
 let previousCostUsd = 0; // Track cumulative SDK cost to compute per-turn delta
 
 try {
   for await (const message of query({ prompt: promptStream(), options: baseOptions })) {
-    // Handle stream events — extract text deltas + block boundaries
+    // Handle stream events — extract text deltas, tool_use, and block boundaries
     if (message.type === 'stream_event') {
       const evt = (message as any).event;
       if (!evt) continue;
 
-      // Text block start: content_block_start with type 'text'
+      // Text block start
       if (evt.type === 'content_block_start' && evt.content_block?.type === 'text') {
         inTextBlock = true;
         process.stdout.write(JSON.stringify({ type: 'text_start' }) + '\n');
       }
 
-      // Token-level delta
+      // Tool_use block start — capture name and ID, start accumulating input
+      if (evt.type === 'content_block_start' && evt.content_block?.type === 'tool_use') {
+        inToolUseBlock = true;
+        toolUseName = evt.content_block.name || '';
+        toolUseId = evt.content_block.id || '';
+        toolInputBuffer = '';
+      }
+
+      // Token-level text delta
       if (evt.type === 'content_block_delta' && evt.delta?.type === 'text_delta') {
         process.stdout.write(JSON.stringify({ type: 'text_delta', delta: evt.delta.text }) + '\n');
       }
 
-      // Text block end: content_block_stop after a text block
-      if (evt.type === 'content_block_stop' && inTextBlock) {
-        inTextBlock = false;
-        process.stdout.write(JSON.stringify({ type: 'text_end' }) + '\n');
+      // Tool input JSON delta — accumulate partial JSON
+      if (evt.type === 'content_block_delta' && evt.delta?.type === 'input_json_delta') {
+        toolInputBuffer += evt.delta.partial_json;
+      }
+
+      // Block stop — finalize text or tool_use
+      if (evt.type === 'content_block_stop') {
+        if (inTextBlock) {
+          inTextBlock = false;
+          process.stdout.write(JSON.stringify({ type: 'text_end' }) + '\n');
+        } else if (inToolUseBlock) {
+          inToolUseBlock = false;
+          let parsedInput: any = {};
+          try { parsedInput = JSON.parse(toolInputBuffer); } catch { /* incomplete JSON */ }
+          process.stdout.write(JSON.stringify({
+            type: 'tool_use_event',
+            name: toolUseName,
+            id: toolUseId,
+            input: parsedInput,
+          }) + '\n');
+        }
       }
 
       continue; // Skip blockBuilder, completion handling for stream events
     }
 
-    // Complete messages — existing behavior unchanged
-    process.stdout.write(JSON.stringify(message) + '\n');
+    // Non-stream messages: only write non-assistant to stdout.
+    // Assistant messages are handled above via stream events (text + tools).
+    // system/user/result messages still go to stdout for SDK session ID,
+    // image detection (tool_result), and turn completion markers.
+    if (message.type !== 'assistant') {
+      process.stdout.write(JSON.stringify(message) + '\n');
+    }
 
     // Capture SDK session ID from init message
     if (message.type === 'system' && (message as any).subtype === 'init' && (message as any).session_id) {
@@ -387,11 +421,13 @@ try {
         process.stdout.write(`COMPLETION:${currentRequestId}\n`);
       }
 
-      // Reset block builder and text block tracking for next turn
+      // Reset block builder and streaming state for next turn
       blockBuilder = new BlockBuilder();
       blockBuilder.openThinkingBlock('Processing Follow-Up');
       textAccumulator = { text: '' };
       inTextBlock = false;
+      inToolUseBlock = false;
+      toolInputBuffer = '';
     }
   }
 } catch (err: any) {
