@@ -31,6 +31,7 @@ export class CampaignSession implements DurableObject {
   private currentRequestId: string | null = null; // Per-turn ID for staleness check (null = initial gen)
   private hasSourceResearch = false; // True when research was copied from a source campaign
   private preGenImageCount = 0; // Image count before current generation (for cancel cost calc)
+  private currentLogStream: ReadableStream | null = null; // Reference for cancel to unblock streamForLiveUI
 
   // Trace instrumentation
   private traceSeq = 0;
@@ -1031,9 +1032,13 @@ export class CampaignSession implements DurableObject {
     this.trace('handler', 'cancel.enter', { hasAbort: !!this.abortController, session: this.sessionId || 'null', gen: this.isGenerating });
     if (this.abortController) {
       console.log(`Cancelling generation for session ${this.sessionId}`);
-      // Only set the abort signal — let runGeneration/runFollowUpFast handle
-      // killing the agent and unmounting R2. They know which agent THEY started.
+      // Abort + cancel stream to unblock streamForLiveUI immediately.
+      // runGeneration/runFollowUpFast handle killing the agent and unmounting R2.
       this.abortController.abort();
+      if (this.currentLogStream) {
+        try { this.currentLogStream.cancel(); } catch { /* already closed */ }
+        this.currentLogStream = null;
+      }
       this.sendWS({
         type: 'ack',
         timestamp: new Date().toISOString(),
@@ -1165,8 +1170,11 @@ export class CampaignSession implements DurableObject {
 
     let cancelled = false;
     let error: string | undefined;
+    let turnDone = false; // Must exit BOTH loops — inner break only exits line loop
     try {
       for await (const event of parseSSEStream(logStream)) {
+        if (turnDone) break;
+
         if (this.abortController?.signal.aborted) {
           cancelled = true;
           return true;
@@ -1198,7 +1206,10 @@ export class CampaignSession implements DurableObject {
               continue;
             }
 
-            if (msg.type === 'turn_complete' || msg.type === 'result') break;
+            if (msg.type === 'turn_complete' || msg.type === 'result') {
+              turnDone = true;
+              break;
+            }
 
             // Deduplicate: SDK yields each message twice (streaming + final).
             // Skip messages we've already processed by UUID.
@@ -1480,6 +1491,7 @@ export class CampaignSession implements DurableObject {
 
       // 2. Start streaming logs BEFORE writing prompt (avoid race condition)
       const logStream = await this.timedRPC('streamProcessLogs', () => sandbox.streamProcessLogs(this.agentProcessId!)) as ReadableStream;
+      this.currentLogStream = logStream;
 
       // 3. Write prompt file — triggers agent-runner to process next turn
       await this.timedRPC('writePromptFile', () => sandbox.writeFile('/app/next-prompt.json', JSON.stringify({
@@ -1529,6 +1541,7 @@ export class CampaignSession implements DurableObject {
       }
     } finally {
       this.abortController = null;
+      this.currentLogStream = null;
       if (wasCancelled) {
         this.trace('gen-fast', 'finally.cancelled');
         // Charge for images generated before cancel
@@ -1568,6 +1581,7 @@ export class CampaignSession implements DurableObject {
       // Stream logs for live UI only (best-effort, not for completion)
       this.trace('gen', 'streamProcessLogs.start');
       const logStream = await this.timedRPC('streamProcessLogs', () => sandbox.streamProcessLogs(this.agentProcessId!)) as ReadableStream;
+      this.currentLogStream = logStream;
       wasCancelled = await this.streamForLiveUI(logStream, ctx, { label: 'gen' });
 
       if (wasCancelled && this.campaignId) {
@@ -1605,6 +1619,7 @@ export class CampaignSession implements DurableObject {
     } finally {
       this.sandboxSetupInProgress = false;
       this.abortController = null;
+      this.currentLogStream = null;
       if (wasCancelled) {
         this.trace('gen', 'finally.cancelled');
         // Charge for images generated before cancel
@@ -1803,6 +1818,11 @@ export class CampaignSession implements DurableObject {
     const eventId = this.eventBuffer.append(event);
     const wsCount = this.state.getWebSockets().length;
     this.trace('emit', event.type, { eventId, wsCount });
+    // Direct console.log for complete/error — bypasses tailLog buffer
+    const t = (event as any).type;
+    if (t === 'complete' || t === 'error') {
+      console.log(`[ws-emit] ${t} eventId=${eventId} wsCount=${wsCount} cid=${this.campaignId}`);
+    }
     const payload = JSON.stringify({ ...event, id: eventId });
     for (const ws of this.state.getWebSockets()) {
       try { ws.send(payload); } catch { /* closed — ignore */ }
@@ -1811,6 +1831,11 @@ export class CampaignSession implements DurableObject {
 
   /** Broadcast without buffering (for ack, pong, errors that don't need replay) */
   private sendWS(event: ServerMessage): void {
+    // Direct console.log for streaming events — bypasses tailLog buffer so it appears in wrangler tail immediately
+    const t = (event as any).type;
+    if (t === 'text_start' || t === 'text_end' || t === 'text_delta') {
+      console.log(`[ws-send] ${t}${t === 'text_delta' ? ` len=${((event as any).delta || '').length}` : ''} cid=${this.campaignId}`);
+    }
     const payload = JSON.stringify(event);
     for (const ws of this.state.getWebSockets()) {
       try { ws.send(payload); } catch { /* closed — ignore */ }
