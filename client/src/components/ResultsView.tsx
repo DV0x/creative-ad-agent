@@ -119,6 +119,17 @@ Please continue from where we left off and complete the remaining images.`
 
   return (
     <div className="h-screen flex flex-col bg-bg-base overflow-hidden">
+      {/* Connection status banner */}
+      {connectionState === 'reconnecting' && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-700 text-center animate-fadeIn">
+          Lost connection for a sec, reconnecting...
+        </div>
+      )}
+      {connectionState === 'disconnected' && (
+        <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-600 text-center animate-fadeIn">
+          Connection's being stubborn — try refreshing the page
+        </div>
+      )}
       {/* Header */}
       <header className="h-14 border-b border-border bg-bg-base/80 backdrop-blur-sm shrink-0 z-10">
         <div className="h-full px-4 flex items-center justify-between">

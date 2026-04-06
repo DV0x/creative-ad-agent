@@ -141,6 +141,11 @@ export class CampaignSession implements DurableObject {
       const MAX_GENERATION_AGE = 2 * 60 * 60 * 1000;
       if (this.generationStartedAt && (Date.now() - this.generationStartedAt) > MAX_GENERATION_AGE) {
         this.trace('alarm', 'safetyNet.triggered', { ageSec });
+        this.emitEvent({
+          type: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'That took way too long, even for us — your work\'s saved, let\'s try a fresh start',
+        });
         try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch (_) {}
         this.isGenerating = false;
         await this.persistSession();
@@ -168,7 +173,7 @@ export class CampaignSession implements DurableObject {
           this.emitEvent({
             type: 'error',
             timestamp: new Date().toISOString(),
-            error: 'Generation failed — no agent running. Please try again.',
+            error: 'Hmm something didn\'t start right — your work\'s saved, try again and we\'ll nail it',
           });
           try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
           this.isGenerating = false;
@@ -204,7 +209,7 @@ export class CampaignSession implements DurableObject {
               this.emitEvent({
                 type: 'error',
                 timestamp: new Date().toISOString(),
-                error: 'Generation agent crashed unexpectedly. Please try again.',
+                error: 'The creative engine wandered off — your work\'s safe tho, give it another go',
               });
               try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
               this.isGenerating = false;
@@ -221,7 +226,7 @@ export class CampaignSession implements DurableObject {
               this.emitEvent({
                 type: 'error',
                 timestamp: new Date().toISOString(),
-                error: 'Creative engine had a brief hiccup — your work is saved! Just resend your last message and we\'ll pick right back up.',
+                error: 'Connection went poof but your work didn\'t — hit send again and we\'re vibing',
               });
               try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
               this.isGenerating = false;
@@ -1563,7 +1568,7 @@ export class CampaignSession implements DurableObject {
         await db.addMessage(this.env.DB, {
           campaignId,
           role: 'assistant',
-          content: 'Generation was cancelled.',
+          content: 'No worries, scrapped that one — send a new idea whenever you\'re ready',
           blocks: [],
         });
       }
@@ -1645,7 +1650,7 @@ export class CampaignSession implements DurableObject {
         await db.addMessage(this.env.DB, {
           campaignId: this.campaignId,
           role: 'assistant',
-          content: 'Generation was cancelled.',
+          content: 'No worries, scrapped that one — send a new idea whenever you\'re ready',
           blocks: [],
         });
       }
@@ -1782,11 +1787,11 @@ export class CampaignSession implements DurableObject {
 
       if (wasCancelled && this.campaignId) {
         await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
-        blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
+        blockBuilder.addStatusBlock('No worries, scrapped that one — send a new idea whenever you\'re ready', 'info');
         await db.addMessage(this.env.DB, {
           campaignId: this.campaignId,
           role: 'assistant',
-          content: 'Generation was cancelled.',
+          content: 'No worries, scrapped that one — send a new idea whenever you\'re ready',
           blocks: blockBuilder.getBlocks(),
         });
       }
@@ -1795,11 +1800,11 @@ export class CampaignSession implements DurableObject {
       if (isAbort) {
         if (this.campaignId) {
           await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
-          blockBuilder.addStatusBlock('Generation was cancelled.', 'info');
+          blockBuilder.addStatusBlock('No worries, scrapped that one — send a new idea whenever you\'re ready', 'info');
           await db.addMessage(this.env.DB, {
             campaignId: this.campaignId,
             role: 'assistant',
-            content: 'Generation was cancelled.',
+            content: 'No worries, scrapped that one — send a new idea whenever you\'re ready',
             blocks: blockBuilder.getBlocks(),
           });
         }
