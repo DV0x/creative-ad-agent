@@ -556,20 +556,29 @@ export class CampaignSession implements DurableObject {
       this.generationStartedAt = stored.generationStartedAt || 0;
       this.currentRequestId = stored.currentRequestId || null;
       this.hasSourceResearch = stored.hasSourceResearch || false;
-      // Staleness check: if isGenerating is true but D1 says otherwise, reset it
+      // Staleness check: if isGenerating is true, verify something is actually running
       if (this.isGenerating && stored.campaignId) {
-        try {
-          const campaign = await db.getCampaignBySessionId(this.env.DB, stored.sessionId);
-          if (!campaign || campaign.status !== 'generating') {
-            console.log(`[restoreSession] Stale isGenerating detected — D1 status=${campaign?.status ?? 'not found'}, resetting`);
+        if (!this.sandbox) {
+          // No sandbox connection = nothing is running. DO reset killed it.
+          // Reset immediately — don't wait for alarm zombie detection.
+          console.log(`[restoreSession] Zombie detected — isGenerating=true but sandbox=null, resetting`);
+          this.isGenerating = false;
+          try { await db.updateCampaignStatus(this.env.DB, stored.campaignId, 'incomplete'); } catch {}
+          await this.persistSession();
+        } else {
+          // Sandbox exists but D1 might disagree — check D1
+          try {
+            const campaign = await db.getCampaignBySessionId(this.env.DB, stored.sessionId);
+            if (!campaign || campaign.status !== 'generating') {
+              console.log(`[restoreSession] Stale isGenerating detected — D1 status=${campaign?.status ?? 'not found'}, resetting`);
+              this.isGenerating = false;
+              await this.persistSession();
+            }
+          } catch (err: any) {
+            console.warn('[restoreSession] D1 staleness check failed:', err?.message);
             this.isGenerating = false;
             await this.persistSession();
           }
-        } catch (err: any) {
-          console.warn('[restoreSession] D1 staleness check failed:', err?.message);
-          // If D1 check fails, reset to be safe — better than being stuck forever
-          this.isGenerating = false;
-          await this.persistSession();
         }
       }
       return true;
@@ -682,13 +691,23 @@ export class CampaignSession implements DurableObject {
   private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string, brand?: string): Promise<void> {
     this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0, source: sourceCampaignId || 'none' });
     if (this.isGenerating) {
-      this.trace('handler', 'generate.blocked', { reason: 'already_generating' });
-      this.sendWS({
-        type: 'error',
-        timestamp: new Date().toISOString(),
-        error: 'A generation is already in progress. Please wait or cancel first.',
-      });
-      return;
+      // Safety net: if no sandbox, nothing is actually running (DO reset zombie)
+      if (!this.sandbox) {
+        this.trace('handler', 'generate.zombieReset', { reason: 'no_sandbox' });
+        this.isGenerating = false;
+        if (this.campaignId) {
+          try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+        }
+        await this.clearPersistedSession();
+      } else {
+        this.trace('handler', 'generate.blocked', { reason: 'already_generating' });
+        this.sendWS({
+          type: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'A generation is already in progress. Please wait or cancel first.',
+        });
+        return;
+      }
     }
     this.isGenerating = true;
     this.generationStartedAt = Date.now();
@@ -826,13 +845,23 @@ export class CampaignSession implements DurableObject {
   private async handleFollowUp(prompt: string, campaignId: string, assetFileIds?: string[], aspectRatio?: string): Promise<void> {
     this.trace('handler', 'followUp.enter', { promptLen: prompt.length, campaignId, assets: assetFileIds?.length || 0 });
     if (this.isGenerating) {
-      this.trace('handler', 'followUp.blocked', { reason: 'already_generating' });
-      this.sendWS({
-        type: 'error',
-        timestamp: new Date().toISOString(),
-        error: 'A generation is already in progress. Please wait or cancel first.',
-      });
-      return;
+      // Safety net: if no sandbox, nothing is actually running (DO reset zombie)
+      if (!this.sandbox) {
+        this.trace('handler', 'followUp.zombieReset', { reason: 'no_sandbox' });
+        this.isGenerating = false;
+        if (this.campaignId) {
+          try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+        }
+        await this.clearPersistedSession();
+      } else {
+        this.trace('handler', 'followUp.blocked', { reason: 'already_generating' });
+        this.sendWS({
+          type: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'A generation is already in progress. Please wait or cancel first.',
+        });
+        return;
+      }
     }
     this.isGenerating = true;
     this.generationStartedAt = Date.now();
