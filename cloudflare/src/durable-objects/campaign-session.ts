@@ -1507,6 +1507,11 @@ export class CampaignSession implements DurableObject {
         label: 'gen-fast',
       });
 
+      // 5. Finalize immediately after streaming — no race with alarm
+      if (!wasCancelled && campaignId && sessionId) {
+        await this.tryFinalize(campaignId, sessionId);
+      }
+
       if (wasCancelled && campaignId) {
         await db.updateCampaignStatus(this.env.DB, campaignId, 'cancelled');
         await db.addMessage(this.env.DB, {
@@ -1583,6 +1588,11 @@ export class CampaignSession implements DurableObject {
       const logStream = await this.timedRPC('streamProcessLogs', () => sandbox.streamProcessLogs(this.agentProcessId!)) as ReadableStream;
       this.currentLogStream = logStream;
       wasCancelled = await this.streamForLiveUI(logStream, ctx, { label: 'gen' });
+
+      // Finalize immediately after streaming — no race with alarm
+      if (!wasCancelled && this.campaignId && this.sessionId) {
+        await this.tryFinalize(this.campaignId, this.sessionId);
+      }
 
       if (wasCancelled && this.campaignId) {
         await db.updateCampaignStatus(this.env.DB, this.campaignId, 'cancelled');
