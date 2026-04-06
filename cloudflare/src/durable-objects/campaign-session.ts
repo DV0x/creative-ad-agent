@@ -1133,9 +1133,22 @@ export class CampaignSession implements DurableObject {
           }
 
           // DO was reset (event buffer empty) but D1 still says 'generating'.
-          // Restart alarm — it will reconnect sandbox and poll turn-result.json.
-          this.trace('handler', 'subscribe.restartAlarm', { reason: 'DO_reset_while_generating' });
-          this.startKeepAlive();
+          // If no sandbox connection, nothing is actually running — recover immediately.
+          if (!this.sandbox) {
+            this.trace('handler', 'subscribe.zombieRecovery', { reason: 'D1_generating_but_no_sandbox' });
+            try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+            this.isGenerating = false;
+            await this.clearPersistedSession();
+            this.sendToWS(ws, {
+              type: 'error',
+              timestamp: new Date().toISOString(),
+              error: 'Reconnected! Looks like things got interrupted — your work\'s saved tho, just send that again',
+            });
+          } else {
+            // Sandbox exists — restart alarm to monitor the running generation
+            this.trace('handler', 'subscribe.restartAlarm', { reason: 'DO_reset_while_generating' });
+            this.startKeepAlive();
+          }
         } catch (err: any) {
           this.trace('handler', 'subscribe.d1Error', { err: err?.message?.substring(0, 100) });
         }
