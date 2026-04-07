@@ -60,8 +60,8 @@ const COMMAND_PREFIX_RE = /^(?:create|make|generate|design|build|do|run|produce)
 // Extract brand and campaign name from prompt
 // e.g., "create 2 ads for https://traya.health/ targeting 30+" -> { brand: "Traya", campaignName: "Traya Ads" }
 // e.g., "bombayshirts.com - festive collection" -> { brand: "Bombayshirts", campaignName: "Bombayshirts — Festive Collection" }
-// e.g., "Local bakery in Austin targeting foodies" -> { brand: null, campaignName: "Local Bakery in Austin" }
-function extractBrandAndName(prompt: string): { brand: string | null; campaignName: string } {
+// e.g., "Local bakery in Austin targeting foodies" -> { brand: "Local Bakery In Austin", campaignName: "Local Bakery In Austin" }
+function extractBrandAndName(prompt: string): { brand: string; campaignName: string } {
   const domainMatch = prompt.match(/(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+)(?:\.[a-z]+)/i);
   if (domainMatch) {
     const brand = domainMatch[1].charAt(0).toUpperCase() + domainMatch[1].slice(1);
@@ -76,12 +76,13 @@ function extractBrandAndName(prompt: string): { brand: string | null; campaignNa
     }
     return { brand, campaignName: `${brand} Ads` };
   }
-  // No URL — strip command prefix, use meaningful part
+  // No URL — use meaningful part as both brand and campaign name
   const stripped = prompt.replace(COMMAND_PREFIX_RE, '').trim();
   const meaningful = stripped || prompt.trim();
   const raw = meaningful.charAt(0).toUpperCase() + meaningful.slice(1);
   const campaignName = raw.length <= 50 ? raw : raw.substring(0, 50).replace(/\s+\S*$/, '');
-  return { brand: null, campaignName: campaignName || 'Campaign' };
+  const brand = campaignName || 'Campaign';
+  return { brand, campaignName: brand };
 }
 
 // ── Hook ───────────────────────────────────────────────────────

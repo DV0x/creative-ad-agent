@@ -187,6 +187,7 @@ interface Store {
   // Async API-synced actions
   deleteCampaignAsync: (id: string) => Promise<void>
   renameCampaignAsync: (id: string, name: string) => Promise<void>
+  renameBrandAsync: (campaignIds: string[], newBrand: string) => Promise<void>
   saveFileAsync: (campaignId: string, fileType: CampaignFileType, content: string) => Promise<void>
   createFolderAsync: (name: string) => Promise<string>
   deleteFolderAsync: (id: string) => Promise<void>
@@ -1070,6 +1071,19 @@ export const useStore = create<Store>((set, get) => ({
     } catch (error) {
       console.error('Failed to rename campaign:', error)
     }
+  },
+
+  renameBrandAsync: async (campaignIds, newBrand) => {
+    // Optimistic update — rename brand on all campaigns in the group
+    for (const id of campaignIds) {
+      get().renameBrand(id, newBrand)
+    }
+    // Persist each to D1
+    await Promise.all(campaignIds.map(id =>
+      campaignsApi.update(id, { brand: newBrand }).catch(err =>
+        console.error(`Failed to rename brand on ${id}:`, err)
+      )
+    ))
   },
 
   saveFileAsync: async (campaignId, fileType, content) => {

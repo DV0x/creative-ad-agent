@@ -267,7 +267,7 @@ export const campaignsApi = {
     return transformCampaign(response.campaign, [], [], []);
   },
 
-  async update(id: string, data: { name?: string; status?: CampaignStatus }): Promise<Campaign> {
+  async update(id: string, data: { name?: string; status?: CampaignStatus; brand?: string }): Promise<Campaign> {
     const response = await apiFetch<{ success: boolean; campaign: ApiCampaign }>(`/campaigns/${id}`, {
       method: 'PATCH',
       body: JSON.stringify(data),

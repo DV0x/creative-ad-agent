@@ -10,6 +10,7 @@ export {
   updateCampaignStatus,
   updateCampaignSessionId,
   updateCampaignName,
+  updateCampaignBrand,
   deleteCampaign,
   updateSdkSessionId,
   getSdkSessionId,

@@ -83,6 +83,12 @@ export async function updateCampaignName(db: D1Database, id: string, name: strin
   `).bind(name, id).run();
 }
 
+export async function updateCampaignBrand(db: D1Database, id: string, brand: string): Promise<void> {
+  await db.prepare(`
+    UPDATE campaigns SET brand = ? WHERE id = ?
+  `).bind(brand, id).run();
+}
+
 export async function deleteCampaign(db: D1Database, id: string): Promise<void> {
   await db.prepare(`
     DELETE FROM campaigns WHERE id = ?

@@ -243,11 +243,8 @@ function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, on
   const handleRenameBrand = () => {
     const newName = renameValue.trim()
     if (newName && newName !== brand) {
-      // Update brand on all campaigns in this group
       const store = useStore.getState()
-      for (const c of campaigns) {
-        store.renameBrand(c.id, newName)
-      }
+      store.renameBrandAsync(campaigns.map(c => c.id), newName)
     }
     setIsRenaming(false)
   }

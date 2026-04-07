@@ -86,10 +86,13 @@ export async function updateCampaign(
       return Response.json({ success: false, error: 'Campaign not found' }, { status: 404 });
     }
 
-    const body = (await request.json()) as { name?: string; status?: string };
+    const body = (await request.json()) as { name?: string; status?: string; brand?: string };
 
     if (body.name) {
       await db.updateCampaignName(env.DB, campaignId, body.name);
+    }
+    if (body.brand) {
+      await db.updateCampaignBrand(env.DB, campaignId, body.brand);
     }
     if (body.status) {
       await db.updateCampaignStatus(
