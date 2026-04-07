@@ -40,7 +40,7 @@ export function AssetDrawer() {
 
   return (
     <div className="flex flex-col h-full">
-      <ScrollArea className="flex-1 min-h-0">
+      <ScrollArea className="flex-1 min-h-0 constrained-scroll-area">
         {/* Campaigns Section */}
         <CampaignsSection />
 

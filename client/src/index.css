@@ -707,8 +707,9 @@ body {
    which expands to content width instead of constraining it. This causes:
    - Text clipping on the right edge of fixed-width sidebars
    - Right-aligned elements (user chat bubbles) pushed off-screen
-   Scoped to .chat-scroll-area to avoid affecting other scroll areas. */
-.chat-scroll-area [data-radix-scroll-area-viewport] > div {
+   - Action icons (edit/delete) pushed off-screen on narrow sidebars
+   Applied to .constrained-scroll-area (any scroll area needing width constraints). */
+.constrained-scroll-area [data-radix-scroll-area-viewport] > div {
   display: block !important;
   min-width: 0 !important;
 }
