@@ -162,6 +162,8 @@ interface Store {
   setTextStreaming: (campaignId: string, messageId: string, streaming: boolean) => void
   streamingText: string | null
   textStreamingMessageId: string | null
+  hasActiveThinkingBlock: (campaignId: string, messageId: string) => boolean
+  removeEmptyThinkingBlock: (campaignId: string, messageId: string) => void
   openThinkingBlock: (campaignId: string, messageId: string, label: string, expectedImages?: number) => void
   addThinkingChild: (campaignId: string, messageId: string, child: { kind: ThinkingChild['kind']; text: string; variant?: ThinkingChild['variant'] }) => void
   closeThinkingBlock: (campaignId: string, messageId: string, status: 'complete' | 'error') => void
@@ -873,6 +875,38 @@ export const useStore = create<Store>((set, get) => ({
   setTextStreaming: (_campaignId, messageId, streaming) => set({
     textStreamingMessageId: streaming ? messageId : null,
     ...(streaming ? { streamingText: '' } : {}),
+  }),
+
+  hasActiveThinkingBlock: (campaignId, messageId) => {
+    const msgs = get().chatMessages[campaignId] || []
+    const msg = msgs.find(m => m.id === messageId)
+    if (!msg?.blocks) return false
+    return msg.blocks.some(b => b.type === 'thinking' && b.status === 'active')
+  },
+
+  // Remove the active thinking block if it has no meaningful children (phase/tool).
+  // Called on text_start — text-only responses don't need a leftover thinking accordion.
+  removeEmptyThinkingBlock: (campaignId, messageId) => set((state) => {
+    const msgs = state.chatMessages[campaignId] || []
+    const msgIdx = msgs.findIndex(m => m.id === messageId)
+    if (msgIdx === -1) return {}
+    const msg = msgs[msgIdx]
+    if (!msg.blocks) return {}
+    const hasMeaningfulChild = msg.blocks.some(b => {
+      if (b.type !== 'thinking' || b.status !== 'active') return false
+      const tb = b as import('@/types/chat').ThinkingBlockData
+      return tb.children.some(c => c.kind === 'phase' || c.kind === 'tool')
+    })
+    if (hasMeaningfulChild) return {} // keep it — real work happened
+    return {
+      chatMessages: {
+        ...state.chatMessages,
+        [campaignId]: msgs.map(m => {
+          if (m.id !== messageId) return m
+          return { ...m, blocks: m.blocks!.filter(b => !(b.type === 'thinking' && b.status === 'active')) }
+        })
+      }
+    }
   }),
 
   openThinkingBlock: (campaignId, messageId, label, expectedImages = 0) => set((state) => ({

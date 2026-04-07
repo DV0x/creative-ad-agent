@@ -67,7 +67,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [mentionStartIndex, setMentionStartIndex] = useState(-1)
 
-  const inputRef = useRef<HTMLInputElement>(null)
+  const inputRef = useRef<HTMLTextAreaElement>(null)
 
   // Expose openDropdown to parent via ref
   useImperativeHandle(ref, () => ({
@@ -268,37 +268,44 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 
   // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!showDropdown || filteredItems.length === 0) return
-
-    switch (e.key) {
-      case 'ArrowDown':
-        e.preventDefault()
-        setSelectedIndex(prev =>
-          prev < filteredItems.length - 1 ? prev + 1 : 0
-        )
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        setSelectedIndex(prev =>
-          prev > 0 ? prev - 1 : filteredItems.length - 1
-        )
-        break
-      case 'Enter':
-        e.preventDefault()
-        if (filteredItems[selectedIndex]) {
-          handleSelectItem(filteredItems[selectedIndex])
-        }
-        break
-      case 'Escape':
-        e.preventDefault()
-        setShowDropdown(false)
-        break
-      case 'Tab':
-        if (filteredItems[selectedIndex]) {
+    // When dropdown is open, handle navigation keys
+    if (showDropdown && filteredItems.length > 0) {
+      switch (e.key) {
+        case 'ArrowDown':
           e.preventDefault()
-          handleSelectItem(filteredItems[selectedIndex])
-        }
-        break
+          setSelectedIndex(prev =>
+            prev < filteredItems.length - 1 ? prev + 1 : 0
+          )
+          return
+        case 'ArrowUp':
+          e.preventDefault()
+          setSelectedIndex(prev =>
+            prev > 0 ? prev - 1 : filteredItems.length - 1
+          )
+          return
+        case 'Enter':
+          e.preventDefault()
+          if (filteredItems[selectedIndex]) {
+            handleSelectItem(filteredItems[selectedIndex])
+          }
+          return
+        case 'Escape':
+          e.preventDefault()
+          setShowDropdown(false)
+          return
+        case 'Tab':
+          if (filteredItems[selectedIndex]) {
+            e.preventDefault()
+            handleSelectItem(filteredItems[selectedIndex])
+          }
+          return
+      }
+    }
+
+    // Enter without Shift submits the form (textarea default is newline)
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      inputRef.current?.form?.requestSubmit()
     }
   }
 
@@ -400,14 +407,20 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       )}
 
       {/* Input */}
-      <input
+      <textarea
         ref={inputRef}
-        type="text"
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e) => {
+          onChange(e.target.value)
+          // Auto-resize: reset to auto then set to scrollHeight
+          const el = e.target
+          el.style.height = 'auto'
+          el.style.height = Math.min(el.scrollHeight, 160) + 'px'
+        }}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="w-full py-1.5 bg-transparent border-none text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none"
+        rows={1}
+        className="w-full py-1.5 bg-transparent border-none text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus-visible:outline-none focus-visible:ring-0 focus-visible:shadow-none resize-none"
         style={{ outline: 'none', boxShadow: 'none' }}
       />
 

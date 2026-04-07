@@ -263,7 +263,7 @@ function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, on
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
-        className="group relative flex items-center"
+        className="group flex items-center min-w-0"
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
@@ -309,7 +309,7 @@ function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, on
 
         {/* Brand actions */}
         {showActions && !isRenaming && !isUngrouped && (
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          <div className="shrink-0 flex items-center gap-0.5 mr-1">
             {onNewCampaign && (
               <Button variant="ghost" size="icon-xs" onClick={(e) => { e.stopPropagation(); onNewCampaign() }}
                 className="h-5 w-5 text-text-muted hover:text-accent" title="New campaign for this brand">
@@ -447,7 +447,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
-        className="group relative flex items-center"
+        className="group flex items-center min-w-0"
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
@@ -488,7 +488,7 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
 
         {/* Actions — rename + delete only */}
         {showActions && (
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          <div className="shrink-0 flex items-center gap-0.5 mr-1">
             <Button
               variant="ghost"
               size="icon-xs"
@@ -734,7 +734,7 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
-        className="group relative"
+        className="group flex items-center min-w-0"
         onMouseEnter={() => setShowActions(true)}
         onMouseLeave={() => setShowActions(false)}
       >
@@ -748,7 +748,7 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
             }}
             onDoubleClick={startRename}
             className={cn(
-              'w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors',
+              'flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors',
               'hover:bg-bg-elevated',
               isSelected && 'bg-bg-elevated text-text-primary'
             )}
@@ -761,7 +761,7 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
             <span className="flex-1 text-left truncate text-text-secondary text-xs">
               {folder.name}
             </span>
-            {hasFiles && (
+            {!showActions && hasFiles && (
               <span className="text-xs text-text-muted">
                 {folder.files.length}
               </span>
@@ -771,7 +771,7 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
 
         {/* Actions */}
         {showActions && (
-          <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center gap-0.5">
+          <div className="shrink-0 flex items-center gap-0.5 mr-1">
             <Button
               variant="ghost"
               size="icon-xs"
@@ -821,7 +821,7 @@ function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
 
   return (
     <div
-      className="group relative flex items-center gap-2 px-2 py-1 rounded-md text-xs hover:bg-bg-elevated transition-colors cursor-pointer"
+      className="group flex items-center gap-2 px-2 py-1 rounded-md text-xs hover:bg-bg-elevated transition-colors cursor-pointer min-w-0"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
       onClick={onPreview}
@@ -835,7 +835,7 @@ function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
       ) : (
         <Icon className="w-3.5 h-3.5 text-text-muted shrink-0" />
       )}
-      <span className="flex-1 truncate text-text-muted">
+      <span className="flex-1 truncate text-text-muted min-w-0">
         {file.name}
       </span>
 
@@ -847,7 +847,7 @@ function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
             e.stopPropagation()
             deleteFileAsync(file.id)
           }}
-          className="h-5 w-5 text-text-muted hover:text-error"
+          className="shrink-0 h-5 w-5 text-text-muted hover:text-error"
         >
           <Trash2Icon className="w-3 h-3" />
         </Button>

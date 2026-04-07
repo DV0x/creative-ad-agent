@@ -129,7 +129,13 @@ export function useWebSocket(): UseWebSocketReturn {
 
         case 'phase':
           if (isPhaseEvent(message) && campaignId && messageId) {
-            store.addThinkingChild(campaignId, messageId, { kind: 'phase', text: message.label || message.phase });
+            const label = message.label || message.phase;
+            // Open a thinking block if none exists yet (follow-ups don't pre-create one)
+            if (!store.hasActiveThinkingBlock(campaignId, messageId)) {
+              store.openThinkingBlock(campaignId, messageId, label, message.imageCount);
+            } else {
+              store.addThinkingChild(campaignId, messageId, { kind: 'phase', text: label });
+            }
           }
           break;
 
@@ -140,6 +146,10 @@ export function useWebSocket(): UseWebSocketReturn {
               toolText = `Task [${message.input.subagent_type}]`;
             } else if (message.tool === 'Skill' && message.input?.skill) {
               toolText = `Skill [${message.input.skill}]`;
+            }
+            // Open a thinking block if none exists yet (follow-ups don't pre-create one)
+            if (!store.hasActiveThinkingBlock(campaignId, messageId)) {
+              store.openThinkingBlock(campaignId, messageId, toolText);
             }
             store.addThinkingChild(campaignId, messageId, { kind: 'tool', text: toolText });
           }
@@ -152,6 +162,9 @@ export function useWebSocket(): UseWebSocketReturn {
           if (campaignId && messageId) {
             // Commit any leftover streaming text from a missed text_end (safety net)
             store.commitStreamingText();
+            // If the thinking block has no real steps (just the placeholder from follow-up),
+            // remove it — text-only responses don't need a thinking block
+            store.removeEmptyThinkingBlock(campaignId, messageId);
             store.setTextStreaming(campaignId, messageId, true);
           }
           break;
