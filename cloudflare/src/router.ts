@@ -6,6 +6,7 @@ import * as campaigns from './routes/campaigns.js';
 import * as recovery from './routes/recovery.js';
 import * as assets from './routes/assets.js';
 import { handleCreditsRequest } from './routes/credits.js';
+import { handleEventsRequest } from './routes/events.js';
 
 /**
  * Route dispatcher for REST API and image serving.
@@ -48,6 +49,11 @@ export async function handleApiRequest(request: Request, env: Env): Promise<Resp
   // --- Credit routes: /api/credits/* ---
   if (path.startsWith('/api/credits')) {
     return corsResponse(await handleCreditsRequest(request, env, userId, path, method));
+  }
+
+  // --- Event tracking: /api/events ---
+  if (path.startsWith('/api/events')) {
+    return corsResponse(await handleEventsRequest(request, env, userId, path, method));
   }
 
   // --- Asset routes: /api/assets/* ---

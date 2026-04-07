@@ -12,6 +12,7 @@ import { initDatabase } from './lib/database.js';
 import { clerkAuth } from './lib/auth.js';
 import campaignRoutes from './routes/campaigns.js';
 import assetRoutes from './routes/assets.js';
+import eventRoutes from './routes/events.js';
 
 // Load environment variables from root .env
 config({ path: resolve('../.env') });
@@ -34,6 +35,7 @@ app.use(clerkAuth());
 // API Routes
 app.use('/api/campaigns', campaignRoutes);
 app.use('/api/assets', assetRoutes);
+app.use('/api/events', eventRoutes);
 
 // Health check endpoint
 app.get('/health', (req, res) => {

@@ -120,6 +120,23 @@ CREATE INDEX IF NOT EXISTS idx_usage_log_user_id ON usage_log(user_id);
 CREATE INDEX IF NOT EXISTS idx_usage_log_campaign_id ON usage_log(campaign_id);
 
 -- ============================================
+-- USER EVENTS (analytics)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS user_events (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  event_type TEXT NOT NULL,
+  campaign_id TEXT,
+  metadata TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_events_user_id ON user_events(user_id);
+CREATE INDEX IF NOT EXISTS idx_user_events_type ON user_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_user_events_campaign ON user_events(campaign_id);
+
+-- ============================================
 -- TRIGGERS
 -- ============================================
 

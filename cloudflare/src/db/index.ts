@@ -71,6 +71,13 @@ export {
   type RecordUsageInput,
 } from './credits.js';
 
+// Events
+export {
+  trackEvent,
+  getEvents,
+  type UserEvent,
+} from './events.js';
+
 // Assets
 export {
   getFoldersByUser,

@@ -7,7 +7,7 @@ import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { formatCampaignName } from '@/lib/utils'
 import { useWebSocket } from '@/hooks/useWebSocket'
-import { authFetchBlob } from '@/lib/api'
+import { authFetchBlob, eventsApi } from '@/lib/api'
 
 export function ResultsView() {
   const {
@@ -67,6 +67,7 @@ Please continue from where we left off and complete the remaining images.`
   const handleSaveAll = useCallback(async () => {
     if (!campaign || campaign.images.length === 0 || isSavingAll) return
     setIsSavingAll(true)
+    eventsApi.track('download_all', campaign.id, { imageCount: campaign.images.length })
     const name = formatCampaignName(campaign.name).replace(/\s+/g, '-').toLowerCase()
     for (let i = 0; i < campaign.images.length; i++) {
       const img = campaign.images[i]
@@ -188,6 +189,8 @@ Please continue from where we left off and complete the remaining images.`
                   selected={selectedImageIds.includes(image.id)}
                   onSelect={() => toggleImageSelection(image.id)}
                   onView={() => openLightbox(index)}
+                  campaignId={campaign.id}
+                  hookType={image.hookType}
                 />
               ))}
               {/* Show skeleton cards for remaining images during generation */}

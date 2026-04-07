@@ -460,6 +460,23 @@ export interface ApiUsageEntry {
   created_at: string;
 }
 
+// ============================================
+// Events API (analytics)
+// ============================================
+
+export const eventsApi = {
+  track(eventType: string, campaignId?: string, metadata?: Record<string, unknown>): void {
+    apiFetch('/events', {
+      method: 'POST',
+      body: JSON.stringify({ eventType, campaignId, metadata }),
+    }).catch(() => {}); // fire and forget
+  },
+};
+
+// ============================================
+// Credits API
+// ============================================
+
 export const creditsApi = {
   async get(): Promise<ApiCredits> {
     return apiFetch<ApiCredits>('/credits');

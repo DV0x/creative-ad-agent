@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Download, Check } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { AuthImage } from '@/components/AuthImage'
-import { authFetchBlob } from '@/lib/api'
+import { authFetchBlob, eventsApi } from '@/lib/api'
 
 interface ImageCardProps {
   url: string
@@ -11,6 +11,8 @@ interface ImageCardProps {
   onSelect?: () => void
   onView?: () => void
   isLoading?: boolean
+  campaignId?: string
+  hookType?: string
 }
 
 export function ImageCard({
@@ -20,6 +22,8 @@ export function ImageCard({
   onSelect,
   onView,
   isLoading = false,
+  campaignId,
+  hookType,
 }: ImageCardProps) {
   const [isHovered, setIsHovered] = useState(false)
   const [isImageLoaded, setIsImageLoaded] = useState(false)
@@ -33,6 +37,7 @@ export function ImageCard({
 
   const handleDownload = async (e: React.MouseEvent) => {
     e.stopPropagation()
+    eventsApi.track('image_download', campaignId, { hookType, imageIndex: index })
     try {
       const blobUrl = await authFetchBlob(url)
       const link = document.createElement('a')
