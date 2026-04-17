@@ -49,6 +49,8 @@ export interface ServerMessage {
   code?: string;
   error?: string;
   balance?: number;
+  plan_balance?: number;
+  topup_balance?: number;
   cost?: number;
   sessionId?: string;
   duration?: number;

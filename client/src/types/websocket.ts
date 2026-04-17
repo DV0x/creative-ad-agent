@@ -114,6 +114,8 @@ export interface WSIncompleteEvent extends WSBaseMessage {
 export interface WSCreditsUpdateEvent extends WSBaseMessage {
   type: 'credits_update';
   balance: number;
+  plan_balance?: number;
+  topup_balance?: number;
   cost: number;
 }
 

@@ -85,9 +85,13 @@ CREATE INDEX IF NOT EXISTS idx_asset_files_folder_id ON asset_files(folder_id);
 -- USER CREDITS
 -- ============================================
 
+-- balance_usd        = plan pool. Reset on subscription.renewed and subscription.expired.
+-- balance_usd_topup  = permanent pool. Grows on one-time top-ups, never auto-wiped.
+-- Spend order: plan pool first, top-up pool second.
 CREATE TABLE IF NOT EXISTS user_credits (
   user_id TEXT PRIMARY KEY,
   balance_usd REAL NOT NULL DEFAULT 0,
+  balance_usd_topup REAL NOT NULL DEFAULT 0,
   total_spent_usd REAL NOT NULL DEFAULT 0,
   total_generations INTEGER NOT NULL DEFAULT 0,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -135,6 +139,41 @@ CREATE TABLE IF NOT EXISTS user_events (
 CREATE INDEX IF NOT EXISTS idx_user_events_user_id ON user_events(user_id);
 CREATE INDEX IF NOT EXISTS idx_user_events_type ON user_events(event_type);
 CREATE INDEX IF NOT EXISTS idx_user_events_campaign ON user_events(campaign_id);
+
+-- ============================================
+-- USER SUBSCRIPTIONS
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS user_subscriptions (
+  user_id TEXT PRIMARY KEY,
+  dodo_customer_id TEXT,
+  dodo_subscription_id TEXT,
+  plan TEXT NOT NULL DEFAULT 'free'
+    CHECK (plan IN ('free', 'starter', 'pro')),
+  billing_interval TEXT
+    CHECK (billing_interval IN ('monthly', 'yearly') OR billing_interval IS NULL),
+  status TEXT NOT NULL DEFAULT 'active'
+    CHECK (status IN ('active', 'cancelled', 'expired', 'on_hold')),
+  current_period_end TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- ============================================
+-- PAYMENT EVENTS (webhook audit log)
+-- ============================================
+
+CREATE TABLE IF NOT EXISTS payment_events (
+  webhook_id TEXT PRIMARY KEY,
+  event_type TEXT NOT NULL,
+  user_id TEXT,
+  amount_usd REAL,
+  amount_credited_usd REAL,
+  metadata TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_events_user ON payment_events(user_id);
 
 -- ============================================
 -- TRIGGERS

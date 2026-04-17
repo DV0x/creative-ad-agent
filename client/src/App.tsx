@@ -7,8 +7,10 @@ import { ResultsView } from '@/components/ResultsView'
 import { SignIn } from '@/components/auth/SignIn'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useStore } from '@/store'
+import { PricingModal } from '@/components/pricing/PricingModal'
+import { TopupModal } from '@/components/pricing/TopupModal'
 import { isDevMode } from '@/lib/auth'
-import { campaignsApi, assetsApi, creditsApi, setTokenGetter } from '@/lib/api'
+import { campaignsApi, assetsApi, creditsApi, paymentsApi, setTokenGetter } from '@/lib/api'
 import * as wsManager from '@/lib/websocket-manager'
 
 function AppContent() {
@@ -21,6 +23,7 @@ function AppContent() {
     setCampaigns,
     setAssetFolders,
     setCreditBalance,
+    setSubscription,
     setChatMessages,
     setActiveCampaignId,
     setAppState,
@@ -69,15 +72,19 @@ function AppContent() {
       setLoadError(null)
 
       try {
-        // Fetch campaigns, folders, and credits in parallel
-        const [campaignsList, folders, creditsData] = await Promise.all([
+        // Fetch campaigns, folders, credits, and subscription in parallel
+        const [campaignsList, folders, creditsData, subscriptionData] = await Promise.all([
           campaignsApi.list(),
           assetsApi.listFolders(),
           creditsApi.get().catch(() => null),
+          paymentsApi.getSubscription().catch(() => ({ plan: 'free' as const, status: 'active' })),
         ])
 
         if (creditsData) {
-          setCreditBalance(creditsData.balance)
+          setCreditBalance(creditsData.balance, creditsData.plan_balance, creditsData.topup_balance)
+        }
+        if (subscriptionData) {
+          setSubscription(subscriptionData)
         }
 
         // For each folder, fetch its files
@@ -138,7 +145,7 @@ function AppContent() {
     }
 
     loadData()
-  }, [isLoaded, isSignedIn, dataLoaded, setDataLoading, setCampaigns, setAssetFolders, setCreditBalance])
+  }, [isLoaded, isSignedIn, dataLoaded, setDataLoading, setCampaigns, setAssetFolders, setCreditBalance, setSubscription])
 
   // After data loads: restore pending prompt OR auto-navigate to workspace
   useEffect(() => {
@@ -300,6 +307,10 @@ function AppContent() {
         {showLanding && <EmptyState />}
         {showWorkspace && <ResultsView />}
       </AppLayout>
+
+      {/* Payment modals (rendered at root, triggered from anywhere) */}
+      <PricingModal />
+      <TopupModal />
     </>
   )
 }
@@ -354,6 +365,80 @@ function DevModeApp() {
   )
 }
 
+function CheckoutSuccess() {
+  const [status, setStatus] = useState<'polling' | 'slow' | 'success'>('polling')
+
+  useEffect(() => {
+    let cancelled = false
+    const startedAt = Date.now()
+
+    async function poll() {
+      while (!cancelled) {
+        try {
+          const [sub, credits] = await Promise.all([
+            paymentsApi.getSubscription(),
+            creditsApi.get().catch(() => null),
+          ])
+          if (sub.plan !== 'free' || (credits && credits.balance > 0)) {
+            if (!cancelled) {
+              useStore.getState().setSubscription(sub)
+              if (credits) useStore.getState().setCreditBalance(credits.balance, credits.plan_balance, credits.topup_balance)
+              setStatus('success')
+              setTimeout(() => { window.location.href = '/' }, 1500)
+            }
+            return
+          }
+        } catch { /* retry */ }
+
+        // Switch to "slow" UI after 15s to surface a manual escape hatch.
+        // Polling continues regardless — auto-redirect still works when credits arrive.
+        if (!cancelled && Date.now() - startedAt > 15000 && status !== 'slow') {
+          setStatus(s => s === 'polling' ? 'slow' : s)
+        }
+        // First 30s: poll every 2s. After that: every 4s (saves API calls during long waits).
+        const interval = Date.now() - startedAt < 30000 ? 2000 : 4000
+        await new Promise(r => setTimeout(r, interval))
+      }
+    }
+
+    poll()
+    return () => { cancelled = true }
+  }, [])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-bg-base">
+      <div className="text-center max-w-md">
+        {status === 'polling' && (
+          <>
+            <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-text-primary mb-2">Payment received!</h2>
+            <p className="text-text-secondary">Your credits are on the way...</p>
+          </>
+        )}
+        {status === 'slow' && (
+          <>
+            <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-text-primary mb-2">Almost there!</h2>
+            <p className="text-text-secondary mb-4">Still waiting on your credits — they'll appear here automatically, or you can head to the workspace.</p>
+            <a href="/" className="text-accent hover:underline">Go to workspace</a>
+          </>
+        )}
+        {status === 'success' && (
+          <>
+            <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-4">
+              <svg className="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-semibold text-text-primary mb-2">You're all set!</h2>
+            <p className="text-text-secondary">Redirecting to your workspace...</p>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function App() {
   if (isDevMode()) {
     return <DevModeApp />
@@ -363,6 +448,11 @@ function App() {
   const pathname = window.location.pathname
   if (pathname === '/sign-in' || pathname === '/sign-up') {
     return <SignIn />
+  }
+
+  // Handle /checkout/success — optimistic UI while webhook processes
+  if (pathname === '/checkout/success') {
+    return <CheckoutSuccess />
   }
 
   return <AuthenticatedApp />

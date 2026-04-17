@@ -14,9 +14,13 @@ export async function handleCreditsRequest(
   // GET /api/credits — balance + totals (converted to credits)
   if (sub === '' && method === 'GET') {
     const data = await credits.getOrCreateCredits(env.DB, userId);
+    const toCredits = (usd: number) => Math.round(usd * CREDITS_PER_USD * 10) / 10;
     return Response.json({
-      balance: Math.round(data.balance_usd * CREDITS_PER_USD * 10) / 10,
-      total_spent: Math.round(data.total_spent_usd * CREDITS_PER_USD * 10) / 10,
+      // balance = plan + topup, the total spendable amount (unchanged contract)
+      balance: toCredits(data.balance_usd + data.balance_usd_topup),
+      plan_balance: toCredits(data.balance_usd),
+      topup_balance: toCredits(data.balance_usd_topup),
+      total_spent: toCredits(data.total_spent_usd),
       total_generations: data.total_generations,
     });
   }

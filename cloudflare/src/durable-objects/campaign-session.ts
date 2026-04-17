@@ -455,6 +455,8 @@ export class CampaignSession implements DurableObject {
             type: 'credits_update',
             timestamp: new Date().toISOString(),
             balance: Math.round(result.newBalance * CREDITS_PER_USD * 10) / 10,
+            plan_balance: Math.round(result.planBalance * CREDITS_PER_USD * 10) / 10,
+            topup_balance: Math.round(result.topupBalance * CREDITS_PER_USD * 10) / 10,
             cost: Math.round(chargedCost * CREDITS_PER_USD * 10) / 10,
           } as any);
         }
@@ -509,6 +511,8 @@ export class CampaignSession implements DurableObject {
           type: 'credits_update',
           timestamp: new Date().toISOString(),
           balance: Math.round(result.newBalance * CREDITS_PER_USD * 10) / 10,
+          plan_balance: Math.round(result.planBalance * CREDITS_PER_USD * 10) / 10,
+          topup_balance: Math.round(result.topupBalance * CREDITS_PER_USD * 10) / 10,
           cost: Math.round(chargedCost * CREDITS_PER_USD * 10) / 10,
         } as any);
       }

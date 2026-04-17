@@ -196,7 +196,19 @@ interface Store {
 
   // Credits
   creditBalance: number | null
-  setCreditBalance: (balance: number) => void
+  planBalance: number | null
+  topupBalance: number | null
+  setCreditBalance: (balance: number, planBalance?: number, topupBalance?: number) => void
+
+  // Subscription + Payment Modals
+  subscription: import('@/lib/api').Subscription | null
+  setSubscription: (sub: import('@/lib/api').Subscription) => void
+  pricingModalOpen: boolean
+  openPricingModal: () => void
+  closePricingModal: () => void
+  topupModalOpen: boolean
+  openTopupModal: () => void
+  closeTopupModal: () => void
 
   // Data Loading
   dataLoading: boolean
@@ -1144,7 +1156,26 @@ export const useStore = create<Store>((set, get) => ({
 
   // Credits
   creditBalance: null,
-  setCreditBalance: (creditBalance) => set({ creditBalance }),
+  planBalance: null,
+  topupBalance: null,
+  setCreditBalance: (creditBalance, planBalance, topupBalance) =>
+    set((state) => ({
+      creditBalance,
+      // Preserve prior breakdown when a WS update omits it (shouldn't happen post-deploy,
+      // but keeps cross-version safety).
+      planBalance: planBalance !== undefined ? planBalance : state.planBalance,
+      topupBalance: topupBalance !== undefined ? topupBalance : state.topupBalance,
+    })),
+
+  // Subscription + Payment Modals
+  subscription: null,
+  setSubscription: (subscription) => set({ subscription }),
+  pricingModalOpen: false,
+  openPricingModal: () => set({ pricingModalOpen: true }),
+  closePricingModal: () => set({ pricingModalOpen: false }),
+  topupModalOpen: false,
+  openTopupModal: () => set({ topupModalOpen: true }),
+  closeTopupModal: () => set({ topupModalOpen: false }),
 
   // Data Loading
   dataLoading: false,
@@ -1226,6 +1257,11 @@ export const useStore = create<Store>((set, get) => ({
     currentGeneratingMessageId: null,
     generationExpectedImages: 0,
     creditBalance: null,
+    planBalance: null,
+    topupBalance: null,
+    subscription: null,
+    pricingModalOpen: false,
+    topupModalOpen: false,
     dataLoading: false,
   })
 }))

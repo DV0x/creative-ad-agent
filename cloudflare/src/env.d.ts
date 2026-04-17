@@ -27,6 +27,10 @@ export interface Env {
   CF_ACCOUNT_ID: string;
   R2_BUCKET_NAME: string;
 
+  // Dodo Payments
+  DODO_PAYMENTS_API_KEY: string;
+  DODO_PAYMENTS_WEBHOOK_SECRET: string;
+
   // Optional: set to "local" for wrangler dev (bypasses sandbox, runs SDK in-process)
   AI_BACKEND?: string;
 }

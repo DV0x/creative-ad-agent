@@ -1,6 +1,7 @@
 import type { Env } from './env.js';
 import { handleApiRequest } from './router.js';
 import { verifyWebSocketToken } from './auth.js';
+import { handleDodoWebhook } from './routes/webhooks.js';
 
 // Re-export Durable Object classes (required by wrangler)
 export { CampaignSession } from './durable-objects/campaign-session.js';
@@ -34,6 +35,11 @@ export default {
       doRequest.headers.set('X-User-Id', userId);
       console.log(`[trace][worker][ws_forward] userId=${userId}`);
       return stub.fetch(doRequest);
+    }
+
+    // Dodo Payments webhook (unauthenticated, signature-verified)
+    if (url.pathname === '/webhooks/dodo' && method === 'POST') {
+      return handleDodoWebhook(request, env);
     }
 
     // REST API, image serving, health check

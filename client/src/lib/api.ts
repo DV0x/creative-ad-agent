@@ -445,6 +445,8 @@ export const assetsApi = {
 
 export interface ApiCredits {
   balance: number;
+  plan_balance: number;
+  topup_balance: number;
   total_spent: number;
   total_generations: number;
 }
@@ -485,4 +487,37 @@ export const creditsApi = {
   async getUsage(limit = 20, offset = 0): Promise<{ usage: ApiUsageEntry[] }> {
     return apiFetch<{ usage: ApiUsageEntry[] }>(`/credits/usage?limit=${limit}&offset=${offset}`);
   },
+};
+
+// ============================================
+// Payments API
+// ============================================
+
+export interface Subscription {
+  plan: 'free' | 'starter' | 'pro';
+  status: string;
+  billing_interval?: string | null;
+  current_period_end?: string | null;
+}
+
+export const paymentsApi = {
+  getSubscription: () =>
+    apiFetch<Subscription>('/payments/subscription'),
+
+  checkout: (plan: string, email: string, name?: string) =>
+    apiFetch<{ success: boolean; checkout_url: string }>('/payments/checkout', {
+      method: 'POST',
+      body: JSON.stringify({ plan, email, name }),
+    }),
+
+  topup: (amount: number, email: string, name?: string) =>
+    apiFetch<{ success: boolean; checkout_url: string }>('/payments/topup', {
+      method: 'POST',
+      body: JSON.stringify({ amount, email, name }),
+    }),
+
+  portal: () =>
+    apiFetch<{ success: boolean; portal_url: string }>('/payments/portal', {
+      method: 'POST',
+    }),
 };

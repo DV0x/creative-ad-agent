@@ -259,7 +259,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
         case 'credits_update':
           if (isCreditsUpdateEvent(message)) {
-            store.setCreditBalance(message.balance);
+            store.setCreditBalance(message.balance, message.plan_balance, message.topup_balance);
           }
           break;
 
@@ -268,16 +268,21 @@ export function useWebSocket(): UseWebSocketReturn {
             const errorMsg = message.error || 'Unknown error';
             console.error('WebSocket: Error event:', errorMsg);
 
-            // Insufficient credits — close spinner, show error in chat
+            // Insufficient credits — close spinner, show paywall upsell
             if (message.code === 'INSUFFICIENT_CREDITS') {
               const genCampaignId = store.generatingCampaignId;
               const genMessageId = store.currentGeneratingMessageId;
               if (genCampaignId && genMessageId) {
                 store.closeThinkingBlock(genCampaignId, genMessageId, 'error');
-                store.failGeneration(genCampaignId, genMessageId, errorMsg);
+                const sub = store.subscription;
+                const upsellMsg = (!sub || sub.plan === 'free')
+                  ? 'Subscribe to get started — choose a plan to unlock generation.'
+                  : 'Out of credits — top up or upgrade your plan to continue.';
+                store.failGeneration(genCampaignId, genMessageId, upsellMsg);
               } else {
                 store.setError(errorMsg);
               }
+              store.openPricingModal();
               clearActiveSession();
               break;
             }
@@ -443,6 +448,13 @@ export function useWebSocket(): UseWebSocketReturn {
   const generate = useCallback((prompt: string, assetFileIds?: string[], aspectRatio?: string) => {
     if (!prompt.trim()) return;
 
+    // Pre-send paywall check (instant UX, no server round-trip)
+    const { creditBalance, openPricingModal } = useStore.getState();
+    if (creditBalance !== null && creditBalance <= 0) {
+      openPricingModal();
+      return;
+    }
+
     const store = useStore.getState();
     const sessionId = crypto.randomUUID();
     sessionIdRef.current = sessionId;
@@ -538,6 +550,13 @@ export function useWebSocket(): UseWebSocketReturn {
 
   const followUp = useCallback((campaignId: string, prompt: string, assetFileIds?: string[], aspectRatio?: string) => {
     if (!prompt.trim()) return;
+
+    // Pre-send paywall check
+    const { creditBalance, openPricingModal } = useStore.getState();
+    if (creditBalance !== null && creditBalance <= 0) {
+      openPricingModal();
+      return;
+    }
 
     const store = useStore.getState();
     const campaign = store.campaigns.find(c => c.id === campaignId);
