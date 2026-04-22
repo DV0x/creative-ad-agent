@@ -333,16 +333,25 @@ Get a Dodo customer portal URL. User manages payment method, cancels subscriptio
 
 ### `POST /api/events`
 
-Track a user event. Used for analytics (e.g., image downloads).
+Track a user event. Writes to the `user_events` table. Not paginated — there's no GET endpoint.
 
 **Body:** `{ eventType: string, campaignId?: string, metadata?: Record<string, unknown> }`
 
 **Response:** `{ success: true }`
 
-Writes to `user_events` table. Not paginated — there's no GET endpoint.
-
 **Errors:**
 - `400 { error: "eventType is required" }`
+
+**Client:** `eventsApi.track(eventType, campaignId?, metadata?)` (`client/src/lib/api.ts:469`). Fire-and-forget — errors are silently swallowed so a failed analytics call never blocks a user action.
+
+**Currently tracked events:**
+
+| `eventType` | Emitted from | Metadata shape |
+|---|---|---|
+| `image_download` | `ImageCard.tsx:40` — user saves a single generated image | `{ hookType, imageIndex }` |
+| `download_all` | `ResultsView.tsx:70` — user downloads all images in a campaign | `{ imageCount }` |
+
+Both pass the current `campaignId` so event-to-campaign joins work.
 
 ---
 

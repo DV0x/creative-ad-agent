@@ -237,8 +237,21 @@ Updates come from two sources:
 | `paymentsApi.topup(amount, email, name?)` | `POST /api/payments/topup` |
 | `paymentsApi.getSubscription()` | `GET /api/payments/subscription` |
 | `paymentsApi.portal()` | `POST /api/payments/portal` |
+| `eventsApi.track(eventType, campaignId?, metadata?)` | `POST /api/events` — fire-and-forget (`.catch(() => {})`), used for download analytics |
 
-Checkout responses return `{ checkout_url }` — client redirects `window.location = checkout_url`. Dodo redirects back to `/checkout/success`, which polls `/api/credits` until balance reflects the grant (webhooks can be seconds-delayed).
+Modal state actions (also on the store): `openPricingModal()` / `closePricingModal()` / `openTopupModal()` / `closeTopupModal()`.
+
+### Checkout return flow (`/checkout/success`)
+
+`checkout` and `topup` responses return `{ checkout_url }` — client does `window.location = checkout_url`. Dodo redirects back to `/checkout/success`, handled inline by `CheckoutSuccess` in `App.tsx:368`. Behavior:
+
+- Polls both `paymentsApi.getSubscription()` and `creditsApi.get()` in parallel
+- Considers it a success when `sub.plan !== 'free'` OR `credits.balance > 0`
+- Poll interval: 2s for first 30s, then 4s (to save API calls on slow webhooks)
+- After 15s without success → flips to a "slow" UI surfacing a manual escape hatch; polling continues regardless
+- On success: updates Zustand (`setSubscription`, `setCreditBalance`), redirects to `/` after 1.5s
+
+This makes the UI resilient to webhook delays — webhooks can arrive seconds or minutes after the browser redirect depending on Dodo's retry schedule.
 
 ---
 

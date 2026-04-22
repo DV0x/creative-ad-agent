@@ -191,9 +191,9 @@ Generic analytics table. Currently used for download-event tracking (Session `f2
 CREATE TABLE user_events (
   id TEXT PRIMARY KEY,
   user_id TEXT NOT NULL,
-  event_type TEXT NOT NULL,                -- e.g. 'image_downloaded'
+  event_type TEXT NOT NULL,                -- currently: 'image_download' | 'download_all'
   campaign_id TEXT,                        -- optional linkage
-  metadata TEXT,                           -- JSON blob
+  metadata TEXT,                           -- JSON blob — shape varies by event_type
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 ```
