@@ -1,6 +1,8 @@
 # Creative Agent — Architecture Documentation
 
-> **Last updated:** 2026-03-10 | **Branch:** `new-ui` | **Production:** https://creative-agent.alphasapien17.workers.dev
+> **Last updated:** 2026-04-22 | **Branch:** `new-ui` | **Production:** https://creativemachines.xyz | **Staging:** https://creative-agent-staging.alphasapien17.workers.dev
+>
+> ⚠️ **Drift notice (2026-04-22):** Many subsystem docs pre-date the streaming rewrite (Sessions 65-67), credit/billing system (Sessions 62-73), and the staging/production split (Session 57). This index + OVERVIEW reflect current reality; deeper subsystem docs are being rewritten in passes. When a subsystem doc conflicts with code, trust the code.
 
 This is the master index for all architecture documentation. Each doc is self-contained — you can read any single doc and understand that subsystem fully.
 
@@ -31,6 +33,8 @@ This is the master index for all architecture documentation. Each doc is self-co
 | Understand the AI agent | [AI Agent Pipeline](./shared/AI_AGENT_PIPELINE.md) |
 | Debug image generation | [Image Pipeline](./shared/IMAGE_PIPELINE.md) |
 | Trace error flows | [Error Propagation](./shared/ERROR_PROPAGATION.md) |
+| Understand credits, Dodo Payments, subscriptions | _BILLING.md — pending rewrite_ |
+| Understand staging vs production split | _STAGING_PRODUCTION.md — pending rewrite_ |
 | Deploy to production | [Deployment](./ops/DEPLOYMENT.md) |
 | Debug production issues | [Debugging](./ops/DEBUGGING.md) |
 | Check known issues | [Known Issues](./ops/KNOWN_ISSUES.md) |
@@ -119,11 +123,12 @@ docs/architecture/
 | Max containers | 50 |
 | Container spec | standard-2 (1 vCPU, 6 GiB RAM) |
 | Images per generation | 6 (one per hook type) |
-| WS keep-alive interval | 25s ping/pong |
-| Event buffer | Max 1000 events, trim to 500, sequential IDs |
+| WS keep-alive interval | 25s client ping/pong (`websocket-manager.ts:19`) |
+| Agent stdout heartbeat | 30s (`agent-runner.ts:50`) |
+| Event buffer | Max 1000 events (`event-buffer.ts:7`), sequential IDs |
 | Alarm heartbeat | 10s (keeps DO alive during generation) |
-| Completion paths | 4 layers: waitForLog → waitForExit → alarm polling → client /recover |
-| Max generation age | 2h safety net (matches container sleepAfter) |
-| waitForLog timeout | 2h |
+| Zombie threshold | 5 min (no agent process + no active setup → mark incomplete) |
+| Completion detection | Inline stream-parse loop → post-streaming `tryFinalize` → alarm `listProcesses` fallback → client `/api/recover` last resort |
+| Container sleepAfter | 2h |
 | DO routing | One DO per user (`idFromName(userId)`) |
 | "New from existing" research copy | ~0s (skips ~2 min research phase) |

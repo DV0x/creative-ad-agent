@@ -14,7 +14,7 @@ Creative Agent is a chat-based AI tool that generates ad campaigns. You give it 
 4. **Generates images** — via fal.ai's Nano Banana Pro (Google Gemini image model)
 5. **Supports follow-ups** — refine hooks, regenerate specific images, iterate on the campaign
 
-The user sees all of this happening in real-time through a chat interface with thinking blocks, progress indicators, and images appearing as they're generated.
+The user sees all of this happening in real-time through a chat interface with thinking blocks, progress indicators, and images appearing as they're generated. In production, each generation deducts from a paid credit pool (subscription or top-up, managed via Dodo Payments) — see the pending BILLING.md for details.
 
 ---
 
@@ -22,17 +22,21 @@ The user sees all of this happening in real-time through a chat interface with t
 
 | Layer | Local Dev | Production |
 |---|---|---|
-| **Frontend** | React 18 + Vite + Tailwind + Zustand | Same (served as static assets from Worker) |
+| **Frontend** | React 19 + Vite + Tailwind v4 + Zustand | Same (served as static assets from Worker) |
 | **UI Components** | Radix UI primitives | Same |
-| **Auth** | Clerk (optional in dev) | Clerk (required) |
+| **Auth** | Clerk (optional in dev) | Clerk (required) — prod instance on creativemachines.xyz with Google OAuth |
 | **Backend** | Node.js + Express | Cloudflare Worker |
-| **Database** | SQLite (better-sqlite3) | Cloudflare D1 (same schema) |
-| **File Storage** | Local filesystem | Cloudflare R2 |
+| **Database** | SQLite (better-sqlite3) | Cloudflare D1 (same schema) — separate staging (`creative-agent-db`) and production (`creative-agent-db-prod`) |
+| **File Storage** | Local filesystem | Cloudflare R2 — separate staging (`creative-agent-assets`) and production (`creative-agent-assets-prod`) |
 | **AI Execution** | Claude SDK in-process | Sandbox container (standard-2) |
 | **AI Model** | Claude Haiku 4.5 | Claude Haiku 4.5 |
 | **Image Model** | fal.ai Nano Banana Pro | fal.ai Nano Banana Pro |
+| **Streaming** | Assembled messages only (per-turn chunks) | Token-level deltas + assembled fallback (scratch-pad model, Session 65+) |
+| **Billing** | None — no credit deduction, no Dodo | Credit pools (plan + topup), Dodo Payments webhooks, per-generation cost deduction |
 | **Real-time** | WebSocket (ws library) | WebSocket (DO Hibernation API) |
 | **Transport** | Direct function calls | stdout SSE → parse → WS |
+
+> **Local vs production divergence:** Local dev is a simplified environment for rapid iteration. It does **not** stream tokens (production-only since Session 65), does **not** enforce credits, and does **not** integrate with Dodo Payments. Features should be developed against local and validated against staging before production.
 
 ---
 

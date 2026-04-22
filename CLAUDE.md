@@ -16,14 +16,17 @@ AI-powered ad campaign generator. Users provide a brand URL, the agent researche
 cd server && npm run dev          # Backend on :3001
 cd client && npm run dev          # Frontend on :5173 (proxies to :3001)
 
-# Deploy to production
-cd client && npm run build && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npx wrangler deploy
+# Deploy to staging (creative-agent-staging.alphasapien17.workers.dev)
+cd client && npm run build:staging && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npx wrangler deploy --env staging
 
-# Query production D1
-npx wrangler d1 execute creative-agent-db --remote --command="SELECT ..."
+# Deploy to production (creativemachines.xyz)
+cd client && npm run build:production && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npx wrangler deploy --env production
+
+# Query production D1 (name is creative-agent-db-prod; staging is creative-agent-db)
+npx wrangler d1 execute creative-agent-db-prod --remote --command="SELECT ..."
 
 # Health check
-curl -s https://creative-agent.alphasapien17.workers.dev/health | python3 -m json.tool
+curl -s https://creativemachines.xyz/health | python3 -m json.tool
 ```
 
 ## Code Layout

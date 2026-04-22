@@ -1332,8 +1332,9 @@ export class CampaignSession implements DurableObject {
       // Clean up completed processes from previous generations
       await this.timedRPC('cleanupProcesses', () => sandbox.cleanupCompletedProcesses()).catch(() => {});
 
-      // Kill agent-runner FIRST — it holds /mnt/r2 open (HOME=/mnt/r2),
-      // which prevents fusermount/umount from detaching the FUSE mount.
+      // Kill agent-runner FIRST — it writes images to /mnt/r2/images (IMAGE_OUTPUT_DIR),
+      // so any open file handles under /mnt/r2 pin the FUSE mount and block unmount.
+      // (HOME is /root since Session 58 — that used to be another reason, now it's just output files.)
       this.trace('setup', 'killAgent', { attempt });
       await this.timedRPC('killAgent', () => sandbox.exec('pkill -f agent-runner 2>/dev/null || true'));
       this.agentProcessId = null;
