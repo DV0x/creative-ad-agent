@@ -9,7 +9,8 @@
 | Mode | Base |
 |---|---|
 | Local | `http://localhost:5173/api` (Vite proxy → Express on `:3001`) |
-| Production | `https://creative-agent.alphasapien17.workers.dev/api` |
+| Staging | `https://creative-agent-staging.alphasapien17.workers.dev/api` |
+| Production | `https://creativemachines.xyz/api` |
 
 ## Authentication
 
@@ -80,9 +81,11 @@ Get full campaign with files, images, and messages.
 
 ### `PATCH /api/campaigns/:id`
 
-Update campaign name or status.
+Update campaign name, status, or brand grouping.
 
-**Body:** `{ name?: string, status?: string }`
+**Body:** `{ name?: string, status?: string, brand?: string }`
+
+`brand` was added in Session 68 for the brand-grouped sidebar — setting it persists the brand name to D1 so grouping survives refresh.
 
 ### `DELETE /api/campaigns/:id`
 
@@ -132,17 +135,18 @@ Note: `isAgentRunning` is derived from `campaign.status === 'generating'`. `hasE
 
 ### `POST /api/campaigns/:id/recover`
 
-Attempt R2 recovery for a stuck campaign. Reads the completion marker from R2 and syncs missing data to D1.
+Reconcile a stuck campaign against D1 and, if it actually completed, flip its status.
 
 **Only works for campaigns with status:** `incomplete`, `generating`, or `error`.
 
-**Recovery flow:**
-1. Verify campaign ownership (userId check)
-2. Read `completion_{campaignId}.json` from R2
-3. Sync images (dedup by `file_path`)
-4. Sync files (only update if empty in D1)
-5. Add synthetic assistant message if none exists
-6. Set status → `complete`
+**Current recovery flow** (`routes/recovery.ts`) — D1 is the source of truth, R2 completion marker is no longer consulted:
+
+1. Verify campaign ownership
+2. Check if D1 has any completion data: `campaign_files`, `campaign_images`, or a last assistant message
+3. If no data → `{ recovered: false, reason: "no_data" }`
+4. If data exists but no assistant message → add a synthetic one (`"Generation recovered. N images found."`)
+5. Set status → `complete`
+6. Return the full campaign bundle
 
 **Response (success):**
 
@@ -150,18 +154,20 @@ Attempt R2 recovery for a stuck campaign. Reads the completion marker from R2 an
 {
   "success": true,
   "recovered": true,
-  "imagesAdded": 6,
-  "filesUpdated": 3,
+  "imagesAdded": 0,
+  "filesUpdated": 0,
   "campaign": { /* updated campaign */ },
-  "files": { "research": "...", "hooks": "...", "prompts": "..." },
+  "files": [ /* campaign files */ ],
   "images": [ /* campaign images */ ],
   "messages": [ /* chat messages */ ]
 }
 ```
 
-**Response (no marker found):**
+> `imagesAdded` / `filesUpdated` are always 0 now — kept for client compatibility. The old R2-marker-based recovery would populate these; the D1-first recovery doesn't need to.
+
+**Response (no data):**
 ```json
-{ "success": true, "recovered": false, "reason": "no_marker" }
+{ "success": true, "recovered": false, "reason": "no_data" }
 ```
 
 **Response (not recoverable):**
@@ -208,6 +214,169 @@ Serve file content (binary). Used for previews and downloads.
 ### `DELETE /api/assets/files/:id`
 
 Delete file from DB and storage.
+
+---
+
+## Credits
+
+See [Billing](./BILLING.md) for the full credit model. API values are in credits (10 credits = $1 USD).
+
+### `GET /api/credits`
+
+Get user's balance and lifetime totals.
+
+**Response:**
+
+```json
+{
+  "balance": 275.0,          // plan + topup (total spendable)
+  "plan_balance": 250.0,     // plan pool (reset on subscription events)
+  "topup_balance": 25.0,     // topup pool (persists across subscription renewals)
+  "total_spent": 42.5,
+  "total_generations": 17
+}
+```
+
+All fields are credits, rounded to one decimal. Implementation: `routes/credits.ts:handleCreditsRequest`.
+
+### `GET /api/credits/usage`
+
+Paginated usage history.
+
+**Query params:** `limit` (default 20, max 100), `offset` (default 0)
+
+**Response:**
+
+```json
+{
+  "usage": [
+    {
+      "id": "usg_abc…",
+      "campaign_id": "cmp_xyz…",
+      "request_id": "turn_1713804000000",
+      "event_type": "follow_up",
+      "total_cost": 3.2,      // credits
+      "claude_cost": 0.8,     // credits (raw × 10, not × COST_MULTIPLIER)
+      "image_cost": 2.4,      // credits
+      "total_cost_usd": 0.32, // raw USD (still present for audit)
+      "input_tokens": 12450,
+      "output_tokens": 890,
+      "num_turns": 3,
+      "duration_ms": 45230,
+      "created_at": "2026-04-22T…"
+    }
+  ]
+}
+```
+
+---
+
+## Payments
+
+All endpoints proxy to Dodo Payments. See [Billing](./BILLING.md) for the payment lifecycle.
+
+### `POST /api/payments/checkout`
+
+Start a subscription checkout.
+
+**Body:** `{ plan: "starter-monthly" | "starter-yearly" | "pro-monthly" | "pro-yearly", email: string, name?: string }`
+
+**Response:** `{ success: true, checkout_url: string }`
+
+Client redirects the browser to `checkout_url`. Dodo returns the user to `/checkout/success` after payment. Product IDs resolve from wrangler env vars (different per staging/production).
+
+**Errors:**
+- `400 { error: "Invalid plan" }` — unknown plan string
+- `400 { error: "Email required" }`
+
+### `POST /api/payments/topup`
+
+Start a one-time PWYW top-up checkout.
+
+**Body:** `{ amount: number, email: string, name?: string }`
+
+**Constraints:** `amount >= 5` USD (`TOPUP_MIN_USD`)
+
+The amount is written to Dodo's checkout metadata as `topup_usd_cents` so it survives currency conversion at settlement (Dodo may charge in a non-USD currency depending on merchant config; the USD amount is the source of truth on credit).
+
+**Response:** `{ success: true, checkout_url: string }`
+
+### `GET /api/payments/subscription`
+
+Get current subscription state.
+
+**Response:**
+
+```json
+{
+  "plan": "pro",            // "free" | "starter" | "pro"
+  "status": "active",       // "active" | "cancelled" | "expired" | "on_hold"
+  "billing_interval": "monthly",  // "monthly" | "yearly" | null
+  "current_period_end": "2026-05-22T..."
+}
+```
+
+Returns `{ plan: "free", status: "active", billing_interval: null, current_period_end: null }` if no subscription row exists.
+
+### `POST /api/payments/portal`
+
+Get a Dodo customer portal URL. User manages payment method, cancels subscription, etc. from there.
+
+**Response:** `{ success: true, portal_url: string }`
+
+**Errors:**
+- `400 { error: "No active subscription" }` if the user has no `dodo_customer_id`
+
+---
+
+## Events (Analytics)
+
+### `POST /api/events`
+
+Track a user event. Used for analytics (e.g., image downloads).
+
+**Body:** `{ eventType: string, campaignId?: string, metadata?: Record<string, unknown> }`
+
+**Response:** `{ success: true }`
+
+Writes to `user_events` table. Not paginated — there's no GET endpoint.
+
+**Errors:**
+- `400 { error: "eventType is required" }`
+
+---
+
+## Webhooks
+
+### `POST /webhooks/dodo`
+
+Receives Dodo Payments webhooks. **Unauthenticated** — protected by Standard Webhooks HMAC-SHA256 signature verification using `DODO_PAYMENTS_WEBHOOK_SECRET`.
+
+**Verification:**
+- Header `webhook-id` must be present (used as idempotency key → stored in `payment_events.webhook_id`)
+- Header `webhook-timestamp` must be within 5 min of server time (replay protection)
+- Header `webhook-signature` must be `v1,<base64-HMAC>` over `{webhook_id}.{timestamp}.{body}`
+
+**Returns:**
+- `200 OK` on success or duplicate
+- `400` on missing `webhook-id` or invalid JSON
+- `401` on signature failure
+- `500` on handler error (still records to `payment_events` to avoid Dodo retrying forever)
+
+**Handled event types:**
+
+| Event | Effect |
+|---|---|
+| `subscription.active` | upsert subscription row (state only, no credit grant) |
+| `subscription.renewed` | zero plan pool + grant `baseCreditsUsd × BONUS_MULTIPLIER` |
+| `subscription.cancelled` | mark cancelled (plan pool kept until expiry) |
+| `subscription.expired` | zero plan pool + mark expired, plan → `free` |
+| `subscription.on_hold` | mark on_hold |
+| `subscription.plan_changed` | update plan + interval |
+| `payment.succeeded` | if non-subscription: grant to topup pool with Pro bonus; if subscription: skipped (credited via `.renewed`) |
+| `refund.succeeded` | look up original credit via `payment_id`, deduct from originating pool with spill |
+
+See [Billing](./BILLING.md) for webhook-by-webhook detail.
 
 ---
 
@@ -269,5 +438,6 @@ All errors return:
 ## See Also
 
 - [Auth Flow](./AUTH_FLOW.md) — How JWT tokens are obtained and verified
+- [Billing](./BILLING.md) — Credits, subscriptions, Dodo Payments
 - [Client Architecture](../client/CLIENT_ARCHITECTURE.md) — API client (`lib/api.ts`)
 - [D1 Database](../cloudflare/D1_DATABASE.md) — What the API reads/writes

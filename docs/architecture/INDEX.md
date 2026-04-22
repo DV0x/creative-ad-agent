@@ -33,7 +33,7 @@ This is the master index for all architecture documentation. Each doc is self-co
 | Understand the AI agent | [AI Agent Pipeline](./shared/AI_AGENT_PIPELINE.md) |
 | Debug image generation | [Image Pipeline](./shared/IMAGE_PIPELINE.md) |
 | Trace error flows | [Error Propagation](./shared/ERROR_PROPAGATION.md) |
-| Understand credits, Dodo Payments, subscriptions | _BILLING.md — pending rewrite_ |
+| Understand credits, Dodo Payments, subscriptions | [Billing](./shared/BILLING.md) |
 | Understand staging vs production split | _STAGING_PRODUCTION.md — pending rewrite_ |
 | Deploy to production | [Deployment](./ops/DEPLOYMENT.md) |
 | Debug production issues | [Debugging](./ops/DEBUGGING.md) |
@@ -74,6 +74,7 @@ docs/architecture/
 │   ├── AUTH_FLOW.md ................. Clerk integration everywhere
 │   ├── WEBSOCKET_PROTOCOL.md ........ Full protocol spec (both directions)
 │   ├── REST_API.md .................. Complete API reference with examples
+│   ├── BILLING.md ................... Credits, subscriptions, Dodo Payments
 │   ├── AI_AGENT_PIPELINE.md ......... Orchestrator, subagents, tools, MCP
 │   ├── IMAGE_PIPELINE.md ............ Generation → storage → serving → display
 │   └── ERROR_PROPAGATION.md ........ Error flows from origin → user, recovery
