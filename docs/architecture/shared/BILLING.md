@@ -33,7 +33,7 @@ Each user has two balance pools on `user_credits`:
 Implementation: `recordUsage()` in `cloudflare/src/db/credits.ts` uses a single SQL `UPDATE` with two `CASE WHEN` expressions so the deduction is atomic. Order matters: the topup-pool `CASE` references the pre-update `balance_usd`, so SQL's old-value semantics give correct results without a transaction.
 
 ```sql
--- Conceptual (see credits.ts:196-214 for the real query)
+-- Conceptual (see credits.ts:198-218 for the real query)
 SET balance_usd_topup = CASE
       WHEN balance_usd >= cost THEN balance_usd_topup
       ELSE balance_usd_topup - (cost - balance_usd)
@@ -62,7 +62,7 @@ User-facing unit is "credits." Internal unit is USD (`REAL` columns). Conversion
 
 ### Plan tiers & credit grants
 
-Defined in `cloudflare/src/routes/webhooks.ts:29-32`. Each renewal grants `baseCreditsUsd × BONUS_MULTIPLIER[plan]`:
+Defined in `planConfig()` at `cloudflare/src/routes/webhooks.ts:27-34` (product IDs injected per-env via wrangler vars). Each renewal grants `baseCreditsUsd × BONUS_MULTIPLIER[plan]`:
 
 | Plan | Interval | Base (USD) | Bonus | Credited (USD) | Credits (×10) |
 |---|---|---|---|---|---|
@@ -76,7 +76,7 @@ Defined in `cloudflare/src/routes/webhooks.ts:29-32`. Each renewal grants `baseC
 
 One product ID, variable `amount` in the checkout payload. Enforced minimum: `TOPUP_MIN_USD = 5` (`payments.ts:15`).
 
-**Top-up bonus:** only Pro users receive a bonus (`×1.2`). Starter and Free do not — top-ups for non-Pro users grant `$amount` 1:1 into the topup pool (`webhooks.ts:299-303`).
+**Top-up bonus:** only Pro users receive a bonus (`×1.2`). Starter and Free do not — top-ups for non-Pro users grant `$amount` 1:1 into the topup pool (`webhooks.ts:302-308`).
 
 ---
 
@@ -183,7 +183,7 @@ Owned by the Durable Object in `cloudflare/src/durable-objects/campaign-session.
 
 **Cancel / partial** (user cancels mid-turn): `recordCancelledUsage()` at `campaign-session.ts:483` still writes a `usage_log` row and deducts — partial work cost real API spend, user pays for it. Same idempotency guard via `request_id`.
 
-**Per-turn delta cost:** the SDK reports cumulative cost across all turns of a session. `agent-runner.ts:397-402` tracks `previousCostUsd` and passes the per-turn delta to the marker — so follow-ups are charged only for the follow-up's work, not the cumulative session cost.
+**Per-turn delta cost:** the SDK reports cumulative cost across all turns of a session. `agent-runner.ts:323` declares `previousCostUsd`; `:396-399` computes the per-turn delta and passes it to the marker — so follow-ups are charged only for the follow-up's work, not the cumulative session cost.
 
 ---
 
