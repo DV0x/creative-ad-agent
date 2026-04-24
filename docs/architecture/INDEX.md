@@ -2,7 +2,7 @@
 
 > **Last updated:** 2026-04-22 | **Branch:** `new-ui` | **Production:** https://creativemachines.xyz | **Staging:** https://creative-agent-staging.alphasapien17.workers.dev
 >
-> ⚠️ **Drift notice (2026-04-22):** Many subsystem docs pre-date the streaming rewrite (Sessions 65-67), credit/billing system (Sessions 62-73), and the staging/production split (Session 57). This index + OVERVIEW reflect current reality; deeper subsystem docs are being rewritten in passes. When a subsystem doc conflicts with code, trust the code.
+> ⚠️ **Drift notice (2026-04-22):** Pass 0 (tactical fixes), Pass 1 (billing), and Pass 2 (streaming / DO / state machine / WS protocol / error propagation / known issues) have landed. Pass 3 (operational docs: STAGING_PRODUCTION.md, DEPLOYMENT.md, AUTH_FLOW.md, SANDBOX_CONTAINER.md HOME correction) is pending. When a subsystem doc conflicts with code, trust the code.
 
 This is the master index for all architecture documentation. Each doc is self-contained — you can read any single doc and understand that subsystem fully.
 

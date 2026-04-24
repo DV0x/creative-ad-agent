@@ -1,6 +1,6 @@
 # WebSocket Protocol
 
-> Part of [Architecture Documentation](../INDEX.md) | Full message spec for both directions
+> Part of [Architecture Documentation](../INDEX.md) | Full message spec for both directions | **Source:** `cloudflare/src/lib/types.ts`, `cloudflare/src/durable-objects/campaign-session.ts`, `cloudflare/src/lib/sdk-message-parser.ts`
 
 ---
 
@@ -8,20 +8,21 @@
 
 | Mode | URL |
 |---|---|
-| Local dev | `ws://localhost:5173/ws` (Vite proxies to Express on `:3001`) |
-| Production | `wss://creative-agent.alphasapien17.workers.dev/ws?token={JWT}` |
+| Local dev | `ws://localhost:5173/ws` (Vite proxy → Express `:3001`) |
+| Staging | `wss://creative-agent-staging.alphasapien17.workers.dev/ws?token={JWT}` |
+| Production | `wss://creativemachines.xyz/ws?token={JWT}` |
 
-**Auth:** In production, JWT is passed as `?token=` query parameter on the upgrade request. The Worker verifies it via Clerk JWKS before forwarding to the Durable Object.
+**Auth:** JWT is passed as `?token=` query parameter on the upgrade request. The Worker verifies it via Clerk JWKS, injects `X-User-Id` header, and forwards to the DO. Dev mode (no `CLERK_SECRET_KEY`) passes everything as `user_id='anonymous'`.
 
-**Keepalive:** Client sends `ping` every 25s. Server responds with `pong`. Server-side alarm heartbeat runs every 30s to prevent DO hibernation during generation.
+**Keepalive:** Client sends `ping` every 25s. Server responds with `pong`. Server-side alarm heartbeat runs every 10s to keep DO alive during generation.
 
-**Multi-tab:** The DO supports multiple concurrent WebSocket connections (e.g., user opens two browser tabs). All generation events are broadcast to ALL connected sockets via `this.state.getWebSockets()`. Subscribe replay is targeted to only the subscribing socket — other tabs already have those events.
+**Multi-tab:** DO supports multiple concurrent WebSocket connections per user (open two browser tabs, both receive events). Durable events broadcast to every socket via `getWebSockets()`. Subscribe replay goes only to the reconnecting socket.
 
 ---
 
 ## Client → Server Messages
 
-### `generate` — Start a new campaign
+### `generate` — new campaign
 
 ```json
 {
@@ -29,12 +30,14 @@
   "prompt": "Create ads for nike.com",
   "sessionId": "sess-1710000000-abc123",
   "name": "Nike Campaign",
-  "assetFileIds": ["file-1", "file-2"],    // optional — user-uploaded reference files
-  "sourceCampaignId": "abc456"             // optional — copy research from this campaign (skip research phase)
+  "brand": "nike.com",                    // optional — URL or brand name
+  "assetFileIds": ["file-1", "file-2"],   // optional — user reference uploads
+  "sourceCampaignId": "abc456",           // optional — copy research from this campaign
+  "aspectRatio": "4:5"                    // optional — "4:5" | "1:1" | "9:16"
 }
 ```
 
-### `follow_up` — Iterate on an existing campaign
+### `follow_up` — iterate on existing campaign
 
 ```json
 {
@@ -42,11 +45,12 @@
   "prompt": "Make the stat hook more dramatic",
   "campaignId": "abc123",
   "sessionId": "sess-1710000000-abc123",
-  "assetFileIds": ["file-3"]   // optional
+  "assetFileIds": ["file-3"],
+  "aspectRatio": "4:5"
 }
 ```
 
-### `cancel` — Abort current generation
+### `cancel` — abort current generation
 
 ```json
 {
@@ -56,17 +60,17 @@
 }
 ```
 
-### `subscribe` — Resume/recover a session
+### `subscribe` — resume / recover
 
 ```json
 {
   "type": "subscribe",
   "sessionId": "sess-1710000000-abc123",
-  "lastEventId": 42   // optional — server replays events after this ID
+  "lastEventId": 42
 }
 ```
 
-### `ping` — Keepalive
+### `ping`
 
 ```json
 { "type": "ping" }
@@ -76,48 +80,63 @@
 
 ## Server → Client Messages
 
-All server messages include an `id` field (sequential integer) for event recovery, except `pong`.
+All server messages include a sequential `id` field EXCEPT:
 
-### `ack` — Generation started
+- `pong`
+- Ephemeral events: `text_start`, `text_delta`, `text_end`, `credits_update`, some `status` variants
 
-Sent immediately after `generate`. Contains the server-assigned campaign ID (client uses this to remap its local ID).
+### `ack` — connection / generation started
+
+Sent on WS connect (initial "Connected to Creative Machine") and again on `generate` / `follow_up` acceptance.
 
 ```json
 {
   "type": "ack",
+  "timestamp": "2026-04-22T10:00:00Z",
+  "message": "Connected to Creative Machine",
   "campaignId": "server-assigned-uuid",
+  "sessionId": "sess-...",
   "id": 1
 }
 ```
 
-### `subscribed` — Recovery subscription confirmed
+### `subscribed` — resume confirmation
+
+Sent after `subscribe` completes replay, only to the reconnecting socket (sendToWS).
 
 ```json
 {
   "type": "subscribed",
+  "timestamp": "2026-04-22T10:00:00Z",
+  "sessionId": "sess-...",
+  "message": "Replayed 17 events",
+  "success": true,
   "id": 2
 }
 ```
 
-### `phase` — Workflow phase change
+### `phase` — workflow phase change
 
 ```json
 {
   "type": "phase",
-  "phase": "research",     // research | hooks | prompts | images
-  "label": "Researching brand...",
+  "timestamp": "...",
+  "phase": "parse | research | hooks | art | images",
+  "label": "Researching nike",
+  "imageCount": 6,
   "id": 3
 }
 ```
 
-### `tool_start` / `tool_end` — Agent tool usage
+### `tool_start` / `tool_end`
 
 ```json
 {
   "type": "tool_start",
+  "timestamp": "...",
   "tool": "WebFetch",
-  "toolName": "WebFetch",
-  "input": { "url": "https://nike.com" },   // optional
+  "toolId": "toolu_abc",
+  "input": { "url": "https://nike.com" },
   "id": 4
 }
 ```
@@ -125,110 +144,179 @@ Sent immediately after `generate`. Contains the server-assigned campaign ID (cli
 ```json
 {
   "type": "tool_end",
-  "tool": "WebFetch",
-  "toolName": "WebFetch",
+  "timestamp": "...",
+  "toolId": "toolu_abc",
+  "success": true,
   "id": 5
 }
 ```
 
-Special case: `Task` and `Skill` tools extract the subagent/skill name for display.
+Special tools: `Task` and `Skill` don't fire as generic `tool_start` only — they also trigger `phase` events (see parser branches B and D in [STREAMING_PIPELINE.md](../cloudflare/STREAMING_PIPELINE.md)).
 
-### `message` — Agent text output
+### Streaming text: `text_start` / `text_delta` / `text_end` — **EPHEMERAL**
+
+Production only. Emitted via `sendWS` (broadcast without buffering). NOT replayed on reconnect.
+
+```json
+{ "type": "text_start", "timestamp": "..." }
+```
+
+```json
+{ "type": "text_delta", "timestamp": "...", "delta": "…token chunk…" }
+```
+
+```json
+{ "type": "text_end", "timestamp": "..." }
+```
+
+Enabled by `includePartialMessages: true` on the SDK query. Local dev does NOT emit these — features relying on token streaming must be validated on staging.
+
+Client behaviour: append each delta to an in-flight text block in the store. The block becomes "sealed" on `text_end`. If the connection drops mid-stream, the client loses deltas but gets the full assembled text via the `messages` row on page reload (via `/api/campaigns/:id`).
+
+### `message` — assembled agent text
 
 ```json
 {
   "type": "message",
-  "content": "I've analyzed the brand and found...",
-  "text": "I've analyzed the brand and found...",
+  "timestamp": "...",
+  "text": "I've analyzed the brand and found…",
   "id": 6
 }
 ```
 
-Primarily used during follow-ups where the agent explains changes.
+**Production:** emitted ONLY if no deltas streamed for this block (`hasStreamedDeltas=false`). In practice, this means the message event is mostly suppressed in prod (deltas always fire first).
 
-### `file` — Campaign file created/updated
+**Local dev:** primary text transport. Always emitted per assistant text block.
+
+### `file` — campaign file created/updated
 
 ```json
 {
   "type": "file",
-  "fileType": "research",    // research | hooks | prompts
-  "content": "# Brand Research\n\n...",
+  "timestamp": "...",
+  "fileType": "research | hooks | prompts",
+  "content": "# Brand Research\n\n…",
+  "path": "/app/agent/files/research/...",
   "id": 7
 }
 ```
 
-When `fileType` is `prompts`, the client parses it to extract the expected image count.
+Client uses `prompts` file to extract expected image count (parses prompt array length).
 
-### `image` — Image generated
+### `image` — image generated
 
 ```json
 {
   "type": "image",
-  "timestamp": "2026-03-10T...",
-  "id": "image_0",                  // "image_{globalIndex}" (0-based)
-  "urlPath": "/images/sess-xxx/0_stat_bold-stat.png",
-  "prompt": "A bold typographic ad...",
+  "timestamp": "...",
+  "id": "image_0",
+  "urlPath": "/images/0_stat_bold-stat.png",
+  "prompt": "A bold typographic ad…",
   "filename": "0_stat_bold-stat.png",
   "hookType": "stat",
-  "imageIndex": 0,
-  "id": 8                           // sequential event ID (separate from image id)
+  "imageIndex": 0
 }
 ```
 
-Note: The `id` field at the top level is the sequential event ID (integer) for recovery. The `id: "image_0"` field identifies the image itself. The sequential event `id` overwrites the image `id` when assigned by the EventBuffer.
+Note the `id` collision: the top-level `id` field gets overwritten by the sequential event ID assigned by `EventBuffer.append`. The original `image_0` string is the image identity and is preserved separately in `imageIndex` + `filename` — clients should key off those.
 
-### `complete` — Generation finished
+### `complete` — generation finished
 
 ```json
 {
   "type": "complete",
-  "summary": "Generated 6 images for Nike campaign",
+  "timestamp": "...",
+  "sessionId": "sess-...",
+  "campaignId": "camp-...",
+  "duration": 0,
   "imageCount": 6,
+  "summary": "Generated 6 images for Nike campaign",
   "id": 9
 }
 ```
 
-### `error` — Generation failed
+`summary` is the first 500 chars of the accumulated assistant text. `duration` is currently always 0 (placeholder).
 
-```json
-{
-  "type": "error",
-  "error": "API rate limit exceeded",
-  "code": "rate_limit",        // optional
-  "id": 10
-}
-```
-
-Special case: `code: "session_expired"` triggers client-side session cleanup.
-
-### `incomplete` — Generation interrupted (can resume)
+### `incomplete` — interrupted, can resume
 
 ```json
 {
   "type": "incomplete",
+  "timestamp": "...",
   "message": "Generation interrupted. Resume from campaign page.",
+  "id": 10
+}
+```
+
+Emitted rarely — most interrupted generations emit friendly `error` events now (see below). `incomplete` status in D1 is set by the alarm; this WS event is optional.
+
+### `error` — generation failed
+
+```json
+{
+  "type": "error",
+  "timestamp": "...",
+  "error": "Short user-facing message",
+  "code": "INSUFFICIENT_CREDITS",
   "id": 11
 }
 ```
 
-### `status` — Status update
+Friendly error copy (production):
+
+| Trigger | Copy |
+|---|---|
+| Pre-flight credit check | "Insufficient credits. Please top up to continue." (code: `INSUFFICIENT_CREDITS`) |
+| 2h safety net | "That took way too long, even for us — your work's saved, let's try a fresh start" |
+| Zombie detected (alarm, 5 min) | "Hmm something didn't start right — your work's saved, try again and we'll nail it" |
+| Agent dead, no result | "The creative engine wandered off — your work's safe tho, give it another go" |
+| Fatal sandbox RPC | "Connection went poof but your work didn't — hit send again and we're vibing" |
+| Fatal runtime (no agent) | "Setup failed: {err.message}" / "Follow-up failed: {err.message}" |
+| Concurrent-gen block | "A generation is already in progress. Please wait or cancel first." |
+| Session not found | "Session not found or expired" |
+
+### `status` — informational / warning
 
 ```json
 {
   "type": "status",
-  "status": "cancelled",
-  "message": "Generation cancelled by user",
-  "id": 12
+  "timestamp": "...",
+  "message": "Live updates paused — generation still in progress..."
 }
 ```
 
-### `pong` — Keepalive response
+**Emitted when:** stream RPC throws but agent is still alive. User keeps seeing the campaign workflow progress via the alarm's finalize path; the `status` event warns that real-time updates are temporarily out.
+
+**Zombie-on-subscribe** (`handleSubscribe`, `campaign-session.ts:1146-1150`) uses `error` (not `status`) so the client surfaces a retry prompt.
+
+### `credits_update` — post-finalize credit balance
 
 ```json
-{ "type": "pong" }
+{
+  "type": "credits_update",
+  "timestamp": "...",
+  "balance": 823.5,         // plan + topup, in credits (USD × 10)
+  "plan_balance": 780.0,
+  "topup_balance": 43.5,
+  "cost": 6.2               // credits deducted this turn
+}
 ```
 
-No `id` field.
+Emitted via `sendWS` (NOT buffered). Fires after `finalizeGeneration` succeeds (`campaign-session.ts:453-461`) and after `recordCancelledUsage` on cancel (`:509-517`). All four values rounded to 1 decimal.
+
+Client updates Zustand: `setCreditBalance`, `setPlanBalance`, `setTopupBalance`. Toast optional — non-obtrusive.
+
+### `pong`
+
+```json
+{ "type": "pong", "timestamp": "..." }
+```
+
+No `id`.
+
+### Transport-only: `tool_use_event`
+
+Not a client-facing event. This is the custom JSON line the agent-runner emits on stdout (`agent-runner.ts:365-370`) that the DO parser translates into a `tool_start` event before broadcasting. Documented here to avoid confusion when reading source.
 
 ---
 
@@ -236,123 +324,149 @@ No `id` field.
 
 ### How it works
 
-1. Server assigns sequential `id` to each outgoing message
-2. Messages are stored in an `EventBuffer` (in-memory on DO, ring buffer with max size)
+1. Server assigns sequential `id` to every outgoing DURABLE event (via `EventBuffer.append`)
+2. Ephemeral events (deltas, `credits_update`, `pong`) are sent WITHOUT buffering → no `id`, no replay
 3. Client saves `lastEventId` to localStorage per session:
    ```
    creative-agent:lastEventId:{sessionId} = 42
    ```
 4. On reconnect, client sends `subscribe` with `lastEventId`
-5. Server replays all buffered events with `id > lastEventId`
-6. Client receives `subscribed` when replay is complete
+5. Server replays all buffered events with `id > lastEventId` — only to the reconnecting socket
+6. Server sends `subscribed` when replay completes
 
 ### Limitations
 
-- Buffer is in-memory — lost on DO reset (code deploy)
-- Buffer has a max size (older events evicted)
-- For full recovery after DO reset, use the R2 completion marker via `/api/campaigns/:id/recover`
+- Buffer is in-memory per DO. Lost on DO eviction (code deploy, 10 min hibernation)
+- Buffer max 1000 events, trims to 500 on overflow — long generations may lose early events
+- Deltas never replayed. On reconnect, the client loses mid-turn text animation. Full assembled text is still in D1.
 
-### Reconnect Helpers
+### Deep recovery — `/api/campaigns/:id/recover`
 
-On `subscribe` (client reconnect or DO reset recovery), the server calls two helpers to restore live progress:
+REST endpoint (`routes/recovery.ts`), not a WS message. Client fires it automatically for stuck campaigns (`generating` / `incomplete` / `error`). D1-first reconciliation:
 
-- **`attachStreamHandler(campaignId)`** — Re-attaches `streamProcessLogs()` on the sandbox process so the reconnected client sees live SDK events. Best-effort only; not used for completion detection.
-- **`attachCompletionHandler(campaignId, sessionId)`** — Re-attaches `waitForLog('turn_complete')` on the agent process. This is the primary completion detection path (saves results to D1, notifies client).
+- Checks for existing images/files/messages in D1
+- If found + no assistant message → inserts synthetic "Generation recovered. N images found."
+- Updates status → `complete`
+- Returns full campaign payload for re-render
 
-### R2 Completion Polling + Log Snapshot
-
-The DO alarm handler (every 30s) runs two backup checks:
-1. **R2 marker polling** — `pollR2CompletionMarker()` reads `completion_{campaignId}.json` directly from R2 (independent of sandbox)
-2. **Log snapshot** — `getProcessLogs()` (simple HTTP GET) checks if `turn_complete` exists in accumulated stdout
-
-Both are independent of the SSE streaming connection. If either finds completion, it reconciles images/files to D1 and completes the campaign.
+No R2 marker involvement (the `pollR2CompletionMarker` path was removed). D1 is the single source of truth.
 
 ---
 
-## Message Flow: Initial Generation
-
-```
-Client                          Server
-  │                               │
-  ├── generate ──────────────────→│  Create campaign in DB
-  │                               │  Start sandbox container
-  │←────────────────────── ack ───┤  (server campaign ID)
-  │                               │
-  │←───────────────────── phase ──┤  "Researching brand..."
-  │←─────────────── tool_start ───┤  WebFetch nike.com
-  │←─────────────────── tool_end ─┤
-  │←───────────────────── phase ──┤  "Creating hooks..."
-  │←────────────────────── file ──┤  (research content)
-  │←────────────────────── file ──┤  (hooks content)
-  │←────────────────────── file ──┤  (prompts content)
-  │←───────────────────── phase ──┤  "Generating images..."
-  │←─────────────── tool_start ───┤  nano-banana generate
-  │←───────────────────── image ──┤  (image 1/6)
-  │←───────────────────── image ──┤  (image 2/6)
-  │    ...4 more images...        │
-  │←─────────────────── tool_end ─┤
-  │←──────────────────── complete ┤  "Generated 6 images"
-  │                               │
-```
-
-## Message Flow: Follow-Up
-
-```
-Client                          Server
-  │                               │
-  ├── follow_up ─────────────────→│  Write /app/next-prompt.json
-  │                               │  Agent prints turn_start sentinel
-  │                               │  Agent picks up new turn
-  │←───────────────────── phase ──┤  "Updating hooks..."
-  │←──────────────────── message ─┤  "I'll make the stat hook..."
-  │←────────────────────── file ──┤  (updated hooks)
-  │←───────────────────── image ──┤  (regenerated image)
-  │←──────────────────── complete ┤  "Updated 1 hook"
-  │                               │
-```
-
-**`turn_start` sentinel:** Before each follow-up turn, agent-runner prints `{"type":"turn_start","requestId":"..."}` to stdout. The DO uses this to skip replayed historical logs from `streamProcessLogs()`, which replays the entire accumulated stdout buffer on each call.
-
-## Message Flow: Cancel
-
-```
-Client                          Server
-  │                               │
-  ├── cancel ────────────────────→│  Set abort signal (only)
-  │                               │  Generation function handles cleanup
-  │←───────────────────── status ─┤  "cancelled"
-  │                               │
-```
-
-## Message Flow: Reconnect (Browser Refresh)
+## Message flow: initial generation
 
 ```
 Client                          Server (DO)
   │                               │
-  │  (WS connection drops)        │  webSocketClose() — no cleanup needed
-  │                               │  (getWebSockets() auto-excludes closed)
-  │                               │  Generation continues (fire-and-forget)
-  │                               │  Events buffered in EventBuffer
+  ├── generate ──────────────────→│  Credit check, create campaign
+  │                               │  Persist user message
+  │←───────────────────────── ack ┤  id:1
+  │←─ phase:parse ───────────────┤  id:2
+  │                               │  setupSandbox (cold ~2.5 min; warm ~3s)
+  │                               │  startProcess → streamProcessLogs
   │                               │
-  │  (Page reloads)               │
-  │                               │
-  ├── WS connect ────────────────→│  fetch() — new WS pair, restore session
-  │                               │  ack sent to THIS socket only (sendToWS)
-  │                               │
-  ├── subscribe(lastEventId=42) ─→│  handleSubscribe():
-  │                               │    1. Restore session from storage if needed
-  │                               │    2. Staleness check against D1
-  │                               │    3. Replay events to THIS socket only
-  │←── event 43 ─────────────────┤       (sendToWS, not broadcast)
-  │←── event 44 ─────────────────┤
-  │←── ... ──────────────────────┤
-  │←── subscribed ───────────────┤    4. Re-attach streaming (if generating)
-  │                               │
-  │←── live events (broadcast) ──┤    (all tabs get new events)
-  │                               │
+  │←─ text_start ────────────────┤  (ephemeral)
+  │←─ text_delta × N ────────────┤  (ephemeral, tokens arrive)
+  │←─ text_end ──────────────────┤  (ephemeral)
+  │←─ tool_start (Task/research) ┤  id:…
+  │←─ phase:research ────────────┤  id:…
+  │←─ tool_end ──────────────────┤  id:…
+  │←─ file (research) ───────────┤  id:…
+  │←─ tool_start (Skill/hooks) ──┤
+  │←─ phase:hooks ───────────────┤
+  │←─ file (hooks) ──────────────┤
+  │←─ tool_start (Skill/art) ────┤
+  │←─ phase:art ─────────────────┤
+  │←─ file (prompts) ────────────┤
+  │←─ tool_start (nano-banana) ──┤
+  │←─ phase:images ──────────────┤
+  │←─ image × 6 ────────────────┤  id:…
+  │←─ tool_end (nano-banana) ────┤
+  │                               │  Agent prints turn_complete
+  │                               │  Stream loop breaks → tryFinalize (Layer 2)
+  │                               │  reconcileImages + reconcileFiles + addMessage
+  │←─ complete ──────────────────┤  id:…
+  │←─ credits_update ────────────┤  (ephemeral — sendWS)
 ```
 
-**localStorage tracking:**
+---
+
+## Message flow: follow-up (fast path)
+
+```
+Client                          Server (DO)
+  │                               │
+  ├── follow_up ────────────────→│  Credit check, eventBuffer.clear, addMessage
+  │←─ ack ───────────────────────┤  id:1 (new sequence — buffer cleared)
+  │                               │  isAgentProcessAlive? agentCampaignId match?
+  │                               │  → FAST PATH
+  │                               │  streamProcessLogs (replays history)
+  │                               │  writeFile /app/next-prompt.json
+  │                               │  Agent prints turn_start:req_xxx
+  │                               │  Stream skip loop exits (matched requestId)
+  │                               │
+  │←─ text_start/delta/end ──────┤  (agent explains changes)
+  │←─ phase:hooks ───────────────┤
+  │←─ tool_start (Write) ────────┤
+  │←─ file (hooks) ──────────────┤
+  │←─ tool_start (nano-banana) ──┤
+  │←─ phase:images ──────────────┤
+  │←─ image × 1 ─────────────────┤
+  │                               │  turn_complete + COMPLETION:req_xxx
+  │                               │  tryFinalize (validates requestId match)
+  │←─ complete ──────────────────┤
+  │←─ credits_update ────────────┤
+```
+
+---
+
+## Message flow: cancel
+
+```
+Client                          Server (DO)
+  │                               │
+  ├── cancel ────────────────────→│  abortController.abort()
+  │                               │  currentLogStream.cancel()  ← unblocks stream loop
+  │←─ ack "Cancel requested" ────┤  (sendWS, no id)
+  │                               │  Stream loop: return cancelled=true
+  │                               │  finally: recordCancelledUsage, killProcess,
+  │                               │    unmountBucket, clearPersistedSession
+  │←─ credits_update ────────────┤  (if any images charged)
+  │                               │  (client sees campaign status change to 'cancelled' via separate reload or WS state query)
+```
+
+No dedicated `cancelled` event — the client infers from the credit update + subsequent state, or reloads the campaign and sees `status: 'cancelled'`. The assistant message "No worries, scrapped that one — send a new idea whenever you're ready" is persisted to D1 and visible on next load.
+
+---
+
+## Message flow: reconnect (browser refresh mid-generation)
+
+```
+Client                          Server (DO)
+  │                               │
+  │  (WS drops)                   │  webSocketClose — no cleanup, gen continues
+  │                               │  Events buffer in EventBuffer
+  │                               │  Alarm keeps firing every 10s
+  │                               │
+  │  Page reloads                 │
+  │                               │
+  ├── WS connect ────────────────→│  fetch, new WS pair
+  │                               │  restoreSession from storage
+  │←─ ack (on-connect) ──────────┤  sendToWS (targeted)
+  │                               │
+  ├── subscribe(lastEventId=42) →│  handleSubscribe
+  │                               │  eventBuffer.hasEvents()? Maybe — depends on DO reset
+  │                               │  D1 staleness check
+  │                               │  IF zombie → friendly error, clear session
+  │                               │  ELSE → replay getEventsSince(42)
+  │←─ events 43..N ──────────────┤  sendToWS per event (targeted replay)
+  │←─ subscribed ────────────────┤  sendToWS "Replayed N events"
+  │                               │
+  │←─ live events (broadcast) ──┤  (new emitEvent calls go to all tabs)
+```
+
+**localStorage keys used:**
+
 ```
 creative-agent:activeSession = { sessionId, campaignId }
 creative-agent:lastEventId:{sessionId} = 42
@@ -362,7 +476,9 @@ creative-agent:lastEventId:{sessionId} = 42
 
 ## See Also
 
-- [WebSocket Client](../client/WEBSOCKET_CLIENT.md) — Client-side handler logic
-- [Durable Object](../cloudflare/DURABLE_OBJECT.md) — Server-side WS handler
-- [Local WebSocket](../local/LOCAL_WEBSOCKET.md) — Local server WS handler
-- [Streaming Pipeline](../cloudflare/STREAMING_PIPELINE.md) — How sandbox stdout becomes WS events
+- [WebSocket Client](../client/WEBSOCKET_CLIENT.md) — client-side handler logic
+- [Durable Object](../cloudflare/DURABLE_OBJECT.md) — server-side WS handler
+- [Streaming Pipeline](../cloudflare/STREAMING_PIPELINE.md) — how events are produced
+- [Local WebSocket](../local/LOCAL_WEBSOCKET.md) — dev server WS handler (simpler, no streaming)
+- [Error Propagation](./ERROR_PROPAGATION.md) — where each error copy comes from
+- [Billing](./BILLING.md) — `credits_update` semantics
