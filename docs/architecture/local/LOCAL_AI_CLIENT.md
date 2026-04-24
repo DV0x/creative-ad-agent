@@ -86,14 +86,16 @@ The SDK handles conversation history internally via its session file (JSONL in `
 Same tool as production but saves images to local disk instead of FUSE mount:
 
 ```
-generated-images/{sessionId}/{index}_{hookType}_{name}.png
+generated-images/{sessionId}/{timestamp}_{i+1}_{sanitizedPrompt}.{ext}
 ```
+
+Filename format matches sandbox (see [IMAGE_PIPELINE.md § Image Naming](../shared/IMAGE_PIPELINE.md#image-naming)). Source: `server/lib/nano-banana-mcp.ts:257`.
 
 Uses `fal.ai` API (Nano Banana Pro / Gemini image model) for generation.
 
 ---
 
-## Orchestrator Prompt (`server/lib/orchestrator-prompt.ts` — 77 lines)
+## Orchestrator Prompt (`server/lib/orchestrator-prompt.ts` — 107 lines)
 
 Short barrel file that imports the system prompt. The actual prompt content is shared with the sandbox version (`cloudflare/sandbox/orchestrator-prompt.ts`).
 

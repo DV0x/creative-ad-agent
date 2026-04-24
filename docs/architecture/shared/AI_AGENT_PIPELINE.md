@@ -65,7 +65,7 @@ The agent-runner prints sentinel markers to stdout for the DO to track turn boun
 
 ## Available Tools (`allowedTools` Filter)
 
-The agent-runner explicitly restricts SDK tools via the `allowedTools` array. Only these 11 tools are available to the agent:
+The agent-runner explicitly restricts SDK tools via the `allowedTools` array (`cloudflare/sandbox/agent-runner.ts:103-108`). Only these 12 tools are available to the agent:
 
 | Tool | Category | Purpose |
 |---|---|---|
@@ -108,7 +108,7 @@ Uses the `hook-methodology` skill to create 6 ad angles:
 | `callout` | Direct challenge to viewer | "Still wearing last year's model?" |
 | `contrast` | Before/after or comparison | "Other brands: mass produced. Nike: engineered" |
 
-Saves to `.claude/skills/hook-methodology/hook-bank/hooks.md`
+Saves to `.claude/skills/hook-methodology/hook-bank/{brand}-{date}.md` (filename is per-brand + per-run date — the workspace layout below reflects this)
 
 ### Step 3: Art Direction
 

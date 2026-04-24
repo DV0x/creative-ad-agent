@@ -246,25 +246,29 @@ onConnected() fires
 
 ### Server → Client
 
+Field shapes below mirror `client/src/types/websocket.ts` (the source of truth). `id?: number` + `timestamp: string` are inherited from `WSBaseMessage` on every event.
+
 ```typescript
-{ type: 'ack',            campaignId, id }
-{ type: 'subscribed',     id }
-{ type: 'phase',          phase, label?, id }
-{ type: 'tool_start',     toolName, subagent_type?, skill?, id }
-{ type: 'tool_end',       toolName, id }
-{ type: 'text_start',     id }                                   // production-only
-{ type: 'text_delta',     delta, id }                            // production-only
-{ type: 'text_end',       id }                                   // production-only
-{ type: 'message',        text, id }                             // local runner fallback
-{ type: 'status',         message, id }
-{ type: 'file',           fileType, content, id }
-{ type: 'image',          imageIndex, urlPath, prompt, hookType?, id }
-{ type: 'complete',       summary?, imageCount?, id }
-{ type: 'credits_update', balance, plan_balance, topup_balance, cost, id }
-{ type: 'error',          error, code?, id }                     // code: 'INSUFFICIENT_CREDITS'
-{ type: 'incomplete',     message?, id }
-{ type: 'pong' }
+{ type: 'ack',            message?, sessionId?, campaignId?, id? }
+{ type: 'subscribed',     sessionId, id? }
+{ type: 'phase',          phase, label?, imageCount?, id? }
+{ type: 'tool_start',     tool, toolId?, input?, id? }
+{ type: 'tool_end',       toolId?, success?, id? }
+{ type: 'text_start',     id? }                                   // production-only
+{ type: 'text_delta',     delta, id? }                            // production-only
+{ type: 'text_end',       id? }                                   // production-only
+{ type: 'message',        text, id? }                             // local runner fallback
+{ type: 'status',         message, success?, id? }
+{ type: 'file',           fileType, content, path, id? }          // fileType: 'research' | 'hooks' | 'prompts'
+{ type: 'image',          urlPath, prompt, filename?, hookType, imageIndex, id? }
+{ type: 'complete',       summary, message?, sessionId?, duration?, imageCount?, id? }
+{ type: 'credits_update', balance, plan_balance?, topup_balance?, cost, id? }
+{ type: 'error',          error, code?, id? }                     // code: 'INSUFFICIENT_CREDITS'
+{ type: 'incomplete',     error, message, id? }
+{ type: 'pong',           id? }
 ```
+
+> **Note — field names that read naturally but aren't:** `tool_start` uses `tool` (not `toolName`) and `input` (not `subagent_type` / `skill`). `tool_end` carries only `toolId` + `success` (no tool name — look it up from the preceding `tool_start` by `toolId`). If you're writing a new handler, start from the type definitions, not this block.
 
 Full protocol spec: [WebSocket Protocol](../shared/WEBSOCKET_PROTOCOL.md)
 

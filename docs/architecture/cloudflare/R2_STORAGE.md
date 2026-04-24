@@ -12,15 +12,14 @@
     ├── images/{sessionId}/{timestamp}_{i+1}_{sanitized-prompt}.{ext}   # Generated images
     │                                                                    # sessionId is optional — orchestrator
     │                                                                    # passes one, but fallbacks drop it
-    ├── uploads/{folder_path}                                            # User-uploaded assets (path comes from D1)
-    └── .claude/projects/-app-agent/{sdkSessionId}.jsonl                 # SDK conversation log (orphaned — see below)
+    └── uploads/{folder_path}                                            # User-uploaded assets (path comes from D1)
 ```
 
 **Bucket name is per-env.** The Worker reads via `env.R2_BUCKET.get(key)` (binding is resolved by wrangler). The sandbox container mounts via `sandbox.mountBucket(env.R2_BUCKET_NAME, '/mnt/r2', …)` — so `R2_BUCKET_NAME` must match the environment's bucket or writes land in the wrong place.
 
 **Generated-image filename format:** `{timestamp}_{i+1}_{sanitizedPrompt}.{ext}` — `cloudflare/sandbox/nano-banana-mcp.ts:262`. Note the filename does NOT contain the hookType — hookType is derived from the 1-based index via `getHookTypeForIndex` and stored in D1's `campaign_images.hook_type` column, not in the R2 key.
 
-**SDK project path:** not a hash — it's the container cwd with `/` replaced by `-` (cwd `/app/agent` → `-app-agent`). The SDK writes the JSONL but we never read it back — `RESUME_SDK_SESSION_ID` is always `''` on Cloudflare because s3fs null-byte pre-allocation corrupts the file. So this data is **orphaned on R2** but still accumulates. See [DURABLE_OBJECT.md § setupSandbox](./DURABLE_OBJECT.md#setupsandbox-prompt-sessionid-sdksessionid-).
+**SDK JSONL is NOT in this tree.** The DO sets `HOME=/root` when spawning the agent (`campaign-session.ts:1482`), so the SDK's session log lives at `/root/.claude/projects/-app-agent/{sessionId}.jsonl` on the container's ephemeral disk, outside the FUSE mount. See the "SDK JSONL" subsection below.
 
 > **No `completion_{campaignId}.json` on R2.** Earlier versions wrote a completion marker there; it was removed when `/recover` became D1-first. The only completion marker is `/app/turn-result.json` on the container's **local disk**. Grep `cloudflare/` for `completion_` — you will find nothing.
 
@@ -63,9 +62,13 @@ GET /api/assets/files/:id
 
 `cloudflare/sandbox/agent-runner.ts:255` — `writeCompletionMarker` writes **only** to `/app/turn-result.json` (container-local). The DO's `tryFinalize` reads it via `sandbox.readFile('/app/turn-result.json')`. No R2 write, no R2 read.
 
-### SDK JSONL (orphaned)
+### SDK JSONL (NOT on R2)
 
-The Claude SDK writes a per-session conversation log to a JSONL file under its configured project directory. If that path happens to land under `/mnt/r2/...`, it reaches R2 via FUSE; if it lands under `/app/...`, it's container-local and dies when the container dies. Either way, **nothing reads it back on Cloudflare** — `RESUME_SDK_SESSION_ID` is always `''` on the DO's `startProcess` call (see [DURABLE_OBJECT.md § setupSandbox](./DURABLE_OBJECT.md#setupsandbox-prompt-sessionid-sdksessionid-)) because s3fs null-byte pre-allocation corrupts the JSONL during flush. Context resumption is handled instead via D1 conversation history + file hydration.
+The Claude SDK writes a per-session conversation log to `${HOME}/.claude/projects/{cwd-slugified}/{sessionId}.jsonl`. On Cloudflare the DO sets `HOME=/root` at `startProcess` (`campaign-session.ts:1482`) with cwd `/app/agent`, so the actual path is `/root/.claude/projects/-app-agent/{sessionId}.jsonl` — on the container's ephemeral disk, **not** the FUSE mount. It dies when the container is evicted.
+
+Nothing reads it back on Cloudflare anyway — `RESUME_SDK_SESSION_ID` is always `''` on the DO's `startProcess` call (see [DURABLE_OBJECT.md § setupSandbox](./DURABLE_OBJECT.md#setupsandbox-prompt-sessionid-sdksessionid-)). That's a belt-and-suspenders decision: even if we routed the SDK JSONL through FUSE, s3fs null-byte pre-allocation would corrupt it on flush. Context resumption is handled instead via D1 conversation history + file hydration.
+
+(The `-app-agent` slug is the container cwd with `/` replaced by `-` — not a hash, just how the SDK names its project directories.)
 
 ---
 
