@@ -22,7 +22,7 @@
                                                 └──────────┘    └──────────┘
 ```
 
-**Two data paths:** (1) Real-time: SSE stream → `processSDKMessage` → `image` event → WS → client renders immediately. (2) Reconciliation: `turn-result.json` → `reconcileImages()` → catch any images missed by SSE framing.
+**Two data paths:** (1) **Live:** stdout JSONL from agent-runner → `streamForLiveUI` → `processSDKMessage` → `image` event → WS → client renders immediately. The DO also writes to D1 inline during this pass. (2) **Reconciliation:** `/app/turn-result.json` → `tryFinalize` → `reconcileImages` inserts any images that were in the container's tracking jsonl but never landed in D1 from the stream. The stream is the fast path; reconciliation is the safety net.
 
 ---
 
@@ -56,33 +56,39 @@ The agent calls `mcp__nano-banana__generate_ad_images` which:
 
 ### Image Naming
 
+Actual format from `cloudflare/sandbox/nano-banana-mcp.ts:262`:
+
 ```
-{index}_{hookType}_{sanitized-name}.png
+{timestamp}_{i+1}_{sanitizedPrompt}.{ext}
 ```
 
-Example: `1_stat_bold-stat-ad.png`, `2_story_runner-journey.png`
+where `timestamp = Date.now()` for the batch, `i+1` is the 1-based index within the MCP tool call, and `sanitizedPrompt` is the prompt lowercased, whitespace→dashes, truncated. **The filename does NOT contain the hookType** — hookType is derived at the DO side from the global `imageIndex` via `getHookTypeForIndex()` and persisted to `campaign_images.hook_type` in D1.
+
+Example: `1729530822000_1_runners-who-skip-leg-day.png`
 
 ---
 
 ## 2. Storage
 
-### Local Mode
+### Local Mode (`server/`)
 
 ```
-generated-images/{sessionId}/1_stat_bold-stat-ad.png
+{projectRoot}/generated-images/{sessionId}/{timestamp}_{i+1}_{sanitized}.png
 ```
 
-Written directly to disk by the MCP tool. Served via Express static file handler.
+Written directly to the local filesystem by the MCP tool (which uses `IMAGE_OUTPUT_DIR` when set, else a fallback relative to the Express process). Served via Express static file handler at `/images/{sessionId}/{filename}`.
 
-### Production Mode
+### Production Mode (Cloudflare)
 
 ```
-/mnt/r2/images/{sessionId}/1_stat_bold-stat-ad.png
-   ↓ (s3fs FUSE mount)
-R2: users/{userId}/images/{sessionId}/1_stat_bold-stat-ad.png
+/mnt/r2/images/{sessionId}/{timestamp}_{i+1}_{sanitized}.png
+   ↓ (s3fs FUSE mount — upload triggered on fd close)
+R2: users/{userId}/images/{sessionId}/{timestamp}_{i+1}_{sanitized}.png
 ```
 
-The sandbox container has R2 mounted at `/mnt/r2` via s3fs FUSE. The MCP tool writes files to the FUSE mount, and s3fs uploads them to R2.
+The sandbox container has R2 mounted at `/mnt/r2` via s3fs, with `prefix: /users/{userId}` — so writes are automatically scoped. The MCP tool calls `fs.writeFileSync` then `fs.statSync` to verify the byte count reached the mount (catches silent FUSE failures).
+
+`sessionId` is optional — if the orchestrator passes a sessionId when invoking the MCP tool, images go into a sub-folder; without it they land directly under `/mnt/r2/images/`. Either way the URL emitted is `/images/{sessionId?}/{filename}`.
 
 ### FUSE Flush Gotchas
 
@@ -98,22 +104,27 @@ The sandbox container has R2 mounted at `/mnt/r2` via s3fs FUSE. The MCP tool wr
 The MCP tool returns a JSON response with an `images` array. The SDK wraps this as a `tool_result` message. The agent-runner prints all SDK messages to stdout as JSON lines. The DO's `processSDKMessage()` extracts images from the `tool_result` and emits WebSocket events:
 
 ```json
-{"type":"image","id":"image_1","urlPath":"/images/abc/1_stat_bold-stat-ad.png","prompt":"...","hookType":"stat","imageIndex":1,"filename":"1_stat_bold-stat-ad.png"}
+{"type":"image","id":"image_1","urlPath":"/images/abc/1729530822000_1_runners-who-skip-leg-day.png","prompt":"...","hookType":"stat","imageIndex":1,"filename":"1729530822000_1_runners-who-skip-leg-day.png"}
 ```
 
 Pipeline:
 ```
-MCP return → SDK tool_result → agent-runner stdout → streamProcessLogs()
-→ parseSSEStream() → processSDKMessage() → emitEvent() → WebSocket → client
+MCP return → SDK tool_result → agent-runner stdout (JSONL) → streamProcessLogs()
+→ parseSSEStream() (frame splitter) → streamForLiveUI → processSDKMessage()
+→ emitEvent({type:'image', …}) → EventBuffer → WebSocket → client
 ```
 
 ### `imageCounter` — Global Image Index
 
-The `processSDKMessage()` parser maintains an `imageCounter: { next: number }` that increments across turns. Each image gets a sequential global index (1, 2, 3, ...) which maps to a hook type via `getHookTypeForIndex()`. On follow-ups, the counter starts at `existingImageCount + 1` so indices never collide with previous turns.
+The stream-parse context carries an `imageCounter: { next: number }` (`cloudflare/src/lib/sdk-message-parser.ts:25`). It seeds with `max(storedMaxIndex, dbMaxIndex) + 1` on new generations, and `existingImageCount + 1` on follow-up fast-path — both choices defined in `campaign-session.ts:1522` (`runGeneration`) and `:1735` (`runFollowUpFast`). Every extracted image gets `globalIndex = imageCounter.next++`; `hookType = getHookTypeForIndex(globalIndex)`.
+
+### Filename-level dedup
+
+The parser also holds `processedFilenames: Set<string>` (`sdk-message-parser.ts:22`). Because the SDK may yield a `tool_result` twice (streaming + final), the parser skips any image whose filename has already been processed in this context — so the same image never inserts twice into D1.
 
 ### Turn-Result Reconciliation
 
-The agent-runner writes `/app/turn-result.json` at the end of each turn, containing an `images` array (from the `/app/generated-images.jsonl` tracking file) and a `files` object (research, hooks, prompts content). After `waitForLog('turn_complete')` fires, the DO calls `reconcileImages()` which reads this file, deduplicates against existing D1 records by `file_path`, and inserts any images missed during SSE streaming. It also calls `reconcileFiles()` with the same file to persist campaign files to D1. This is the reliable data path — SSE streaming is best-effort for live UI only.
+The agent-runner writes `/app/turn-result.json` at the end of each turn containing the `images` array (from `/app/generated-images.jsonl`) and a `files` object (research, hooks, prompts content). The DO's `tryFinalize` reads this file via `sandbox.readFile` (Layer 2 of completion detection — see [DURABLE_OBJECT.md](../cloudflare/DURABLE_OBJECT.md#completion-detection--the-real-four-layers)), validates `campaignId` + `requestId`, then calls `reconcileImages` + `reconcileFiles`. Reconciliation dedups against D1 by `file_path` so images already streamed aren't re-inserted. The stream is the fast path; reconciliation is the safety net.
 
 ---
 
@@ -224,9 +235,9 @@ When the same `image_index` is regenerated during a follow-up, `addCampaignImage
 
 ## Known Issues
 
-1. ~~`writeCompletionMarker()` scans ALL user images`~~ — **FIXED (Session 55)**. Now reads `/app/generated-images.jsonl` tracking file (per-turn only), no longer scans `/mnt/r2/images/`
-2. **Browser HTTP cache hides missing R2 data** — `Cache-Control: immutable` means browser serves stale data even after hard refresh
-3. **No R2 cleanup on campaign deletion** — images persist in R2 after DB records are deleted
+1. **Browser HTTP cache hides missing R2 data** — `Cache-Control: immutable` means browser serves stale data even after hard refresh. Use `fetch(url, { cache: 'no-store' })` to probe whether the R2 object actually exists.
+2. **No R2 cleanup on campaign deletion** — `DELETE /api/campaigns/:id` removes DB rows but leaves R2 objects orphaned. R2 storage cost grows over time. See [KNOWN_ISSUES.md](../cloudflare/KNOWN_ISSUES.md).
+3. **Per-env mount mismatch risk** — The container mounts `env.R2_BUCKET_NAME` and the Worker serves via `env.R2_BUCKET`. If those point at different buckets (misconfigured env), writes and reads land on different storage. Always deploy with `--env {staging|production}`.
 
 ---
 

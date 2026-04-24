@@ -35,11 +35,15 @@ User prompt → Orchestrator Agent (Claude Haiku 4.5)
 ```typescript
 model: 'claude-haiku-4-5-20251001'
 maxTurns: 30
+maxBudgetUsd: 3.0                           // hard cost cap per turn (agent-runner.ts:100)
+includePartialMessages: true                // SDK emits stream_event → agent-runner transforms into text_delta/etc.
 cwd: '/app/agent'                           // (local: 'agent/')
 settingSources: ['user', 'project']
 systemPrompt: ORCHESTRATOR_SYSTEM_PROMPT
 mcpServers: { 'nano-banana': nanoBananaMcpServer }
 ```
+
+> `includePartialMessages: true` is what makes production streaming work. Without it, the SDK only yields fully-assembled messages and the DO can't emit `text_delta` events. See [STREAMING_PIPELINE.md](../cloudflare/STREAMING_PIPELINE.md) for how these stream events are transformed.
 
 ### Multi-Turn Mechanism: `promptStream()` Async Generator
 
@@ -216,7 +220,7 @@ Spawned via `Task` tool. Uses `WebFetch` to scrape brand homepage. Extracts: off
 
 ### Art Style Skill (`art-style`)
 
-Routes to style-specific workflows based on user keywords. Auto-selects 3-4 styles by brand category if no keyword specified. 10 style workflows available. Each workflow defines composition rules, color treatment, typography, and prompt modifiers.
+Routes to style-specific workflows based on user keywords. Auto-selects 3-4 styles by brand category if no keyword specified. **14 style workflows available** (listed in the table above and on disk under `agent/.claude/skills/art-style/workflows/`). Each workflow defines composition rules, color treatment, typography, and prompt modifiers.
 
 ---
 
@@ -298,16 +302,18 @@ This means the agent can reference existing work but doesn't remember the conver
 {
   "images": [
     {
-      "filename": "1_stat_bold-stat.png",
+      "filename": "1729530822000_1_bold-typographic-ad.png",
       "url": "https://fal.media/files/...",
-      "urlPath": "/images/session/1_stat_bold-stat.png",
-      "filepath": "/mnt/r2/images/session/1_stat_bold-stat.png",
+      "urlPath": "/images/{sessionId}/1729530822000_1_bold-typographic-ad.png",
+      "filepath": "/mnt/r2/images/{sessionId}/1729530822000_1_bold-typographic-ad.png",
       "prompt": "A bold typographic ad...",
       "hookType": "stat"
     }
   ]
 }
 ```
+
+Filename format is `{timestamp}_{i+1}_{sanitizedPrompt}.{ext}` — see [IMAGE_PIPELINE.md § Image Naming](./IMAGE_PIPELINE.md#image-naming).
 
 **Key details:**
 - Uses fal.ai's Nano Banana Pro model (Google Gemini image model)

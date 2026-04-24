@@ -1,21 +1,28 @@
 # R2 Storage
 
-> Part of [Architecture Documentation](../INDEX.md) | **Bucket:** `creative-agent-assets`
+> Part of [Architecture Documentation](../INDEX.md) | **Buckets (per-env):** `creative-agent-assets` (staging) · `creative-agent-assets-prod` (production). Both bindings are exposed to the Worker / DO as `env.R2_BUCKET`, and to the sandbox at mount time via `env.R2_BUCKET_NAME`.
 
 ---
 
 ## Key Structure
 
 ```
-creative-agent-assets/
+{R2_BUCKET_NAME}/
 └── users/{userId}/
-    ├── images/{sessionId}/{index}_{hookType}_{name}.png    # Generated images
-    ├── uploads/{folderDir}/{filename}                      # User-uploaded assets
-    ├── .claude/projects/-app-agent/{sdkSessionId}.jsonl    # SDK conversation log
-    └── completion_{campaignId}.json                        # Completion marker
+    ├── images/{sessionId}/{timestamp}_{i+1}_{sanitized-prompt}.{ext}   # Generated images
+    │                                                                    # sessionId is optional — orchestrator
+    │                                                                    # passes one, but fallbacks drop it
+    ├── uploads/{folder_path}                                            # User-uploaded assets (path comes from D1)
+    └── .claude/projects/-app-agent/{sdkSessionId}.jsonl                 # SDK conversation log (orphaned — see below)
 ```
 
-**SDK project path:** NOT a hash — it's the container cwd with `/` replaced by `-` (cwd `/app/agent` → `-app-agent`)
+**Bucket name is per-env.** The Worker reads via `env.R2_BUCKET.get(key)` (binding is resolved by wrangler). The sandbox container mounts via `sandbox.mountBucket(env.R2_BUCKET_NAME, '/mnt/r2', …)` — so `R2_BUCKET_NAME` must match the environment's bucket or writes land in the wrong place.
+
+**Generated-image filename format:** `{timestamp}_{i+1}_{sanitizedPrompt}.{ext}` — `cloudflare/sandbox/nano-banana-mcp.ts:262`. Note the filename does NOT contain the hookType — hookType is derived from the 1-based index via `getHookTypeForIndex` and stored in D1's `campaign_images.hook_type` column, not in the R2 key.
+
+**SDK project path:** not a hash — it's the container cwd with `/` replaced by `-` (cwd `/app/agent` → `-app-agent`). The SDK writes the JSONL but we never read it back — `RESUME_SDK_SESSION_ID` is always `''` on Cloudflare because s3fs null-byte pre-allocation corrupts the file. So this data is **orphaned on R2** but still accumulates. See [DURABLE_OBJECT.md § setupSandbox](./DURABLE_OBJECT.md#setupsandbox-prompt-sessionid-sdksessionid-).
+
+> **No `completion_{campaignId}.json` on R2.** Earlier versions wrote a completion marker there; it was removed when `/recover` became D1-first. The only completion marker is `/app/turn-result.json` on the container's **local disk**. Grep `cloudflare/` for `completion_` — you will find nothing.
 
 ---
 
@@ -23,33 +30,42 @@ creative-agent-assets/
 
 ### Generated Images
 
-Written by the MCP tool (`nano-banana-mcp.ts`) inside the sandbox container:
+Written by the MCP tool (`cloudflare/sandbox/nano-banana-mcp.ts:262`) inside the sandbox container:
 
 ```
-MCP tool → fs.writeFileSync('/mnt/r2/images/{sessionId}/1_stat_bold.png', buffer)
-          → s3fs FUSE upload → R2 bucket
+MCP tool:
+  baseDir = process.env.IMAGE_OUTPUT_DIR || '/mnt/r2/images'
+  outputDir = sessionId ? baseDir/sessionId : baseDir
+  filename  = `${timestamp}_${i + 1}_${sanitizedPrompt}.${ext}`
+  fs.writeFileSync(path.join(outputDir, filename), buffer)
+    → s3fs FUSE → R2 PUT (happens when fd closes)
+  Returns url: `/images/${sessionId ? sessionId + '/' : ''}${filename}`
 ```
+
+After each write the MCP tool calls `fs.statSync(filepath)` and compares byte length — a silent FUSE failure throws instead of producing a zero-byte object. That's important because s3fs doesn't surface upload errors through the normal `writeFileSync` error path.
 
 ### Uploaded Assets
 
-Written by the Worker route handler (`routes/assets.ts`):
+Written by the Worker route handler (`cloudflare/src/routes/assets.ts`):
 
 ```
-POST /api/assets/upload → env.R2_BUCKET.put('users/{userId}/uploads/...', body)
+POST /api/assets/upload
+  → r2Key = `users/${userId}/uploads/${uniqueName}`
+  → env.R2_BUCKET.put(r2Key, file.stream(), …)
+  → db.insert('asset_files', { file_path: uniqueName, … })
+
+GET /api/assets/files/:id
+  → DB lookup { file_path }
+  → env.R2_BUCKET.get(`users/${userId}/uploads/${file_path}`)
 ```
 
-### Completion Marker
+### Completion Marker (NOT on R2)
 
-Written by `agent-runner.ts` after each turn:
+`cloudflare/sandbox/agent-runner.ts:255` — `writeCompletionMarker` writes **only** to `/app/turn-result.json` (container-local). The DO's `tryFinalize` reads it via `sandbox.readFile('/app/turn-result.json')`. No R2 write, no R2 read.
 
-```
-fs.writeFileSync('/mnt/r2/completion_{campaignId}.json', JSON.stringify(marker))
-→ s3fs FUSE upload → R2
-```
+### SDK JSONL (orphaned)
 
-### SDK JSONL
-
-Written automatically by Claude SDK. Contains the full conversation log for session resume.
+The Claude SDK writes a per-session conversation log to a JSONL file under its configured project directory. If that path happens to land under `/mnt/r2/...`, it reaches R2 via FUSE; if it lands under `/app/...`, it's container-local and dies when the container dies. Either way, **nothing reads it back on Cloudflare** — `RESUME_SDK_SESSION_ID` is always `''` on the DO's `startProcess` call (see [DURABLE_OBJECT.md § setupSandbox](./DURABLE_OBJECT.md#setupsandbox-prompt-sessionid-sdksessionid-)) because s3fs null-byte pre-allocation corrupts the JSONL during flush. Context resumption is handled instead via D1 conversation history + file hydration.
 
 ---
 
@@ -73,21 +89,16 @@ GET /api/assets/files/{fileId}
   → Response with content type
 ```
 
-### Recovery
+### Recovery (D1-first — no R2 read)
 
 ```
 POST /api/campaigns/{id}/recover
-  → R2_BUCKET.get(`users/${userId}/completion_{campaignId}.json`)
-  → Parse marker → sync images/files to D1
+  → db.getCampaignImages(id) + db.getCampaignFiles(id) + db.getLastAssistantMessage(id)
+  → If any data present: synth completion, mark complete, return payload
+  → No R2 access
 ```
 
-### Alarm Polling
-
-```
-alarm() → pollR2CompletionMarker()
-  → R2_BUCKET.get(`users/${userId}/completion_{campaignId}.json`)
-  → If exists: reconcile to D1, mark complete
-```
+See [recovery.ts:9-88](../../../cloudflare/src/routes/recovery.ts) and [DURABLE_OBJECT.md § Layer 4](./DURABLE_OBJECT.md#layer-4-client-recover). The legacy `pollR2CompletionMarker` function was removed in Session 65; the `/recover` path no longer touches R2.
 
 ---
 
@@ -104,7 +115,9 @@ await sandbox.exec('pkill -9 s3fs 2>/dev/null; umount -l /mnt/r2 2>/dev/null; '
   + 'fusermount -u /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2');
 
 // 2. Mount R2 — NOTE: bucket name is FIRST arg, mount path is SECOND
-await sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
+// env.R2_BUCKET_NAME is per-env: "creative-agent-assets" (staging) or
+// "creative-agent-assets-prod" (production). NEVER hardcode it.
+await sandbox.mountBucket(env.R2_BUCKET_NAME, '/mnt/r2', {
   endpoint: `https://${env.CF_ACCOUNT_ID}.r2.cloudflarestorage.com`,
   provider: 'r2',
   credentials: {
@@ -170,20 +183,27 @@ await sandbox.mountBucket('creative-agent-assets', '/mnt/r2', {
 
 5. **No R2 cleanup on campaign deletion** — `DELETE /api/campaigns/:id` removes DB records but leaves R2 objects. R2 costs accrue over time
 
-6. **Completion marker scans ALL user images** — `/mnt/r2/images/` contains all campaigns for the user. The tracking file approach (`/app/generated-images.jsonl`) was written to fix this but not fully deployed
+6. **`/mnt/r2/images/` is cross-campaign.** With `prefix: /users/{userId}`, everything under `/mnt/r2/images/` is every image this user has ever generated (all campaigns). Per-campaign tracking is done via `/app/generated-images.jsonl` (container-local) which `writeCompletionMarker` reads + clears before the next turn. Without this, a follow-up would see prior turns' images in the R2 directory listing.
+
+7. **Wrong bucket = silent data partition.** If `env.R2_BUCKET_NAME` disagrees with the bucket binding `env.R2_BUCKET` (e.g., deploying to prod with a staging override), images get mounted to one bucket and served from another. Always deploy via `wrangler deploy --env {staging|production}` — never edit bindings by hand.
 
 ---
 
 ## Inspection Commands
 
 ```bash
-# Download an R2 object
+# Download an R2 object (staging)
 npx wrangler r2 object get "creative-agent-assets/users/{userId}/images/{path}" \
   --remote --file=/tmp/out.png
 
-# Check if completion marker exists
-npx wrangler r2 object get "creative-agent-assets/users/{userId}/completion_{campaignId}.json" \
-  --remote --file=/tmp/marker.json && cat /tmp/marker.json | python3 -m json.tool
+# Download an R2 object (production)
+npx wrangler r2 object get "creative-agent-assets-prod/users/{userId}/images/{path}" \
+  --remote --file=/tmp/out.png
+
+# Neither env has completion_{campaignId}.json anymore —
+# if you need to inspect last-turn state, read D1 instead:
+npx wrangler d1 execute creative-agent-db-prod --remote \
+  --command="SELECT * FROM campaign_images WHERE campaign_id='...' ORDER BY image_index"
 ```
 
 ---
