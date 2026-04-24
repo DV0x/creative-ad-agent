@@ -8,7 +8,7 @@ AI-powered ad campaign generator. Users provide a brand URL, the agent researche
 - **Production**: Cloudflare Workers + Durable Objects + D1 + R2 + Sandbox Containers (`cloudflare/`)
 - **Local dev**: Express + SQLite + in-process SDK (`server/`)
 - **Agent**: Claude SDK with orchestrator pattern, MCP tools, 14 art styles (`agent/`)
-- **Docs**: 24 architecture docs in `docs/architecture/` — start at `docs/architecture/INDEX.md`
+- **Docs**: 28 architecture docs in `docs/architecture/` — start at `docs/architecture/INDEX.md`
 
 ## Key Commands
 ```bash
@@ -31,14 +31,15 @@ curl -s https://creativemachines.xyz/health | python3 -m json.tool
 
 ## Code Layout
 ```
-client/src/store/index.ts ............. Zustand store (1054 lines)
-client/src/hooks/useWebSocket.ts ...... WS hook + message handling (471 lines)
+client/src/store/index.ts ............. Zustand store (1267 lines)
+client/src/hooks/useWebSocket.ts ...... WS hook + message handling (597 lines)
 client/src/lib/websocket-manager.ts ... WS singleton connection (286 lines)
-client/src/lib/api.ts ................. REST client (438 lines)
-cloudflare/src/durable-objects/campaign-session.ts ... THE core DO (1581 lines)
-cloudflare/src/lib/sdk-message-parser.ts ............ SDK stdout → WS events
-cloudflare/sandbox/agent-runner.ts .................. Long-running agent (351 lines)
-server/lib/websocket-handler.ts ..................... Local WS handler (1501 lines)
+client/src/lib/api.ts ................. REST client (523 lines)
+cloudflare/src/durable-objects/campaign-session.ts ... THE core DO (1945 lines)
+cloudflare/src/lib/sdk-message-parser.ts ............ SDK stdout → WS events (397 lines)
+cloudflare/src/lib/local-ai-runner.ts ............... wrangler dev in-process SDK (287 lines)
+cloudflare/sandbox/agent-runner.ts .................. Long-running agent (441 lines)
+server/lib/websocket-handler.ts ..................... Local WS handler (1672 lines)
 server/lib/block-builder.ts ......................... Block building for DB persistence
 agent/.claude/skills/hook-methodology/ .............. 6 hook types + formulas
 agent/.claude/skills/art-style/workflows/ ........... 14 art style workflows

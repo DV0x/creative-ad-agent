@@ -103,27 +103,19 @@
 
 ---
 
-### 9. Stale line counts + component count in CLAUDE.md / OVERVIEW.md
+### 9. ~~Stale line counts + component count in CLAUDE.md / OVERVIEW.md~~ ✅ Resolved (Session 76, Pass 4)
 
-**Where:** `CLAUDE.md` and `docs/architecture/OVERVIEW.md`.
+All line counts in `CLAUDE.md`, `OVERVIEW.md`, and every architecture doc have been refreshed against `wc -l` as of 2026-04-24 in the Session 76 doc drift cleanup.
 
-**Problem:**
-- `CLAUDE.md` says `client/src/store/index.ts` is 1054 lines — **actually 1267**
-- `CLAUDE.md` says `client/src/hooks/useWebSocket.ts` is 471 lines — **actually 597**
-- `CLAUDE.md` says `cloudflare/src/durable-objects/campaign-session.ts` is 1581 lines — **actually 1945**
-- `OVERVIEW.md` claims "~37 components" — actual count is larger
-
-**Fix needed:** Low priority — these are informational, not load-bearing. Candidate for a pre-commit hook to auto-update line counts.
+**Still open:** no automated guard against future drift. Candidate for a pre-commit hook or a CI check that greps docs for `<digits> lines` references and validates them against `wc -l` of the referenced path. ~20-line shell script. Defer until the next drift cycle hits.
 
 ---
 
-### 10. `local-ai-runner.ts` undocumented
+### 10. ~~`local-ai-runner.ts` undocumented~~ ✅ Resolved (Session 76, Pass 4C)
 
-**Where:** `cloudflare/src/lib/local-ai-runner.ts`.
+Documented in [LOCAL_AI_RUNNER.md](../local/LOCAL_AI_RUNNER.md): entry point, integration in `campaign-session.ts:1642` and `:1724-1814`, what it can and cannot test, SDK options vs production (no `includePartialMessages`, no `maxBudgetUsd`), divergence risk vs the sandbox copy of the orchestrator prompt + MCP tool.
 
-**Problem:** Runs Claude SDK in-process for `wrangler dev --env dev` (with `AI_BACKEND=local`). Has its own copy of orchestrator prompt + MCP tool impl. May diverge from the sandbox version silently.
-
-**Fix needed:** Document in architecture docs (needs its own section in [LOCAL_ARCHITECTURE.md](../local/LOCAL_ARCHITECTURE.md) or a new doc). Consider extracting shared code so the two paths can't drift.
+**Still open:** the divergence itself. The orchestrator prompt + MCP `generate_ad_images` tool are hand-duplicated between `cloudflare/sandbox/{orchestrator-prompt,nano-banana-mcp}.ts` and `cloudflare/src/lib/local-ai-runner.ts`. A future refactor should extract the shared pieces so the two paths can't drift silently.
 
 ---
 

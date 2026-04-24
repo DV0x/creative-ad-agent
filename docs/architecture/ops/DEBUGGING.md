@@ -7,8 +7,14 @@
 ## Quick Health Check
 
 ```bash
-curl -s https://creative-agent.alphasapien17.workers.dev/health | python3 -m json.tool
+# Staging
+curl -s https://creative-agent-staging.alphasapien17.workers.dev/health | python3 -m json.tool
+
+# Production
+curl -s https://creativemachines.xyz/health | python3 -m json.tool
 ```
+
+> Per-env bindings, DNS, and secrets diverge between staging and production — see [STAGING_PRODUCTION.md](./STAGING_PRODUCTION.md) before debugging.
 
 Response shape (from `health.ts`):
 ```json
@@ -27,8 +33,9 @@ Top-level keys: `status`, `d1`, `r2`, `auth`, `timestamp` (no `bindings` wrapper
 ## D1 Database (SQL)
 
 ```bash
-# All commands require --remote for the deployed database
-npx wrangler d1 execute creative-agent-db --remote --command="<SQL>"
+# Per-env databases. Always use --remote for the deployed database.
+npx wrangler d1 execute creative-agent-db      --remote --command="<SQL>"   # staging
+npx wrangler d1 execute creative-agent-db-prod --remote --command="<SQL>"   # production
 ```
 
 ### Common Queries
@@ -73,32 +80,80 @@ DELETE FROM asset_files; DELETE FROM asset_folders;
 
 | Table | Key Columns |
 |---|---|
-| `campaigns` | `id`, `user_id`, `name`, `status`, `session_id`, `sdk_session_id` |
+| `campaigns` | `id`, `user_id`, `name`, `brand`, `status`, `session_id`, `sdk_session_id` |
 | `campaign_files` | `campaign_id`, `file_type`, `content` |
 | `campaign_images` | `campaign_id`, `image_index`, `hook_type`, `prompt`, `file_path`, `version` |
 | `messages` | `campaign_id`, `role`, `content`, `blocks` (JSON) |
 | `asset_folders` | `id`, `user_id`, `name` |
 | `asset_files` | `folder_id`, `name`, `file_path`, `file_type`, `size` |
+| `user_credits` | `user_id`, `plan_balance`, `topup_balance`, `updated_at` |
+| `usage_log` | `campaign_id`, `request_id` (unique), `event_type`, `total_cost_usd`, `claude_cost_usd`, `image_count`, `image_cost_usd` |
+| `user_subscriptions` | `user_id`, `plan`, `status`, `dodo_subscription_id`, `current_period_end` |
+| `payment_events` | `user_id`, `webhook_id` (unique), `event_type`, `raw_payload` |
+| `user_events` | `user_id`, `event_type`, `campaign_id`, `metadata` |
+
+### Billing Queries
+
+```sql
+-- Current credit balance for a user (sum of plan + topup pools)
+SELECT user_id, plan_balance, topup_balance,
+       (plan_balance + topup_balance) AS total
+FROM user_credits WHERE user_id = 'user_xxx';
+
+-- Recent usage for a user (charged credits per turn)
+SELECT campaign_id, request_id, event_type,
+       claude_cost_usd, image_count, image_cost_usd, total_cost_usd, created_at
+FROM usage_log WHERE user_id = 'user_xxx'
+ORDER BY created_at DESC LIMIT 20;
+
+-- Subscription state
+SELECT user_id, plan, status, dodo_subscription_id, current_period_end
+FROM user_subscriptions WHERE user_id = 'user_xxx';
+
+-- Find a specific webhook event (idempotency debugging)
+SELECT * FROM payment_events WHERE webhook_id = 'evt_xxx';
+
+-- Download / engagement tracking
+SELECT event_type, count(*) FROM user_events
+WHERE user_id = 'user_xxx' GROUP BY event_type;
+```
+
+See [BILLING.md](../shared/BILLING.md) for the two-pool credit model, Dodo webhook semantics, and how `usage_log.request_id` enforces idempotency via `INSERT OR IGNORE`.
+
+### Stuck generation diagnosis
+
+```sql
+-- Find campaigns stuck in generating/incomplete state
+SELECT id, user_id, name, status, session_id, created_at,
+       (strftime('%s','now') - strftime('%s', created_at)) AS age_seconds
+FROM campaigns WHERE status IN ('generating','incomplete')
+ORDER BY created_at DESC LIMIT 20;
+```
+
+If a campaign is older than ~5 min and still `'generating'`, it's probably a zombie (DO has no active sandbox). The client's `/recover` call on next page load will reconcile from D1 (see [DURABLE_OBJECT.md § Layer 4](../cloudflare/DURABLE_OBJECT.md#layer-4-client-recover)).
 
 ---
 
 ## R2 Storage (Objects)
 
 ```bash
-# Download an object (must use --remote)
-npx wrangler r2 object get "creative-agent-assets/{key}" --remote --file=/tmp/out.ext
+# Per-env buckets. Must use --remote for the deployed object.
+npx wrangler r2 object get "creative-agent-assets/{key}"      --remote --file=/tmp/out.ext   # staging
+npx wrangler r2 object get "creative-agent-assets-prod/{key}" --remote --file=/tmp/out.ext   # production
 ```
 
 ### Key Patterns
 
 ```
-users/{userId}/images/{sessionId}/{index}_{hookType}_{name}.png
-users/{userId}/uploads/{folderDir}/{filename}
-users/{userId}/.claude/projects/-app-agent/{sdkSessionId}.jsonl
+users/{userId}/images/{sessionId}/{timestamp}_{i+1}_{sanitized-prompt}.{ext}
+users/{userId}/uploads/{file_path}
+users/{userId}/.claude/projects/-app-agent/{sdkSessionId}.jsonl   (orphaned — see R2_STORAGE.md)
 ```
 
+- Image filename is `{timestamp}_{i+1}_{sanitized}.{ext}` — hookType is NOT in the key. See [IMAGE_PIPELINE.md § Image Naming](../shared/IMAGE_PIPELINE.md#image-naming)
 - SDK project dir is NOT a hash — it's the cwd with `/` replaced by `-` (cwd `/app/agent` → `-app-agent`)
 - `sdkSessionId` is stored in D1 `campaigns.sdk_session_id`
+- **No `completion_{campaignId}.json` on R2** — the only completion marker is `/app/turn-result.json` on the container local disk
 
 ### Gotchas
 
@@ -128,16 +183,17 @@ npx wrangler tail --format pretty
 Shows errors not visible in `wrangler tail`. Useful for streaming/RPC errors. No CLI equivalent (`wrangler containers logs` doesn't exist).
 
 Key errors to look for:
-- `"Failed to execute streaming command"` → streaming controller died (browser refresh)
-- `"stream chunk for unknown request"` → `waitForLog` timed out, container still sending
-- `TypeError: Invalid state: Controller is already closed` → SSE stream re-attach after disconnect
+- `"Failed to execute streaming command"` → streaming controller died (browser refresh or DO reset mid-turn)
+- `"stream chunk for unknown request"` → `streamProcessLogs` output arriving after the DO stopped caring (cancelled turn)
+- `TypeError: Invalid state: Controller is already closed` → stream re-attach after disconnect
+- `"Network connection lost"` / `"object to be reset"` → sandbox RPC torn down, DO wipes sandbox ref and marks incomplete (see [DURABLE_OBJECT.md § Layer 3](../cloudflare/DURABLE_OBJECT.md#layer-3-alarm-fallback))
 
 ### DO Tail Log Buffer
 
-During generation, the DO buffers logs to `tailLogs[]` and flushes them every 30s via the alarm handler. This is because:
+During generation, the DO buffers logs to `tailLogs[]` and flushes them each alarm tick. This is because:
 - Long-running fire-and-forget promises don't emit logs until they complete
-- The alarm handler is the only periodic execution point
-- Logs appear batched every 30s in `wrangler tail`
+- The alarm handler is the only periodic execution point while generation runs
+- The alarm interval is **10 seconds** (`campaign-session.ts:104, 283, 292`), so buffered logs appear in `wrangler tail` in ~10 s batches
 
 ---
 
@@ -196,33 +252,34 @@ localStorage.getItem('creative-agent:lastEventId:sess-xxx')
 When a generation seems stuck, check these in order:
 
 ```
-1. D1 status:
+1. D1 status (per-env db name):
    SELECT id, status, sdk_session_id FROM campaigns WHERE id='xxx';
    → 'generating' = still running (or stuck)
    → 'complete' = done
    → 'incomplete' = timed out or errored
+   → 'cancelled' = user cancelled
 
-2. R2 completion marker:
-   npx wrangler r2 object get "creative-agent-assets/users/{userId}/completion_{campaignId}.json" \
-     --remote --file=/tmp/marker.json && cat /tmp/marker.json
+2. Check D1 for partial data (D1 is the source of truth now — no R2 marker):
+   SELECT count(*) FROM campaign_images   WHERE campaign_id='xxx';
+   SELECT count(*) FROM campaign_files    WHERE campaign_id='xxx';
+   SELECT id, role FROM messages          WHERE campaign_id='xxx' ORDER BY created_at;
+   → If images/files/assistant message exist but status='generating':
+     client POST /api/campaigns/{id}/recover will synthesize completion from D1.
 
-   → If exists but D1 still 'generating': completion detection failed
-     Fix: POST /api/campaigns/{id}/recover
+3. Inside the container (if sandbox is still reachable):
+   sandbox.exec('cat /app/turn-result.json')
+   → Local marker. Present only if the agent's writeCompletionMarker ran.
+   → If present but D1 still generating: tryFinalize hasn't picked it up yet;
+     alarm will try on its next 10s tick or on /recover.
 
-   → If missing: agent hasn't finished yet
+4. Container dashboard (Cloudflare Dashboard → Containers → Logs):
+   → Check for errors (streaming failures, process exits, fatal RPC errors)
 
-   Also check /app/turn-result.json on the container (written by agent-runner
-   after each turn). Contains { images, files } — used by the DO for
-   reconciliation after SSE frame loss. Read via sandbox.exec():
-     sandbox.exec('cat /app/turn-result.json')
-
-3. Container dashboard (Cloudflare Dashboard → Containers → Logs):
-   → Check for errors (streaming failures, process exits)
-
-4. wrangler tail (live):
-   npx wrangler tail --format pretty
-   → Look for [alarm], [completion], [gen-fast], [reconcile] prefixes
-   → Logs appear every 30s (batched by alarm)
+5. wrangler tail (live):
+   npx wrangler tail --format pretty                   # default env
+   npx wrangler tail --env production --format pretty
+   → Look for [alarm], [stream], [gen-fast], [reconcile], [setup] prefixes
+   → Logs appear in ~10 s batches (flushed by each alarm tick)
 ```
 
 ---
@@ -242,6 +299,9 @@ sqlite3 server/data/creative_agent.db "SELECT * FROM campaigns"
 
 ## See Also
 
+- [Staging ↔ Production](./STAGING_PRODUCTION.md) — Per-env bindings, DNS, Clerk apps, Dodo product IDs
 - [Known Issues](./KNOWN_ISSUES.md) — Current gaps
 - [Deployment](./DEPLOYMENT.md) — Deploy process
 - [Durable Object](../cloudflare/DURABLE_OBJECT.md) — DO state machine and recovery
+- [Billing](../shared/BILLING.md) — Credits, Dodo webhooks, idempotency model
+- [R2 Storage](../cloudflare/R2_STORAGE.md) — Bucket per env, key patterns, FUSE semantics

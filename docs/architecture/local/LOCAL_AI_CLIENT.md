@@ -54,6 +54,15 @@ Calls `@anthropic-ai/claude-agent-sdk`'s `query()` with:
 
 **Initialization:** On construction, logs discovered agents and skills from the `agent/` workspace directory.
 
+### Production parity callout
+
+This path does NOT pass `includePartialMessages: true` or `maxBudgetUsd: 3.0` — both are production-sandbox-only (`cloudflare/sandbox/agent-runner.ts:100-101`). Consequences for local dev:
+
+- No stream-event pipeline → no `text_delta` WS events → client falls back to the legacy `message` event path in `useWebSocket.ts`
+- No per-turn cost cap — if you get stuck in a runaway tool loop locally, watch the Anthropic console
+
+See [STREAMING_PIPELINE.md](../cloudflare/STREAMING_PIPELINE.md) for the production streaming architecture and [LOCAL_AI_RUNNER.md](./LOCAL_AI_RUNNER.md) for the separate `wrangler dev --env dev` in-process path, which also omits these options.
+
 ### Follow-Up Resume
 
 ```typescript

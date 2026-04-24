@@ -14,7 +14,7 @@ Creative Agent is a chat-based AI tool that generates ad campaigns. You give it 
 4. **Generates images** — via fal.ai's Nano Banana Pro (Google Gemini image model)
 5. **Supports follow-ups** — refine hooks, regenerate specific images, iterate on the campaign
 
-The user sees all of this happening in real-time through a chat interface with thinking blocks, progress indicators, and images appearing as they're generated. In production, each generation deducts from a paid credit pool (subscription or top-up, managed via Dodo Payments) — see the pending BILLING.md for details.
+The user sees all of this happening in real-time through a chat interface with thinking blocks, progress indicators, and images appearing as they're generated. In production, each generation deducts from a paid credit pool (subscription or top-up, managed via Dodo Payments) — see [BILLING.md](./shared/BILLING.md) for the two-pool credit model and idempotency semantics.
 
 ---
 
@@ -34,7 +34,7 @@ The user sees all of this happening in real-time through a chat interface with t
 | **Streaming** | Assembled messages only (per-turn chunks) | Token-level deltas + assembled fallback (scratch-pad model, Session 65+) |
 | **Billing** | None — no credit deduction, no Dodo | Credit pools (plan + topup), Dodo Payments webhooks, per-generation cost deduction |
 | **Real-time** | WebSocket (ws library) | WebSocket (DO Hibernation API) |
-| **Transport** | Direct function calls | stdout SSE → parse → WS |
+| **Transport** | Direct function calls | stdout JSONL (sandbox RPC) → frame-split → processSDKMessage → WS |
 
 > **Local vs production divergence:** Local dev is a simplified environment for rapid iteration. It does **not** stream tokens (production-only since Session 65), does **not** enforce credits, and does **not** integrate with Dodo Payments. Features should be developed against local and validated against staging before production.
 
@@ -140,15 +140,15 @@ Complex. The Worker routes WebSocket connections to a per-user Durable Object. T
 creative_agent/
 ├── client/                    # React frontend
 │   └── src/
-│       ├── components/        # 37 components (chat, layout, editor, assets, ui)
-│       ├── store/index.ts     # Zustand store (~1055 lines)
-│       ├── hooks/             # useWebSocket (generation flow)
-│       ├── lib/               # API client, WS manager, auth helpers
+│       ├── components/        # 46 files (chat, layout, editor, assets, pricing, ui)
+│       ├── store/index.ts     # Zustand store (1267 lines)
+│       ├── hooks/             # useWebSocket (597 lines — generation flow)
+│       ├── lib/               # API client (523), WS manager (286), auth helpers
 │       └── types/             # TypeScript types
 │
 ├── server/                    # Local dev backend (Express + SQLite)
-│   ├── sdk-server.ts          # Entry point (~947 lines)
-│   └── lib/                   # AI client, WS handler, DB, MCP
+│   ├── sdk-server.ts          # Entry point (948 lines)
+│   └── lib/                   # AI client (489), WS handler (1672), DB, MCP
 │
 ├── cloudflare/                # Production backend (Cloudflare Workers)
 │   ├── src/                   # Worker code
@@ -202,12 +202,13 @@ Each box is documented in its own file (linked from [INDEX.md](./INDEX.md)):
 │       │                    │                                       │
 │       │              /mnt/r2 (FUSE) ──→ R2 Bucket                  │
 │       │                                                            │
-│  Completion Detection:                                            │
-│    Layer 1: waitForLog('turn_complete') ── primary, instant       │
-│    Layer 2: R2 alarm polling (30s) ── catches RPC disconnects     │
-│    Layer 3: Client /recover endpoint ── last resort               │
+│  Completion Detection (4 layers — see DURABLE_OBJECT.md):         │
+│    Layer 1: inline stream parse ── turn_complete/result sentinel  │
+│    Layer 2: post-stream tryFinalize ── reads /app/turn-result.json │
+│    Layer 3: alarm listProcesses (10s) ── fallback if stream dies  │
+│    Layer 4: client POST /recover ── D1-first last resort          │
 │                                                                    │
-│  Alarm Heartbeat (30s) ── keeps DO alive + polls R2 + re-attach   │
+│  Alarm Heartbeat (10s) ── keeps DO alive + zombie detect + logs   │
 │                                                                    │
 └────────────────────────────────────────────────────────────────────┘
 

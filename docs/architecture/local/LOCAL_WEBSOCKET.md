@@ -1,6 +1,6 @@
 # Local WebSocket Handler
 
-> Part of [Architecture Documentation](../INDEX.md) | **File:** `server/lib/websocket-handler.ts` (1,606 lines)
+> Part of [Architecture Documentation](../INDEX.md) | **File:** `server/lib/websocket-handler.ts` (1,672 lines)
 
 ---
 
@@ -21,6 +21,8 @@ Same as production — see [WebSocket Protocol](../shared/WEBSOCKET_PROTOCOL.md)
 
 ### Outgoing
 `ack`, `phase`, `tool_start`, `tool_end`, `message`, `file`, `image`, `complete`, `error`, `incomplete`, `status`, `subscribed`, `pong`
+
+> **Parity gap with production.** Local does NOT emit `text_start` / `text_delta` / `text_end` (those require `includePartialMessages: true` on the SDK, which only the production sandbox enables) or `credits_update` (local dev has no billing). The legacy `message` event is how text still reaches the client on this path — the client's `useWebSocket` hook has a fallback in the `message` case that fires only when `!streamingText`. See [WEBSOCKET_CLIENT.md § Event → Store Update Map](../client/WEBSOCKET_CLIENT.md#event--store-update-map).
 
 ---
 
@@ -106,12 +108,14 @@ All in-memory — lost on server restart.
 
 | Aspect | Local (`websocket-handler.ts`) | Production (`campaign-session.ts`) |
 |---|---|---|
-| Lines | 1,606 | 1,605 |
+| Lines | 1,672 | 1,945 |
 | Generation | Synchronous (blocks WS handler) | Fire-and-forget (alarm keeps DO alive) |
-| SDK execution | In-process `AIClient.queryWithSession()` | Container `startProcess()` + log streaming |
-| Completion | SDK `result` message type | `waitForLog('turn_complete')` + R2 alarm |
-| Recovery | Event buffer only | Event buffer + R2 marker + alarm + `/recover` |
+| SDK execution | In-process `AIClient.queryWithSession()` | Sandbox container + `startProcess` + `streamProcessLogs` |
+| Completion | SDK `result` message type ends the generator loop | 4-layer detection: inline stream sentinel → post-stream `tryFinalize` → alarm `listProcesses` (10s) → client `/recover` (see [DURABLE_OBJECT.md](../cloudflare/DURABLE_OBJECT.md#completion-detection--the-real-four-layers)) |
+| Recovery | Event buffer only | Event buffer + D1-first `/recover` (no R2 marker read — removed in Session 65) |
 | Session state | In-memory `SessionManager` | `this.state.storage` (survives DO reset) |
+| Streaming deltas | No (`text_*` events not emitted) | Yes — `includePartialMessages: true` yields `stream_event` → `text_delta` |
+| Credits | None — free | Pre-flight balance check + `credits_update` broadcast on finalize |
 
 ---
 

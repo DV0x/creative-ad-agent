@@ -25,6 +25,7 @@ This is the master index for all architecture documentation. Each doc is self-co
 | Work on local dev server | [Local Architecture](./local/LOCAL_ARCHITECTURE.md) |
 | Fix local WebSocket issues | [Local WebSocket](./local/LOCAL_WEBSOCKET.md) |
 | Debug AI/SDK issues locally | [Local AI Client](./local/LOCAL_AI_CLIENT.md) |
+| Use `wrangler dev --env dev` (in-process SDK) | [Local AI Runner](./local/LOCAL_AI_RUNNER.md) |
 | Understand auth flow | [Auth Flow](./shared/AUTH_FLOW.md) |
 | Check WebSocket message types | [WebSocket Protocol](./shared/WEBSOCKET_PROTOCOL.md) |
 | Find an API endpoint | [REST API Reference](./shared/REST_API.md) |
@@ -66,7 +67,8 @@ docs/architecture/
 ├── local/ ............................ Local Development Backend
 │   ├── LOCAL_ARCHITECTURE.md ........ Express + SQLite + SDK in-process
 │   ├── LOCAL_WEBSOCKET.md ........... WS handler, message types, buffering
-│   └── LOCAL_AI_CLIENT.md ........... Claude SDK wrapper, sessions, MCP
+│   ├── LOCAL_AI_CLIENT.md ........... Claude SDK wrapper, sessions, MCP (server/)
+│   └── LOCAL_AI_RUNNER.md ........... wrangler dev --env dev in-process path (cloudflare/src/lib/)
 │
 ├── shared/ ........................... Cross-cutting Concerns
 │   ├── AUTH_FLOW.md ................. Clerk integration everywhere

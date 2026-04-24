@@ -32,7 +32,7 @@ cd client && npm run dev
 
 ---
 
-## Server Entry (`server/sdk-server.ts` — ~947 lines)
+## Server Entry (`server/sdk-server.ts` — 948 lines)
 
 Express server with:
 - REST API routes (`/api/campaigns/*`, `/api/assets/*`)
@@ -55,10 +55,10 @@ Auth is optional: if `CLERK_SECRET_KEY` is not set, all requests pass as `userId
 
 ```
 server/
-├── sdk-server.ts ............... ~947 lines — Express entry, routes, WS upgrade
+├── sdk-server.ts ............... 948 lines  — Express entry, routes, WS upgrade
 ├── lib/
-│   ├── ai-client.ts ............ Claude SDK wrapper — query(), session management
-│   ├── websocket-handler.ts .... ~1606 lines — WS server, generation flow
+│   ├── ai-client.ts ............ 489 lines  — Claude SDK wrapper — query(), session management
+│   ├── websocket-handler.ts .... 1672 lines — WS server, generation flow
 │   ├── session-manager.ts ...... In-memory SDK session tracking
 │   ├── database.ts ............. SQLite init (better-sqlite3)
 │   ├── orchestrator-prompt.ts .. System prompt for AI agent
@@ -96,7 +96,7 @@ async function* query(prompt, options): AsyncGenerator<SDKMessage>
 
 ---
 
-## WebSocket Handler (`server/lib/websocket-handler.ts` — ~1606 lines)
+## WebSocket Handler (`server/lib/websocket-handler.ts` — 1672 lines)
 
 The largest file. Handles all WebSocket messages and generation orchestration.
 
@@ -150,23 +150,21 @@ Initializes tables on first run with `CREATE TABLE IF NOT EXISTS`.
 | Database | SQLite file | Cloudflare D1 |
 | WS implementation | Node `ws` library | DO Hibernation API |
 | Generation blocking | Synchronous in handler | Fire-and-forget with alarm |
-| Recovery | Event buffer only | Event buffer + R2 marker + alarm polling |
+| Recovery | Event buffer only | Event buffer + inline tryFinalize + alarm fallback (10s) + client POST /recover (D1-first) |
+| Credits / billing | None (free) | Pre-flight balance check + `credits_update` broadcast on finalize |
+| Streaming text (`text_delta`) | Not emitted — legacy `message` event only | Emitted via `includePartialMessages: true` |
 
 ---
 
 ## Wrangler Dev Mode (`AI_BACKEND=local`)
 
-A hybrid mode exists for testing the Cloudflare Worker without sandbox containers. Set `AI_BACKEND=local` in wrangler.jsonc (`wrangler dev --env dev`).
+A hybrid mode exists for testing the Cloudflare Worker without sandbox containers. Set `AI_BACKEND=local` in `wrangler.jsonc` under `env.dev.vars` and run `wrangler dev --env dev`.
 
-**What it does:** The Worker's `CampaignSession` DO runs Claude SDK in-process via `cloudflare/src/lib/local-ai-runner.ts` (287 lines) instead of spawning a sandbox container. Uses D1 + R2 like production but without Docker.
+Short version: the DO's `runGenerationLocal` path imports `cloudflare/src/lib/local-ai-runner.ts` (287 lines) and runs the Claude SDK in-process — no container, no FUSE, no IPC files. Images are written to `./generated-images/` on the dev machine.
 
-**Key differences from full production:**
-- No sandbox creation, no FUSE mount, no file IPC
-- Has its own copy of the orchestrator prompt (may diverge from `sandbox/orchestrator-prompt.ts`)
-- Has its own MCP tool implementation using `createSdkMcpServer()` from Claude Agent SDK
-- Images saved to local filesystem, not R2
+**Full details:** [LOCAL_AI_RUNNER.md](./LOCAL_AI_RUNNER.md) covers the integration point, what it can and cannot test, and the divergence risk vs the sandbox bundle.
 
-**Use case:** Testing Worker routing, auth, DO logic, D1 queries without the ~2.5 min container cold start.
+**Use case:** iterate on DO routing, auth, state-machine, or D1 queries without paying the ~2.5 min container cold-start tax on every change.
 
 ---
 
@@ -182,5 +180,6 @@ A hybrid mode exists for testing the Cloudflare Worker without sandbox container
 ## See Also
 
 - [Local WebSocket](./LOCAL_WEBSOCKET.md) — WS handler details
-- [Local AI Client](./LOCAL_AI_CLIENT.md) — SDK wrapper details
+- [Local AI Client](./LOCAL_AI_CLIENT.md) — `server/lib/ai-client.ts` SDK wrapper
+- [Local AI Runner](./LOCAL_AI_RUNNER.md) — `wrangler dev --env dev` in-process path (different file)
 - [Key Differences](../OVERVIEW.md#two-modes-one-codebase) — Full comparison table
