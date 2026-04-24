@@ -101,7 +101,7 @@ POST /api/campaigns/{id}/recover
   → No R2 access
 ```
 
-See [recovery.ts:9-88](../../../cloudflare/src/routes/recovery.ts) and [DURABLE_OBJECT.md § Layer 4](./DURABLE_OBJECT.md#layer-4-client-recover). The legacy `pollR2CompletionMarker` function was removed in Session 65; the `/recover` path no longer touches R2.
+See [recovery.ts:9-88](../../../cloudflare/src/routes/recovery.ts) and [DURABLE_OBJECT.md § Layer 4](./DURABLE_OBJECT.md#layer-4-client-recover). The legacy `pollR2CompletionMarker` function has been removed; the `/recover` path no longer touches R2.
 
 ---
 

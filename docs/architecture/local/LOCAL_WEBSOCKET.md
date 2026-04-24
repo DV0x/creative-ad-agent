@@ -112,7 +112,7 @@ All in-memory — lost on server restart.
 | Generation | Synchronous (blocks WS handler) | Fire-and-forget (alarm keeps DO alive) |
 | SDK execution | In-process `AIClient.queryWithSession()` | Sandbox container + `startProcess` + `streamProcessLogs` |
 | Completion | SDK `result` message type ends the generator loop | 4-layer detection: inline stream sentinel → post-stream `tryFinalize` → alarm `listProcesses` (10s) → client `/recover` (see [DURABLE_OBJECT.md](../cloudflare/DURABLE_OBJECT.md#completion-detection--the-real-four-layers)) |
-| Recovery | Event buffer only | Event buffer + D1-first `/recover` (no R2 marker read — removed in Session 65) |
+| Recovery | Event buffer only | Event buffer + D1-first `/recover` (no R2 marker read — that path was removed) |
 | Session state | In-memory `SessionManager` | `this.state.storage` (survives DO reset) |
 | Streaming deltas | No (`text_*` events not emitted) | Yes — `includePartialMessages: true` yields `stream_event` → `text_delta` |
 | Credits | None — free | Pre-flight balance check + `credits_update` broadcast on finalize |

@@ -85,7 +85,7 @@ Update campaign name, status, or brand grouping.
 
 **Body:** `{ name?: string, status?: string, brand?: string }`
 
-`brand` was added in Session 68 for the brand-grouped sidebar — setting it persists the brand name to D1 so grouping survives refresh.
+`brand` powers the brand-grouped sidebar — setting it persists the brand name to D1 so grouping survives refresh.
 
 ### `DELETE /api/campaigns/:id`
 

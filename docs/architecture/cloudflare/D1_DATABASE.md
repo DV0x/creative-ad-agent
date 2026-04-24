@@ -19,7 +19,7 @@ CREATE TABLE campaigns (
     CHECK (status IN ('generating', 'complete', 'incomplete', 'error', 'cancelled')),
   session_id TEXT,          -- WebSocket session ID
   sdk_session_id TEXT,      -- Claude SDK session ID (unused on Cloudflare — JSONL via s3fs is unreliable)
-  brand TEXT,               -- Brand grouping (Session 68) — persisted via PATCH /api/campaigns/:id
+  brand TEXT,               -- Brand grouping for the sidebar — persisted via PATCH /api/campaigns/:id
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP  -- trigger-updated
 );

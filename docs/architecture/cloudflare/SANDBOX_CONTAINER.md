@@ -227,14 +227,14 @@ The `cost.totalCostUsd` is the **per-turn delta** (not cumulative) — see `prev
 | `RESUME_SDK_SESSION_ID` | `''` (empty) | **Always empty on Cloudflare.** s3fs FUSE corrupts SDK JSONL with null bytes. Context recovery uses D1 hydration instead. |
 | `ANTHROPIC_API_KEY` | — | SDK auth |
 | `FAL_KEY` | — | nano-banana auth |
-| `HOME` | `/root` | **Must NOT be `/mnt/r2`.** Pre-Session-58 it was `/mnt/r2` which caused shell history files (`.node_repl_history` etc.) to be written to the FUSE mount, pinning it open and blocking unmount. `/root` decouples shell scratch from R2. |
+| `HOME` | `/root` | **Must NOT be `/mnt/r2`.** An earlier revision set it to `/mnt/r2`, which caused shell history files (`.node_repl_history` etc.) to be written to the FUSE mount, pinning it open and blocking unmount. `/root` decouples shell scratch from R2. |
 | `IMAGE_OUTPUT_DIR` | `/mnt/r2/images` | Where the nano-banana MCP writes generated images. MCP reads `process.env.IMAGE_OUTPUT_DIR || '/mnt/r2/images'` at `nano-banana-mcp.ts:43`. |
 | `CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS` | `'1'` | SDK-side feature flag |
 | `CLAUDE_CODE_MAX_OUTPUT_TOKENS` | `'16384'` | Max output tokens per SDK turn |
 
 ### HOME historical note
 
-HOME used to be `/mnt/r2` so that shell CWD convention aligned with output. Session 58 discovered this kept open file descriptors under the FUSE mount (shell history, node REPL history), pinning the mount even after `pkill agent-runner`. Fix: set HOME to `/root`, which is outside the mount. Output files written by the agent to `/mnt/r2/images/…` are closed explicitly by the MCP tool after each generation, so those don't pin the mount.
+HOME used to be `/mnt/r2` so that shell CWD convention aligned with output. That kept open file descriptors under the FUSE mount (shell history, node REPL history), pinning the mount even after `pkill agent-runner`. Fix: set HOME to `/root`, which is outside the mount. Output files written by the agent to `/mnt/r2/images/…` are closed explicitly by the MCP tool after each generation, so those don't pin the mount.
 
 ---
 
@@ -298,7 +298,7 @@ Mount sequence in `setupSandbox` (per [DURABLE_OBJECT.md](./DURABLE_OBJECT.md#se
 
 1. `pkill -f agent-runner` — release file handles under `/mnt/r2`
 2. `unmountBucket('/mnt/r2')` — tell Sandbox DO to forget this mount
-3. `pkill -9 s3fs; umount -l /mnt/r2; fusermount -u /mnt/r2; rm -rf /mnt/r2; mkdir -p /mnt/r2` — full FUSE reset (Session 53 introduced `umount -l` lazy unmount)
+3. `pkill -9 s3fs; umount -l /mnt/r2; fusermount -u /mnt/r2; rm -rf /mnt/r2; mkdir -p /mnt/r2` — full FUSE reset. `umount -l` (lazy) replaces `-f`: `-f` fails if handles are still open under the mount, lazy unmount returns immediately and tears down once handles close.
 4. `mountBucket(bucketName, '/mnt/r2', { endpoint, provider: 'r2', credentials, prefix: 'users/{userId}/' })`
 
 **Signature:** `mountBucket(bucketName, mountPath, options)` — bucket name is the FIRST positional arg, NOT in options.

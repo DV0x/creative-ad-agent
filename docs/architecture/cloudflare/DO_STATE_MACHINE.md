@@ -545,7 +545,7 @@ Time  │  Event                            │  State Changes
 | Image index collision across turns | `max(storedMaxIndex, dbMax) + 1` | `createStreamingContext` seeds counter from both sources |
 | SDK double-yields assembled messages | `seenUuids: Set<string>` | Per-stream dedup by `msg.uuid` |
 | FUSE mount pinned by agent file handles | `pkill -f agent-runner` before unmount | Releases handles under `/mnt/r2` |
-| Stale FUSE mount tracking after hibernation | `umount -l` (lazy) in cleanFuse | Session 53 fix — detach mountpoint even if busy |
+| Stale FUSE mount tracking after hibernation | `umount -l` (lazy) in cleanFuse | Detaches mountpoint even when handles are still open — tears down once they close |
 | Double-charge on crash recovery | `rm /app/turn-result.json` after finalize | + `INSERT OR IGNORE` on `usage_log(campaign_id, request_id)` |
 
 ---

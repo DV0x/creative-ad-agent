@@ -204,7 +204,7 @@ Cancel finally:
 
 ## Completion detection — the real four layers
 
-Old docs described `waitForLog` / `waitForExit` / `attachCompletionHandler` / `attachCrashHandler`. **None of that exists** — verified by grep, 2026-04-22. Current architecture:
+Old docs described `waitForLog` / `waitForExit` / `attachCompletionHandler` / `attachCrashHandler`. **None of that exists in the current code.** Current architecture:
 
 ```
     End of a turn

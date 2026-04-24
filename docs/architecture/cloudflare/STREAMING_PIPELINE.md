@@ -191,7 +191,7 @@ if (msg.type === 'turn_complete' || msg.type === 'result') {
 }
 ```
 
-The caller (`runGeneration` / `runFollowUpFast`) then calls `tryFinalize(campaignId, sessionId)` **inline** at `campaign-session.ts:1581` and `1663`. This is the Session 66 fix — finalize immediately after the stream loop exits cleanly, instead of relying on the alarm. Eliminates a several-second race window between end-of-stream and the next alarm tick.
+The caller (`runGeneration` / `runFollowUpFast`) then calls `tryFinalize(campaignId, sessionId)` **inline** at `campaign-session.ts:1581` and `1663`. The inline call is what eliminates the alarm race window — finalize fires immediately after the stream loop exits cleanly instead of waiting for the next alarm tick.
 
 ---
 

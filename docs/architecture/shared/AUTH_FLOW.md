@@ -175,7 +175,7 @@ The Worker uses `idFromName(userId)` to route to the Durable Object — **one DO
 
 The DO receives `userId` via `X-User-Id` header on the fetch / WebSocket upgrade. It stores `this.userId` and immediately persists to `this.state.storage.put('userId', ...)`.
 
-**Gotcha:** After a DO reset (code deploy), `webSocketMessage()` has no access to headers. `userId` restores from `this.state.storage`. If persistence was from an earlier session, mismatches can occur. Session 11 fixed this by: (1) always persisting userId from headers on `fetch`, (2) never overwriting fresh header userId with a stale stored one.
+**Gotcha:** After a DO reset (code deploy), `webSocketMessage()` has no access to headers. `userId` restores from `this.state.storage`. If persistence was from an earlier session, mismatches can occur. The DO handles this by (1) always persisting userId from headers on `fetch`, (2) never overwriting fresh header userId with a stale stored one.
 
 ### Image auth
 
