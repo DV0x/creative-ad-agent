@@ -185,7 +185,8 @@ DO (runGeneration, continued)
 ```
 agent-runner.js
   │
-  ├── claude.sessions.create({ prompt, model: 'sonnet', mcpServers: [...] })
+  ├── query({ prompt, options: { model: 'claude-haiku-4-5-20251001', mcpServers: [...] } })
+  │   (from '@anthropic-ai/claude-agent-sdk' — see agent-runner.ts:1,98)
   │
   ├── SDK orchestrator executes:
   │   │

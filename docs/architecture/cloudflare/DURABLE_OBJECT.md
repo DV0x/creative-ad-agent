@@ -142,7 +142,7 @@ finally (cancelled path only):
 
 **HOME is `/root`** (not `/mnt/r2` — that pre-Session-58 framing is wrong). `IMAGE_OUTPUT_DIR` points at the R2 mount so the nano-banana MCP tool writes images directly to R2 via FUSE. Agent stdout / workspace / generated-images.jsonl all live under `/app` (container local disk).
 
-**`RESUME_SDK_SESSION_ID` is always empty string.** Never set it on Cloudflare — s3fs FUSE causes null-byte corruption in the SDK's JSONL files. Context is recovered via D1 file hydration + conversation history injection into the prompt (`runGeneration` slow-path at `campaign-session.ts:1062-1078`).
+**`RESUME_SDK_SESSION_ID` is always empty string.** Never set it on Cloudflare — s3fs FUSE causes null-byte corruption in the SDK's JSONL files. Context is recovered via D1 file hydration + conversation history injection into the prompt (`handleFollowUp` slow-path fallback at `campaign-session.ts:1062-1078`, which then calls `runGeneration` with the enriched prompt at line 1080).
 
 ### `handleFollowUp(prompt, campaignId, ...)`
 
