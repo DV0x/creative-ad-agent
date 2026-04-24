@@ -132,6 +132,50 @@ ORDER BY created_at DESC LIMIT 20;
 
 If a campaign is older than ~5 min and still `'generating'`, it's probably a zombie (DO has no active sandbox). The client's `/recover` call on next page load will reconcile from D1 (see [DURABLE_OBJECT.md § Layer 4](../cloudflare/DURABLE_OBJECT.md#layer-4-client-recover)).
 
+### Manually triggering `/recover`
+
+If the client hasn't fired `/recover` yet (e.g. user closed the tab), you can trigger reconciliation directly:
+
+```bash
+# JWT = a valid Clerk session token for the campaign's owner.
+# Grab one from browser DevTools → Application → Cookies → __session,
+# or from Network tab on any authenticated request's Authorization header.
+JWT="eyJhbGc..."
+
+curl -X POST https://creativemachines.xyz/api/campaigns/{campaignId}/recover \
+  -H "Authorization: Bearer $JWT" | python3 -m json.tool
+```
+
+Response shape:
+```json
+{ "recovered": true,  "campaign": {...}, "files": [...], "images": [...], "messages": [...] }
+{ "recovered": false, "reason": "no_data" }          // nothing salvageable in D1
+{ "recovered": false, "reason": "wrong_status" }      // already 'complete' or 'cancelled'
+```
+
+Idempotent — safe to call repeatedly once it's succeeded.
+
+### When `/recover` returns `no_data`
+
+The campaign is truly lost — D1 has no images, no files, no assistant message to synthesize from. Recovery options, in order of preference:
+
+1. **Let the user retry.** The client's recover UI surfaces a retry button. The cleanest option — no intervention needed. The existing campaign row stays in `'incomplete'` or `'error'` and the user starts a new one.
+2. **Flip status to `'error'`** so the campaign drops out of the client's stuck-campaign list:
+   ```sql
+   UPDATE campaigns SET status='error'
+   WHERE id='xxx' AND status IN ('generating','incomplete');
+   ```
+3. **Hard-delete the campaign row** if the user wants it gone from history:
+   ```sql
+   DELETE FROM campaign_images WHERE campaign_id='xxx';
+   DELETE FROM campaign_files  WHERE campaign_id='xxx';
+   DELETE FROM messages        WHERE campaign_id='xxx';
+   DELETE FROM campaigns       WHERE id='xxx';
+   ```
+   R2 objects are NOT cleaned up by the delete path today — see [Known Issues § 13](./KNOWN_ISSUES.md).
+
+There is no "reset the DO" action. DOs recycle when Cloudflare evicts them (code deploy, hibernation) — force-resetting isn't exposed to operators. The app is designed to self-heal on the next `webSocketMessage` via `restoreSession()`.
+
 ---
 
 ## R2 Storage (Objects)
@@ -267,8 +311,15 @@ When a generation seems stuck, check these in order:
      client POST /api/campaigns/{id}/recover will synthesize completion from D1.
 
 3. Inside the container (if sandbox is still reachable):
-   sandbox.exec('cat /app/turn-result.json')
-   → Local marker. Present only if the agent's writeCompletionMarker ran.
+   The completion marker lives at /app/turn-result.json on the container's
+   local disk. There is NO `wrangler containers exec` — to read it:
+     (a) Add a temporary debug route to the DO that calls sandbox.readFile(),
+         OR
+     (b) Cloudflare Dashboard → Containers → creative-agent → Logs.
+         writeCompletionMarker writes the payload to the file; agent-runner
+         logs "completion marker written" around the same time, so stdout
+         gives you the fact-of-write even without the payload.
+   → Present only if the agent's writeCompletionMarker ran.
    → If present but D1 still generating: tryFinalize hasn't picked it up yet;
      alarm will try on its next 10s tick or on /recover.
 
@@ -281,6 +332,60 @@ When a generation seems stuck, check these in order:
    → Look for [alarm], [stream], [gen-fast], [reconcile], [setup] prefixes
    → Logs appear in ~10 s batches (flushed by each alarm tick)
 ```
+
+### Sample `wrangler tail` traces
+
+Train your eye by comparing healthy and stuck output. Both are heavily abbreviated — real logs have more `[trace]` noise.
+
+**Healthy initial generation (warm container, ~3 min):**
+```
+POST /ws (DO: user-abc)
+[setup] enter  campaignId=c_123 sessionId=s_456
+[setup] preflight  WITH_KEY=200 attempt=1
+[setup] mountBucket  bucket=creative-agent-assets-prod prefix=/users/abc ms=364
+[setup] agentStarted  processId=p_789 pid=42 ms=2847
+[stream] first frame  ms=184
+[stream] text_start  blockId=b_1
+[stream] text_delta  len=52
+[stream] tool_use_event  name=WebFetch
+[stream] tool_use_event  name=Write  path=research/nike.md
+[reconcile] file  type=research
+[stream] tool_use_event  name=generate_ad_images  count=6
+[reconcile] image  index=1 hook=stat
+...
+[stream] turn_complete  requestId=req_1699000001234
+[gen] tryFinalize  imagesReconciled=6 filesReconciled=3
+[gen] finalize  campaignId=c_123 status=complete
+[gen] recordUsage  requestId=req_1699000001234 cost=$0.18 charged=$0.72
+[alarm] self-terminate  isGenerating=false
+```
+
+**Stuck generation (agent died mid-turn; alarm catches it):**
+```
+[setup] agentStarted  processId=p_789 ms=2847
+[stream] first frame  ms=202
+[stream] text_delta  len=128
+...
+[stream] ERROR  "Network connection lost"            ← fatal RPC error
+[gen] streamForLiveUI errored; leaving to alarm
+[alarm] iteration=12 age=127s
+[alarm] listProcesses  agent alive=false
+[alarm] tryFinalize  result=false (file not found)
+[alarm] mark incomplete  "creative engine wandered off"
+[alarm] self-terminate
+```
+
+**Zombie (DO reset mid-gen; user returns, triggers subscribe):**
+```
+[subscribe] restoreSession  campaignId=c_123 isGenerating=true
+[subscribe] D1 status=generating, sandbox=null  → ZOMBIE
+[subscribe] mark incomplete  "Reconnected! Looks like things got interrupted"
+POST /api/campaigns/c_123/recover
+[recover] hasData=true  images=4 files=2 assistant=true
+[recover] synthesize message + status=complete
+```
+
+If you see `[alarm]` lines without a preceding `[stream]` first frame, the container never started — check the container dashboard for setup errors (403, OOM, image pull).
 
 ---
 

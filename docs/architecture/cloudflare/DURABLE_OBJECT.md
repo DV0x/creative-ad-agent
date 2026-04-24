@@ -129,7 +129,7 @@ finally (cancelled path only):
    - Get sandbox (fresh ID on retries: `user-{id}-v2-{timestamp}`)
    - `cleanupCompletedProcesses()` — best-effort cleanup of dead processes from prior gens
    - `pkill -f agent-runner` — kill prior agent (open file handles under `/mnt/r2` pin the FUSE mount)
-   - `unmountBucket('/mnt/r2')` + `pkill -9 s3fs; umount -l /mnt/r2; fusermount -u /mnt/r2; rm -rf /mnt/r2; mkdir -p /mnt/r2` — full FUSE reset (lazy unmount, since Session 53)
+   - `unmountBucket('/mnt/r2')` + `pkill -9 s3fs; umount -l /mnt/r2; fusermount -u /mnt/r2; rm -rf /mnt/r2; mkdir -p /mnt/r2` — full FUSE reset. `umount -l` (lazy) replaces `-f`: `-f` fails if any process still holds a handle under the mount, lazy unmount returns immediately and tears down once handles close.
    - `mountBucket(R2_BUCKET_NAME, '/mnt/r2', { ...R2 creds, prefix: '/users/{userId}' })`
    - **Pre-flight IP test** — run `node -e "fetch('https://api.anthropic.com/...'); fetch('https://httpbin.org/ip')"` in the sandbox. Look for `WITH_KEY=200`. If not: `destroy()`, try new ID. If all 3 fail: proceed but setup is effectively broken.
 3. `rm -f /app/generated-images.jsonl /app/turn-result.json` — clear stale tracking.
@@ -140,7 +140,7 @@ finally (cancelled path only):
 8. Persist `agentProcessId` + `agentCampaignId` to storage.
 9. `sandboxSetupInProgress = false`.
 
-**HOME is `/root`** (not `/mnt/r2` — that pre-Session-58 framing is wrong). `IMAGE_OUTPUT_DIR` points at the R2 mount so the nano-banana MCP tool writes images directly to R2 via FUSE. Agent stdout / workspace / generated-images.jsonl all live under `/app` (container local disk).
+**HOME is `/root`**, not `/mnt/r2`. `IMAGE_OUTPUT_DIR` points at the R2 mount so the nano-banana MCP tool writes images directly to R2 via FUSE. Agent stdout / workspace / generated-images.jsonl all live under `/app` (container local disk). Earlier revisions set HOME to the R2 mount; shell history files pinned the FUSE mount and blocked unmount.
 
 **`RESUME_SDK_SESSION_ID` is always empty string.** Never set it on Cloudflare — s3fs FUSE causes null-byte corruption in the SDK's JSONL files. Context is recovered via D1 file hydration + conversation history injection into the prompt (`handleFollowUp` slow-path fallback at `campaign-session.ts:1062-1078`, which then calls `runGeneration` with the enriched prompt at line 1080).
 
@@ -218,7 +218,7 @@ Layer 1: Inline stream parse           (primary — normal path)   │
   Sets turnDone, breaks loop                                     │
   │                                                              │
   ▼                                                              │
-Layer 2: Post-streaming tryFinalize    (Session 66 fix)          │
+Layer 2: Post-streaming tryFinalize    (inline, post-stream)     │
   Called inline immediately after      campaign-session.ts       │
   stream loop exits cleanly            :1581, :1663              │
   Eliminates alarm race window                                   │
@@ -471,7 +471,7 @@ if wasCancelled:
   clearPersistedSession()
 ```
 
-Race condition fixed in Session 29: previously `handleCancel` killed `agentProcessId` directly. During setup, `agentProcessId` still pointed at the PREVIOUS campaign's agent. Cancel killed the wrong agent, new agent started after cancel, held the R2 mount, blocked all future generations. Fix: cancel only sets signal, generation functions own their cleanup.
+Historical race: previously `handleCancel` killed `agentProcessId` directly. During setup, `agentProcessId` still pointed at the PREVIOUS campaign's agent. Cancel killed the wrong agent, new agent started after cancel, held the R2 mount, blocked all future generations. Fix: cancel only sets signal, generation functions own their cleanup.
 
 ---
 
@@ -542,13 +542,13 @@ Observed RPC times: most <500ms. `mountBucket` ~365ms. `preflight` ~700ms. Anyth
 3. **`waitUntil()` is a no-op in DOs.** The alarm is the only way to keep a DO alive during fire-and-forget work.
 4. **WebSocket close does NOT stop generation.** Events buffer, client reconnects, everything resumes.
 5. **One DO per user, not per campaign.** `idFromName(userId)`. `isGenerating` is a per-user lock — a user cannot run two generations in parallel.
-6. **`file.content`, not `file.contents`.** `sandbox.readFile()` returns `{content}`. The `s`-plural typo caused weeks of silent failures (Session 31 fix).
+6. **`file.content`, not `file.contents`.** `sandbox.readFile()` returns `{content}`. The `s`-plural typo silently caused `undefined` reads — easy to miss, since the call didn't throw.
 7. **Two `getSandbox()` connections cancel each other's RPCs.** The Sandbox DO treats a second connection as a replacement. `sandboxSetupInProgress` flag is what prevents the alarm from creating a competing connection during setup.
 8. **`streamProcessLogs` replays entire history.** Every call yields accumulated stdout from process start. Needed the `turn_start` sentinel for follow-up replay-skipping.
 9. **SDK JSONL via s3fs corrupts with null bytes.** `RESUME_SDK_SESSION_ID` is always empty string on Cloudflare. Context recovery = D1 file hydration + conversation history injection.
 10. **`agentCampaignId` must match for fast path.** The running agent's conversation has one campaign's context. Feeding it another campaign's follow-up prompt produces wrong answers. Cold-start with the right context instead.
 11. **`turn-result.json` can be stale across campaigns OR turns.** `tryFinalize` validates both `campaignId` AND `requestId` — skips stale results.
-12. **HOME is `/root`** since Session 58 — not `/mnt/r2`. Setting HOME to the R2 mount pinned the FUSE mount via shell history files.
+12. **HOME is `/root`**, not `/mnt/r2`. Setting HOME to the R2 mount pinned the FUSE mount via shell history files and blocked unmount on container reuse.
 13. **Cancel does NOT kill processes.** It only sets the abort signal. The generation function's finally block does the cleanup.
 14. **Pre-flight credit check runs BEFORE campaign creation.** Avoids orphan campaigns in `generating` state for users with 0 credits.
 15. **Alarm interval is 10s.** Not 30s. Short because sandbox RPCs can take seconds — we want rapid liveness checks.

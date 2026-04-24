@@ -31,12 +31,12 @@ The user sees all of this happening in real-time through a chat interface with t
 | **AI Execution** | Claude SDK in-process | Sandbox container (standard-2) |
 | **AI Model** | Claude Haiku 4.5 | Claude Haiku 4.5 |
 | **Image Model** | fal.ai Nano Banana Pro | fal.ai Nano Banana Pro |
-| **Streaming** | Assembled messages only (per-turn chunks) | Token-level deltas + assembled fallback (scratch-pad model, Session 65+) |
+| **Streaming** | Assembled messages only (per-turn chunks) | Token-level deltas + assembled fallback — see [STREAMING_PIPELINE.md](./cloudflare/STREAMING_PIPELINE.md) |
 | **Billing** | None — no credit deduction, no Dodo | Credit pools (plan + topup), Dodo Payments webhooks, per-generation cost deduction |
-| **Real-time** | WebSocket (ws library) | WebSocket (DO Hibernation API) |
+| **Real-time** | WebSocket (ws library) | WebSocket via the Durable Object Hibernation API — see [DURABLE_OBJECT.md § Lifecycle](./cloudflare/DURABLE_OBJECT.md#lifecycle) |
 | **Transport** | Direct function calls | stdout JSONL (sandbox RPC) → frame-split → processSDKMessage → WS |
 
-> **Local vs production divergence:** Local dev is a simplified environment for rapid iteration. It does **not** stream tokens (production-only since Session 65), does **not** enforce credits, and does **not** integrate with Dodo Payments. Features should be developed against local and validated against staging before production.
+> **Local vs production divergence:** Local dev is a simplified environment for rapid iteration. It does **not** stream tokens (production-only), does **not** enforce credits, and does **not** integrate with Dodo Payments. Features should be developed against local and validated against staging before production. See [KNOWN_ISSUES.md § 2](./ops/KNOWN_ISSUES.md) for the gap in full.
 
 ---
 
@@ -87,12 +87,18 @@ Complex. The Worker routes WebSocket connections to a per-user Durable Object. T
 2. Client sends     │   { type: "generate", prompt: "...", sessionId: "uuid" }
    via WebSocket    │
                     ▼
-3. Server/DO creates campaign in DB (status: "generating")
+3. Pre-flight credit check (production only; local has no billing)
+   │   If balance ≤ 0 → { type: "error", code: "INSUFFICIENT_CREDITS" }
+   │   Aborted BEFORE any D1 writes so 0-credit users don't create orphan
+   │   campaigns stuck in "generating" state. See BILLING.md.
                     │
-4. Server/DO sends  │   { type: "ack", campaignId: "abc123" }
+                    ▼
+4. Server/DO creates campaign in DB (status: "generating")
+                    │
+5. Server/DO sends  │   { type: "ack", campaignId: "abc123" }
    back to client   │
                     ▼
-5. AI agent starts (SDK in-process locally, sandbox container in prod)
+6. AI agent starts (SDK in-process locally, sandbox container in prod)
    │
    ├── Phase 1: Research ──→ WebFetch brand site, WebSearch cultural angles
    │   └── Saves research.md
@@ -106,13 +112,14 @@ Complex. The Worker routes WebSocket connections to a per-user Durable Object. T
    └── Phase 4: Images ──→ Calls nano-banana MCP tool (fal.ai API)
        └── Downloads and saves 6 images
                     │
-6. Each step emits  │   { type: "phase" }, { type: "file" }, { type: "image" }
+7. Each step emits  │   { type: "phase" }, { type: "file" }, { type: "image" }
    real-time events │   streamed over WebSocket to client
                     ▼
-7. Client renders   │   Thinking blocks, progress, files, images in real-time
+8. Client renders   │   Thinking blocks, progress, files, images in real-time
                     │
-8. Generation done  │   { type: "complete", summary: "...", imageCount: 6 }
+9. Generation done  │   { type: "complete", summary: "...", imageCount: 6 }
                     │   Campaign status → "complete" in DB
+                    │   Credits deducted ({ type: "credits_update" }) — see BILLING.md
 ```
 
 ### Follow-Up
@@ -226,7 +233,7 @@ Each box is documented in its own file (linked from [INDEX.md](./INDEX.md)):
 
 ## Where to Go Next
 
-- **Building a feature?** Start with the relevant subsystem doc
-- **Debugging production?** [Debugging Guide](./ops/DEBUGGING.md) + [Durable Object](./cloudflare/DURABLE_OBJECT.md)
-- **First time?** Read [Client Architecture](./client/CLIENT_ARCHITECTURE.md) → [Cloudflare Overview](./cloudflare/CLOUDFLARE_OVERVIEW.md) → [Durable Object](./cloudflare/DURABLE_OBJECT.md)
-- **Known issues?** [Known Issues](./ops/KNOWN_ISSUES.md)
+- **First time?** Start with [Generation Flow](./GENERATION_FLOW.md) for the end-to-end path, then [Cloudflare Overview](./cloudflare/CLOUDFLARE_OVERVIEW.md) → [Durable Object](./cloudflare/DURABLE_OBJECT.md) → [Client Architecture](./client/CLIENT_ARCHITECTURE.md).
+- **Building a feature?** Jump to the relevant subsystem doc via [INDEX.md](./INDEX.md).
+- **Debugging production?** [Debugging Guide](./ops/DEBUGGING.md) + [Durable Object](./cloudflare/DURABLE_OBJECT.md).
+- **Known issues?** [Known Issues](./ops/KNOWN_ISSUES.md).

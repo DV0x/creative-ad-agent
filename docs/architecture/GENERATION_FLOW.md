@@ -178,7 +178,7 @@ DO (runGeneration, continued)
         ◀── Also Layer 1 of completion: breaks on turn_complete / result sentinel
 ```
 
-> **Why `HOME='/root'` and not `/mnt/r2`?** Pre-Session-58 docs framed HOME as living on R2. It doesn't — HOME is container-local so the SDK's Claude CLI auth cache and any tool scratch files don't take a FUSE round trip. Only images go to R2, via `IMAGE_OUTPUT_DIR` writes from the nano-banana MCP tool.
+> **Why `HOME='/root'` and not `/mnt/r2`?** HOME is container-local so the SDK's Claude CLI auth cache and any tool scratch files don't take a FUSE round trip. An earlier revision set HOME to the R2 mount — which pinned the FUSE mount via shell history files and blocked unmount. Only images should go to R2, via `IMAGE_OUTPUT_DIR` writes from the nano-banana MCP tool.
 
 ### 5. Agent Runs (inside container)
 
@@ -286,7 +286,7 @@ Full parser detail + dedup semantics: [STREAMING_PIPELINE.md](./cloudflare/STREA
 
 ### 7. Completion Detection (Four Layers)
 
-> Canonical source: [DURABLE_OBJECT.md § Completion detection — the real four layers](./cloudflare/DURABLE_OBJECT.md#completion-detection--the-real-four-layers). Old framings mentioned `waitForLog` / `waitForExit` / `pollR2CompletionMarker` — **none of those exist in the current code** (grep-verified 2026-04-24). The current flow:
+> Canonical source: [DURABLE_OBJECT.md § Completion detection — the real four layers](./cloudflare/DURABLE_OBJECT.md#completion-detection--the-real-four-layers). Old framings mentioned `waitForLog` / `waitForExit` / `pollR2CompletionMarker` — **none of those exist in the current code.** The current flow:
 
 ```
                     ┌─────────────────────────────────────────┐
@@ -301,10 +301,10 @@ Full parser detail + dedup semantics: [STREAMING_PIPELINE.md](./cloudflare/STREA
   Layer 1: inline              Layer 2: post-stream          Layer 3: alarm
   stream parse                 tryFinalize                   listProcesses
   ─────────────────            ─────────────────             ─────────────────
-  Primary, normal path         Session 66 fix:               Fallback (10s):
-                               fires immediately after       - agent dead?
-  streamForLiveUI sees         stream loop exits cleanly     - tryFinalize
-  type:turn_complete or        — eliminates alarm race       - else mark incomplete
+  Primary, normal path         Inline, immediately after     Fallback (10s):
+                               the stream loop exits         - agent dead?
+  streamForLiveUI sees         cleanly — eliminates the      - tryFinalize
+  type:turn_complete or        alarm race window              - else mark incomplete
   type:result sentinel                                       - 5 min zombie net
   Breaks loop, returns         reads /app/turn-result.json   - 2 h safety net
   to runGeneration caller      via sandbox.readFile RPC
@@ -338,7 +338,7 @@ Full parser detail + dedup semantics: [STREAMING_PIPELINE.md](./cloudflare/STREA
 
 `streamForLiveUI` (`campaign-session.ts:1224-1302`) reads `streamProcessLogs` frame by frame. When it sees `{type:'turn_complete'}` or `{type:'result'}`, sets `turnDone=true` and breaks both the inner line loop and the outer frame loop. Returns `false` (not cancelled). Caller (`runGeneration` or `runFollowUpFast`) proceeds directly into Layer 2.
 
-#### Layer 2: post-streaming `tryFinalize` (Session 66 fix)
+#### Layer 2: post-streaming `tryFinalize` (inline, post-stream)
 
 After the stream loop returns cleanly, the caller immediately invokes `tryFinalize(campaignId, sessionId)` inline. This eliminates a race where the alarm and the stream both tried to finalize and one would clobber the other.
 
