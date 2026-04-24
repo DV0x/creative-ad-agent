@@ -62,7 +62,7 @@ docs/architecture/
 │   ├── D1_DATABASE.md ............... Schema, access layer, migrations
 │   ├── R2_STORAGE.md ................ Key structure, FUSE mount, serving
 │   ├── SANDBOX_CONTAINER.md ......... Dockerfile, agent-runner, IPC, lifecycle
-│   └── STREAMING_PIPELINE.md ........ stdout → SSE → parse → WS → client
+│   └── STREAMING_PIPELINE.md ........ stdout JSONL (sandbox RPC) → frame-split → parse → WS → client
 │
 ├── local/ ............................ Local Development Backend
 │   ├── LOCAL_ARCHITECTURE.md ........ Express + SQLite + SDK in-process
