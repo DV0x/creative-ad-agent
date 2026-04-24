@@ -1,6 +1,6 @@
 # WebSocket Client
 
-> Part of [Architecture Documentation](../INDEX.md) | **Files:** `client/src/hooks/useWebSocket.ts` (469 lines), `client/src/lib/websocket-manager.ts` (286 lines)
+> Part of [Architecture Documentation](../INDEX.md) | **Files:** `client/src/hooks/useWebSocket.ts` (597 lines), `client/src/lib/websocket-manager.ts` (286 lines)
 
 ---
 
@@ -90,14 +90,20 @@ The `useWebSocket` hook registers callbacks via `wsManager.setCallbacks({ onStat
 | `phase` | `addThinkingChild(kind:'phase', text: label \|\| phase)` | Phase step appears in thinking block |
 | `tool_start` | `addThinkingChild(kind:'tool')` | Tool name shown (Task [subagent_type] / Skill [skill] if applicable) |
 | `tool_end` | *(no-op — `case 'tool_end': break;`)* | Event is received but intentionally not handled |
-| `message` | `appendMessageContent` + `appendTextBlock` **only during follow-ups** (`isFollowUp`) | Text appears in chat (follow-up only — initial gen uses thinking blocks) |
-| `status` | Check for "cancelled" → `cancelGeneration()` | Cancel confirmation |
+| `text_start` | `commitStreamingText` (flush leftovers) + `removeEmptyThinkingBlock` + `setTextStreaming(true)` | Text-streaming mode begins; empty thinking blocks from follow-ups are pruned |
+| `text_delta` | `appendTextDelta(delta)` — RAF-batched push into `streamingText` | Live text appears character-by-character |
+| `text_end` | `commitStreamingText` + `setTextStreaming(false)` | Final buffer flush, promotes `streamingText` into a real TextBlock |
+| `message` | Fallback: `appendTextBlock` **only when `!streamingText`** (i.e. local runner / non-streaming transports). Production ignores this because deltas already landed text. | Text appears in chat (non-streaming path only) |
+| `status` | "cancelled" → `cancelGeneration` + `clearActiveSession`; else `addThinkingChild(kind:'status', variant:'info')` | Cancel confirmation OR status pill in thinking block |
 | `file` | `updateCampaignFile` + `addThinkingChild(kind:'status')` + parse prompts JSON for image count | File tab updates, expected image count recalculated |
 | `image` | `addImageToCampaign` + `updateThinkingImages` | Image appears in grid + counter updates |
-| `complete` | `closeThinkingBlock('complete')` + `appendTextBlock` (initial gen only) + `completeGeneration` | Thinking block closes, summary shown |
-| `error` | Check for "Session not found"/"expired" → `cleanupFailedRecovery()`, else `failGeneration` | Error message or session cleanup |
-| `incomplete` | `closeThinkingBlock('error')` + `appendTextBlock` + `updateCampaignStatus('incomplete')` | Campaign marked incomplete with message |
+| `complete` | `closeThinkingBlock('complete')` + `commitStreamingText` (safety) + `mergeAndStripTextBlocks` + conditional `appendTextBlock(summary)` + `completeGeneration` | Thinking block closes, text blocks merged, summary shown only if no text blocks exist |
+| `credits_update` | `setCreditBalance(balance, plan_balance, topup_balance)` | Credit counter in header + UserMenu refreshes immediately |
+| `error` | `code='INSUFFICIENT_CREDITS'` → `closeThinkingBlock('error')` + `failGeneration(upsellMsg)` + `openPricingModal` · "Session not found/expired" → `cleanupFailedRecovery` · else `failGeneration` | Paywall modal OR session cleanup OR error message in chat |
+| `incomplete` | `closeThinkingBlock('error')` + `appendTextBlock` + `updateCampaignStatus('incomplete')` | Campaign marked incomplete with resume-on-next-message copy |
 | `pong` | (ignored) | Keepalive response |
+
+> The three `text_*` events + `credits_update` are **production-only**. Local dev (`server/`) emits the older `message` event instead — see [LOCAL_WEBSOCKET.md](../local/LOCAL_WEBSOCKET.md) for the parity matrix.
 
 ### Event ID Tracking
 
@@ -194,9 +200,10 @@ On reconnect/subscribe, sends `lastEventId` — server replays only newer events
      │     5. Server replays missed events
      │
      ├── Agent STOPPED:
-     │     1. campaignsApi.recover(id)
-     │     2. Fetches completion marker from R2
-     │     3. Updates campaign + messages from marker data
+     │     1. campaignsApi.recover(id) — POSTs /api/campaigns/:id/recover
+     │     2. Server reads D1 (images, files, last assistant message) — NO R2 read
+     │     3. If D1 has data → synth completion, mark complete, return full payload
+     │     4. If no data → { recovered: false, reason: 'no_data' } → mark incomplete
      │
      └── Session EXPIRED:
            1. store.updateCampaignStatus('incomplete')
@@ -240,18 +247,22 @@ onConnected() fires
 ### Server → Client
 
 ```typescript
-{ type: 'ack',        campaignId, id }
-{ type: 'subscribed', id }
-{ type: 'phase',      phase, id }
-{ type: 'tool_start', toolName, id }
-{ type: 'tool_end',   toolName, id }
-{ type: 'message',    content, id }
-{ type: 'status',     status, message?, id }
-{ type: 'file',       fileType, content, id }
-{ type: 'image',      image: { id, url, prompt, hookType, version }, id }
-{ type: 'complete',   summary, imageCount?, id }
-{ type: 'error',      error, code?, id }
-{ type: 'incomplete', id }
+{ type: 'ack',            campaignId, id }
+{ type: 'subscribed',     id }
+{ type: 'phase',          phase, label?, id }
+{ type: 'tool_start',     toolName, subagent_type?, skill?, id }
+{ type: 'tool_end',       toolName, id }
+{ type: 'text_start',     id }                                   // production-only
+{ type: 'text_delta',     delta, id }                            // production-only
+{ type: 'text_end',       id }                                   // production-only
+{ type: 'message',        text, id }                             // local runner fallback
+{ type: 'status',         message, id }
+{ type: 'file',           fileType, content, id }
+{ type: 'image',          imageIndex, urlPath, prompt, hookType?, id }
+{ type: 'complete',       summary?, imageCount?, id }
+{ type: 'credits_update', balance, plan_balance, topup_balance, cost, id }
+{ type: 'error',          error, code?, id }                     // code: 'INSUFFICIENT_CREDITS'
+{ type: 'incomplete',     message?, id }
 { type: 'pong' }
 ```
 

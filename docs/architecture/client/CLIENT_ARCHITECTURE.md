@@ -21,14 +21,20 @@
 
 ## App Entry & Routing
 
-**`main.tsx`** (26 lines) — Renders `<App />` into DOM. Wraps with `StrictMode` in dev.
+**`main.tsx`** (39 lines) — Renders `<App />` into DOM. Wraps with `StrictMode` in dev.
 
-**`App.tsx`** (336 lines) — The root component. No router library — uses a simple two-state model:
+**`App.tsx`** (461 lines) — The root component. No router library. Three path-based branches + a two-state appState for the authenticated shell:
 
 ```
-appState === 'landing'   →  EmptyState (prompt input + examples)
-appState === 'workspace'  →  AppLayout (3-column workspace)
+pathname === '/sign-in' | '/sign-up'  →  <SignIn />  (Clerk modal route)
+pathname === '/checkout/success'      →  <CheckoutSuccess />  (billing post-pay poll)
+else                                  →  <AuthenticatedApp />
+                                           │
+                                           ├── appState === 'landing'   →  EmptyState + LandingHeader
+                                           └── appState === 'workspace' →  AppLayout (3-column)
 ```
+
+`appState ↔ URL` is kept in sync via `history.pushState` (`/workspace` vs `/`) + a `popstate` listener so browser back/forward work without a router.
 
 ### Auth Gating
 
@@ -46,14 +52,22 @@ IS_AUTH_ENABLED?
 
 ```typescript
 // App.tsx — loadData()
-1. campaignsApi.list()  +  assetsApi.listFolders()     // parallel
-2. For each folder: assetsApi.getFiles(folder.id)        // fetch folder files
-3. For each campaign: campaignsApi.get(id)               // full details + messages
-4. store.setCampaigns(fullCampaigns)                     // flushes pending buffers
-5. Exclude recovering campaign from bulk message load
-6. store.setChatMessages(messageMap)                      // preserves generating campaign
-7. store.setAssetFolders(foldersWithFiles)
+1. 4-way parallel fetch:
+     - campaignsApi.list()
+     - assetsApi.listFolders()
+     - creditsApi.get()                       // may 404 in local dev — catch → null
+     - paymentsApi.getSubscription()          // default to { plan: 'free' } on error
+2. setCreditBalance(balance, planBalance, topupBalance)   // billing state hydrates before UI renders
+3. setSubscription(subscriptionData)
+4. For each folder: assetsApi.getFiles(folder.id)
+5. For each campaign: campaignsApi.get(id)    // full details + messages
+6. store.setCampaigns(fullCampaigns)          // flushes pending buffers
+7. Exclude the recovering campaign from bulk message load (status='generating')
+8. store.setChatMessages(messageMap)          // preserves generating campaign's live state
+9. store.setAssetFolders(foldersWithFiles)
 ```
+
+Credit/subscription fetches use `.catch()` per-request so the whole mount doesn't fail if the billing routes are unreachable (e.g., local dev with billing disabled).
 
 After data loads, two additional effects run:
 1. **Pending prompt restore** — if a prompt was saved to `sessionStorage` before Clerk auth redirect, restore it and trigger generation
@@ -94,45 +108,50 @@ Session tracked in `localStorage('creative-agent:activeSession')` with `{ sessio
 ## Component Tree
 
 ```
-App.tsx (336 lines)
-├── [landing]  EmptyState (225 lines)
-│                ├── LandingHeader (51 lines — logo + sign-in)
-│                │     └── UserMenu (40 lines — Clerk user button)
-│                ├── SignIn (43 lines — Clerk sign-in modal)
+App.tsx (461 lines)
+├── PricingModal (177 lines — mounted globally, opened from store)
+├── TopupModal (122 lines — mounted globally, opened from store)
+├── CheckoutSuccess (inline in App.tsx — polls subscription + credits after Dodo redirect)
+│
+├── [landing]  EmptyState (334 lines)
+│                ├── LandingHeader (48 lines — logo + sign-in)
+│                │     └── UserMenu (163 lines — Clerk user button, credit balance, upgrade triggers)
+│                ├── SignIn (105 lines — Clerk sign-in route)
 │                ├── Prompt input with connection status indicator
 │                └── Example campaign cards
 │                    └── On submit: requireAuth() → generate() or save to sessionStorage
 │
-└── [workspace] AppLayout (404 lines — 3-column resizable layout)
+└── [workspace] AppLayout (407 lines — 3-column resizable layout)
                   │
-                  ├── LeftSidebar ── AssetDrawer (670 lines)
+                  ├── LeftSidebar ── AssetDrawer (854 lines)
                   │                    ├── Campaign list with hover actions (rename, delete, new-from-existing)
                   │                    ├── Folder tree (CRUD)
-                  │                    ├── AssetPreview (149 lines — thumbnails)
+                  │                    ├── AssetPreview (224 lines — thumbnails)
                   │                    └── FileUpload (357 lines — drag-drop upload)
                   │
-                  ├── Main ── ResultsView (214 lines)
+                  ├── Main ── ResultsView (261 lines)
                   │             ├── Image grid (ImageCard × N)
-                  │             │   └── ImageCard (148 lines — AuthImage + checkbox + download)
+                  │             │   └── ImageCard (153 lines — AuthImage + checkbox + download)
                   │             ├── Skeleton cards (while generating)
                   │             └── ImageLightbox (162 lines — full-screen viewer)
                   │
-                  ├── FileEditorPanel (286 lines — TipTap rich text, below main)
-                  │     ├── (exported as both `FileEditorPanel` and `FileEditor` alias for backwards compat)
+                  ├── FileEditorPanel (319 lines — TipTap rich text, below main)
+                  │     ├── exports both `FileEditorPanel` and `FileEditor` (alias at the bottom of FileEditor.tsx)
                   │     └── PromptsViewer (178 lines — structured prompts.json viewer)
                   │
-                  └── RightSidebar ── ChatSidebar (91 lines — source-aware prompt when creating from existing)
-                                        ├── ChatMessage list (89 lines per message)
+                  └── RightSidebar ── ChatSidebar (155 lines — source-aware prompt when creating from existing)
+                                        ├── ChatMessage list (104 lines per message)
                                         │     ├── User messages: plain content + refs
                                         │     └── Assistant messages: blocks[] + trailing content
-                                        │           └── BlockRenderer (32 lines — dispatches to block type)
+                                        │           └── BlockRenderer (41 lines — dispatches to block type)
                                         │                 ├── ThinkingBlock (185 lines — phases, tools, image counter)
-                                        │                 ├── TextBlock (17 lines — streaming content)
-                                        │                 └── StatusBlock (34 lines — info/success/error)
+                                        │                 ├── TextBlock (24 lines — streaming content)
+                                        │                 ├── StatusBlock (34 lines — info/success/error)
+                                        │                 └── BreadcrumbsIndicator (91 lines — phase progress w/ OrbitalSpinner)
                                         ├── MarkdownContent (129 lines — styled markdown renderer)
-                                        ├── ChatInput (144 lines)
+                                        ├── ChatInput (177 lines)
                                         │     ├── ImageChip (100 lines — selected image pill)
-                                        │     └── AssetMention (473 lines — @-mention asset picker + inline chips)
+                                        │     └── AssetMention (501 lines — @-mention asset picker + inline chips)
                                         └── AuthImage (65 lines — authenticated <img> wrapper)
 ```
 
@@ -140,7 +159,7 @@ App.tsx (336 lines)
 
 Breakpoint: `md` (768px). Desktop: 3-column with resize handles. Mobile: main content only + floating drawers.
 
-- `MobileChatDrawer` (170 lines) — slide-in chat panel
+- `MobileChatDrawer` (171 lines) — slide-in chat panel
 - `MobileAssetsDrawer` (42 lines) — slide-in assets panel
 - Auto-opens chat drawer when `generatingCampaignId` is set
 
@@ -148,19 +167,19 @@ Breakpoint: `md` (768px). Desktop: 3-column with resize handles. Mobile: main co
 
 ## Key Components
 
-### `AppLayout.tsx` (405 lines)
+### `AppLayout.tsx` (407 lines)
 
 3-column layout with resizable sidebars. Sidebar widths persist to localStorage. Toggle buttons collapse/expand. Provides sidebar context via `useSidebars()`.
 
-### `EmptyState.tsx` (226 lines)
+### `EmptyState.tsx` (334 lines)
 
 Landing page. Contains prompt input and example campaign cards. On submit, calls `generate()` from `useWebSocket`. If auth enabled, wraps submission in `requireAuth()` (opens Clerk modal first).
 
-### `ResultsView.tsx` (215 lines)
+### `ResultsView.tsx` (261 lines)
 
 Main workspace view. Renders image grid from active campaign. Shows skeleton cards while generating. Calls `useWebSocket.resume()` for incomplete campaigns. Header shows campaign name, file tabs, action buttons.
 
-### `ChatMessage.tsx` (90 lines)
+### `ChatMessage.tsx` (104 lines)
 
 Renders a single user or assistant message. User messages show plain content. Assistant messages render `blocks[]` via `BlockRenderer`, plus any trailing `content` text.
 
@@ -168,17 +187,29 @@ Renders a single user or assistant message. User messages show plain content. As
 
 Expandable block showing generation phases. Each child is a phase step (`research`, `hooks`, `prompts`, `images`), tool usage, or status update. Shows completed image count vs expected.
 
-### `ImageCard.tsx` (149 lines)
+### `BreadcrumbsIndicator.tsx` (91 lines)
+
+Compact phase-progress indicator shown inside `ThinkingBlock`. Uses `OrbitalSpinner` (ui/orbital-spinner.tsx, 101 lines) for the live-in-flight phase pill.
+
+### `ImageCard.tsx` (153 lines)
 
 Single campaign image with checkbox selection, download button, and click-to-lightbox. Uses `AuthImage` for authenticated fetching.
 
-### `AuthImage.tsx` (66 lines)
+### `AuthImage.tsx` (65 lines)
 
 Wraps `<img>` with authenticated fetch. Fetches image via `authFetchBlob()` (adds Bearer token), creates blob URL, sets as `src`. Cleans up blob URL on unmount/src change. Required because plain `<img>` tags can't send Authorization headers.
 
-### `FileEditorPanel.tsx` (286 lines)
+### `FileEditorPanel.tsx` (319 lines)
 
 TipTap rich text editor for campaign files (research, hooks, prompts). Auto-saves with 1s debounce. On close, forces immediate save. Supports undo/redo. Located at `editor/FileEditor.tsx`; exported as both `FileEditorPanel` and `FileEditor` (backwards-compat alias).
+
+### `PricingModal.tsx` (177 lines) · `TopupModal.tsx` (122 lines)
+
+Billing UI. Both are mounted globally at the root of `AppContent` and opened via store actions (`openPricingModal`, `openTopupModal`) from anywhere in the app (UserMenu credit-low prompt, ChatSidebar out-of-credits error, etc.). `PricingModal` drives the subscribe/upgrade flow to Dodo; `TopupModal` drives one-time credit purchases. See [BILLING.md](../shared/BILLING.md) for the full payment flow.
+
+### `CheckoutSuccess` (defined inline in `App.tsx`)
+
+Post-Dodo-redirect route at `/checkout/success`. Polls `paymentsApi.getSubscription()` + `creditsApi.get()` until the webhook processes the payment, then redirects to `/workspace`. Shows a "this is taking longer than usual" message after a threshold so the user knows they haven't been stranded.
 
 ---
 
@@ -186,41 +217,65 @@ TipTap rich text editor for campaign files (research, hooks, prompts). Auto-save
 
 ```
 client/src/
-├── App.tsx ................... 336 lines — Root, auth gate, data loading, recovery
-├── main.tsx .................. 26 lines  — React DOM entry
+├── App.tsx ................... 461 lines — Root, auth gate, pathname routing, data loading, recovery
+├── main.tsx .................. 39 lines  — React DOM entry
 ├── store/
-│   └── index.ts .............. 1054 lines — Zustand store (see STATE_MANAGEMENT.md)
+│   └── index.ts .............. 1267 lines — Zustand store (see STATE_MANAGEMENT.md)
 ├── lib/
-│   ├── api.ts ................ 438 lines  — REST API client + type transformers
+│   ├── api.ts ................ 523 lines  — REST API client + type transformers (campaigns, assets, credits, payments)
 │   ├── websocket-manager.ts .. 286 lines  — Singleton WS connection
-│   └── auth.ts ............... 10 lines   — Clerk config + dev mode detection
+│   └── auth.ts ...............   9 lines  — Clerk config + dev mode detection
 ├── hooks/
-│   └── useWebSocket.ts ....... 469 lines  — WS message handler + actions
+│   └── useWebSocket.ts ....... 597 lines  — WS message handler + actions
 ├── types/
 │   ├── chat.ts ............... 135 lines  — Chat, Campaign, Image types
-│   └── websocket.ts .......... 161 lines  — WS message type unions
+│   └── websocket.ts .......... 191 lines  — WS message type unions (incl. credits_update, text_delta)
 ├── contexts/
-│   └── AuthContext.tsx ........ 87 lines   — Clerk / dev auth providers
-└── components/ ............... ~5885 lines total
-    ├── layout/AppLayout.tsx ... 404 lines
-    ├── ResultsView.tsx ........ 214 lines
-    ├── EmptyState.tsx ......... 225 lines
-    ├── auth/SignIn.tsx ........ 43 lines
-    ├── auth/UserMenu.tsx ...... 40 lines
-    ├── chat/ChatSidebar.tsx ... 91 lines
-    ├── chat/ChatMessage.tsx ... 89 lines
-    ├── chat/blocks/BlockRenderer.tsx .. 32 lines
-    ├── chat/blocks/StatusBlock.tsx .... 34 lines
-    ├── chat/blocks/TextBlock.tsx ...... 17 lines
-    ├── mentions/AssetMention.tsx ...... 473 lines
-    ├── ImageCard.tsx .......... 148 lines
-    ├── ImageLightbox.tsx ...... 162 lines
-    ├── AuthImage.tsx .......... 65 lines
-    ├── editor/FileEditor.tsx .. 286 lines  (exports FileEditorPanel + FileEditor alias)
-    ├── editor/PromptsViewer.tsx  178 lines  — structured prompts.json viewer
-    ├── chat/MarkdownContent.tsx  129 lines  — styled markdown renderer (react-markdown + Tailwind)
-    └── ui/ .................... shadcn primitives (button, card, dialog, input, etc.)
+│   └── AuthContext.tsx ........ 83 lines   — Clerk / dev auth providers
+└── components/ ............... 46 files total (.tsx/.ts, includes ui/ primitives)
+    ├── AuthImage.tsx ...................... 65 lines
+    ├── EmptyState.tsx ..................... 334 lines
+    ├── ImageCard.tsx ...................... 153 lines
+    ├── ImageLightbox.tsx .................. 162 lines
+    ├── ResultsView.tsx .................... 261 lines
+    ├── assets/
+    │   ├── AssetDrawer.tsx ................ 854 lines
+    │   ├── AssetPreview.tsx ............... 224 lines
+    │   ├── FileUpload.tsx ................. 357 lines
+    │   └── MobileAssetsDrawer.tsx .......... 42 lines
+    ├── auth/
+    │   ├── SignIn.tsx ..................... 105 lines
+    │   └── UserMenu.tsx ................... 163 lines  — credit balance display + modal triggers
+    ├── chat/
+    │   ├── ChatInput.tsx .................. 177 lines
+    │   ├── ChatMessage.tsx ................ 104 lines
+    │   ├── ChatSidebar.tsx ................ 155 lines
+    │   ├── ImageChip.tsx .................. 100 lines
+    │   ├── MarkdownContent.tsx ............ 129 lines
+    │   ├── MobileChatDrawer.tsx ........... 171 lines
+    │   └── blocks/
+    │       ├── BlockRenderer.tsx ...........  41 lines
+    │       ├── BreadcrumbsIndicator.tsx ....  91 lines
+    │       ├── StatusBlock.tsx .............  34 lines
+    │       ├── TextBlock.tsx ...............  24 lines
+    │       └── ThinkingBlock.tsx ........... 185 lines
+    ├── editor/
+    │   ├── FileEditor.tsx ................. 319 lines  (exports FileEditorPanel + FileEditor alias)
+    │   └── PromptsViewer.tsx .............. 178 lines
+    ├── layout/
+    │   ├── AppLayout.tsx .................. 407 lines
+    │   └── LandingHeader.tsx ...............  48 lines
+    ├── mentions/
+    │   └── AssetMention.tsx ............... 501 lines
+    ├── pricing/
+    │   ├── PricingModal.tsx ............... 177 lines  — subscribe/upgrade flow
+    │   └── TopupModal.tsx ................. 122 lines  — one-time credit purchase
+    └── ui/ ................................ shadcn + custom primitives
+        ├── orbital-spinner.tsx ............ 101 lines  — OrbitalSpinner used by BreadcrumbsIndicator
+        └── (button, card, dialog, input, scroll-area, sidebar, sheet, drawer, …)
 ```
+
+> `ui/spinner-demo.tsx` (160 lines) is a dev-only demo not wired into production routing; ignore it when auditing the production component surface.
 
 ---
 
@@ -261,6 +316,7 @@ Initial generation uses a client-generated ID. Server ACK returns the real serve
 
 ## See Also
 
-- [State Management](./STATE_MANAGEMENT.md) — Full Zustand store documentation
+- [State Management](./STATE_MANAGEMENT.md) — Full Zustand store documentation (incl. billing state)
 - [WebSocket Client](./WEBSOCKET_CLIENT.md) — WS connection lifecycle, message handling, recovery
 - [Auth Flow](../shared/AUTH_FLOW.md) — End-to-end Clerk integration
+- [Billing](../shared/BILLING.md) — Credits, subscriptions, Dodo integration, payment modals

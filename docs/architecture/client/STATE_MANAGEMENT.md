@@ -1,6 +1,6 @@
 # State Management (Zustand Store)
 
-> Part of [Architecture Documentation](../INDEX.md) | **File:** `client/src/store/index.ts` (1,054 lines)
+> Part of [Architecture Documentation](../INDEX.md) | **File:** `client/src/store/index.ts` (1,267 lines)
 
 ---
 
@@ -9,10 +9,10 @@
 ```typescript
 interface Store {
   // === App State ===
-  appState: 'landing' | 'workspace'
+  appState: 'landing' | 'workspace'    // initial value derives from window.location.pathname
 
   // === Campaigns ===
-  campaigns: Campaign[]
+  campaigns: Campaign[]                // each has { id, name, brand, createdAt, files, images, status, … }
   activeCampaignId: string | null
   generatingCampaignId: string | null
   isCreatingCampaign: boolean
@@ -34,7 +34,12 @@ interface Store {
   error: string | null
   generationExpectedImages: number     // e.g. 6
   prompt: string                       // current input value
+  selectedAspectRatio: '4:5' | '1:1' | '9:16'   // image aspect ratio selector
   pendingGeneration: boolean           // true after auth redirect
+
+  // === Text Streaming (deltas from WS text_start/text_delta/text_end) ===
+  streamingText: string | null         // buffer being filled by appendTextDelta (RAF-batched)
+  textStreamingMessageId: string | null
 
   // === Files (Editor) ===
   activeFileType: 'research' | 'hooks' | 'prompts' | null
@@ -47,6 +52,14 @@ interface Store {
   assetFolders: AssetFolder[]
   selectedFolderId: string | null
 
+  // === Billing (new — Sessions 62–75) ===
+  creditBalance: number | null         // total credits (plan + topup)
+  planBalance: number | null           // plan-issued credits (reset monthly)
+  topupBalance: number | null          // purchased top-up credits (do not expire with plan)
+  subscription: Subscription | null    // { plan: 'free'|'starter'|'pro', status, … }
+  pricingModalOpen: boolean            // PricingModal visibility
+  topupModalOpen: boolean              // TopupModal visibility
+
   // === Data Loading ===
   dataLoading: boolean
 
@@ -55,6 +68,8 @@ interface Store {
   _pendingFiles: Record<string, Array<{ fileType: CampaignFileType; content: string }>>
 }
 ```
+
+> **`appState` is URL-derived.** The initial value reads `window.location.pathname` — if it's `/workspace` the store boots into `'workspace'`, else `'landing'`. `App.tsx` then keeps this in sync via `pushState` + a `popstate` listener (see [CLIENT_ARCHITECTURE.md § App Entry & Routing](./CLIENT_ARCHITECTURE.md#app-entry--routing)).
 
 ---
 
@@ -84,9 +99,10 @@ interface Store {
 
 | Action | What it does |
 |---|---|
-| `addCampaign(name, status, sessionId)` | Creates campaign with generated ID, returns ID |
+| `addCampaign(name, status?, sessionId?, brand?)` | Creates campaign with generated ID; `brand` defaults to null. Returns ID |
 | `removeCampaign(id)` | Removes from array, clears chatMessages, selects next |
 | `renameCampaign(id, name)` | Local rename |
+| `renameBrand(campaignId, newBrand)` | Local brand rename (set on one campaign; use `renameBrandAsync` to persist across multiple) |
 | `replaceCampaignId(oldId, newId)` | Atomic ID swap (campaigns + chatMessages keys) |
 | `updateCampaignStatus(id, status)` | Updates campaign status |
 | `replaceImage(campaignId, imageId, newImage)` | Replaces image by ID |
@@ -110,11 +126,25 @@ interface Store {
 
 | Action | What it does |
 |---|---|
-| `openThinkingBlock(campaignId, messageId, label, expectedImages)` | Creates a ThinkingBlockData in the message's blocks |
+| `openThinkingBlock(campaignId, messageId, label, expectedImages?)` | Creates a ThinkingBlockData in the message's blocks |
 | `addThinkingChild(campaignId, messageId, child)` | Appends `{ kind, text, variant }` to thinking block children |
 | `closeThinkingBlock(campaignId, messageId, status)` | Sets thinking block `status` to `'complete'` or `'error'` |
 | `updateThinkingImages(campaignId, messageId, completedImages)` | Updates image counter in thinking block |
 | `toggleBlockExpanded(campaignId, messageId, blockId)` | Toggle expand/collapse on any block |
+| `hasActiveThinkingBlock(campaignId, messageId)` | Selector — true if the latest block is an open thinking block |
+| `removeEmptyThinkingBlock(campaignId, messageId)` | Removes a thinking block that has no children yet (cleanup on stale opens) |
+
+### Text Streaming (WS `text_delta` pipeline)
+
+Added when production streaming switched to per-delta events. See [WEBSOCKET_PROTOCOL.md](../shared/WEBSOCKET_PROTOCOL.md) for the wire format.
+
+| Action | What it does |
+|---|---|
+| `appendTextDelta(delta)` | Pushes a delta into the RAF-batched module-scoped buffer (`_textDeltaBuf`). Flushed once per animation frame into `streamingText` to keep renders smooth |
+| `commitStreamingText()` | Flushes any pending RAF delta synchronously and promotes `streamingText` into the final `TextBlock` of the current message. MUST be called before sealing the message — skipping this loses trailing characters |
+| `appendTextBlock(campaignId, messageId, text)` | Appends to the last TextBlock in a message; creates a new one if the last block is a different kind |
+| `mergeAndStripTextBlocks(campaignId, messageId)` | After a turn ends, merges consecutive TextBlocks and strips empty ones (deltas often produce fragmented blocks) |
+| `setTextStreaming(campaignId, messageId, streaming)` | Marks a message as actively receiving deltas (UI shows a caret/loader) |
 
 ### File Editor
 
@@ -155,12 +185,22 @@ interface Store {
 | Action | What it does |
 |---|---|
 | `setPrompt(prompt)` | Sets the current prompt input value |
+| `setSelectedAspectRatio(ratio)` | Sets image aspect ratio for the next generation (`'4:5'`, `'1:1'`, `'9:16'`) |
 | `setPendingGeneration(pending)` | Sets `pendingGeneration` flag (used after auth redirect) |
 | `setSessionId(id)` | Sets `sessionId` |
 | `setConnectionState(state)` | Sets `connectionState` (`'connecting'`, `'connected'`, `'disconnected'`) |
 | `setIsRecovering(recovering)` | Sets `isRecovering` flag |
 | `setError(error)` | Sets `error` string or clears it with `null` |
 | `setGenerationExpectedImages(count)` | Sets expected image count for progress tracking |
+
+### Billing State
+
+| Action | What it does |
+|---|---|
+| `setCreditBalance(balance, planBalance?, topupBalance?)` | Updates the three credit counters. `planBalance` / `topupBalance` are optional — omitted values retain the previous state, which matters because the `credits_update` WS event always carries all three but REST hydration and optimistic updates may not. |
+| `setSubscription(subscription)` | Replaces the `Subscription` object from `paymentsApi.getSubscription()` |
+| `openPricingModal()` / `closePricingModal()` | Toggle the globally-mounted PricingModal (subscribe/upgrade flow) |
+| `openTopupModal()` / `closeTopupModal()` | Toggle the globally-mounted TopupModal (one-time credit purchase) |
 
 ### Asset Local Actions
 
@@ -187,8 +227,9 @@ These update store optimistically, then call the REST API:
 |---|---|
 | `deleteCampaignAsync(id)` | `campaignsApi.delete(id)` |
 | `renameCampaignAsync(id, name)` | `campaignsApi.update(id, { name })` |
+| `renameBrandAsync(campaignIds[], newBrand)` | Multi-campaign brand rename — updates all campaigns sharing the old brand |
 | `saveFileAsync(campaignId, fileType, content)` | `campaignsApi.updateFile(id, fileType, content)` |
-| `createFolderAsync(name)` | `assetsApi.createFolder(name)` |
+| `createFolderAsync(name)` | `assetsApi.createFolder(name)` → returns new folder ID |
 | `deleteFolderAsync(id)` | `assetsApi.deleteFolder(id)` |
 | `renameFolderAsync(id, name)` | `assetsApi.renameFolder(id, name)` |
 | `deleteFileAsync(id)` | `assetsApi.deleteFile(id)` |
@@ -299,6 +340,7 @@ parseExpectedImageCount(prompt: string): number
 Campaign {
   id: string
   name: string
+  brand: string | null           // extracted brand name (used for "all ads from this brand" grouping)
   createdAt: Date                // Date object, not string
   files: CampaignFile[]          // { type, name, content, lastModified }
   images: GeneratedImage[]
@@ -358,3 +400,5 @@ HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast'
 
 - [Client Architecture](./CLIENT_ARCHITECTURE.md) — Component tree, app flow
 - [WebSocket Client](./WEBSOCKET_CLIENT.md) — How events populate the store
+- [WebSocket Protocol](../shared/WEBSOCKET_PROTOCOL.md) — Wire format for `text_delta` / `credits_update` / etc.
+- [Billing](../shared/BILLING.md) — Where billing state comes from (routes, webhooks, modals)
