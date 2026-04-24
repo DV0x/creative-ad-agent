@@ -1,8 +1,6 @@
 # Creative Agent — Architecture Documentation
 
-> **Last updated:** 2026-04-22 | **Branch:** `new-ui` | **Production:** https://creativemachines.xyz | **Staging:** https://creative-agent-staging.alphasapien17.workers.dev
->
-> ⚠️ **Drift notice (2026-04-22):** Pass 0 (tactical fixes), Pass 1 (billing), and Pass 2 (streaming / DO / state machine / WS protocol / error propagation / known issues) have landed. Pass 3 (operational docs: STAGING_PRODUCTION.md, DEPLOYMENT.md, AUTH_FLOW.md, SANDBOX_CONTAINER.md HOME correction) is pending. When a subsystem doc conflicts with code, trust the code.
+> **Last updated:** 2026-04-24 | **Branch:** `new-ui` | **Production:** https://creativemachines.xyz | **Staging:** https://creative-agent-staging.alphasapien17.workers.dev
 
 This is the master index for all architecture documentation. Each doc is self-contained — you can read any single doc and understand that subsystem fully.
 
@@ -34,7 +32,7 @@ This is the master index for all architecture documentation. Each doc is self-co
 | Debug image generation | [Image Pipeline](./shared/IMAGE_PIPELINE.md) |
 | Trace error flows | [Error Propagation](./shared/ERROR_PROPAGATION.md) |
 | Understand credits, Dodo Payments, subscriptions | [Billing](./shared/BILLING.md) |
-| Understand staging vs production split | _STAGING_PRODUCTION.md — pending rewrite_ |
+| Understand staging vs production split | [Staging vs Production](./ops/STAGING_PRODUCTION.md) |
 | Deploy to production | [Deployment](./ops/DEPLOYMENT.md) |
 | Debug production issues | [Debugging](./ops/DEBUGGING.md) |
 | Check known issues | [Known Issues](./ops/KNOWN_ISSUES.md) |
@@ -80,6 +78,7 @@ docs/architecture/
 │   └── ERROR_PROPAGATION.md ........ Error flows from origin → user, recovery
 │
 └── ops/ .............................. Operations
+    ├── STAGING_PRODUCTION.md ........ Env matrix, per-env deploy/secrets/DNS
     ├── DEPLOYMENT.md ................ Deploy commands, secrets, gotchas
     ├── DEBUGGING.md ................. D1 queries, R2 inspection, logs
     └── KNOWN_ISSUES.md .............. All known gaps with priority
