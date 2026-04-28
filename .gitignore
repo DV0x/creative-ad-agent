@@ -1,7 +1,7 @@
 # Environment variables
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # Dependencies
 node_modules/
@@ -13,6 +13,10 @@ build/
 *.js
 *.d.ts
 *.js.map
+*.tsbuildinfo
+
+# Cloudflare wrangler cache
+cloudflare/.wrangler/
 
 # Logs
 logs/
@@ -46,6 +50,7 @@ server/data/
 
 # User uploads
 server/uploads/
+/uploads/
 
 # Generated images (nano_banana MCP outputs)
 generated-images/
