@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth } from '@clerk/clerk-react'
 import { AppLayout } from '@/components/layout/AppLayout'
-import { LandingHeader } from '@/components/layout/LandingHeader'
 import { EmptyState } from '@/components/EmptyState'
+import { LandingPage } from '@/components/landing/LandingPage'
 import { ResultsView } from '@/components/ResultsView'
 import { SignIn } from '@/components/auth/SignIn'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -298,15 +298,20 @@ function AppContent() {
     )
   }
 
+  // Marketing landing for visitors / zero-campaign users.
+  // The "New Campaign" inline form (isCreatingCampaign) keeps the existing EmptyState.
+  const showMarketingLanding = showLanding && !isCreatingCampaign
+
   return (
     <>
-      {/* Show header on landing page */}
-      {showLanding && <LandingHeader />}
-
-      <AppLayout>
-        {showLanding && <EmptyState />}
-        {showWorkspace && <ResultsView />}
-      </AppLayout>
+      {showMarketingLanding ? (
+        <LandingPage />
+      ) : (
+        <AppLayout>
+          {showLanding && isCreatingCampaign && <EmptyState />}
+          {showWorkspace && <ResultsView />}
+        </AppLayout>
+      )}
 
       {/* Payment modals (rendered at root, triggered from anywhere) */}
       <PricingModal />

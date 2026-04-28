@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useStore } from '@/store'
 import { paymentsApi } from '@/lib/api'
@@ -16,11 +16,18 @@ const MIN_USD = 5
 const CREDITS_PER_USD = 10
 
 export function TopupModal() {
-  const { topupModalOpen, closeTopupModal, subscription } = useStore()
+  const { topupModalOpen, topupPresetAmount, closeTopupModal, subscription } = useStore()
   const { user } = useUser()
   const [amountInput, setAmountInput] = useState<string>('10')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (topupModalOpen && topupPresetAmount != null) {
+      setAmountInput(String(topupPresetAmount))
+      setError(null)
+    }
+  }, [topupModalOpen, topupPresetAmount])
 
   const isPro = subscription?.plan === 'pro'
   const bonusMultiplier = isPro ? 1.2 : 1.0

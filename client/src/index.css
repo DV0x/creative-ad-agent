@@ -1,5 +1,6 @@
 /* Import fonts */
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600&f[]=satoshi@400,500,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 @import "tailwindcss";
 
@@ -16,33 +17,38 @@
 
 @theme {
   /* Typography */
-  --font-body: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-body: 'Satoshi', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --font-display: 'Clash Display', 'Satoshi', 'Archivo Black', Impact, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Monochrome - Background Layers (soft creative-tool palette) */
-  --color-bg-base: #F3F4F6;
-  --color-bg-raised: #F9FAFB;
-  --color-bg-elevated: #EDEEF0;
-  --color-bg-overlay: #E5E7EB;
+  /* Background Layers — warm cream */
+  --color-bg-base: #FBF9F5;
+  --color-bg-raised: #FDFCF9;
+  --color-bg-elevated: #F3EFE8;
+  --color-bg-overlay: #EAE4D6;
   --color-bg-input: #FFFFFF;
 
-  /* Text - Pure monochrome */
-  --color-text-primary: #111111;
-  --color-text-secondary: #666666;
-  --color-text-muted: #999999;
+  /* Text — warm ink */
+  --color-text-primary: #231F20;
+  --color-text-secondary: #4A4446;
+  --color-text-muted: #7A7275;
 
-  /* Borders - Cool gray */
-  --color-border: #E0E1E4;
-  --color-border-emphasis: #D1D3D8;
+  /* Borders — warm */
+  --color-border: #E1DBCD;
+  --color-border-emphasis: #D9D0BB;
 
-  /* Accent - Coral */
-  --color-accent: #E8553A;
-  --color-accent-hover: #D4442B;
-  --color-accent-subtle: rgba(232, 85, 58, 0.08);
+  /* Accent — wine */
+  --color-accent: #AB406C;
+  --color-accent-hover: #923355;
+  --color-accent-press: #78284A;
+  --color-accent-subtle: rgba(171, 64, 108, 0.08);
+  --color-accent-ring: rgba(171, 64, 108, 0.28);
+  --color-accent-wash: #F2DBE5;
 
-  /* Pop - Slate (for secondary actions, code) */
-  --color-pop: #475569;
-  --color-pop-hover: #334155;
+  /* Pop — lime (use sparingly, max once per screen) */
+  --color-pop: #C1FF64;
+  --color-pop-ink: #3A5A14;
+  --color-pop-hover: #B5F25A;
 
   /* Status Colors */
   --color-success: #16a34a;
@@ -83,38 +89,38 @@
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
-/* CSS Variables for shadcn compatibility - Monochrome light */
+/* CSS Variables for shadcn compatibility — warm cream + wine */
 :root {
-  --background: 0 0% 98%;
-  --foreground: 0 0% 7%;
+  --background: 40 36% 97%;
+  --foreground: 345 5% 13%;
   --card: 0 0% 100%;
-  --card-foreground: 0 0% 7%;
+  --card-foreground: 345 5% 13%;
   --popover: 0 0% 100%;
-  --popover-foreground: 0 0% 7%;
-  --primary: 11 78% 57%;
+  --popover-foreground: 345 5% 13%;
+  --primary: 335 46% 46%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 0 0% 96%;
-  --secondary-foreground: 0 0% 7%;
-  --muted: 0 0% 96%;
-  --muted-foreground: 0 0% 40%;
-  --accent: 0 0% 96%;
-  --accent-foreground: 0 0% 7%;
-  --destructive: 0 72% 51%;
+  --secondary: 38 27% 93%;
+  --secondary-foreground: 345 5% 13%;
+  --muted: 38 27% 93%;
+  --muted-foreground: 345 3% 47%;
+  --accent: 38 27% 93%;
+  --accent-foreground: 345 5% 13%;
+  --destructive: 8 72% 42%;
   --destructive-foreground: 0 0% 100%;
-  --border: 0 0% 90%;
-  --input: 0 0% 90%;
-  --ring: 11 78% 57%;
+  --border: 40 27% 84%;
+  --input: 40 27% 84%;
+  --ring: 335 46% 46%;
   --radius: 0.5rem;
 
-  /* Sidebar - Monochrome */
+  /* Sidebar */
   --sidebar: 0 0% 100%;
-  --sidebar-foreground: 0 0% 7%;
-  --sidebar-primary: 11 78% 57%;
+  --sidebar-foreground: 345 5% 13%;
+  --sidebar-primary: 335 46% 46%;
   --sidebar-primary-foreground: 0 0% 100%;
-  --sidebar-accent: 0 0% 96%;
-  --sidebar-accent-foreground: 0 0% 7%;
-  --sidebar-border: 0 0% 90%;
-  --sidebar-ring: 11 78% 57%;
+  --sidebar-accent: 38 27% 93%;
+  --sidebar-accent-foreground: 345 5% 13%;
+  --sidebar-border: 40 27% 84%;
+  --sidebar-ring: 335 46% 46%;
 }
 
 /* Theme inline for Tailwind */

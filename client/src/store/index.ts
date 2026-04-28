@@ -207,7 +207,8 @@ interface Store {
   openPricingModal: () => void
   closePricingModal: () => void
   topupModalOpen: boolean
-  openTopupModal: () => void
+  topupPresetAmount: number | null
+  openTopupModal: (presetAmount?: number) => void
   closeTopupModal: () => void
 
   // Data Loading
@@ -1174,8 +1175,10 @@ export const useStore = create<Store>((set, get) => ({
   openPricingModal: () => set({ pricingModalOpen: true }),
   closePricingModal: () => set({ pricingModalOpen: false }),
   topupModalOpen: false,
-  openTopupModal: () => set({ topupModalOpen: true }),
-  closeTopupModal: () => set({ topupModalOpen: false }),
+  topupPresetAmount: null,
+  openTopupModal: (presetAmount) =>
+    set({ topupModalOpen: true, topupPresetAmount: presetAmount ?? null }),
+  closeTopupModal: () => set({ topupModalOpen: false, topupPresetAmount: null }),
 
   // Data Loading
   dataLoading: false,
@@ -1262,6 +1265,7 @@ export const useStore = create<Store>((set, get) => ({
     subscription: null,
     pricingModalOpen: false,
     topupModalOpen: false,
+    topupPresetAmount: null,
     dataLoading: false,
   })
 }))

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200" role="img" aria-label="Creative Machines">
+  <defs>
+    
+  </defs>
+  <text x="100" y="102" class="sg" font-size="108" text-anchor="middle">CM</text>
+  <rect x="40" y="118" width="120" height="6" rx="3" fill="#AB406C"></rect>
+  <g transform="translate(100 174) rotate(-4)">
+    <text x="0" y="0" class="script" font-size="54" text-anchor="middle">m.</text>
+  </g>
+</svg>
