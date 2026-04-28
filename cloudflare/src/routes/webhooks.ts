@@ -16,7 +16,7 @@ import type { PlanTier } from '../db/subscriptions.js';
 
 // ── Plan config ──────────────────────────────────────────────────
 // Maps Dodo product_id → plan tier + credit amount.
-// Product IDs are placeholders until Dodo dashboard setup.
+// Product IDs come from env vars (differ per staging/production).
 
 interface PlanInfo {
   plan: 'starter' | 'pro';
@@ -24,12 +24,14 @@ interface PlanInfo {
   baseCreditsUsd: number;
 }
 
-const PLAN_CONFIG: Record<string, PlanInfo> = {
-  'pdt_0NcsitvWGHrNBkCZWZI3m': { plan: 'starter', interval: 'monthly', baseCreditsUsd: 25.0 },    // 275 credits (×1.1)
-  'pdt_0NcsjiTK1Y8BE0vVf2CIK': { plan: 'starter', interval: 'yearly',  baseCreditsUsd: 300.0 },   // 3,300 credits (×1.1)
-  'pdt_0Ncsk05kzD4TfbTVmH21i': { plan: 'pro',     interval: 'monthly', baseCreditsUsd: 75.0 },    // 900 credits (×1.2)
-  'pdt_0NcskEvBnUSeKaFX9MbQd': { plan: 'pro',     interval: 'yearly',  baseCreditsUsd: 900.0 },   // 10,800 credits (×1.2)
-};
+function planConfig(env: Env): Record<string, PlanInfo> {
+  return {
+    [env.DODO_PRODUCT_STARTER_MONTHLY]: { plan: 'starter', interval: 'monthly', baseCreditsUsd: 25.0 },    // 275 credits (×1.1)
+    [env.DODO_PRODUCT_STARTER_YEARLY]:  { plan: 'starter', interval: 'yearly',  baseCreditsUsd: 300.0 },   // 3,300 credits (×1.1)
+    [env.DODO_PRODUCT_PRO_MONTHLY]:     { plan: 'pro',     interval: 'monthly', baseCreditsUsd: 75.0 },    // 900 credits (×1.2)
+    [env.DODO_PRODUCT_PRO_YEARLY]:      { plan: 'pro',     interval: 'yearly',  baseCreditsUsd: 900.0 },   // 10,800 credits (×1.2)
+  };
+}
 
 const BONUS_MULTIPLIER: Record<PlanTier, number> = {
   free: 1.0,
@@ -158,7 +160,7 @@ async function handleSubscriptionEvent(
   }
 
   const productId: string = data.product_id || '';
-  const planInfo = PLAN_CONFIG[productId];
+  const planInfo = planConfig(env)[productId];
   const subType = eventType.replace('subscription.', '');
 
   switch (subType) {

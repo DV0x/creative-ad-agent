@@ -1,29 +1,27 @@
 import type { Env } from '../env.js';
 import { getSubscription } from '../db/subscriptions.js';
 
-// ── Dodo product IDs (replace after dashboard setup) ─────────────
+// ── Dodo product IDs — injected per env via wrangler vars ────────
 
-const CHECKOUT_PRODUCTS: Record<string, string> = {
-  'starter-monthly': 'pdt_0NcsitvWGHrNBkCZWZI3m',
-  'starter-yearly':  'pdt_0NcsjiTK1Y8BE0vVf2CIK',
-  'pro-monthly':     'pdt_0Ncsk05kzD4TfbTVmH21i',
-  'pro-yearly':      'pdt_0NcskEvBnUSeKaFX9MbQd',
-};
+function checkoutProducts(env: Env): Record<string, string> {
+  return {
+    'starter-monthly': env.DODO_PRODUCT_STARTER_MONTHLY,
+    'starter-yearly':  env.DODO_PRODUCT_STARTER_YEARLY,
+    'pro-monthly':     env.DODO_PRODUCT_PRO_MONTHLY,
+    'pro-yearly':      env.DODO_PRODUCT_PRO_YEARLY,
+  };
+}
 
-// Single Pay-What-You-Want product. Customer-chosen amount (in dollars) is
-// converted to cents and passed via product_cart[].amount.
-const TOPUP_PRODUCT_ID = 'pdt_0NcskiE2H7xCcT7vIIkJQ';
 const TOPUP_MIN_USD = 5;
 
-// Dodo has separate base URLs for test vs live mode.
-// Test:  https://test.dodopayments.com
-// Live:  https://live.dodopayments.com
-const DODO_API = 'https://test.dodopayments.com';
+// Dodo has separate base URLs for test vs live mode — injected per env via wrangler vars.
+// Staging → https://test.dodopayments.com
+// Production → https://live.dodopayments.com
 
 // ── Dodo API helper ──────────────────────────────────────────────
 
 async function dodoFetch<T>(env: Env, path: string, options: RequestInit = {}): Promise<T> {
-  const res = await fetch(`${DODO_API}${path}`, {
+  const res = await fetch(`${env.DODO_API_BASE}${path}`, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
@@ -54,7 +52,7 @@ export async function handlePaymentsRequest(
   // POST /api/payments/checkout — create subscription checkout
   if (sub === '/checkout' && method === 'POST') {
     const body = await request.json<{ plan: string; email?: string; name?: string }>();
-    const productId = CHECKOUT_PRODUCTS[body.plan];
+    const productId = checkoutProducts(env)[body.plan];
     if (!productId) {
       return Response.json({ success: false, error: 'Invalid plan' }, { status: 400 });
     }
@@ -90,7 +88,7 @@ export async function handlePaymentsRequest(
     const session = await dodoFetch<{ checkout_url: string }>(env, '/checkouts', {
       method: 'POST',
       body: JSON.stringify({
-        product_cart: [{ product_id: TOPUP_PRODUCT_ID, quantity: 1, amount: amountCents }],
+        product_cart: [{ product_id: env.DODO_PRODUCT_TOPUP, quantity: 1, amount: amountCents }],
         customer: { email: body.email, name: body.name },
         metadata: {
           clerk_user_id: userId,

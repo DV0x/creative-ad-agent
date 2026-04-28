@@ -30,6 +30,12 @@ export interface Env {
   // Dodo Payments
   DODO_PAYMENTS_API_KEY: string;
   DODO_PAYMENTS_WEBHOOK_SECRET: string;
+  DODO_API_BASE: string;
+  DODO_PRODUCT_STARTER_MONTHLY: string;
+  DODO_PRODUCT_STARTER_YEARLY: string;
+  DODO_PRODUCT_PRO_MONTHLY: string;
+  DODO_PRODUCT_PRO_YEARLY: string;
+  DODO_PRODUCT_TOPUP: string;
 
   // Optional: set to "local" for wrangler dev (bypasses sandbox, runs SDK in-process)
   AI_BACKEND?: string;

@@ -92,7 +92,13 @@
     "staging": {
       "name": "creative-agent-staging",
       "vars": {
-        "R2_BUCKET_NAME": "creative-agent-assets"
+        "R2_BUCKET_NAME": "creative-agent-assets",
+        "DODO_API_BASE": "https://test.dodopayments.com",
+        "DODO_PRODUCT_STARTER_MONTHLY": "pdt_0NcsitvWGHrNBkCZWZI3m",
+        "DODO_PRODUCT_STARTER_YEARLY":  "pdt_0NcsjiTK1Y8BE0vVf2CIK",
+        "DODO_PRODUCT_PRO_MONTHLY":     "pdt_0Ncsk05kzD4TfbTVmH21i",
+        "DODO_PRODUCT_PRO_YEARLY":      "pdt_0NcskEvBnUSeKaFX9MbQd",
+        "DODO_PRODUCT_TOPUP":           "pdt_0NcskiE2H7xCcT7vIIkJQ"
       },
       "d1_databases": [
         {
@@ -127,7 +133,13 @@
     "production": {
       "name": "creative-agent-production",
       "vars": {
-        "R2_BUCKET_NAME": "creative-agent-assets-prod"
+        "R2_BUCKET_NAME": "creative-agent-assets-prod",
+        "DODO_API_BASE": "https://live.dodopayments.com",
+        "DODO_PRODUCT_STARTER_MONTHLY": "pdt_0NcxwISVKTx572eztKlLT",
+        "DODO_PRODUCT_STARTER_YEARLY":  "pdt_0NcxwZjWBP5aeJezb1WpP",
+        "DODO_PRODUCT_PRO_MONTHLY":     "pdt_0NcxwnBLoDLwoVPoUemuO",
+        "DODO_PRODUCT_PRO_YEARLY":      "pdt_0NcxwyBtWyrTPbuOZlyWD",
+        "DODO_PRODUCT_TOPUP":           "pdt_0NcxxG1S8Zdnr9WSJkR3c"
       },
       "routes": [
         {
