@@ -127,15 +127,14 @@ export function Hero() {
       <div className="lp-wrap lp-hero-grid">
         <div>
           <h1 className="lp-h1 lp-hero-h1">
-            Ship your next<br />
-            <span className="lp-pop-word">winning ad</span><br />
-            by 4pm.
+            Make creatives that <span className="lp-pop-word">read your brand</span>.
           </h1>
 
           <p className="lp-hero-sub">
-            Tell us what to run. We research the brand, write the hooks,
-            and render <strong>a full creative pack</strong> — diverse enough
-            to feed Meta and TikTok, in under five minutes.
+            Tell us what to run, with a URL. We read your reviews, product
+            pages, and customer language — then ship a fresh pack of
+            on-brand hooks with matched visuals. Run again for new angles,
+            anytime.
           </p>
 
           <form className="lp-composer" onSubmit={handleSubmit} aria-label="Campaign brief">

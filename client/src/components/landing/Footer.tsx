@@ -1,3 +1,5 @@
+const CAL_URL = 'https://cal.com/chakra-creative-machines/30-min-creative-growth-audit'
+
 export function Footer() {
   return (
     <footer className="lp-footer">
@@ -8,46 +10,33 @@ export function Footer() {
             <span className="word-bold">Machines</span>
           </div>
           <p className="lp-footer-brand-blurb">
-            The creative engine for D2C brands. Research in. A full
-            creative pack out. Every hook traceable.
+            The creative engine for D2C founders and growth teams.
+            Research in. A full creative pack out. Every hook traceable.
           </p>
         </div>
         <div>
           <h4>Product</h4>
           <ul>
             <li><a href="#shift">The shift</a></li>
+            <li><a href="#run-growth">Run growth</a></li>
             <li><a href="#pricing">Pricing</a></li>
             <li><a href="#faq">FAQ</a></li>
           </ul>
         </div>
         <div>
-          <h4>Company</h4>
+          <h4>Talk to us</h4>
           <ul>
-            <li><a href="#">About</a></li>
-            <li><a href="#">Careers</a></li>
-            <li><a href="#">Press</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Resources</h4>
-          <ul>
-            <li><a href="#">Case studies</a></li>
-            <li><a href="#">Changelog</a></li>
-            <li><a href="#">API</a></li>
-          </ul>
-        </div>
-        <div>
-          <h4>Legal</h4>
-          <ul>
-            <li><a href="#">Terms</a></li>
-            <li><a href="#">Privacy</a></li>
-            <li><a href="#">Image IP</a></li>
+            <li>
+              <a href={CAL_URL} target="_blank" rel="noopener noreferrer">
+                Book a 30-min call
+              </a>
+            </li>
           </ul>
         </div>
       </div>
       <div className="lp-wrap lp-footer-bottom">
-        <span>© 2026 Creative Machines, Inc.</span>
-        <span>v2.4 · creativemachines.xyz</span>
+        <span>For brands too small for an agency, too serious for slop.</span>
+        <span>creativemachines.xyz</span>
       </div>
     </footer>
   )

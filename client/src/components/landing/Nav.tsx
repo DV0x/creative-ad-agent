@@ -28,6 +28,7 @@ export function Nav() {
 
         <div className="lp-nav-links">
           <a href="#shift">The shift</a>
+          <a href="#run-growth">Run growth</a>
           <a href="#pricing">Pricing</a>
           <a href="#faq">FAQ</a>
         </div>
@@ -68,7 +69,7 @@ export function Nav() {
             <>
               <a className="lp-btn lp-btn-ghost" href="/sign-in">Log in</a>
               <a className="lp-btn lp-btn-ink" href="/sign-in">
-                Start free <ArrowRight size={14} strokeWidth={1.75} />
+                Get started <ArrowRight size={14} strokeWidth={1.75} />
               </a>
             </>
           )}

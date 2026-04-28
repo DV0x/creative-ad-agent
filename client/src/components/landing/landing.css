@@ -419,11 +419,22 @@
   border-bottom: 1px solid var(--color-border);
 }
 .lp-compare {
-  display: grid; grid-template-columns: 1fr 1fr;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  /* 8 row tracks: tag, h3, 5 li rows, closer.
+     Each row sizes to the tallest cell across both columns,
+     so wrapping in one column doesn't break alignment. */
+  grid-template-rows: repeat(8, auto);
   border: 1px solid var(--color-text-primary);
   background: var(--color-bg-base);
 }
-.lp-compare > div { padding: 36px 36px 44px; position: relative; }
+.lp-compare > div {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: span 8;
+  padding: 36px 36px 44px;
+  position: relative;
+}
 .lp-compare > div + div { border-left: 1px solid var(--color-text-primary); }
 .lp-compare .before { background: var(--color-bg-elevated); }
 .lp-compare .after  { background: var(--color-bg-base); }
@@ -444,7 +455,13 @@
   margin: 20px 0 24px;
 }
 .lp-compare .before h3 { color: var(--color-text-muted); position: relative; display: inline-block; }
-.lp-compare-rows { list-style: none; padding: 0; margin: 0; border-top: 1px solid var(--color-border); }
+.lp-compare-rows {
+  display: grid;
+  grid-template-rows: subgrid;
+  grid-row: 3 / span 5;
+  list-style: none; padding: 0; margin: 0;
+  border-top: 1px solid var(--color-border);
+}
 .lp-compare-rows li {
   display: grid; grid-template-columns: 130px 1fr auto;
   gap: 18px; align-items: baseline;
@@ -749,7 +766,7 @@
    FOOTER
    ================================================================ */
 .lp-footer { padding: 72px 0 32px; background: var(--color-bg-elevated); border-top: 1px solid var(--color-border); }
-.lp-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr 1fr; gap: 36px; }
+.lp-footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 36px; }
 .lp-footer-brand { font-family: var(--font-display); font-size: 22px; letter-spacing: -0.012em; line-height: 1; margin-bottom: 16px; }
 .lp-footer-brand .word-light { font-weight: 600; color: var(--color-accent); }
 .lp-footer-brand .word-bold  { font-weight: 700; color: var(--color-text-primary); margin-left: 6px; }

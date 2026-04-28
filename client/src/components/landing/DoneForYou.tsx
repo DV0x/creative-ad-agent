@@ -27,7 +27,7 @@ const TRUST = [
 
 export function DoneForYou() {
   return (
-    <section className="lp-sec lp-dfy" id="done-for-you">
+    <section className="lp-sec lp-dfy" id="run-growth">
       <div className="lp-wrap">
         <div className="lp-dfy-head">
           <div>
