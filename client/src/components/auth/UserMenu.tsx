@@ -104,7 +104,7 @@ function CreditBadge() {
           </button>
         )}
         <button
-          onClick={openTopupModal}
+          onClick={() => openTopupModal()}
           className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors"
         >
           Buy Credits
