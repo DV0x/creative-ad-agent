@@ -13,7 +13,7 @@ const PLANS = [
     pitch: 'For the brand builder running their own ads.',
     features: [
       'All 14 art styles',
-      '10% credit bonus, baked in',
+      '+10% bonus on monthly credits',
       'Brand research from any URL',
       'Top up any time, $5 minimum',
     ],
@@ -29,7 +29,7 @@ const PLANS = [
     pitch: 'For growth teams testing a new angle every week.',
     features: [
       'Everything in Starter',
-      '20% credit bonus, baked in',
+      '+20% bonus on monthly credits',
       '20% bonus on every top-up',
       'Priority generation queue',
     ],
