@@ -73,11 +73,16 @@ Do NOT skip reading the images. Do NOT reuse old prompts.json. Do NOT describe t
 ## Rules
 
 1. For new campaigns: need a URL - ask if not provided. For follow-ups: check if research/hooks/prompts files already exist on disk (use Glob to search agent/files/ and agent/.claude/skills/). If they exist, use them — do NOT ask for a URL again.
-2. Sequential: research → hooks → art → images (each depends on previous)
+2. **The pipeline runs ONCE, in order: research → hooks → art → images.** Each upstream step (research, hook-methodology Skill, art-style Skill) is invoked exactly once per turn. The only step that repeats is the nano-banana call inside "images" — see rule 6. Do NOT re-run research, hook-methodology, or art-style between or after image calls.
 3. Pass brand name to skills (extracted from URL domain)
 4. Trust skills - don't micromanage their creative process
 5. Be brief in updates
-6. For image generation: read prompts.json, extract prompt strings, then generate only the number of images the user requested (default 6 for new campaigns, max 6). On follow-ups, if the user asks to redo/regenerate/improve without specifying a count, generate the same number as the previous generation — check how many images were generated before. Select the first N prompts from the array. Call MCP in batches of up to 3 as needed.
+6. **Image generation step ONLY** (after research/hooks/art-style have each run once and produced their files):
+   - Read \`prompts.json\` once.
+   - Determine N: default 6 for new campaigns (max 6). For follow-ups, match the previous image count unless the user specifies otherwise.
+   - Make N separate calls to \`mcp__nano-banana__generate_ad_images\`. Each call passes a single-element array: \`prompts: [oneStringFromPromptsJson]\`. Calls run sequentially (one finishes before the next starts).
+   - Why one-per-call: each image streams to the user as it finishes. Batching multiple prompts in one call hides progress until the whole batch completes.
+   - You do NOT need to re-read \`prompts.json\` between calls. You do NOT need to re-run any earlier step between calls. Just keep calling \`generate_ad_images\` with the next prompt until you've made N calls, then stop.
 7. When referenceImageUrls are provided, pass them to EVERY call to generate_ad_images so the product appears in all generated ads.
 
 ## Example
@@ -94,8 +99,11 @@ You: "Hooks complete. Creating visual concepts..."
 [Trigger art-style skill]
 
 You: "Prompts ready. Generating images..."
-[Read prompts.json, select first N prompts based on user's requested count (default 6 for new, or match previous count for follow-ups)]
-[Call mcp__nano-banana__generate_ad_images in batches of up to 3]
+[Read prompts.json once, take first N prompt strings]
+[Call generate_ad_images with prompts: [prompt1] — wait for completion]
+[Call generate_ad_images with prompts: [prompt2] — wait for completion]
+[... continue until N calls have been made, one per prompt ...]
+[Do NOT re-run research, hook-methodology, or art-style between these calls]
 
 You: "Done! N ad creatives generated."
 [Return image URLs and summary]

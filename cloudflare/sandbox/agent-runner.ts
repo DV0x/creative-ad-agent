@@ -374,6 +374,29 @@ try {
       continue; // Skip blockBuilder, completion handling for stream events
     }
 
+    // Surface tool_use blocks from SUBAGENT assistant messages only. Subagents
+    // (e.g. research via Task tool) run in their own SDK context — their
+    // content blocks never produce stream_events in the parent iterator, so
+    // their Write calls stay invisible to the parser without this. Filtering
+    // by parent_tool_use_id (set by the SDK on subagent messages, null on the
+    // orchestrator's own messages) avoids double-emit for orchestrator tools
+    // that already fire via stream_event content_block_stop.
+    if (message.type === 'assistant' && (message as any).parent_tool_use_id) {
+      const content = (message as any).message?.content;
+      if (Array.isArray(content)) {
+        for (const block of content) {
+          if (block?.type === 'tool_use') {
+            process.stdout.write(JSON.stringify({
+              type: 'tool_use_event',
+              name: block.name,
+              id: block.id,
+              input: block.input,
+            }) + '\n');
+          }
+        }
+      }
+    }
+
     // Non-stream messages: only write non-assistant to stdout.
     // Assistant messages are handled above via stream events (text + tools).
     // system/user/result messages still go to stdout for SDK session ID,
