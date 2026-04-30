@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth, useUser } from '@clerk/clerk-react'
+import { X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { EmptyState } from '@/components/EmptyState'
 import { LandingPage } from '@/components/landing/LandingPage'
@@ -316,6 +317,7 @@ function AppContent() {
       {/* Payment modals (rendered at root, triggered from anywhere) */}
       <PricingModal />
       <TopupModal />
+      <WelcomeBanner />
     </>
   )
 }
@@ -370,10 +372,160 @@ function DevModeApp() {
   )
 }
 
+// One-shot welcome banner shown after a successful checkout. Reads
+// ?welcome=starter|pro from the URL on any page, displays for 6s, then auto-
+// clears (and strips the param so a refresh doesn't re-show it).
+function WelcomeBanner() {
+  const [plan, setPlan] = useState<'starter' | 'pro' | null>(null)
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const w = params.get('welcome')
+    if (w !== 'starter' && w !== 'pro') return
+    setPlan(w)
+    params.delete('welcome')
+    const newSearch = params.toString()
+    window.history.replaceState({}, '', `${window.location.pathname}${newSearch ? `?${newSearch}` : ''}`)
+    const t = setTimeout(() => setPlan(null), 6000)
+    return () => clearTimeout(t)
+  }, [])
+
+  if (!plan) return null
+  const credits = plan === 'pro' ? 900 : 275
+  const label = plan === 'pro' ? 'Pro' : 'Starter'
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 bg-white border border-border shadow-lg rounded-xl px-4 py-3 max-w-md">
+      <div className="h-7 w-7 rounded-full bg-green-100 flex items-center justify-center shrink-0">
+        <svg className="h-4 w-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      </div>
+      <div className="text-sm">
+        <div className="font-semibold text-text-primary">You're on {label}</div>
+        <div className="text-text-secondary">{credits.toLocaleString()} credits ready — type your first brief below.</div>
+      </div>
+      <button
+        type="button"
+        onClick={() => setPlan(null)}
+        className="ml-1 text-text-muted hover:text-text-primary"
+        aria-label="Dismiss"
+      >
+        <X className="w-4 h-4" />
+      </button>
+    </div>
+  )
+}
+
+// /checkout/init — bridge between Clerk signup and Dodo checkout. The pricing
+// CTA stashes intent in sessionStorage (primary) AND URL params (fallback for
+// bookmarks/refreshes). Two flavors:
+//   • Plan signup: { plan: 'starter'|'pro', interval: 'monthly'|'yearly' } → /checkout
+//   • $5 wedge:    { wedge: true, amount: 5 }                              → /topup
+type PendingCheckout =
+  | { kind: 'plan'; plan: 'starter' | 'pro'; interval: 'monthly' | 'yearly' }
+  | { kind: 'wedge'; amount: number }
+
+function readPendingCheckout(): PendingCheckout | null {
+  try {
+    const raw = sessionStorage.getItem('creative-agent:pendingCheckout')
+    if (raw) {
+      const p = JSON.parse(raw) as Record<string, unknown>
+      sessionStorage.removeItem('creative-agent:pendingCheckout')
+      if (p.wedge === true && typeof p.amount === 'number') {
+        return { kind: 'wedge', amount: p.amount }
+      }
+      if (p.plan === 'starter' || p.plan === 'pro') {
+        const interval = p.interval === 'yearly' ? 'yearly' : 'monthly'
+        return { kind: 'plan', plan: p.plan, interval }
+      }
+    }
+  } catch { /* fall through to URL params */ }
+
+  const params = new URLSearchParams(window.location.search)
+  if (params.get('wedge') === '1') {
+    return { kind: 'wedge', amount: 5 }
+  }
+  const planParam = params.get('plan')
+  if (planParam === 'starter' || planParam === 'pro') {
+    const interval = params.get('interval') === 'yearly' ? 'yearly' : 'monthly'
+    return { kind: 'plan', plan: planParam, interval }
+  }
+  return null
+}
+
+function CheckoutInit() {
+  const { user, isLoaded } = useUser()
+  const { getToken } = useAuth()
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!isLoaded) return
+
+    // Wire the API token getter ourselves — AuthenticatedApp (which normally
+    // sets this up) doesn't mount on /checkout/init. Without this, paymentsApi
+    // calls go without an Authorization header and the worker 401s.
+    setTokenGetter(async () => {
+      try { return await getToken() } catch { return null }
+    })
+
+    const pending = readPendingCheckout()
+    if (!pending) {
+      setError('Missing checkout details — head back to pricing and try again.')
+      return
+    }
+    const email = user?.primaryEmailAddress?.emailAddress
+    if (!email) {
+      setError('No email on your account — please refresh or contact support.')
+      return
+    }
+
+    let cancelled = false
+    const promise = pending.kind === 'plan'
+      ? paymentsApi.checkout(`${pending.plan}-${pending.interval}`, email, user?.fullName ?? undefined)
+      : paymentsApi.topup(pending.amount, email, user?.fullName ?? undefined)
+
+    promise
+      .then((res) => {
+        if (!cancelled) window.location.href = res.checkout_url
+      })
+      .catch((err) => {
+        if (!cancelled) setError(err?.message || 'Checkout failed — please try again.')
+      })
+    return () => { cancelled = true }
+  }, [isLoaded, user, getToken])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-bg-base">
+      <div className="text-center max-w-md">
+        {error ? (
+          <>
+            <h2 className="text-xl font-semibold text-text-primary mb-2">Checkout couldn't start</h2>
+            <p className="text-text-secondary mb-4">{error}</p>
+            <a href="/#pricing" className="text-accent hover:underline">Back to pricing</a>
+          </>
+        ) : (
+          <>
+            <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
+            <h2 className="text-xl font-semibold text-text-primary mb-2">Opening secure checkout…</h2>
+            <p className="text-text-secondary">One moment while we hand you to our payment partner.</p>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 function CheckoutSuccess() {
+  const { getToken } = useAuth()
   const [status, setStatus] = useState<'polling' | 'slow' | 'success'>('polling')
 
   useEffect(() => {
+    // Same fix as CheckoutInit — wire the token getter so paymentsApi/creditsApi
+    // calls have auth. AuthenticatedApp doesn't mount on /checkout/success.
+    setTokenGetter(async () => {
+      try { return await getToken() } catch { return null }
+    })
+
     let cancelled = false
     const startedAt = Date.now()
 
@@ -389,7 +541,8 @@ function CheckoutSuccess() {
               useStore.getState().setSubscription(sub)
               if (credits) useStore.getState().setCreditBalance(credits.balance, credits.plan_balance, credits.topup_balance)
               setStatus('success')
-              setTimeout(() => { window.location.href = '/' }, 1500)
+              // Pass plan to workspace via URL so it can show a one-time welcome toast.
+              setTimeout(() => { window.location.href = `/workspace?welcome=${sub.plan}` }, 1500)
             }
             return
           }
@@ -408,7 +561,7 @@ function CheckoutSuccess() {
 
     poll()
     return () => { cancelled = true }
-  }, [])
+  }, [getToken])
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-bg-base">
@@ -425,7 +578,7 @@ function CheckoutSuccess() {
             <div className="animate-spin h-8 w-8 border-2 border-accent border-t-transparent rounded-full mx-auto mb-4" />
             <h2 className="text-xl font-semibold text-text-primary mb-2">Almost there!</h2>
             <p className="text-text-secondary mb-4">Still waiting on your credits — they'll appear here automatically, or you can head to the workspace.</p>
-            <a href="/" className="text-accent hover:underline">Go to workspace</a>
+            <a href="/workspace" className="text-accent hover:underline">Go to workspace</a>
           </>
         )}
         {status === 'success' && (
@@ -453,6 +606,11 @@ function App() {
   const pathname = window.location.pathname
   if (pathname === '/sign-in' || pathname === '/sign-up') {
     return <SignIn />
+  }
+
+  // Handle /checkout/init — bridges Clerk signup → Dodo checkout for the chosen plan
+  if (pathname === '/checkout/init') {
+    return <CheckoutInit />
   }
 
   // Handle /checkout/success — optimistic UI while webhook processes

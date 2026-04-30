@@ -1,5 +1,25 @@
-import { SignIn as ClerkSignIn } from '@clerk/clerk-react';
+import { SignIn as ClerkSignIn, SignUp as ClerkSignUp } from '@clerk/clerk-react';
 import { isDevMode } from '@/lib/auth';
+
+// Build the post-auth destination. Visitors arriving from any paid CTA (plan
+// signup or $5 wedge) carry a marker in the URL — we route them to
+// /checkout/init, which reads sessionStorage to learn what to actually buy.
+//
+// Important: we deliberately pass /checkout/init WITHOUT a query string, even
+// though we have info available. Clerk has a history of stripping query params
+// from forceRedirectUrl in some flows (see clerk/javascript#2440 and #3796).
+// The actual plan / wedge details are read from sessionStorage on the other
+// side — set by Pricing.tsx before the navigation here.
+function postAuthRedirectUrl(): string {
+  if (typeof window === 'undefined') return '/';
+  const params = new URLSearchParams(window.location.search);
+  const plan = params.get('plan');
+  const wedge = params.get('wedge');
+  if (plan === 'starter' || plan === 'pro' || wedge === '1') {
+    return `/checkout/init`;
+  }
+  return '/';
+}
 
 const clerkAppearance = {
   variables: {
@@ -54,6 +74,12 @@ export function SignIn() {
     return null;
   }
 
+  // Render sign-up vs sign-in based on path. Visitors arriving from a paid CTA
+  // hit /sign-up — we want them on the sign-up form, not the sign-in form.
+  const isSignUp = typeof window !== 'undefined' && window.location.pathname === '/sign-up';
+  const redirectUrl = postAuthRedirectUrl();
+  const queryString = typeof window !== 'undefined' ? window.location.search : '';
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-12 bg-bg-base relative overflow-hidden">
       {/* Subtle gradient mesh */}
@@ -87,13 +113,21 @@ export function SignIn() {
         </p>
       </div>
 
-      {/* Embedded Clerk sign-in */}
+      {/* Embedded Clerk sign-in or sign-up */}
       <div className="relative z-10 w-full max-w-sm">
-        <ClerkSignIn
-          appearance={clerkAppearance}
-          forceRedirectUrl="/"
-          signUpUrl="/sign-in"
-        />
+        {isSignUp ? (
+          <ClerkSignUp
+            appearance={clerkAppearance}
+            forceRedirectUrl={redirectUrl}
+            signInUrl={`/sign-in${queryString}`}
+          />
+        ) : (
+          <ClerkSignIn
+            appearance={clerkAppearance}
+            forceRedirectUrl={redirectUrl}
+            signUpUrl={`/sign-up${queryString}`}
+          />
+        )}
       </div>
 
       {/* Footer */}

@@ -60,13 +60,18 @@ export async function handlePaymentsRequest(
       return Response.json({ success: false, error: 'Email required' }, { status: 400 });
     }
 
+    const origin = new URL(request.url).origin;
+    // cancel_url is sent speculatively — Dodo's docs only formally cover return_url,
+    // but most checkout providers honor cancel_url when present. If they ignore it,
+    // user just stays on the Dodo tab on cancel (no harm done).
     const session = await dodoFetch<{ checkout_url: string }>(env, '/checkouts', {
       method: 'POST',
       body: JSON.stringify({
         product_cart: [{ product_id: productId, quantity: 1 }],
         customer: { email: body.email, name: body.name },
         metadata: { clerk_user_id: userId },
-        return_url: `${new URL(request.url).origin}/checkout/success`,
+        return_url: `${origin}/checkout/success`,
+        cancel_url: `${origin}/?upgrade-cancelled=${encodeURIComponent(body.plan)}`,
       }),
     });
 
@@ -84,7 +89,37 @@ export async function handlePaymentsRequest(
       return Response.json({ success: false, error: 'Email required' }, { status: 400 });
     }
 
+    // Subscriber-only top-ups, with one $5 trial allowed per free account.
+    // UI gate alone is bypassable via direct API call — this is the real lock.
+    const subscription = await getSubscription(env.DB, userId);
+    const plan = subscription?.plan ?? 'free';
+    const status = subscription?.status ?? 'active';
+    const isActiveSubscriber =
+      (plan === 'starter' || plan === 'pro') && status === 'active';
+
+    if (!isActiveSubscriber) {
+      if (amount !== 5) {
+        return Response.json(
+          { success: false, error: 'Top-ups require an active Starter or Pro subscription.' },
+          { status: 403 },
+        );
+      }
+      // Allow exactly one $5 trial per account. payment.succeeded only fires for
+      // top-ups (subscription charges fire subscription.renewed), so its presence
+      // for this user means the wedge has already been used.
+      const prior = await env.DB.prepare(
+        `SELECT 1 FROM payment_events WHERE user_id = ? AND event_type = 'payment.succeeded' LIMIT 1`,
+      ).bind(userId).first();
+      if (prior) {
+        return Response.json(
+          { success: false, error: 'Trial already used — subscribe to Starter or Pro for more top-ups.' },
+          { status: 403 },
+        );
+      }
+    }
+
     const amountCents = Math.round(amount * 100);
+    const origin = new URL(request.url).origin;
     const session = await dodoFetch<{ checkout_url: string }>(env, '/checkouts', {
       method: 'POST',
       body: JSON.stringify({
@@ -94,7 +129,8 @@ export async function handlePaymentsRequest(
           clerk_user_id: userId,
           topup_usd_cents: String(amountCents),
         },
-        return_url: `${new URL(request.url).origin}/checkout/success`,
+        return_url: `${origin}/checkout/success`,
+        cancel_url: `${origin}/?topup-cancelled=${amount}`,
       }),
     });
 

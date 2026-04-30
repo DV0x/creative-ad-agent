@@ -46,8 +46,37 @@ agent/.claude/skills/art-style/workflows/ ........... 14 art style workflows
 ```
 
 ## D1 Tables
-`campaigns`, `campaign_files`, `campaign_images`, `messages`, `asset_folders`, `asset_files`
+`campaigns`, `campaign_files`, `campaign_images`, `messages`, `asset_folders`, `asset_files`,
+`user_credits`, `usage_log`, `user_events`, `user_subscriptions`, `payment_events`
 Schema: `cloudflare/schema.sql`
+
+## Manual Credit Grants (Design Partners)
+
+For cold-launch design partners — DM a D2C founder, hand them N credits, watch them generate. No UI for v1; SQL is fine.
+
+```bash
+# Get the user_id from Clerk (look up by email in user_subscriptions or ask them for it)
+# Credits are stored in USD: 10 credits = $1.00. So 50 credits = $5 USD = balance_usd_topup += 5.0
+
+# Grant 50 credits (= 1 full campaign worth) to a specific user
+npx wrangler d1 execute creative-agent-db --remote --command="
+  INSERT OR IGNORE INTO user_credits (user_id) VALUES ('<clerk_user_id>');
+  UPDATE user_credits SET balance_usd_topup = balance_usd_topup + 5.0,
+    updated_at = datetime('now') WHERE user_id = '<clerk_user_id>';
+"
+
+# Grant 200 credits (~5 campaigns) for a more involved design partner
+# (replace 5.0 with 20.0 for $20 worth)
+
+# Verify the grant landed
+npx wrangler d1 execute creative-agent-db --remote --command="
+  SELECT user_id, balance_usd, balance_usd_topup,
+    (balance_usd + balance_usd_topup) * 10 AS total_credits
+  FROM user_credits WHERE user_id = '<clerk_user_id>';
+"
+```
+
+Use `creative-agent-db-prod` for production. Top-up pool (`balance_usd_topup`) is permanent — never reset by subscription renewal. Plan pool (`balance_usd`) is wiped on `subscription.renewed`/`expired`, so don't grant trial credits there.
 
 ## SDK Context Management (Research Notes)
 
