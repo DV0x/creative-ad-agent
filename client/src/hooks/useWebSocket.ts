@@ -131,6 +131,12 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'phase':
           if (isPhaseEvent(message) && campaignId && messageId) {
             const label = message.label || message.phase;
+            // Server's imageCount is authoritative — the orchestrator has parsed the prompt
+            // and decided. Sync it so skeletons render correctly even when the client-side
+            // parser missed (vague follow-ups, edge phrasings).
+            if (typeof message.imageCount === 'number' && message.imageCount > 0) {
+              store.setGenerationExpectedImages(message.imageCount);
+            }
             // Open a thinking block if none exists yet (follow-ups don't pre-create one)
             if (!store.hasActiveThinkingBlock(campaignId, messageId)) {
               store.openThinkingBlock(campaignId, messageId, label, message.imageCount);

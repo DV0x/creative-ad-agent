@@ -707,11 +707,16 @@ export const useStore = create<Store>((set, get) => ({
   startFollowUp: (campaignId, prompt) => {
     const userMessageId = generateId('msg')
     const assistantMessageId = generateId('msg')
+    // Best-guess expected count from the prompt. Vague follow-ups ("yes do it") parse to 0;
+    // we keep the prior count in that case and let the server's phase-event imageCount be
+    // the authoritative override (see useWebSocket phase handler).
+    const parsedCount = parseExpectedImageCount(prompt)
 
     set((state) => ({
       generatingCampaignId: campaignId,
       isFollowUp: true,
       currentGeneratingMessageId: assistantMessageId,
+      generationExpectedImages: parsedCount > 0 ? parsedCount : state.generationExpectedImages,
       chatMessages: {
         ...state.chatMessages,
         [campaignId]: [

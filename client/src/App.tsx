@@ -20,6 +20,7 @@ function AppContent() {
     campaigns,
     activeCampaignId,
     generatingCampaignId,
+    generationExpectedImages,
     isCreatingCampaign,
     dataLoading,
     setDataLoading,
@@ -313,14 +314,26 @@ function AppContent() {
         <AppLayout>
           {showLanding && isCreatingCampaign && <EmptyState />}
           {showWorkspace && (() => {
-            // Welcome editorial state shows whenever the workspace has no real visual work to display:
-            // either zero campaigns, or the active campaign hasn't started generating images yet.
-            // Disappears the instant generation kicks off (skeletons take over via ResultsView).
+            // Welcome hero is the fresh-start surface. It shows only when there's no real
+            // image-pipeline work to display AND no recovery action is needed. Two gates:
+            //   1. isGeneratingImages — uses generationExpectedImages > 0 to distinguish a real
+            //      image run from a chat-only WS exchange ("Hi", "yes do it") that briefly sets
+            //      generatingCampaignId without producing images.
+            //   2. isStranded — incomplete/cancelled/error campaigns fall through to ResultsView
+            //      so users see Resume / retry affordances instead of a stale welcome.
             const activeCampaign = activeCampaignId ? campaigns.find(c => c.id === activeCampaignId) : null
-            const isActiveGenerating = generatingCampaignId !== null && generatingCampaignId === activeCampaignId
+            const isGeneratingImages =
+              generatingCampaignId !== null &&
+              generatingCampaignId === activeCampaignId &&
+              generationExpectedImages > 0
+            const isStranded = !!activeCampaign && (
+              activeCampaign.status === 'incomplete' ||
+              activeCampaign.status === 'cancelled' ||
+              activeCampaign.status === 'error'
+            )
             const showWelcomeHero =
               campaigns.length === 0 ||
-              (activeCampaign && activeCampaign.images.length === 0 && !isActiveGenerating)
+              (activeCampaign && activeCampaign.images.length === 0 && !isGeneratingImages && !isStranded)
             return showWelcomeHero ? <EmptyState /> : <ResultsView />
           })()}
         </AppLayout>

@@ -67,20 +67,28 @@ function useRotatingPrompt(prompts: string[], enabled: boolean, interval = 3500)
 }
 
 export function EmptyState() {
-  const { prompt, setPrompt, selectedAspectRatio, setSelectedAspectRatio, isCreatingCampaign, campaigns, activeCampaignId, generatingCampaignId, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration, appState } = useStore()
+  const { prompt, setPrompt, selectedAspectRatio, setSelectedAspectRatio, isCreatingCampaign, campaigns, activeCampaignId, generatingCampaignId, generationExpectedImages, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration, appState } = useStore()
   const { setMobileDrawerOpen, setMobileAssetsOpen } = useSidebars()
   const { isConnected, generate } = useWebSocket()
   const { requireAuth } = useRequireAuth()
   const [inputFocused, setInputFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
-  // Editorial mode: workspace + no visual work to display (zero campaigns, or active campaign
-  // hasn't kicked off image generation yet). App.tsx duplicates this gate when picking what to render.
+  // Editorial mode: workspace + no visual work to display + no recovery action needed.
+  // Mirror of the gate in App.tsx — keep these two in sync. See App.tsx for full reasoning.
   const activeCampaign = activeCampaignId ? campaigns.find(c => c.id === activeCampaignId) : null
-  const isActiveGenerating = generatingCampaignId !== null && generatingCampaignId === activeCampaignId
+  const isGeneratingImages =
+    generatingCampaignId !== null &&
+    generatingCampaignId === activeCampaignId &&
+    generationExpectedImages > 0
+  const isStranded = !!activeCampaign && (
+    activeCampaign.status === 'incomplete' ||
+    activeCampaign.status === 'cancelled' ||
+    activeCampaign.status === 'error'
+  )
   const isWorkspaceEmpty = appState === 'workspace' && (
     campaigns.length === 0 ||
-    (!!activeCampaign && activeCampaign.images.length === 0 && !isActiveGenerating)
+    (!!activeCampaign && activeCampaign.images.length === 0 && !isGeneratingImages && !isStranded)
   )
 
   // First name for editorial greeting. Match codebase pattern (conditional Clerk hook in dev mode).
