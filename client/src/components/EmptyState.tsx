@@ -176,7 +176,7 @@ export function EmptyState() {
               >
                 Welcome in{firstName ? <>, <span className="text-[#AB406C]">{firstName}</span></> : null}.
                 <br />
-                Your studio is open.
+                What ads are we cooking?
               </h1>
 
               <div
