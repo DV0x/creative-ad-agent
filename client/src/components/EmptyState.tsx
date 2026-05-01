@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from 'react'
 import { ArrowUp, FolderIcon } from 'lucide-react'
+import { useUser } from '@clerk/clerk-react'
 import { Button } from '@/components/ui/button'
 import { useStore } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { useWebSocket } from '@/hooks/useWebSocket'
 import { useRequireAuth } from '@/contexts/AuthContext'
+import { isDevMode } from '@/lib/auth'
 
 const SHOWCASE_IMAGES = [
   '/showcase/1.png',
@@ -30,36 +32,68 @@ const EXAMPLE_PROMPTS = [
   'Run a back-to-school promo for warbyparker.com glasses',
 ]
 
-function useRotatingPrompt(prompts: string[], enabled: boolean, interval = 3000) {
-  const [index, setIndex] = useState(0)
-  const [isTransitioning, setIsTransitioning] = useState(false)
+const TICKER_ANIM_MS = 720
+
+function useRotatingPrompt(prompts: string[], enabled: boolean, interval = 3500) {
+  const [state, setState] = useState<{
+    index: number
+    previous: string | null
+    tick: number
+  }>({ index: 0, previous: null, tick: 0 })
 
   useEffect(() => {
     if (!enabled) return
     const timer = setInterval(() => {
-      setIsTransitioning(true)
-      setTimeout(() => {
-        setIndex(i => (i + 1) % prompts.length)
-        setIsTransitioning(false)
-      }, 300)
+      setState(s => ({
+        index: (s.index + 1) % prompts.length,
+        previous: prompts[s.index],
+        tick: s.tick + 1,
+      }))
     }, interval)
     return () => clearInterval(timer)
-  }, [enabled, prompts.length, interval])
+  }, [enabled, prompts.length, interval, prompts])
 
-  return { text: prompts[index], isTransitioning }
+  // Drop the outgoing layer once its exit animation finishes
+  useEffect(() => {
+    if (state.previous == null) return
+    const t = setTimeout(
+      () => setState(s => ({ ...s, previous: null })),
+      TICKER_ANIM_MS,
+    )
+    return () => clearTimeout(t)
+  }, [state.tick, state.previous])
+
+  return { current: prompts[state.index], previous: state.previous, tick: state.tick }
 }
 
 export function EmptyState() {
-  const { prompt, setPrompt, selectedAspectRatio, setSelectedAspectRatio, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration } = useStore()
+  const { prompt, setPrompt, selectedAspectRatio, setSelectedAspectRatio, isCreatingCampaign, campaigns, activeCampaignId, generatingCampaignId, setActiveCampaignId, setAppState, pendingGeneration, setPendingGeneration, appState } = useStore()
   const { setMobileDrawerOpen, setMobileAssetsOpen } = useSidebars()
   const { isConnected, generate } = useWebSocket()
   const { requireAuth } = useRequireAuth()
   const [inputFocused, setInputFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
 
+  // Editorial mode: workspace + no visual work to display (zero campaigns, or active campaign
+  // hasn't kicked off image generation yet). App.tsx duplicates this gate when picking what to render.
+  const activeCampaign = activeCampaignId ? campaigns.find(c => c.id === activeCampaignId) : null
+  const isActiveGenerating = generatingCampaignId !== null && generatingCampaignId === activeCampaignId
+  const isWorkspaceEmpty = appState === 'workspace' && (
+    campaigns.length === 0 ||
+    (!!activeCampaign && activeCampaign.images.length === 0 && !isActiveGenerating)
+  )
+
+  // First name for editorial greeting. Match codebase pattern (conditional Clerk hook in dev mode).
+  const clerkUser = isDevMode() ? null : useUser().user
+  const firstName =
+    clerkUser?.firstName ||
+    clerkUser?.username ||
+    clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+    null
+
   // Rotating placeholder — only runs when input is empty and not focused
   const showRotating = !prompt && !inputFocused && !isCreatingCampaign
-  const { text: rotatingText, isTransitioning } = useRotatingPrompt(EXAMPLE_PROMPTS, showRotating)
+  const { current: rotatingText, previous: previousText, tick } = useRotatingPrompt(EXAMPLE_PROMPTS, showRotating)
 
   const handleSubmit = (e?: React.FormEvent) => {
     e?.preventDefault()
@@ -119,112 +153,141 @@ export function EmptyState() {
   return (
     <div className="h-full flex flex-col bg-bg-base overflow-auto">
 
-      {/* Hero — split layout on desktop, stacked on mobile */}
-      <div className="flex-1 flex flex-col lg:flex-row items-center justify-center min-h-[100vh] px-6 md:px-12 lg:px-16 pt-24 pb-12 gap-12 lg:gap-16 max-w-7xl mx-auto w-full">
+      {/* Hero — split layout on desktop, stacked on mobile. Workspace-empty mode collapses to single column. */}
+      <div className={`relative flex-1 flex flex-col items-center justify-center min-h-[100vh] px-6 md:px-12 lg:px-16 pt-24 pb-12 gap-12 max-w-7xl mx-auto w-full ${!isWorkspaceEmpty ? 'lg:flex-row lg:gap-16' : ''}`}>
 
         {/* Left: heading + input */}
-        <div className="w-full lg:w-1/2 lg:max-w-lg">
+        <div className={`w-full ${!isWorkspaceEmpty ? 'lg:w-1/2 lg:max-w-lg' : 'lg:max-w-2xl'}`}>
 
-          {/* Heading */}
-          <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-text-primary leading-[1.08]">
-            {isCreatingCampaign
-              ? 'New campaign'
-              : <>Turn any brand into{' '}<br className="hidden md:block" />an ad campaign.</>}
-          </h1>
-          <p className="mt-4 text-text-secondary text-base leading-relaxed">
-            {isCreatingCampaign
-              ? 'Enter a website URL or describe the business.'
-              : 'Just drop a URL. AI handles the research, strategy, and creatives.'}
-          </p>
+          {isWorkspaceEmpty ? (
+            <>
+              {/* Editorial empty-state hero — chat sidebar is the action surface */}
+              <h1
+                className="text-5xl md:text-6xl lg:text-7xl font-bold tracking-tight text-text-primary leading-[1.05] editorial-fade-up"
+                style={{ animation: 'editorialFadeUp 600ms cubic-bezier(0.16, 1, 0.3, 1) 0ms both' }}
+              >
+                Welcome in{firstName ? <>, <span className="text-[#AB406C]">{firstName}</span></> : null}.
+                <br />
+                Your studio is open.
+              </h1>
 
-          {/* Input card */}
-          <form onSubmit={handleSubmit} className="mt-8">
-            <div className={`rounded-2xl border bg-white transition-all duration-200 relative ${
-              inputFocused
-                ? 'border-border-emphasis shadow-lg'
-                : 'border-border shadow-md'
-            }`}>
-              {/* Rotating placeholder overlay */}
-              {showRotating && (
-                <div
-                  className="absolute left-4 top-4 right-12 pointer-events-none overflow-hidden"
-                  onClick={() => textareaRef.current?.focus()}
-                >
-                  <span
-                    className={`block text-base text-text-muted transition-all duration-300 ease-out ${
-                      isTransitioning
-                        ? 'opacity-0 -translate-y-2'
-                        : 'opacity-100 translate-y-0'
-                    }`}
-                  >
-                    {rotatingText}
-                  </span>
-                </div>
-              )}
-              <textarea
-                ref={textareaRef}
-                value={prompt}
-                onChange={(e) => setPrompt(e.target.value)}
-                onFocus={() => setInputFocused(true)}
-                onBlur={() => setInputFocused(false)}
-                onKeyDown={handleKeyDown}
-                placeholder={inputFocused ? 'Enter a URL or describe your business...' : ''}
-                rows={2}
-                className="w-full resize-none bg-transparent text-text-primary placeholder:text-text-muted px-4 pt-4 pb-2 text-base outline-none focus:outline-none focus-visible:outline-none relative z-10"
-                autoFocus={isCreatingCampaign}
+              <div
+                className="mt-8 h-[2px] w-8 bg-[#AB406C] editorial-fade-up"
+                style={{ animation: 'editorialFadeUp 480ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both' }}
               />
+            </>
+          ) : (
+            <>
+              {/* Heading */}
+              <h1 className="text-4xl md:text-5xl lg:text-[3.5rem] font-bold tracking-tight text-text-primary leading-[1.08]">
+                {isCreatingCampaign
+                  ? 'New campaign'
+                  : <>Turn any brand into{' '}<br className="hidden md:block" />an ad campaign.</>}
+              </h1>
+              <p className="mt-4 text-text-secondary text-base leading-relaxed">
+                {isCreatingCampaign
+                  ? 'Enter a website URL or describe the business.'
+                  : 'Just drop a URL. AI handles the research, strategy, and creatives.'}
+              </p>
 
-              <div className="flex items-center justify-between px-3 pb-3">
-                <div className="flex items-center gap-1">
-                  {(['4:5', '1:1', '9:16'] as const).map((ratio) => (
-                    <button
-                      key={ratio}
-                      type="button"
-                      onClick={() => setSelectedAspectRatio(ratio)}
-                      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors duration-150 ${
-                        selectedAspectRatio === ratio
-                          ? 'bg-bg-elevated text-text-primary'
-                          : 'text-text-muted hover:text-text-secondary hover:bg-bg-elevated/50'
-                      }`}
+              {/* Input card */}
+              <form onSubmit={handleSubmit} className="mt-8">
+                <div className={`rounded-2xl border bg-white transition-all duration-200 relative ${
+                  inputFocused
+                    ? 'border-border-emphasis shadow-lg'
+                    : 'border-border shadow-md'
+                }`}>
+                  {/* Rotating placeholder — ticker-style cross-slide */}
+                  {showRotating && (
+                    <div
+                      className="absolute left-4 top-4 right-12 h-6 overflow-hidden cursor-text"
+                      onClick={() => textareaRef.current?.focus()}
+                      aria-hidden="true"
                     >
-                      {ratio}
-                    </button>
-                  ))}
-                </div>
+                      {previousText && (
+                        <span
+                          key={`out-${tick}`}
+                          className="absolute inset-0 block text-base text-text-muted whitespace-nowrap overflow-hidden text-ellipsis ticker-text-exiting"
+                          style={{ animation: 'tickerRotateOut 720ms cubic-bezier(0.16, 1, 0.3, 1) both', willChange: 'transform, opacity' }}
+                        >
+                          {previousText}
+                        </span>
+                      )}
+                      <span
+                        key={`in-${tick}`}
+                        className="absolute inset-0 block text-base text-text-muted whitespace-nowrap overflow-hidden text-ellipsis ticker-text-entering"
+                        style={{ animation: 'tickerRotateIn 720ms cubic-bezier(0.16, 1, 0.3, 1) both', willChange: 'transform, opacity' }}
+                      >
+                        {rotatingText}
+                      </span>
+                    </div>
+                  )}
+                  <textarea
+                    ref={textareaRef}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onFocus={() => setInputFocused(true)}
+                    onBlur={() => setInputFocused(false)}
+                    onKeyDown={handleKeyDown}
+                    placeholder={inputFocused ? 'Enter a URL or describe your business...' : ''}
+                    rows={2}
+                    className="w-full resize-none bg-transparent text-text-primary placeholder:text-text-muted px-4 pt-4 pb-2 text-base outline-none focus:outline-none focus-visible:outline-none relative z-10"
+                    autoFocus={isCreatingCampaign}
+                  />
 
-                <div className="flex items-center gap-2">
-                  <button
-                    type="submit"
-                    disabled={!prompt.trim()}
-                    className="h-8 w-8 flex items-center justify-center rounded-lg bg-text-primary text-white hover:bg-text-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
-                  >
-                    <ArrowUp className="w-4 h-4" />
-                  </button>
+                  <div className="flex items-center justify-between px-3 pb-3">
+                    <div className="flex items-center gap-1">
+                      {(['4:5', '1:1', '9:16'] as const).map((ratio) => (
+                        <button
+                          key={ratio}
+                          type="button"
+                          onClick={() => setSelectedAspectRatio(ratio)}
+                          className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors duration-150 ${
+                            selectedAspectRatio === ratio
+                              ? 'bg-bg-elevated text-text-primary'
+                              : 'text-text-muted hover:text-text-secondary hover:bg-bg-elevated/50'
+                          }`}
+                        >
+                          {ratio}
+                        </button>
+                      ))}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="submit"
+                        disabled={!prompt.trim()}
+                        className="h-8 w-8 flex items-center justify-center rounded-lg bg-text-primary text-white hover:bg-text-primary/90 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150"
+                      >
+                        <ArrowUp className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
                 </div>
+              </form>
+
+              {/* Process strip */}
+              <div className="mt-5 flex items-center gap-4 text-xs text-text-muted">
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-bold text-text-secondary">1</span>
+                  Research
+                </span>
+                <span className="text-border-emphasis">—</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-bold text-text-secondary">2</span>
+                  Ad hooks
+                </span>
+                <span className="text-border-emphasis">—</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-bold text-text-secondary">3</span>
+                  Creative pack
+                </span>
               </div>
-            </div>
-          </form>
-
-          {/* Process strip */}
-          <div className="mt-5 flex items-center gap-4 text-xs text-text-muted">
-            <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-bold text-text-secondary">1</span>
-              Research
-            </span>
-            <span className="text-border-emphasis">—</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-bold text-text-secondary">2</span>
-              Ad hooks
-            </span>
-            <span className="text-border-emphasis">—</span>
-            <span className="flex items-center gap-1.5">
-              <span className="w-5 h-5 rounded-full bg-bg-elevated flex items-center justify-center text-[10px] font-bold text-text-secondary">3</span>
-              6 creatives
-            </span>
-          </div>
+            </>
+          )}
 
           {/* Recent campaigns — compact, below input on desktop */}
-          {!isCreatingCampaign && recentCampaigns.length > 0 && (
+          {!isCreatingCampaign && !isWorkspaceEmpty && recentCampaigns.length > 0 && (
             <div className="mt-8 hidden lg:block">
               <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Recent</p>
               <div className="flex gap-2 flex-wrap">
@@ -242,7 +305,8 @@ export function EmptyState() {
           )}
         </div>
 
-        {/* Right: bento grid of sample creatives */}
+        {/* Right: bento grid of sample creatives — hidden in workspace-empty mode */}
+        {!isWorkspaceEmpty && (
         <div className="w-full lg:w-1/2 lg:max-w-xl">
           <div className="grid grid-cols-3 gap-3 auto-rows-auto">
             {/* Row 1: large + two stacked */}
@@ -292,10 +356,56 @@ export function EmptyState() {
             </div>
           </div>
         </div>
+        )}
+
+        {/* Long directional arrow → chat. Bottom-right of hero, desktop only. */}
+        {isWorkspaceEmpty && (
+          <div
+            className="absolute bottom-16 right-6 lg:right-12 hidden lg:flex items-center gap-4 text-sm font-medium text-text-secondary"
+            style={{ animation: 'editorialFadeUp 480ms cubic-bezier(0.16, 1, 0.3, 1) 500ms both' }}
+          >
+            <span>Start a brief in chat</span>
+            <span
+              className="text-[#AB406C] inline-flex"
+              style={{ animation: 'editorialArrowNudge 2s ease-in-out 2200ms infinite', willChange: 'transform' }}
+              aria-hidden="true"
+            >
+              <svg
+                width="220"
+                height="24"
+                viewBox="0 0 220 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                {/* Long, gently curving line — hand-drawn quality */}
+                <path
+                  d="M 4 14 C 40 14 60 10 100 11 S 160 13 200 12 L 210 12"
+                  style={{
+                    strokeDasharray: 320,
+                    strokeDashoffset: 320,
+                    animation: 'editorialArrowDraw 1.4s cubic-bezier(0.65, 0, 0.35, 1) 700ms forwards',
+                  }}
+                />
+                {/* Arrowhead */}
+                <path
+                  d="M 204 8 L 210 12 L 204 16"
+                  style={{
+                    strokeDasharray: 20,
+                    strokeDashoffset: 20,
+                    animation: 'editorialArrowDraw 0.3s cubic-bezier(0.65, 0, 0.35, 1) 1900ms forwards',
+                  }}
+                />
+              </svg>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Mobile recent campaigns */}
-      {!isCreatingCampaign && recentCampaigns.length > 0 && (
+      {!isCreatingCampaign && !isWorkspaceEmpty && recentCampaigns.length > 0 && (
         <div className="lg:hidden px-6 pb-12">
           <p className="text-xs font-medium text-text-muted uppercase tracking-wide mb-2">Recent</p>
           <div className="flex gap-2 flex-wrap">

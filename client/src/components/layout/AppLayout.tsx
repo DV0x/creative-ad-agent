@@ -85,6 +85,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const activeFileType = useStore(state => state.activeFileType)
   const appState = useStore(state => state.appState)
   const generatingCampaignId = useStore(state => state.generatingCampaignId)
+  const campaignsCount = useStore(state => state.campaigns.length)
   const isEditorOpen = activeFileType !== null
 
   // Show workspace (sidebars) when in workspace mode
@@ -100,6 +101,14 @@ export function AppLayout({ children }: AppLayoutProps) {
       }
     }
   }, [isWorkspace, generatingCampaignId, isMobile])
+
+  // Auto-open chat sidebar for first-time paying users (workspace + zero campaigns).
+  // Desktop only — mobile drawer would block the empty-state input.
+  React.useEffect(() => {
+    if (isWorkspace && campaignsCount === 0 && !isMobile) {
+      setRightOpen(true)
+    }
+  }, [isWorkspace, campaignsCount, isMobile])
 
   const toggleLeft = React.useCallback(() => {
     if (isMobile) {

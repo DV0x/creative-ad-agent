@@ -18,6 +18,8 @@ function AppContent() {
   const {
     appState,
     campaigns,
+    activeCampaignId,
+    generatingCampaignId,
     isCreatingCampaign,
     dataLoading,
     setDataLoading,
@@ -310,7 +312,17 @@ function AppContent() {
       ) : (
         <AppLayout>
           {showLanding && isCreatingCampaign && <EmptyState />}
-          {showWorkspace && <ResultsView />}
+          {showWorkspace && (() => {
+            // Welcome editorial state shows whenever the workspace has no real visual work to display:
+            // either zero campaigns, or the active campaign hasn't started generating images yet.
+            // Disappears the instant generation kicks off (skeletons take over via ResultsView).
+            const activeCampaign = activeCampaignId ? campaigns.find(c => c.id === activeCampaignId) : null
+            const isActiveGenerating = generatingCampaignId !== null && generatingCampaignId === activeCampaignId
+            const showWelcomeHero =
+              campaigns.length === 0 ||
+              (activeCampaign && activeCampaign.images.length === 0 && !isActiveGenerating)
+            return showWelcomeHero ? <EmptyState /> : <ResultsView />
+          })()}
         </AppLayout>
       )}
 

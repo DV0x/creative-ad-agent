@@ -79,7 +79,7 @@ const components: Components = {
       )
     }
     return (
-      <code className="font-mono text-[0.85em] bg-bg-overlay text-pop px-1.5 py-0.5 rounded">
+      <code className="font-mono text-[0.85em] bg-bg-overlay text-pop-ink px-1.5 py-0.5 rounded">
         {children}
       </code>
     )
