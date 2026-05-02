@@ -1,9 +1,8 @@
 import { useEffect, useCallback } from 'react'
 import { Download, X, ChevronLeft, ChevronRight } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { AuthImage } from '@/components/AuthImage'
 import { authFetchBlob } from '@/lib/api'
-import { HOOK_TYPE_LABELS, type GeneratedImage } from '@/types/chat'
+import { type GeneratedImage } from '@/types/chat'
 import { cn } from '@/lib/utils'
 
 interface ImageLightboxProps {
@@ -12,6 +11,13 @@ interface ImageLightboxProps {
   isOpen: boolean
   onClose: () => void
   onNavigate: (index: number) => void
+}
+
+const CHROME_PILL: React.CSSProperties = {
+  backgroundColor: 'rgba(35, 31, 32, 0.62)',
+  backdropFilter: 'blur(10px)',
+  WebkitBackdropFilter: 'blur(10px)',
+  border: '1px solid rgba(255, 255, 255, 0.08)',
 }
 
 export function ImageLightbox({
@@ -69,94 +75,94 @@ export function ImageLightbox({
 
   if (!isOpen || !image) return null
 
+  const totalPadded = String(images.length).padStart(2, '0')
+  const currentPadded = String(currentIndex + 1).padStart(2, '0')
+
   return (
     <div
-      className="fixed inset-0 z-50 flex flex-col"
+      className="fixed inset-0 z-50 flex items-center justify-center"
       role="dialog"
       aria-modal="true"
     >
-      {/* Backdrop */}
+      {/* Backdrop — deep ink, slight wine warmth */}
       <div
-        className="absolute inset-0 bg-black/90 animate-fadeIn"
+        className="absolute inset-0 animate-fadeIn"
+        style={{ backgroundColor: 'rgba(20, 16, 18, 0.94)' }}
         onClick={onClose}
       />
 
-      {/* Header */}
-      <div className="relative z-10 flex items-center justify-between px-4 py-3 bg-bg-base/80 backdrop-blur-sm border-b border-border">
-        <div className="flex items-center gap-3">
-          {image.hookType && HOOK_TYPE_LABELS[image.hookType] && (
-            <span className="px-2.5 py-1 text-xs font-medium bg-accent/90 rounded-md text-white">
-              {HOOK_TYPE_LABELS[image.hookType]}
-            </span>
-          )}
-          <span className="text-sm text-text-secondary">
-            Image {currentIndex + 1} of {images.length}
-          </span>
-        </div>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={handleDownload}
-            className="text-text-muted hover:text-text-primary"
-            title="Download"
-          >
-            <Download className="w-4 h-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={onClose}
-            className="text-text-muted hover:text-text-primary"
-            title="Close"
-          >
-            <X className="w-4 h-4" />
-          </Button>
-        </div>
+      {/* Floating top-left: counter */}
+      <div className="absolute top-5 left-5 z-10 animate-fadeIn">
+        <span
+          className="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-mono tracking-[0.14em] text-white/85"
+          style={CHROME_PILL}
+        >
+          {currentPadded} / {totalPadded}
+        </span>
       </div>
 
-      {/* Image area */}
-      <div className="relative z-10 flex-1 flex items-center justify-center min-h-0 p-4">
+      {/* Floating top-right: download + close */}
+      <div className="absolute top-5 right-5 z-10 flex items-center gap-2 animate-fadeIn">
+        <button
+          onClick={handleDownload}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white/85 hover:text-white transition-all duration-150 hover:scale-105 active:scale-95"
+          style={CHROME_PILL}
+          title="Download"
+        >
+          <Download className="w-4 h-4" />
+        </button>
+        <button
+          onClick={onClose}
+          className="w-9 h-9 rounded-full flex items-center justify-center text-white/85 hover:text-white transition-all duration-150 hover:scale-105 active:scale-95"
+          style={CHROME_PILL}
+          title="Close (Esc)"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {/* Image area — pointer-events-none so clicks around the image fall through
+          to the backdrop (closes), while the image itself catches its own clicks. */}
+      <div className="relative z-10 flex-1 flex items-center justify-center min-h-0 p-6 md:p-12 max-w-full max-h-full pointer-events-none">
         <AuthImage
           src={image.url}
           alt={`Image ${currentIndex + 1}`}
-          className="max-w-full max-h-full object-contain rounded-lg"
+          className="max-w-full max-h-[88vh] object-contain rounded-lg animate-fadeIn pointer-events-auto"
+          style={{ boxShadow: '0 20px 60px rgba(0, 0, 0, 0.5)' }}
         />
-
-        {/* Prev button */}
-        {hasPrev && (
-          <button
-            onClick={handlePrev}
-            className={cn(
-              'absolute left-3 top-1/2 -translate-y-1/2',
-              'w-10 h-10 rounded-full flex items-center justify-center',
-              'bg-bg-elevated/80 backdrop-blur-sm border border-border',
-              'text-text-secondary hover:text-text-primary hover:bg-bg-overlay',
-              'transition-all duration-150'
-            )}
-            title="Previous image"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-        )}
-
-        {/* Next button */}
-        {hasNext && (
-          <button
-            onClick={handleNext}
-            className={cn(
-              'absolute right-3 top-1/2 -translate-y-1/2',
-              'w-10 h-10 rounded-full flex items-center justify-center',
-              'bg-bg-elevated/80 backdrop-blur-sm border border-border',
-              'text-text-secondary hover:text-text-primary hover:bg-bg-overlay',
-              'transition-all duration-150'
-            )}
-            title="Next image"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        )}
       </div>
+
+      {/* Prev */}
+      {hasPrev && (
+        <button
+          onClick={handlePrev}
+          className={cn(
+            'absolute left-5 top-1/2 -translate-y-1/2 z-10',
+            'w-11 h-11 rounded-full flex items-center justify-center',
+            'text-white/85 hover:text-white transition-all duration-150 hover:scale-105 active:scale-95'
+          )}
+          style={CHROME_PILL}
+          title="Previous"
+        >
+          <ChevronLeft className="w-5 h-5" />
+        </button>
+      )}
+
+      {/* Next */}
+      {hasNext && (
+        <button
+          onClick={handleNext}
+          className={cn(
+            'absolute right-5 top-1/2 -translate-y-1/2 z-10',
+            'w-11 h-11 rounded-full flex items-center justify-center',
+            'text-white/85 hover:text-white transition-all duration-150 hover:scale-105 active:scale-95'
+          )}
+          style={CHROME_PILL}
+          title="Next"
+        >
+          <ChevronRight className="w-5 h-5" />
+        </button>
+      )}
     </div>
   )
 }

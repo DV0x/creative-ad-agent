@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Download, FolderIcon, ImageIcon, X, RefreshCw, Loader2 } from 'lucide-react'
+import { Download, FolderIcon, ImageIcon, X, RefreshCw, Loader2, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageCard, ImageCardSkeleton } from '@/components/ImageCard'
 import { ImageLightbox } from '@/components/ImageLightbox'
@@ -18,7 +18,6 @@ export function ResultsView() {
     generationExpectedImages,
   } = useStore()
 
-  // Lightbox state
   const [lightboxIndex, setLightboxIndex] = useState(0)
   const [isLightboxOpen, setIsLightboxOpen] = useState(false)
   const [isSavingAll, setIsSavingAll] = useState(false)
@@ -39,16 +38,13 @@ export function ResultsView() {
   const isIncomplete = campaign?.status === 'incomplete'
   const hasSelection = selectedImageIds.length > 0
 
-  // Handle resume for incomplete campaigns
   const handleResume = () => {
     if (!campaign) return
 
-    // Build resume prompt from existing campaign files
     const researchFile = campaign.files.find(f => f.type === 'research')
     const hooksFile = campaign.files.find(f => f.type === 'hooks')
     const promptsFile = campaign.files.find(f => f.type === 'prompts')
 
-    // Create a resume prompt with context
     const resumePrompt = `RESUME GENERATION for campaign "${campaign.name}".
 
 Existing context:
@@ -88,7 +84,6 @@ Please continue from where we left off and complete the remaining images.`
         link.click()
         document.body.removeChild(link)
       }
-      // Small delay between downloads so browser doesn't block them
       if (i < campaign.images.length - 1) {
         await new Promise(r => setTimeout(r, 300))
       }
@@ -104,7 +99,6 @@ Please continue from where we left off and complete the remaining images.`
     setMobileAssetsOpen(true)
   }
 
-  // If no campaign is active, show empty state
   if (!campaign) {
     return (
       <div className="h-full flex items-center justify-center bg-bg-base">
@@ -118,29 +112,74 @@ Please continue from where we left off and complete the remaining images.`
     )
   }
 
+  const imageCount = campaign.images.length
+  const showActiveChip = isGenerating
+  const showWorkingSession = imageCount > 0 || isGenerating
+
   return (
     <div className="h-full flex flex-col bg-bg-base overflow-hidden">
-      {/* Connection status banner */}
-      {connectionState === 'reconnecting' && (
-        <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-700 text-center animate-fadeIn">
-          Lost connection for a sec, reconnecting...
-        </div>
-      )}
-      {connectionState === 'disconnected' && (
-        <div className="bg-red-50 border-b border-red-200 px-4 py-2 text-sm text-red-600 text-center animate-fadeIn">
-          Connection's being stubborn — try refreshing the page
-        </div>
-      )}
-      {/* Header */}
-      <header className="h-14 border-b border-border bg-bg-base/80 backdrop-blur-sm shrink-0 z-10">
-        <div className="h-full px-4 flex items-center justify-between">
-          <span className="text-text-primary font-medium">
-            {formatCampaignName(campaign.name)}
-          </span>
-          <div className="flex items-center gap-2">
-            {/* Selection indicator */}
+      {/* Editorial toolbar — no border, breathes via spacing */}
+      <header className="h-13 shrink-0 z-10">
+        <div className="h-full px-5 flex items-center justify-between gap-4">
+          {/* Left: breadcrumb */}
+          <div className="flex items-center gap-2 min-w-0">
+            {campaign.brand && (
+              <>
+                <span className="text-[11px] uppercase tracking-[0.14em] font-mono text-text-muted truncate">
+                  {campaign.brand}
+                </span>
+                <ChevronRight className="w-3 h-3 text-text-muted/60 shrink-0" />
+              </>
+            )}
+            <span className="text-text-primary font-medium truncate">
+              {formatCampaignName(campaign.name)}
+            </span>
+            {showActiveChip && (
+              <span
+                className="ml-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-mono shrink-0"
+                style={{
+                  backgroundColor: 'var(--color-accent-subtle)',
+                  color: 'var(--color-accent)',
+                }}
+              >
+                Active
+              </span>
+            )}
+          </div>
+
+          {/* Right: connection + actions */}
+          <div className="flex items-center gap-3 shrink-0">
+            {/* Connection status — small inline pill */}
+            {connectionState === 'reconnecting' && (
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-mono animate-fadeIn"
+                style={{
+                  backgroundColor: 'rgba(184, 121, 31, 0.10)',
+                  color: '#8a5a18',
+                }}
+              >
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{ backgroundColor: '#b8791f', animation: 'cm-breathe 1.4s ease-in-out infinite' }}
+                />
+                reconnecting
+              </span>
+            )}
+            {connectionState === 'disconnected' && (
+              <span
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-mono animate-fadeIn"
+                style={{
+                  backgroundColor: 'rgba(180, 35, 24, 0.10)',
+                  color: '#a52a1f',
+                }}
+              >
+                <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#a52a1f' }} />
+                offline · refresh
+              </span>
+            )}
+
             {hasSelection && (
-              <div className="flex items-center gap-2 mr-2">
+              <div className="flex items-center gap-2">
                 <span className="text-sm text-accent font-medium">
                   {selectedImageIds.length} selected
                 </span>
@@ -153,7 +192,7 @@ Please continue from where we left off and complete the remaining images.`
                 </button>
               </div>
             )}
-            {/* Resume button for incomplete campaigns */}
+
             {isIncomplete && (
               <Button
                 variant="glow"
@@ -165,11 +204,33 @@ Please continue from where we left off and complete the remaining images.`
                 <span className="hidden sm:inline">Resume</span>
               </Button>
             )}
-            {campaign.images.length > 0 && (
-              <Button variant="outline" size="sm" onClick={handleSaveAll} disabled={isSavingAll}>
-                {isSavingAll ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
-                <span className="hidden sm:inline">{isSavingAll ? 'Saving...' : 'Save All'}</span>
-              </Button>
+
+            {imageCount > 0 && (
+              <button
+                onClick={handleSaveAll}
+                disabled={isSavingAll}
+                className="inline-flex items-center gap-1.5 h-8 px-3.5 rounded-full text-[12px] font-medium text-white transition-all duration-150 disabled:opacity-70 active:scale-[0.97]"
+                style={{
+                  backgroundColor: isSavingAll ? 'var(--color-accent-press)' : 'var(--color-accent)',
+                  boxShadow: '0 1px 2px rgba(120, 40, 74, 0.18)',
+                }}
+                onMouseEnter={(e) => {
+                  if (isSavingAll) return
+                  e.currentTarget.style.backgroundColor = 'var(--color-accent-hover)'
+                }}
+                onMouseLeave={(e) => {
+                  if (isSavingAll) return
+                  e.currentTarget.style.backgroundColor = 'var(--color-accent)'
+                }}
+                title="Download all"
+              >
+                {isSavingAll ? (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                ) : (
+                  <Download className="w-3.5 h-3.5" />
+                )}
+                <span className="hidden sm:inline">{isSavingAll ? 'Saving…' : 'Save all'}</span>
+              </button>
             )}
           </div>
         </div>
@@ -177,10 +238,24 @@ Please continue from where we left off and complete the remaining images.`
 
       {/* Main content area */}
       <div className="flex-1 flex overflow-hidden">
-        {/* Image grid */}
         <main className="flex-1 overflow-auto">
-          <div className="p-4 md:p-6">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="px-5 pb-6 pt-1 md:px-6 md:pb-8">
+            {showWorkingSession && (
+              <div className="flex items-center gap-2 mb-5 animate-fadeIn">
+                <span
+                  className="w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: 'var(--color-accent)',
+                    animation: isGenerating ? 'cm-breathe 1.6s ease-in-out infinite' : undefined,
+                  }}
+                />
+                <span className="text-[11px] uppercase tracking-[0.14em] font-mono text-text-muted">
+                  Working session
+                </span>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {campaign.images.map((image, index) => (
                 <ImageCard
                   key={image.id}
@@ -193,21 +268,17 @@ Please continue from where we left off and complete the remaining images.`
                   hookType={image.hookType}
                 />
               ))}
-              {/* Show skeleton cards for remaining images during generation */}
               {isGenerating && campaign.images.length < generationExpectedImages && (
                 Array.from({ length: generationExpectedImages - campaign.images.length }).map((_, i) => (
                   <ImageCardSkeleton key={`skeleton-${i}`} index={campaign.images.length + i + 1} />
                 ))
               )}
             </div>
-
-            {/* Empty state for "campaign exists but no images yet" is now handled at App.tsx
-                level — the welcome editorial hero stays mounted until generation kicks off. */}
           </div>
         </main>
       </div>
 
-      {/* Mobile floating buttons - only visible on mobile */}
+      {/* Mobile floating buttons */}
       <div className="md:hidden fixed bottom-4 left-4 z-20">
         <Button
           variant="outline"
@@ -229,7 +300,6 @@ Please continue from where we left off and complete the remaining images.`
         </Button>
       </div>
 
-      {/* Image lightbox */}
       <ImageLightbox
         images={campaign.images}
         currentIndex={lightboxIndex}
