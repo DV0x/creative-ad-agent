@@ -11,6 +11,7 @@ import { MobileAssetsDrawer } from '@/components/assets/MobileAssetsDrawer'
 import { MobileChatDrawer } from '@/components/chat/MobileChatDrawer'
 import { FileEditorPanel } from '@/components/editor/FileEditor'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useLocalStorageState } from '@/hooks/useLocalStorageState'
 import { useStore } from '@/store'
 
 // Sidebar dimensions
@@ -27,6 +28,8 @@ const EDITOR_DEFAULT_WIDTH = 400
 const STORAGE_KEY_LEFT_WIDTH = 'sidebar-left-width'
 const STORAGE_KEY_RIGHT_WIDTH = 'sidebar-right-width'
 const STORAGE_KEY_EDITOR_WIDTH = 'editor-panel-width'
+const STORAGE_KEY_LEFT_OPEN = 'sidebar-left-open'
+const STORAGE_KEY_RIGHT_OPEN = 'sidebar-right-open'
 
 interface SidebarState {
   leftOpen: boolean
@@ -52,17 +55,26 @@ export function useSidebars() {
   return context
 }
 
-// Load saved width from localStorage
-function loadSavedWidth(key: string, defaultWidth: number, minWidth: number, maxWidth: number): number {
+// Read a saved width on mount only. Subsequent saves happen manually on mouseUp
+// (not on every setLeftWidth call) — see the resize effect below.
+function loadInitialWidth(key: string, defaultWidth: number, minWidth: number, maxWidth: number): number {
   if (typeof window === 'undefined') return defaultWidth
-  const saved = localStorage.getItem(key)
-  if (saved) {
-    const width = parseInt(saved, 10)
-    if (!isNaN(width) && width >= minWidth && width <= maxWidth) {
-      return width
-    }
-  }
-  return defaultWidth
+  const raw = localStorage.getItem(key)
+  if (!raw) return defaultWidth
+  const n = parseInt(raw, 10)
+  if (isNaN(n) || n < minWidth || n > maxWidth) return defaultWidth
+  return n
+}
+
+// Detect "first ever visit" — no width preferences exist, meaning the user has
+// never resized either sidebar. Used to pick a sensible default for sidebar open
+// state on first load (chat-only for new users; both open for returning users).
+function isFirstVisit(): boolean {
+  if (typeof window === 'undefined') return true
+  return localStorage.getItem(STORAGE_KEY_LEFT_WIDTH) === null
+    && localStorage.getItem(STORAGE_KEY_RIGHT_WIDTH) === null
+    && localStorage.getItem(STORAGE_KEY_LEFT_OPEN) === null
+    && localStorage.getItem(STORAGE_KEY_RIGHT_OPEN) === null
 }
 
 interface AppLayoutProps {
@@ -70,11 +82,18 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const [leftOpen, setLeftOpen] = React.useState(false)
-  const [rightOpen, setRightOpen] = React.useState(false)
-  const [leftWidth, setLeftWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_LEFT_WIDTH, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
-  const [rightWidth, setRightWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_RIGHT_WIDTH, RIGHT_SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
-  const [editorWidth, setEditorWidth] = React.useState(() => loadSavedWidth(STORAGE_KEY_EDITOR_WIDTH, EDITOR_DEFAULT_WIDTH, EDITOR_MIN_WIDTH, EDITOR_MAX_WIDTH))
+  // Smart defaults computed at mount time (synchronous, no flicker):
+  //   - Returning user (any width or open preference saved): both sidebars open.
+  //   - Brand new user (no saved preferences): chat-only — left empty list isn't useful yet.
+  // Once the user toggles anything, localStorage takes over and the smart default no longer applies.
+  const firstVisit = React.useRef(isFirstVisit()).current
+  const [leftOpen, setLeftOpen] = useLocalStorageState<boolean>(STORAGE_KEY_LEFT_OPEN, !firstVisit)
+  const [rightOpen, setRightOpen] = useLocalStorageState<boolean>(STORAGE_KEY_RIGHT_OPEN, true)
+  // Widths intentionally do NOT use the hook — drag fires hundreds of setState calls per
+  // second and we only want to persist the final value (manual save on mouseUp below).
+  const [leftWidth, setLeftWidth] = React.useState(() => loadInitialWidth(STORAGE_KEY_LEFT_WIDTH, SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
+  const [rightWidth, setRightWidth] = React.useState(() => loadInitialWidth(STORAGE_KEY_RIGHT_WIDTH, RIGHT_SIDEBAR_DEFAULT_WIDTH, SIDEBAR_MIN_WIDTH, SIDEBAR_MAX_WIDTH))
+  const [editorWidth, setEditorWidth] = React.useState(() => loadInitialWidth(STORAGE_KEY_EDITOR_WIDTH, EDITOR_DEFAULT_WIDTH, EDITOR_MIN_WIDTH, EDITOR_MAX_WIDTH))
   const [mobileDrawerOpen, setMobileDrawerOpen] = React.useState(false)
   const [mobileAssetsOpen, setMobileAssetsOpen] = React.useState(false)
   const [isResizing, setIsResizing] = React.useState<'left' | 'right' | 'editor' | null>(null)
@@ -84,7 +103,6 @@ export function AppLayout({ children }: AppLayoutProps) {
   const activeFileType = useStore(state => state.activeFileType)
   const appState = useStore(state => state.appState)
   const generatingCampaignId = useStore(state => state.generatingCampaignId)
-  const campaignsCount = useStore(state => state.campaigns.length)
   const isEditorOpen = activeFileType !== null
 
   // Show workspace (sidebars) when in workspace mode
@@ -100,14 +118,6 @@ export function AppLayout({ children }: AppLayoutProps) {
       }
     }
   }, [isWorkspace, generatingCampaignId, isMobile])
-
-  // Auto-open chat sidebar for first-time paying users (workspace + zero campaigns).
-  // Desktop only — mobile drawer would block the empty-state input.
-  React.useEffect(() => {
-    if (isWorkspace && campaignsCount === 0 && !isMobile) {
-      setRightOpen(true)
-    }
-  }, [isWorkspace, campaignsCount, isMobile])
 
   const toggleLeft = React.useCallback(() => {
     if (isMobile) {
@@ -390,8 +400,12 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
  * Two-line layout: badge + "Sage • thinking..." top line, "Your creative partner" subtitle.
  */
 function SageBadge() {
-  const { currentGeneratingMessageId } = useStore()
+  const { currentGeneratingMessageId, campaigns, activeCampaignId } = useStore()
   const isThinking = !!currentGeneratingMessageId
+  const activeBrand = activeCampaignId
+    ? campaigns.find(c => c.id === activeCampaignId)?.brand ?? null
+    : null
+  const subtitle = activeBrand ? `Your creative partner for ${activeBrand}` : 'Your creative partner'
 
   return (
     <div className="flex items-center gap-2.5 min-w-0">
@@ -428,8 +442,8 @@ function SageBadge() {
             </>
           )}
         </div>
-        <span className="text-[11px] text-text-muted truncate">
-          Your creative partner
+        <span className="text-[11px] text-text-muted truncate" title={subtitle}>
+          {subtitle}
         </span>
       </div>
     </div>

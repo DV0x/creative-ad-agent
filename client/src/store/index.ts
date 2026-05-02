@@ -1,4 +1,5 @@
 import { create } from 'zustand'
+import { persist } from 'zustand/middleware'
 import type { WSConnectionState } from '../types/websocket'
 import type {
   AppState,
@@ -211,9 +212,18 @@ interface Store {
   openTopupModal: (presetAmount?: number) => void
   closeTopupModal: () => void
 
-  // Data Loading
+  // Data Loading — three signals combine into "is the workspace safe to render?"
+  //   - authReady: Clerk has resolved AND user is signed in (or dev-mode bypass)
+  //   - dataLoading: an API fetch is currently in flight
+  //   - dataLoaded: the initial campaign/asset/credits fetch has completed at least once
+  // Read the combined truth via the `selectWorkspaceReady` selector exported from this
+  // module — never re-derive `dataLoaded && authReady` ad hoc at call sites.
   dataLoading: boolean
+  dataLoaded: boolean
+  authReady: boolean
   setDataLoading: (loading: boolean) => void
+  setDataLoaded: (loaded: boolean) => void
+  setAuthReady: (ready: boolean) => void
 
   // Bulk setters for API sync
   setCampaigns: (campaigns: Campaign[]) => void
@@ -276,7 +286,7 @@ function parseExpectedImageCount(prompt: string): number {
 let _textDeltaBuf = '';
 let _textDeltaRaf: number | null = null;
 
-export const useStore = create<Store>((set, get) => ({
+export const useStore = create<Store>()(persist((set, get) => ({
   // App State — initial value derived from URL
   appState: (typeof window !== 'undefined' && window.location.pathname === '/workspace') ? 'workspace' : 'landing',
   setAppState: (appState) => set({ appState }),
@@ -1185,9 +1195,13 @@ export const useStore = create<Store>((set, get) => ({
     set({ topupModalOpen: true, topupPresetAmount: presetAmount ?? null }),
   closeTopupModal: () => set({ topupModalOpen: false, topupPresetAmount: null }),
 
-  // Data Loading
+  // Data Loading — see Store interface for the three-signal model.
   dataLoading: false,
+  dataLoaded: false,
+  authReady: false,
   setDataLoading: (dataLoading) => set({ dataLoading }),
+  setDataLoaded: (dataLoaded) => set({ dataLoaded }),
+  setAuthReady: (authReady) => set({ authReady }),
 
   // Bulk setters for API sync
   setCampaigns: (incoming) => set((state) => {
@@ -1272,5 +1286,32 @@ export const useStore = create<Store>((set, get) => ({
     topupModalOpen: false,
     topupPresetAmount: null,
     dataLoading: false,
+    dataLoaded: false,
+    // authReady deliberately NOT reset — auth lifecycle is owned by Clerk's
+    // sync effect in App.tsx, not by app-level resets like sign-out cleanup.
   })
+}), {
+  name: 'creative-agent:store',
+  // Allowlist what survives refresh. Add keys consciously — do not bulk-persist state.
+  // We persist the data that drives behavior (active campaign, fork source) but NOT
+  // transient UI flags like isCreatingCampaign — components derive UI mode from
+  // `!activeCampaignId` so refresh-during-creation just works without persisting the flag.
+  partialize: (state) => ({
+    activeCampaignId: state.activeCampaignId,
+    sourceCampaignId: state.sourceCampaignId,
+    sourceCampaignName: state.sourceCampaignName,
+  }),
 }))
+
+// ============================================
+// Selectors
+// ============================================
+
+/**
+ * "Is the workspace safe to render?" — combines auth readiness and initial data load.
+ * Use as `useStore(selectWorkspaceReady)` so React subscribes to both underlying fields
+ * and re-renders when either flips. Calling a getter via `useStore().fn()` would NOT
+ * subscribe and would silently miss updates — that's the bug this selector prevents.
+ */
+export const selectWorkspaceReady = (state: Store): boolean =>
+  state.authReady && state.dataLoaded

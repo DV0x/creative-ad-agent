@@ -15,11 +15,9 @@ export function ChatSidebar() {
   const {
     getActiveChatMessages,
     activeCampaignId,
-    isCreatingCampaign,
     sourceCampaignName,
     currentGeneratingMessageId,
     appState,
-    campaigns,
   } = useStore()
   const { isConnected, generate, followUp, cancel } = useWebSocket()
 
@@ -30,7 +28,11 @@ export function ChatSidebar() {
     clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
     'there'
 
-  const isWorkspaceEmpty = appState === 'workspace' && campaigns.length === 0
+  // Single source of truth for "is this a starting moment?" — derived from data,
+  // not from the UI flag isCreatingCampaign. Drives welcome bubble, autofocus,
+  // and submit dispatch. After refresh, isCreatingCampaign resets to false but
+  // activeCampaignId is persisted, so the same conditions evaluate correctly.
+  const isStartingMoment = appState === 'workspace' && !activeCampaignId
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const bottomRef = useRef<HTMLDivElement>(null)
@@ -87,21 +89,20 @@ export function ChatSidebar() {
     assetRefs: string[]
     imageRefs: { imageId: number }[]
   }) => {
+    if (!message.content.trim()) return
     const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
     const { selectedAspectRatio: ratio } = useStore.getState()
+    const refs = assetFileIds.length > 0 ? assetFileIds : undefined
 
-    if (isCreatingCampaign && message.content.trim() && isConnected) {
-      generate(message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined, ratio)
-      return
-    }
-
-    if (isWorkspaceEmpty && message.content.trim() && isConnected) {
-      generate(message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined, ratio)
-      return
-    }
-
-    if (activeCampaignId && message.content.trim()) {
-      followUp(activeCampaignId, message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined, ratio)
+    // Dispatch on data shape, not on the UI flag isCreatingCampaign:
+    //   - Inside a campaign → follow up on the existing thread
+    //   - No active campaign → start a new one (covers click-new, refresh-mid-creation, fork)
+    // generate() reads sourceCampaignId/sourceCampaignName from the store directly,
+    // so fork context flows through automatically.
+    if (activeCampaignId) {
+      followUp(activeCampaignId, message.content.trim(), refs, ratio)
+    } else if (isConnected) {
+      generate(message.content.trim(), refs, ratio)
     }
   }
 
@@ -119,13 +120,10 @@ export function ChatSidebar() {
         onScroll={handleScroll}
         className="flex-1 min-h-0 px-3 py-4 overflow-y-auto"
       >
-        {showEmptyState && isWorkspaceEmpty ? (
-          <WelcomeBubble firstName={firstName} />
+        {showEmptyState && isStartingMoment ? (
+          <WelcomeBubble firstName={firstName} sourceCampaignName={sourceCampaignName} />
         ) : showEmptyState ? (
-          <EmptyHint
-            isCreatingCampaign={isCreatingCampaign}
-            sourceCampaignName={sourceCampaignName}
-          />
+          <EmptyHint />
         ) : (
           <div className="space-y-4 min-w-0 overflow-hidden">
             {chatMessages.map((msg) => (
@@ -158,17 +156,20 @@ export function ChatSidebar() {
         onSubmit={handleSubmit}
         isGenerating={isGenerating}
         onCancel={handleCancel}
-        autoFocus={isCreatingCampaign || isWorkspaceEmpty}
+        autoFocus={isStartingMoment}
       />
     </div>
   )
 }
 
 /**
- * First-time welcome bubble — Sage's intro. Styled as an agent surface
- * so it reads as Sage's first message rather than a system banner.
+ * Sage's intro at every "starting" moment — first sign-in AND every new-campaign click.
+ * Styled as an agent surface so it reads as Sage's first message, not a system banner.
+ * Fork mode (sourceCampaignName set): research is already loaded, so the copy skips the
+ * "read the brand" step and asks for the new angle instead.
  */
-function WelcomeBubble({ firstName }: { firstName: string }) {
+function WelcomeBubble({ firstName, sourceCampaignName }: { firstName: string; sourceCampaignName: string | null }) {
+  const isFork = !!sourceCampaignName
   return (
     <div className="flex flex-col gap-1 px-1 pt-2 animate-fadeIn">
       <div
@@ -179,17 +180,30 @@ function WelcomeBubble({ firstName }: { firstName: string }) {
           boxShadow: `0 0 0 1px ${WINE_HAIRLINE}`,
         }}
       >
-        <p className="text-sm text-text-primary leading-relaxed">
-          Hi <span className="font-semibold">{firstName}</span> — drop a brand URL or describe your business below. I'll:
-        </p>
-        <ol className="mt-3 space-y-1.5 text-sm text-text-secondary list-decimal list-inside marker:text-text-muted/80">
-          <li>Read the brand — reviews, products, customer language</li>
-          <li>Draft hooks across six creative angles</li>
-          <li>Generate matching ads</li>
-        </ol>
-        <p className="mt-3 text-[13px] text-text-muted leading-relaxed">
-          Each run takes 5–8 minutes. Follow up anytime — rewrite a hook, change the angle, swap the art direction.
-        </p>
+        {isFork ? (
+          <>
+            <p className="text-sm text-text-primary leading-relaxed">
+              Hi <span className="font-semibold">{firstName}</span> — brand research from <span className="font-semibold">{sourceCampaignName}</span> is already loaded. Describe the new angle or brief below and I'll draft fresh hooks and creatives.
+            </p>
+            <p className="mt-3 text-[13px] text-text-muted leading-relaxed">
+              Takes a few minutes. Follow up anytime — rewrite a hook, change the angle, swap the art direction.
+            </p>
+          </>
+        ) : (
+          <>
+            <p className="text-sm text-text-primary leading-relaxed">
+              Hi <span className="font-semibold">{firstName}</span> — drop a brand URL or describe your business below. I'll:
+            </p>
+            <ol className="mt-3 space-y-1.5 text-sm text-text-secondary list-decimal list-inside marker:text-text-muted/80">
+              <li>Read the brand — reviews, products, customer language</li>
+              <li>Draft hooks across six creative angles</li>
+              <li>Generate matching ads</li>
+            </ol>
+            <p className="mt-3 text-[13px] text-text-muted leading-relaxed">
+              Each run takes 5–8 minutes. Follow up anytime — rewrite a hook, change the angle, swap the art direction.
+            </p>
+          </>
+        )}
       </div>
       <span className="text-[10px] font-mono tracking-tight text-text-muted/80 pl-1 mt-0.5">
         sage · ready
@@ -198,30 +212,19 @@ function WelcomeBubble({ firstName }: { firstName: string }) {
   )
 }
 
-function EmptyHint({
-  isCreatingCampaign,
-  sourceCampaignName,
-}: {
-  isCreatingCampaign: boolean
-  sourceCampaignName: string | null
-}) {
-  const title = isCreatingCampaign
-    ? (sourceCampaignName ? `New campaign for ${sourceCampaignName}` : 'New campaign')
-    : 'Start creating'
-
-  const hint = isCreatingCampaign
-    ? (sourceCampaignName
-        ? 'Brand research loaded. Describe the angle or brief below.'
-        : 'Paste a website URL or describe a business. Use @ to attach reference images.')
-    : 'Type a brief below to generate ads.'
-
+/**
+ * Quiet hint shown when an existing campaign has no chat history yet.
+ * The "starting" moments (first sign-in, new-campaign clicks, forks) are all
+ * handled by WelcomeBubble — this is only the rare "sitting in an old campaign" path.
+ */
+function EmptyHint() {
   return (
     <div className="flex flex-col items-start justify-center h-full px-2 py-8 animate-fadeIn">
       <span className="text-[11px] uppercase tracking-[0.14em] font-mono text-text-muted mb-2">
-        {title}
+        Start creating
       </span>
       <p className="text-sm text-text-secondary leading-relaxed max-w-[28ch]">
-        {hint}
+        Type a brief below to generate ads.
       </p>
     </div>
   )

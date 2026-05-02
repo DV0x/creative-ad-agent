@@ -24,7 +24,6 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
   const {
     getActiveChatMessages,
     activeCampaignId,
-    isCreatingCampaign,
     currentGeneratingMessageId,
   } = useStore()
   const { isConnected, generate, cancel, followUp } = useWebSocket()
@@ -46,17 +45,15 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
     assetRefs: string[]
     imageRefs: { imageId: number }[]
   }) => {
+    if (!message.content.trim()) return
     const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
+    const refs = assetFileIds.length > 0 ? assetFileIds : undefined
 
-    // When creating a new campaign, trigger generation via WebSocket
-    if (isCreatingCampaign && message.content.trim() && isConnected) {
-      generate(message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined)
-      return
-    }
-
-    // Existing campaign: send follow-up to AI
-    if (activeCampaignId && message.content.trim()) {
-      followUp(activeCampaignId, message.content.trim(), assetFileIds.length > 0 ? assetFileIds : undefined)
+    // Dispatch on data shape — mirrors ChatSidebar.handleSubmit. See comment there.
+    if (activeCampaignId) {
+      followUp(activeCampaignId, message.content.trim(), refs)
+    } else if (isConnected) {
+      generate(message.content.trim(), refs)
     }
   }
 
@@ -72,7 +69,7 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
         <DrawerHeader className="border-b border-border pb-3">
           <div className="flex items-center justify-between">
             <DrawerTitle className="text-text-primary">
-              {isCreatingCampaign ? 'New Campaign' : 'Chat'}
+              {!activeCampaignId ? 'New Campaign' : 'Chat'}
             </DrawerTitle>
             <DrawerClose asChild>
               <Button variant="ghost" size="icon-xs">

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { Download, FolderIcon, ImageIcon, X, RefreshCw, Loader2, ChevronRight } from 'lucide-react'
+import { Download, FolderIcon, X, RefreshCw, Loader2, ChevronRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ImageCard, ImageCardSkeleton } from '@/components/ImageCard'
 import { ImageLightbox } from '@/components/ImageLightbox'
@@ -99,17 +99,11 @@ Please continue from where we left off and complete the remaining images.`
     setMobileAssetsOpen(true)
   }
 
+  // App.tsx routes to <EmptyState /> whenever there is no active campaign, so this
+  // component is only ever rendered with a real campaign. Assert the invariant so
+  // TypeScript narrows below and any future routing regression fails loudly.
   if (!campaign) {
-    return (
-      <div className="h-full flex items-center justify-center bg-bg-base">
-        <div className="text-center space-y-3 animate-fadeIn">
-          <div className="w-12 h-12 mx-auto rounded-xl bg-bg-elevated flex items-center justify-center">
-            <ImageIcon className="w-6 h-6 text-text-muted" />
-          </div>
-          <p className="text-text-muted">Select a campaign to view images</p>
-        </div>
-      </div>
-    )
+    throw new Error('ResultsView rendered without an active campaign')
   }
 
   const imageCount = campaign.images.length

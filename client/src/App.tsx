@@ -7,7 +7,7 @@ import { LandingPage } from '@/components/landing/LandingPage'
 import { ResultsView } from '@/components/ResultsView'
 import { SignIn } from '@/components/auth/SignIn'
 import { AuthProvider } from '@/contexts/AuthContext'
-import { useStore } from '@/store'
+import { useStore, selectWorkspaceReady } from '@/store'
 import { PricingModal } from '@/components/pricing/PricingModal'
 import { TopupModal } from '@/components/pricing/TopupModal'
 import { isDevMode } from '@/lib/auth'
@@ -22,8 +22,10 @@ function AppContent() {
     generatingCampaignId,
     generationExpectedImages,
     isCreatingCampaign,
-    dataLoading,
+    dataLoaded,
     setDataLoading,
+    setDataLoaded,
+    setAuthReady,
     setCampaigns,
     setAssetFolders,
     setCreditBalance,
@@ -35,14 +37,22 @@ function AppContent() {
     setPrompt,
     setPendingGeneration,
   } = useStore()
+  // Subscribe via selector so this component re-renders when EITHER authReady or
+  // dataLoaded flips — the workspace gate below depends on both.
+  const workspaceReady = useStore(selectWorkspaceReady)
   const [loadError, setLoadError] = useState<string | null>(null)
-  const [dataLoaded, setDataLoaded] = useState(false)
   const [recoveryChecked, setRecoveryChecked] = useState(false)
 
   // Get auth state (in dev mode, always signed in)
   const devAuth = { isSignedIn: true, isLoaded: true }
   const clerkAuth = isDevMode() ? devAuth : useAuth()
   const { isSignedIn, isLoaded } = clerkAuth
+
+  // Sync auth state into the store. Lets downstream components read "is auth ready?"
+  // from the same place they read "is data ready?" — workspaceReady() combines them.
+  useEffect(() => {
+    setAuthReady(!!(isLoaded && isSignedIn))
+  }, [isLoaded, isSignedIn, setAuthReady])
 
   // Sync appState → URL
   useEffect(() => {
@@ -174,6 +184,15 @@ function AppContent() {
     }
   }, [isLoaded, isSignedIn, dataLoaded, setPrompt, setPendingGeneration, appState, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState])
 
+  // Validate persisted activeCampaignId — drop if the campaign no longer exists
+  // (deleted in another tab, different account, etc.). Runs once after data loads.
+  useEffect(() => {
+    if (!dataLoaded) return
+    if (activeCampaignId && !campaigns.find(c => c.id === activeCampaignId)) {
+      setActiveCampaignId(null)
+    }
+  }, [dataLoaded, activeCampaignId, campaigns, setActiveCampaignId])
+
   // Check for campaigns that need recovery (generating status)
   useEffect(() => {
     if (!dataLoaded || recoveryChecked || campaigns.length === 0) return
@@ -270,8 +289,11 @@ function AppContent() {
   // Workspace: show results (images + chat sidebar)
   const showWorkspace = appState === 'workspace'
 
-  // Show loading state only when loading data in workspace
-  if (dataLoading && showWorkspace) {
+  // Single source of truth — see store's workspaceReady() selector.
+  // Covers Clerk auth not yet initialized, data fetch not yet fired, and active fetch.
+  // Downstream components (ChatSidebar, EmptyState) can read workspaceReady directly
+  // if they need to gate their own rendering — no need to thread props through.
+  if (showWorkspace && !workspaceReady && !loadError) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg-base">
         <div className="text-center">
@@ -331,9 +353,15 @@ function AppContent() {
               activeCampaign.status === 'cancelled' ||
               activeCampaign.status === 'error'
             )
+            // Hero is the universal "no concrete work to show" surface:
+            //   - no campaigns yet
+            //   - no active campaign selected (e.g. after refresh with a deleted persisted ID,
+            //     or first navigation from landing without a deep-link)
+            //   - active campaign exists but has no images yet (and isn't generating/stranded)
             const showWelcomeHero =
               campaigns.length === 0 ||
-              (activeCampaign && activeCampaign.images.length === 0 && !isGeneratingImages && !isStranded)
+              !activeCampaign ||
+              (activeCampaign.images.length === 0 && !isGeneratingImages && !isStranded)
             return showWelcomeHero ? <EmptyState /> : <ResultsView />
           })()}
         </AppLayout>
