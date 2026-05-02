@@ -24,6 +24,7 @@
   /* Background Layers — warm cream */
   --color-bg-base: #FBF9F5;
   --color-bg-raised: #FDFCF9;
+  --color-bg-raised-2: #F6F3EC;
   --color-bg-elevated: #F3EFE8;
   --color-bg-overlay: #EAE4D6;
   --color-bg-input: #FFFFFF;
@@ -49,6 +50,14 @@
   --color-pop: #C1FF64;
   --color-pop-ink: #3A5A14;
   --color-pop-hover: #B5F25A;
+
+  /* Framework tag colors — 6 ad hook types */
+  --color-fw-stat: #2E6F4E;
+  --color-fw-story: #AB406C;
+  --color-fw-fomo: #B8791F;
+  --color-fw-curiosity: #4A5A8B;
+  --color-fw-callout: #78284A;
+  --color-fw-contrast: #231F20;
 
   /* Status Colors */
   --color-success: #16a34a;
@@ -310,6 +319,12 @@ body {
     transform: scale(1.2);
     opacity: 0.7;
   }
+}
+
+/* Agent thinking — soft breath on the lime status dot */
+@keyframes cm-breathe {
+  0%, 100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(193, 255, 100, 0.55); }
+  50%      { transform: scale(1.15); box-shadow: 0 0 0 4px rgba(193, 255, 100, 0); }
 }
 
 .animate-slideUp {

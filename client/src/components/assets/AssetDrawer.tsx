@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react'
+import { useUser, useClerk } from '@clerk/clerk-react'
 import { AuthImage } from '@/components/AuthImage'
 import {
   FolderIcon,
@@ -13,6 +14,12 @@ import {
   CheckIcon,
   XIcon,
   LayersIcon,
+  SearchIcon,
+  MoreHorizontalIcon,
+  ZapIcon,
+  WalletIcon,
+  ReceiptIcon,
+  LogOutIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -24,8 +31,9 @@ import {
 } from '@/components/ui/collapsible'
 import { useStore, type AssetFolder, type AssetFile, type Campaign, type CampaignFileType } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
+import { isDevMode } from '@/lib/auth'
+import { paymentsApi } from '@/lib/api'
 import { cn, formatCampaignName } from '@/lib/utils'
-import { FileUpload } from './FileUpload'
 import { AssetPreview, useAssetPreview } from './AssetPreview'
 
 /** Map file type to a clean display label */
@@ -37,24 +45,29 @@ const FILE_TYPE_LABELS: Record<CampaignFileType, string> = {
 
 export function AssetDrawer() {
   const { previewFiles, previewIndex, isPreviewOpen, openPreview, closePreview, navigatePreview } = useAssetPreview()
+  const [searchQuery, setSearchQuery] = useState('')
 
   return (
     <div className="flex flex-col h-full">
+      {/* Primary CTA: New Campaign */}
+      <NewCampaignButton />
+
+      {/* Search */}
+      <SidebarSearch value={searchQuery} onChange={setSearchQuery} />
+
       <ScrollArea className="flex-1 min-h-0 constrained-scroll-area">
         {/* Campaigns Section */}
-        <CampaignsSection />
+        <CampaignsSection searchQuery={searchQuery} />
 
-        {/* Divider */}
-        <div className="mx-3 my-2 border-t border-border" />
+        {/* Soft divider */}
+        <div className="mx-4 my-3 h-px bg-border-emphasis/40" />
 
         {/* Assets Section */}
         <AssetsSection onPreviewFile={openPreview} />
       </ScrollArea>
 
-      {/* Upload button */}
-      <div className="p-3 border-t border-border">
-        <FileUpload />
-      </div>
+      {/* Footer: credits panel + account menu */}
+      <SidebarFooter />
 
       {/* Asset Preview Modal */}
       <AssetPreview
@@ -72,11 +85,20 @@ export function AssetDrawer() {
 // Campaigns Section
 // ============================================
 
-function CampaignsSection() {
+function CampaignsSection({ searchQuery = '' }: { searchQuery?: string }) {
   const { campaigns, activeCampaignId, isCreatingCampaign, setActiveCampaignId, setIsCreatingCampaign, setAppState } = useStore()
   const { setRightOpen, setMobileDrawerOpen } = useSidebars()
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
   const [isCollapsed, setIsCollapsed] = useState(false)
+
+  // Search filter — match brand name OR formatted campaign name
+  const matchesQuery = (campaign: Campaign) => {
+    if (!searchQuery.trim()) return true
+    const q = searchQuery.toLowerCase()
+    if (campaign.brand?.toLowerCase().includes(q)) return true
+    if (formatCampaignName(campaign.name).toLowerCase().includes(q)) return true
+    return false
+  }
 
   const handleCampaignClick = (campaignId: string) => {
     setActiveCampaignId(campaignId)
@@ -114,11 +136,12 @@ function CampaignsSection() {
     }
   }
 
-  // Group campaigns by brand
+  // Group campaigns by brand (after applying search filter)
+  const filtered = campaigns.filter(matchesQuery)
   const brandGroups: { brand: string; campaigns: Campaign[] }[] = []
   const ungrouped: Campaign[] = []
 
-  for (const c of campaigns) {
+  for (const c of filtered) {
     if (c.brand) {
       const existing = brandGroups.find(g => g.brand === c.brand)
       if (existing) {
@@ -133,22 +156,22 @@ function CampaignsSection() {
 
   return (
     <div className="p-2">
-      {/* Section Header */}
+      {/* Section Header — eyebrow + mono count */}
       <div className="flex items-center justify-between px-2 py-1 mb-1">
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="flex items-center gap-1 text-xs font-medium text-text-muted uppercase tracking-wider hover:text-text-secondary transition-colors"
+          className="flex items-center gap-1.5 text-[10px] font-semibold text-text-secondary uppercase tracking-[0.14em] hover:text-text-primary transition-colors"
         >
           <ChevronRightIcon
             className={cn(
-              'w-3 h-3 transition-transform duration-200',
+              'w-2.5 h-2.5 transition-transform duration-200 text-text-muted',
               !isCollapsed && 'rotate-90'
             )}
           />
           Campaigns
-          {isCollapsed && campaigns.length > 0 && (
-            <span className="text-text-muted/60 normal-case tracking-normal font-normal">
-              ({campaigns.length})
+          {filtered.length > 0 && (
+            <span className="font-mono text-[10px] text-text-muted/70 normal-case tracking-normal font-normal">
+              {filtered.length}
             </span>
           )}
         </button>
@@ -255,8 +278,6 @@ function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, on
     }
   }
 
-  const totalImages = campaigns.reduce((sum, c) => sum + c.images.length, 0)
-
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen}>
       <div
@@ -298,8 +319,8 @@ function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, on
             <span className={cn('flex-1 text-left truncate font-medium', hasActiveCampaign ? 'text-accent' : 'text-text-secondary')}>
               {brand}
             </span>
-            {!showActions && totalImages > 0 && (
-              <span className="text-[10px] text-text-muted">{totalImages} img</span>
+            {!showActions && (
+              <span className="font-mono text-[10px] text-text-muted/70">{campaigns.length}</span>
             )}
           </button>
         )}
@@ -579,11 +600,16 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
 
   return (
     <div className="p-2">
-      {/* Section Header */}
+      {/* Section Header — eyebrow + mono count */}
       <div className="flex items-center justify-between px-2 py-1 mb-1">
-        <span className="text-xs font-medium text-text-muted uppercase tracking-wider">
-          Assets
-        </span>
+        <div className="flex items-center gap-1.5 text-[10px] font-semibold text-text-secondary uppercase tracking-[0.14em]">
+          <span>Library</span>
+          {assetFolders.length > 0 && (
+            <span className="font-mono text-[10px] text-text-muted/70 normal-case tracking-normal font-normal">
+              {assetFolders.length}
+            </span>
+          )}
+        </div>
         <Button
           variant="ghost"
           size="icon-xs"
@@ -848,6 +874,318 @@ function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
         >
           <Trash2Icon className="w-3 h-3" />
         </Button>
+      )}
+    </div>
+  )
+}
+
+// ============================================
+// Sidebar Chrome — New Campaign CTA, Search, Footer (credits + account)
+// ============================================
+
+function NewCampaignButton() {
+  const { setIsCreatingCampaign } = useStore()
+  const { setRightOpen, setMobileDrawerOpen } = useSidebars()
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 768
+
+  const handleClick = () => {
+    useStore.getState().setSourceCampaign(null)
+    setIsCreatingCampaign(true)
+    if (isMobile) setMobileDrawerOpen(true)
+    else setRightOpen(true)
+  }
+
+  // ⌘N keyboard shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'n' && !e.shiftKey) {
+        e.preventDefault()
+        handleClick()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  return (
+    <div className="px-3 pt-3 pb-1.5">
+      <button
+        onClick={handleClick}
+        className="w-full flex items-center justify-start gap-2 px-3 py-2 rounded-md bg-accent text-white text-[13px] font-semibold hover:bg-accent-hover transition-colors"
+      >
+        <PlusIcon className="w-3.5 h-3.5" />
+        <span>New campaign</span>
+        <span className="ml-auto flex gap-0.5">
+          <kbd className="font-mono text-[10px] bg-white/15 text-white/80 px-1 py-px rounded leading-tight">⌘</kbd>
+          <kbd className="font-mono text-[10px] bg-white/15 text-white/80 px-1 py-px rounded leading-tight">N</kbd>
+        </span>
+      </button>
+    </div>
+  )
+}
+
+function SidebarSearch({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // ⌘K to focus search
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault()
+        inputRef.current?.focus()
+      }
+    }
+    window.addEventListener('keydown', handler)
+    return () => window.removeEventListener('keydown', handler)
+  }, [])
+
+  return (
+    <div className="px-3 pb-2">
+      <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-bg-raised-2 border border-border focus-within:border-accent/50 transition-colors">
+        <SearchIcon className="w-3 h-3 text-text-muted shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="Search"
+          className="flex-1 min-w-0 bg-transparent border-0 outline-none text-xs text-text-primary placeholder:text-text-muted"
+        />
+        <kbd className="font-mono text-[10px] bg-bg-raised border border-border px-1 py-px rounded text-text-muted leading-tight">⌘K</kbd>
+      </div>
+    </div>
+  )
+}
+
+function SidebarAvatar({ initial, size = 30 }: { initial: string; size?: number }) {
+  return (
+    <div
+      className="rounded-full flex items-center justify-center font-bold shrink-0 text-white"
+      style={{
+        width: size,
+        height: size,
+        background: 'linear-gradient(135deg, var(--color-accent), var(--color-accent-press))',
+        fontSize: Math.round(size * 0.4),
+        fontFamily: 'var(--font-display)',
+        letterSpacing: '-0.02em',
+      }}
+    >
+      {initial}
+    </div>
+  )
+}
+
+function SidebarFooter() {
+  const subscription = useStore(s => s.subscription)
+  const balance = useStore(s => s.creditBalance)
+  const openTopupModal = useStore(s => s.openTopupModal)
+  const openPricingModal = useStore(s => s.openPricingModal)
+  const [showAccountMenu, setShowAccountMenu] = useState(false)
+
+  const clerkUser = isDevMode() ? null : useUser().user
+  const firstName =
+    clerkUser?.firstName ||
+    clerkUser?.username ||
+    clerkUser?.primaryEmailAddress?.emailAddress?.split('@')[0] ||
+    'You'
+  const initial = firstName[0]?.toUpperCase() || 'U'
+  const fullName = clerkUser?.fullName || firstName
+  const email = clerkUser?.primaryEmailAddress?.emailAddress || (isDevMode() ? 'dev@local' : '')
+
+  const plan = subscription?.plan || 'free'
+  const planLabel = plan === 'pro' ? 'Pro' : plan === 'starter' ? 'Starter' : 'Free'
+  const isFree = plan === 'free'
+
+  // Renewal date — only meaningful for paid plans (when plan portion refills).
+  const renewDate = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+    : null
+
+  // Total credits = plan + topup combined. No cap, no fraction (per design discussion).
+  const totalCredits = balance ?? 0
+  const formattedCredits = totalCredits.toLocaleString(undefined, { maximumFractionDigits: 1 })
+
+  return (
+    <div
+      // No bg shift — inherits sidebar bone. Wine-tinted hairline on top is the only seam.
+      className="px-3 pt-3 pb-3 relative"
+      style={{ boxShadow: 'inset 0 1px 0 rgba(120, 40, 74, 0.08)' }}
+    >
+      {/* Identity row — avatar, name, plan badge, ⋯ menu */}
+      <div className="flex items-center gap-2.5 mb-2">
+        <SidebarAvatar initial={initial} size={28} />
+        <div className="flex-1 min-w-0 flex items-center gap-1.5">
+          <span className="text-[13px] font-semibold text-text-primary truncate leading-tight">{firstName}</span>
+          {!isFree ? (
+            <span
+              className="inline-block px-1 py-px rounded font-bold text-[9px] uppercase tracking-wider leading-none shrink-0"
+              style={{ background: 'var(--color-pop)', color: 'var(--color-pop-ink)' }}
+            >
+              {planLabel}
+            </span>
+          ) : (
+            <span className="text-[10px] text-text-muted uppercase tracking-wider shrink-0">{planLabel}</span>
+          )}
+        </div>
+        <button
+          onClick={() => setShowAccountMenu(v => !v)}
+          className="w-6 h-6 flex items-center justify-center rounded text-text-muted hover:bg-bg-elevated hover:text-text-primary transition-colors"
+          title="Account"
+        >
+          <MoreHorizontalIcon className="w-3.5 h-3.5" />
+        </button>
+      </div>
+
+      {/* Credits row — indented to align under the name (avatar 28 + gap 10 = 38) */}
+      <div className="ml-[38px] flex items-baseline justify-between">
+        <div className="flex items-baseline gap-1.5">
+          <span className="font-mono font-bold text-text-primary tabular-nums text-[14px]">
+            {formattedCredits}
+          </span>
+          <span className="text-[11px] text-text-muted">credits</span>
+        </div>
+        <button
+          onClick={() => isFree ? openPricingModal() : openTopupModal()}
+          className="text-[11px] text-accent font-semibold hover:text-accent-hover transition-colors"
+        >
+          {isFree ? 'Upgrade →' : 'Top up →'}
+        </button>
+      </div>
+
+      {/* Renews date — small, muted, mono. Plan only. */}
+      {renewDate && !isFree && (
+        <div className="ml-[38px] mt-1 text-[10px] text-text-muted font-mono">
+          Renews {renewDate}
+        </div>
+      )}
+
+      {showAccountMenu && (
+        <SidebarAccountMenu
+          fullName={fullName}
+          email={email}
+          isFree={isFree}
+          onClose={() => setShowAccountMenu(false)}
+        />
+      )}
+    </div>
+  )
+}
+
+function SidebarAccountMenu({
+  fullName, email, isFree, onClose,
+}: { fullName: string; email: string; isFree: boolean; onClose: () => void }) {
+  const planBalance = useStore(s => s.planBalance)
+  const topupBalance = useStore(s => s.topupBalance)
+  const subscription = useStore(s => s.subscription)
+  const openPricingModal = useStore(s => s.openPricingModal)
+  const openTopupModal = useStore(s => s.openTopupModal)
+  const ref = useRef<HTMLDivElement>(null)
+  const clerk = isDevMode() ? null : useClerk()
+
+  // Mirror the old UserMenu credits-breakdown logic.
+  const hasBreakdown = planBalance !== null && topupBalance !== null
+  const showPlanLine = hasBreakdown && planBalance! > 0
+  const showTopupLine = hasBreakdown && topupBalance! > 0
+  const showBreakdown = showPlanLine || showTopupLine
+
+  const renewalDate = subscription?.current_period_end
+    ? new Date(subscription.current_period_end).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+    : null
+
+  // Close on outside click + Esc
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) onClose()
+    }
+    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose() }
+    document.addEventListener('mousedown', onDown)
+    document.addEventListener('keydown', onKey)
+    return () => {
+      document.removeEventListener('mousedown', onDown)
+      document.removeEventListener('keydown', onKey)
+    }
+  }, [onClose])
+
+  const handleManageBilling = async () => {
+    try {
+      const res = await paymentsApi.portal()
+      window.open(res.portal_url, '_blank')
+    } catch { /* ignore */ }
+    onClose()
+  }
+
+  return (
+    <div
+      ref={ref}
+      className="absolute right-3 bottom-[calc(100%-12px)] w-60 bg-bg-base border border-border rounded-lg shadow-xl z-50 overflow-hidden"
+    >
+      {/* Identity */}
+      <div className="px-3.5 py-3 border-b border-border">
+        <div className="text-[13px] font-bold text-text-primary truncate leading-tight">{fullName}</div>
+        <div className="text-[11px] text-text-muted truncate mt-0.5">{email}</div>
+      </div>
+
+      {/* Credits breakdown — only when we have plan/topup data */}
+      {showBreakdown && (
+        <div className="px-3.5 py-2.5 border-b border-border">
+          {showPlanLine && (
+            <div className="mb-1.5 last:mb-0 flex items-baseline justify-between gap-2">
+              <span className="text-xs text-text-primary font-medium tabular-nums">
+                {Math.round(planBalance! * 10) / 10} plan
+              </span>
+              <span className="text-[10px] text-text-muted">
+                {renewalDate ? `resets ${renewalDate}` : 'resets each cycle'}
+              </span>
+            </div>
+          )}
+          {showTopupLine && (
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs text-text-primary font-medium tabular-nums">
+                {Math.round(topupBalance! * 10) / 10} top-up
+              </span>
+              <span className="text-[10px] text-text-muted">never expire</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Actions — mirror old UserMenu options */}
+      <div className="py-1.5">
+        <button
+          onClick={() => { openPricingModal(); onClose() }}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-bg-elevated text-left transition-colors"
+        >
+          <ZapIcon className="w-3.5 h-3.5 text-text-muted shrink-0" />
+          <span className="text-text-primary">{isFree ? 'Upgrade Plan' : 'Change Plan'}</span>
+        </button>
+        <button
+          onClick={() => { openTopupModal(); onClose() }}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-bg-elevated text-left transition-colors"
+        >
+          <WalletIcon className="w-3.5 h-3.5 text-text-muted shrink-0" />
+          <span className="text-text-primary">Buy Credits</span>
+        </button>
+        {!isFree && (
+          <button
+            onClick={handleManageBilling}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-bg-elevated text-left transition-colors"
+          >
+            <ReceiptIcon className="w-3.5 h-3.5 text-text-muted shrink-0" />
+            <span className="text-text-primary">Manage Billing</span>
+          </button>
+        )}
+      </div>
+
+      {clerk && (
+        <div className="border-t border-border py-1.5">
+          <button
+            onClick={() => clerk.signOut()}
+            className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-bg-elevated text-left text-text-secondary transition-colors"
+          >
+            <LogOutIcon className="w-3.5 h-3.5 shrink-0" />
+            <span>Sign out</span>
+          </button>
+        </div>
       )}
     </div>
   )

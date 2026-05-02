@@ -187,7 +187,7 @@ export function FileEditorPanel({ width, onResizeStart, isResizing }: FileEditor
   return (
     <aside
       className={cn(
-        'hidden md:flex flex-col bg-bg-raised border-l border-border relative h-screen',
+        'hidden md:flex flex-col bg-bg-raised-2 relative h-full md:rounded-xl overflow-hidden',
         'animate-in slide-in-from-right-4 fade-in duration-200 ease-out',
         !isResizing && 'transition-[width] duration-200 ease-out'
       )}
@@ -284,13 +284,13 @@ function ResizeHandle({ onResizeStart }: ResizeHandleProps) {
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="absolute top-0 bottom-0 w-1 z-20 cursor-col-resize group -left-0.5"
+      className="absolute top-0 bottom-0 w-1 z-30 cursor-col-resize group -left-2"
     >
-      {/* Visual indicator */}
+      {/* Visual indicator — wine on hover, sits in the 8px panel gap */}
       <div
         className={cn(
-          'absolute top-0 bottom-0 w-1 transition-all duration-150 left-0',
-          isHovered ? 'bg-accent' : 'bg-transparent'
+          'absolute top-0 bottom-0 w-0.5 left-1/2 -translate-x-1/2 transition-all duration-150 rounded-full',
+          isHovered ? 'bg-accent opacity-50' : 'bg-transparent'
         )}
       />
       {/* Wider hit area */}

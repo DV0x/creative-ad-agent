@@ -10,7 +10,6 @@ import { AssetDrawer } from '@/components/assets/AssetDrawer'
 import { MobileAssetsDrawer } from '@/components/assets/MobileAssetsDrawer'
 import { MobileChatDrawer } from '@/components/chat/MobileChatDrawer'
 import { FileEditorPanel } from '@/components/editor/FileEditor'
-import { UserMenu } from '@/components/auth/UserMenu'
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useStore } from '@/store'
 
@@ -202,7 +201,10 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarContext.Provider value={contextValue}>
       <TooltipProvider delayDuration={0}>
-        <div className="flex h-screen w-full overflow-hidden">
+        <div className={cn(
+          'flex h-screen w-full overflow-hidden',
+          isWorkspace && 'bg-bg-raised md:p-2 md:gap-2'
+        )}>
           {/* Left Sidebar - Assets (only in workspace) */}
           {isWorkspace && (
             <LeftSidebar
@@ -214,8 +216,16 @@ export function AppLayout({ children }: AppLayoutProps) {
             />
           )}
 
-          {/* Main Content */}
-          <main className="flex-1 flex flex-col min-w-0 bg-bg-base">
+          {/* Main Content — floating canvas card on workspace */}
+          <main
+            className={cn(
+              'flex-1 flex flex-col min-w-0 bg-bg-base',
+              isWorkspace && 'md:rounded-xl md:overflow-hidden'
+            )}
+            style={isWorkspace ? {
+              boxShadow: '0 0 0 1px rgba(120, 40, 74, 0.06), 0 1px 2px rgba(120, 40, 74, 0.06)',
+            } : undefined}
+          >
             {children}
           </main>
 
@@ -273,14 +283,14 @@ function LeftSidebar({ open, width, onToggle, onResizeStart, isResizing }: Sideb
     <aside
       data-state={open ? 'expanded' : 'collapsed'}
       className={cn(
-        'hidden md:flex flex-col bg-bg-raised border-r border-border relative overflow-hidden',
+        'hidden md:flex flex-col bg-bg-raised relative overflow-hidden md:rounded-xl',
         !isResizing && 'transition-[width] duration-200 ease-out'
       )}
       style={{ width: open ? `${width}px` : `${SIDEBAR_COLLAPSED_WIDTH}px` }}
     >
-      {/* Header */}
+      {/* Header — wordmark + toggle. No border-b: spacing alone separates from content (S86 soft-pass). */}
       <div className={cn(
-        'h-14 flex items-center px-3 border-b border-border',
+        'h-13 flex items-center px-3 pt-3',
         open ? 'justify-between' : 'justify-center'
       )}>
         {open && (
@@ -293,7 +303,7 @@ function LeftSidebar({ open, width, onToggle, onResizeStart, isResizing }: Sideb
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="h-8 w-8 text-text-muted hover:text-text-primary"
+          className="h-7 w-7 text-text-muted hover:text-text-primary"
         >
           <PanelLeftIcon className="h-4 w-4" />
           <span className="sr-only">Toggle assets panel</span>
@@ -329,30 +339,28 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
     <aside
       data-state={open ? 'expanded' : 'collapsed'}
       className={cn(
-        'hidden md:flex flex-col bg-bg-raised border-l border-border relative overflow-hidden',
+        'hidden md:flex flex-col bg-bg-raised-2 relative overflow-hidden md:rounded-xl',
         !isResizing && 'transition-[width] duration-200 ease-out'
       )}
       style={{ width: open ? `${width}px` : `${SIDEBAR_COLLAPSED_WIDTH}px` }}
     >
-      {/* Header */}
+      {/* Header — toggle + Chat label. UserMenu moved to LeftSidebar footer (Phase 2 sidebar redesign).
+          Phase 4 will replace this header with the Sage agent identity strip. */}
       <div className={cn(
-        'h-14 flex items-center px-3 border-b border-border',
+        'h-13 flex items-center px-3 pt-3',
         open ? 'justify-between' : 'justify-center'
       )}>
         <Button
           variant="ghost"
           size="icon"
           onClick={onToggle}
-          className="h-8 w-8 text-text-muted hover:text-text-primary"
+          className="h-7 w-7 text-text-muted hover:text-text-primary"
         >
           <PanelRightIcon className="h-4 w-4" />
           <span className="sr-only">Toggle chat panel</span>
         </Button>
         {open && (
-          <>
-            <span className="text-sm font-medium text-text-secondary">Chat</span>
-            <UserMenu />
-          </>
+          <span className="text-sm font-medium text-text-secondary">Chat</span>
         )}
       </div>
 
@@ -397,16 +405,16 @@ function ResizeHandle({ side, onResizeStart }: ResizeHandleProps) {
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className={cn(
-        'absolute top-0 bottom-0 w-1 z-20 cursor-col-resize group',
-        side === 'left' ? '-right-0.5' : '-left-0.5'
+        // Sit in the 8px gap between panels (workspace inset frame).
+        'absolute top-0 bottom-0 w-1 z-30 cursor-col-resize group',
+        side === 'left' ? '-right-2' : '-left-2'
       )}
     >
-      {/* Visual indicator */}
+      {/* Visual indicator — wine on hover */}
       <div
         className={cn(
-          'absolute top-0 bottom-0 w-1 transition-all duration-150',
-          side === 'left' ? 'right-0' : 'left-0',
-          isHovered ? 'bg-accent' : 'bg-transparent'
+          'absolute top-0 bottom-0 w-0.5 left-1/2 -translate-x-1/2 transition-all duration-150 rounded-full',
+          isHovered ? 'bg-accent opacity-50' : 'bg-transparent'
         )}
       />
       {/* Wider hit area */}

@@ -107,7 +107,7 @@ Please continue from where we left off and complete the remaining images.`
   // If no campaign is active, show empty state
   if (!campaign) {
     return (
-      <div className="h-screen flex items-center justify-center bg-bg-base">
+      <div className="h-full flex items-center justify-center bg-bg-base">
         <div className="text-center space-y-3 animate-fadeIn">
           <div className="w-12 h-12 mx-auto rounded-xl bg-bg-elevated flex items-center justify-center">
             <ImageIcon className="w-6 h-6 text-text-muted" />
@@ -119,7 +119,7 @@ Please continue from where we left off and complete the remaining images.`
   }
 
   return (
-    <div className="h-screen flex flex-col bg-bg-base overflow-hidden">
+    <div className="h-full flex flex-col bg-bg-base overflow-hidden">
       {/* Connection status banner */}
       {connectionState === 'reconnecting' && (
         <div className="bg-amber-50 border-b border-amber-200 px-4 py-2 text-sm text-amber-700 text-center animate-fadeIn">
