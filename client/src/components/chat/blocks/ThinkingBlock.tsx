@@ -9,6 +9,9 @@ interface ThinkingBlockProps {
   onToggle: () => void
 }
 
+const WINE_HAIRLINE = 'rgba(120, 40, 74, 0.12)'
+const WINE_TINT = 'rgba(120, 40, 74, 0.04)'
+
 export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const { status, expanded, children, completedImages, expectedImages } = block
@@ -17,22 +20,15 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
   const isComplete = status === 'complete'
   const isError = status === 'error'
 
-  // Auto-scroll to bottom when new children are added
   useEffect(() => {
     if (expanded && scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight
     }
   }, [children.length, expanded])
 
-  // Header text - use label if available, otherwise fallback
   const label = block.label || 'Thinking'
-  const headerText = isActive
-    ? `${label}...`
-    : isComplete
-      ? label
-      : `${label} (Error)`
+  const headerText = isActive ? `${label}…` : isComplete ? label : `${label} (Error)`
 
-  // Progress indicator for images
   const progressText = isActive && expectedImages > 0
     ? `${completedImages}/${expectedImages} images`
     : null
@@ -41,26 +37,27 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
     <Collapsible open={expanded} onOpenChange={onToggle}>
       <div
         className={cn(
-          'rounded-lg border transition-colors duration-200 overflow-hidden',
-          isActive && 'border-accent/30 bg-accent/5',
-          isComplete && 'border-border bg-bg-elevated/50',
-          isError && 'border-red-500/30 bg-red-500/5',
+          'rounded-lg overflow-hidden transition-colors duration-200',
+          isError && 'border border-red-500/20',
         )}
+        style={{
+          backgroundColor: isError ? undefined : WINE_TINT,
+          boxShadow: isError ? undefined : `inset 0 0 0 1px ${WINE_HAIRLINE}`,
+        }}
       >
-        {/* Header */}
         <CollapsibleTrigger className="w-full">
-          <div className="flex items-center gap-2 px-3 py-2 cursor-pointer hover:bg-bg-elevated/50 rounded-t-lg transition-colors">
+          <div className="flex items-center gap-2 px-3 py-2 cursor-pointer transition-colors hover:bg-black/[0.02]">
             {expanded ? (
-              <ChevronDown className="h-3.5 w-3.5 text-text-muted flex-shrink-0" />
+              <ChevronDown className="h-3.5 w-3.5 text-text-muted shrink-0" />
             ) : (
-              <ChevronRight className="h-3.5 w-3.5 text-text-muted flex-shrink-0" />
+              <ChevronRight className="h-3.5 w-3.5 text-text-muted shrink-0" />
             )}
 
             <StatusIcon status={status} />
 
             <span
               className={cn(
-                'text-xs font-medium',
+                'text-xs font-medium truncate',
                 isActive && 'text-accent',
                 isComplete && 'text-text-secondary',
                 isError && 'text-red-500',
@@ -70,26 +67,20 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
             </span>
 
             {progressText && (
-              <span className="text-xs text-text-muted ml-auto">
+              <span className="text-[11px] font-mono tabular-nums text-text-muted ml-auto shrink-0">
                 {progressText}
               </span>
             )}
           </div>
         </CollapsibleTrigger>
 
-        {/* Children */}
         <CollapsibleContent>
-          <div
-            ref={scrollRef}
-            className="max-h-64 overflow-y-auto px-3 pb-3 space-y-1"
-          >
+          <div ref={scrollRef} className="max-h-64 overflow-y-auto px-3 pb-3 space-y-1">
             {children.map((child) => (
               <ChildItem key={child.id} child={child} />
             ))}
             {children.length === 0 && isActive && (
-              <div className="text-xs text-text-muted italic">
-                Starting...
-              </div>
+              <div className="text-xs text-text-muted italic">Starting…</div>
             )}
           </div>
         </CollapsibleContent>
@@ -101,11 +92,11 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
 function StatusIcon({ status }: { status: ThinkingBlockData['status'] }) {
   switch (status) {
     case 'active':
-      return <Loader2 className="h-3.5 w-3.5 text-accent animate-spin flex-shrink-0" />
+      return <Loader2 className="h-3.5 w-3.5 text-accent animate-spin shrink-0" />
     case 'complete':
-      return <CheckCircle2 className="h-3.5 w-3.5 text-accent flex-shrink-0" />
+      return <CheckCircle2 className="h-3.5 w-3.5 text-accent shrink-0" />
     case 'error':
-      return <AlertCircle className="h-3.5 w-3.5 text-red-500 flex-shrink-0" />
+      return <AlertCircle className="h-3.5 w-3.5 text-red-500 shrink-0" />
   }
 }
 
@@ -113,18 +104,21 @@ function ChildItem({ child }: { child: ThinkingChild }) {
   switch (child.kind) {
     case 'phase':
       return (
-        <div className="flex items-center gap-1.5 text-xs pt-1.5 first:pt-0">
-          <span className="text-accent mt-0.5 flex-shrink-0">{'\u25CF'}</span>
+        <div className="flex items-center gap-2 text-xs pt-1.5 first:pt-0">
+          <span
+            className="inline-block w-1 h-1 rounded-full shrink-0"
+            style={{ backgroundColor: 'var(--color-accent)' }}
+          />
           <span className="text-text-secondary font-medium">{child.text}</span>
         </div>
       )
 
     case 'tool':
       return (
-        <div className="flex items-start gap-1.5 text-xs pl-3">
-          <span className="text-violet-500 mt-0.5 flex-shrink-0">{'\u2699'}</span>
-          <span className="text-text-muted font-mono break-words">
-            {'\u2514\u2500 '}{child.text}
+        <div className="flex items-start gap-1.5 text-[11px] pl-3 font-mono">
+          <span className="text-text-muted/70 mt-0.5 shrink-0">⚙</span>
+          <span className="text-text-muted break-words">
+            └─ {child.text}
           </span>
         </div>
       )
@@ -158,18 +152,16 @@ function ChildItem({ child }: { child: ThinkingChild }) {
 
     case 'result':
       return (
-        <div className="flex items-start gap-1.5 text-xs pl-3">
-          <span className="text-text-muted mt-0.5 flex-shrink-0">{'\u2192'}</span>
-          <span className="text-text-muted break-words">
-            {'\u2514\u2500 '}{child.text}
-          </span>
+        <div className="flex items-start gap-1.5 text-[11px] pl-3 font-mono">
+          <span className="text-text-muted mt-0.5 shrink-0">→</span>
+          <span className="text-text-muted break-words">└─ {child.text}</span>
         </div>
       )
 
     case 'progress':
       return (
         <div className="flex items-start gap-1.5 text-xs pl-3">
-          <span className="text-accent mt-0.5 flex-shrink-0">{'\u25D0'}</span>
+          <span className="text-accent mt-0.5 shrink-0">◐</span>
           <span className="text-accent break-words">{child.text}</span>
         </div>
       )
@@ -177,7 +169,7 @@ function ChildItem({ child }: { child: ThinkingChild }) {
     case 'error':
       return (
         <div className="flex items-start gap-1.5 text-xs pl-3">
-          <span className="text-red-500 mt-0.5 flex-shrink-0">{'\u2717'}</span>
+          <span className="text-red-500 mt-0.5 shrink-0">✗</span>
           <span className="text-red-500 break-words">{child.text}</span>
         </div>
       )

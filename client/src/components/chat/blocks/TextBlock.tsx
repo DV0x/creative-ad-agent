@@ -6,13 +6,17 @@ interface TextBlockProps {
   isStreaming?: boolean
 }
 
+/**
+ * Text content from the agent. Rendered as a transparent block — the parent
+ * AgentBubble surface (cream + wine left rule) provides the surface chrome.
+ */
 export function TextBlock({ block, isStreaming }: TextBlockProps) {
   if (!block.content) return null
 
   return (
-    <div className="bg-bg-elevated text-text-secondary border border-border rounded-lg px-4 py-3 min-w-0 overflow-hidden">
+    <div className="text-text-primary text-sm leading-relaxed min-w-0 overflow-hidden">
       {isStreaming ? (
-        <p className="whitespace-pre-wrap break-words text-sm">
+        <p className="whitespace-pre-wrap break-words">
           {block.content}
           <span className="inline-block w-0.5 h-4 bg-accent/70 ml-0.5 align-middle animate-pulse" />
         </p>

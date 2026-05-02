@@ -344,8 +344,7 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
       )}
       style={{ width: open ? `${width}px` : `${SIDEBAR_COLLAPSED_WIDTH}px` }}
     >
-      {/* Header — toggle + Chat label. UserMenu moved to LeftSidebar footer (Phase 2 sidebar redesign).
-          Phase 4 will replace this header with the Sage agent identity strip. */}
+      {/* Header — Sage agent identity strip (Phase 4). */}
       <div className={cn(
         'h-13 flex items-center px-3 pt-3',
         open ? 'justify-between' : 'justify-center'
@@ -359,9 +358,7 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
           <PanelRightIcon className="h-4 w-4" />
           <span className="sr-only">Toggle chat panel</span>
         </Button>
-        {open && (
-          <span className="text-sm font-medium text-text-secondary">Chat</span>
-        )}
+        {open && <SageBadge />}
       </div>
 
       {/* Content */}
@@ -391,6 +388,46 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
 interface ResizeHandleProps {
   side: 'left' | 'right'
   onResizeStart: () => void
+}
+
+/**
+ * Sage agent identity strip — sits at the top of the chat panel.
+ * - Ink square w/ lime "S" letter
+ * - Lime status dot bottom-right; breathes via cm-breathe when generating
+ * - "Sage" wordmark next to it
+ */
+function SageBadge() {
+  const { currentGeneratingMessageId } = useStore()
+  const isThinking = !!currentGeneratingMessageId
+
+  return (
+    <div className="flex items-center gap-2 min-w-0">
+      <div className="relative w-7 h-7 shrink-0 rounded-md flex items-center justify-center"
+           style={{ backgroundColor: '#231F20' }}>
+        <span
+          className="text-[15px] leading-none font-semibold"
+          style={{
+            color: '#C1FF64',
+            fontFamily: 'var(--font-display, "Clash Display", "Satoshi", system-ui)',
+            letterSpacing: '-0.02em',
+          }}
+        >
+          S
+        </span>
+        <span
+          className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2"
+          style={{
+            backgroundColor: '#C1FF64',
+            boxShadow: '0 0 0 1px rgba(35, 31, 32, 0.8)',
+            animation: isThinking ? 'cm-breathe 1.6s ease-in-out infinite' : undefined,
+          }}
+        />
+      </div>
+      <span className="text-sm font-medium text-text-primary truncate">
+        Sage
+      </span>
+    </div>
+  )
 }
 
 function ResizeHandle({ side, onResizeStart }: ResizeHandleProps) {

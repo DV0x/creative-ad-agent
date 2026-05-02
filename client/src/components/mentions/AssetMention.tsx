@@ -8,7 +8,6 @@ export interface AssetMentionHandle {
   openDropdown: () => void
 }
 
-// Types for mention items
 type MentionItemType = 'campaign-file' | 'asset-folder' | 'asset-file' | 'campaign-image'
 
 interface MentionItem {
@@ -20,7 +19,6 @@ interface MentionItem {
   data: CampaignFileType | AssetFolder | AssetFile | GeneratedImage
 }
 
-// Campaign file options
 const CAMPAIGN_FILE_ITEMS: { type: CampaignFileType; label: string; description: string }[] = [
   { type: 'research', label: 'research', description: 'Brand research & notes' },
   { type: 'hooks', label: 'hooks', description: 'Ad headlines & copy' },
@@ -39,9 +37,9 @@ interface AssetMentionProps {
   placeholder?: string
   className?: string
   autoFocus?: boolean
-  // Image selection is handled via the store (selectedImageIds)
-  // No explicit props needed - component reads/writes to store directly
 }
+
+const WINE_HAIRLINE = 'rgba(120, 40, 74, 0.16)'
 
 export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(function AssetMention({
   value,
@@ -52,9 +50,9 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
   mentionedFolders,
   mentionedFiles,
   mentionedAssetFiles,
-  placeholder = 'Type a message... Use @ to mention files',
+  placeholder = 'Type a message… use @ to reference',
   className,
-  autoFocus
+  autoFocus,
 }, ref) {
   const {
     assetFolders,
@@ -69,7 +67,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
-  // Expose openDropdown to parent via ref
   useImperativeHandle(ref, () => ({
     openDropdown: () => {
       setShowDropdown(true)
@@ -84,21 +81,17 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 
   const activeCampaign = getActiveCampaign()
 
-  // Auto-focus input when requested
   useEffect(() => {
     if (autoFocus) {
       inputRef.current?.focus()
     }
   }, [autoFocus])
 
-  // Build list of all mentionable items
   const getAllItems = useCallback((): MentionItem[] => {
     const items: MentionItem[] = []
 
-    // Campaign images (only if there's an active campaign with images)
     if (activeCampaign && activeCampaign.images.length > 0) {
       activeCampaign.images.forEach(image => {
-        // Don't show already-selected images in dropdown
         if (!selectedImageIds.includes(image.id)) {
           const hookLabel = image.hookType ? HOOK_TYPE_LABELS[image.hookType] : ''
           items.push({
@@ -113,7 +106,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       })
     }
 
-    // Campaign files (only if there's an active campaign)
     if (activeCampaign) {
       CAMPAIGN_FILE_ITEMS.forEach(file => {
         if (!mentionedFiles.includes(file.type)) {
@@ -129,7 +121,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       })
     }
 
-    // Asset folders
     assetFolders.forEach(folder => {
       if (!mentionedFolders.some(f => f.id === folder.id)) {
         items.push({
@@ -141,7 +132,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
           data: folder,
         })
 
-        // Individual files in each folder
         folder.files.forEach(file => {
           if (!mentionedAssetFiles.some(f => f.id === file.id)) {
             items.push({
@@ -160,7 +150,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     return items
   }, [activeCampaign, assetFolders, mentionedFiles, mentionedFolders, mentionedAssetFiles, selectedImageIds])
 
-  // Filter items based on query
   const getFilteredItems = useCallback((): MentionItem[] => {
     const allItems = getAllItems()
     if (!mentionQuery) return allItems
@@ -174,11 +163,9 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 
   const filteredItems = getFilteredItems()
 
-  // Detect @ mentions in input
   useEffect(() => {
     const cursorPos = inputRef.current?.selectionStart ?? value.length
 
-    // Find the last @ before cursor that isn't followed by a space before cursor
     let atIndex = -1
     for (let i = cursorPos - 1; i >= 0; i--) {
       if (value[i] === '@') {
@@ -192,7 +179,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 
     if (atIndex !== -1) {
       const query = value.substring(atIndex + 1, cursorPos)
-      // Don't show dropdown if there's a space in the query (mention completed)
       if (!query.includes(' ')) {
         setShowDropdown(true)
         setMentionQuery(query)
@@ -207,22 +193,19 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     setMentionStartIndex(-1)
   }, [value])
 
-  // Reset selected index when filtered items change
   useEffect(() => {
     setSelectedIndex(0)
   }, [filteredItems.length])
 
-  // Scroll selected item into view
   useEffect(() => {
     if (showDropdown && itemRefs.current[selectedIndex]) {
       itemRefs.current[selectedIndex]?.scrollIntoView({
         block: 'nearest',
-        behavior: 'smooth'
+        behavior: 'smooth',
       })
     }
   }, [selectedIndex, showDropdown])
 
-  // Handle click outside to close
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (
@@ -238,14 +221,11 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Handle item selection
   const handleSelectItem = (item: MentionItem) => {
-    // Replace @query with empty (the mention is stored separately)
     const beforeMention = value.substring(0, mentionStartIndex)
     const afterMention = value.substring(mentionStartIndex + 1 + mentionQuery.length)
     onChange(beforeMention + afterMention)
 
-    // Add to appropriate mention list
     if (item.type === 'campaign-file') {
       onFileMention([...mentionedFiles, item.data as CampaignFileType])
     } else if (item.type === 'asset-folder') {
@@ -253,7 +233,6 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     } else if (item.type === 'asset-file') {
       onAssetFileMention([...mentionedAssetFiles, item.data as AssetFile])
     } else if (item.type === 'campaign-image') {
-      // Toggle image selection via store
       const image = item.data as GeneratedImage
       toggleImageSelection(image.id)
     }
@@ -262,26 +241,19 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     setMentionQuery('')
     setMentionStartIndex(-1)
 
-    // Keep focus on input
     setTimeout(() => inputRef.current?.focus(), 0)
   }
 
-  // Handle keyboard navigation
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // When dropdown is open, handle navigation keys
     if (showDropdown && filteredItems.length > 0) {
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault()
-          setSelectedIndex(prev =>
-            prev < filteredItems.length - 1 ? prev + 1 : 0
-          )
+          setSelectedIndex(prev => prev < filteredItems.length - 1 ? prev + 1 : 0)
           return
         case 'ArrowUp':
           e.preventDefault()
-          setSelectedIndex(prev =>
-            prev > 0 ? prev - 1 : filteredItems.length - 1
-          )
+          setSelectedIndex(prev => prev > 0 ? prev - 1 : filteredItems.length - 1)
           return
         case 'Enter':
           e.preventDefault()
@@ -302,14 +274,12 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       }
     }
 
-    // Enter without Shift submits the form (textarea default is newline)
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       inputRef.current?.form?.requestSubmit()
     }
   }
 
-  // Remove mentions
   const handleRemoveFolderMention = (folderId: string) => {
     onFolderMention(mentionedFolders.filter(f => f.id !== folderId))
   }
@@ -322,19 +292,13 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     onAssetFileMention(mentionedAssetFiles.filter(f => f.id !== fileId))
   }
 
-  // Get icon component
   const getIcon = (icon: MentionItem['icon'], className?: string) => {
     switch (icon) {
-      case 'file-text':
-        return <FileTextIcon className={className} />
-      case 'folder':
-        return <FolderIcon className={className} />
-      case 'image':
-        return <ImageIcon className={className} />
-      case 'file':
-        return <FileIcon className={className} />
-      case 'grid':
-        return <LayoutGrid className={className} />
+      case 'file-text': return <FileTextIcon className={className} />
+      case 'folder': return <FolderIcon className={className} />
+      case 'image': return <ImageIcon className={className} />
+      case 'file': return <FileIcon className={className} />
+      case 'grid': return <LayoutGrid className={className} />
     }
   }
 
@@ -342,77 +306,45 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 
   return (
     <div className={cn('relative', className)}>
-      {/* Mentioned items tags */}
+      {/* Mentioned items — editorial pill chips */}
       {hasMentions && (
         <div className="flex flex-wrap gap-1.5 mb-2">
-          {/* Campaign file tags */}
           {mentionedFiles.map(fileType => {
             const fileInfo = CAMPAIGN_FILE_ITEMS.find(f => f.type === fileType)
             return (
-              <span
+              <RefChip
                 key={fileType}
-                className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-accent/20 text-accent rounded-md border border-accent/30"
-              >
-                <FileTextIcon className="w-3 h-3" />
-                @{fileInfo?.label || fileType}
-                <button
-                  type="button"
-                  onClick={() => handleRemoveFileMention(fileType)}
-                  className="hover:bg-accent/30 rounded-sm p-0.5 -mr-0.5"
-                >
-                  <XIcon className="w-3 h-3" />
-                </button>
-              </span>
+                icon={<FileTextIcon className="w-3 h-3" />}
+                label={`@${fileInfo?.label || fileType}`}
+                onRemove={() => handleRemoveFileMention(fileType)}
+              />
             )
           })}
-          {/* Folder tags */}
           {mentionedFolders.map(folder => (
-            <span
+            <RefChip
               key={folder.id}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-accent/20 text-accent rounded-md border border-accent/30"
-            >
-              <FolderIcon className="w-3 h-3" />
-              @{folder.name}
-              <button
-                type="button"
-                onClick={() => handleRemoveFolderMention(folder.id)}
-                className="hover:bg-accent/30 rounded-sm p-0.5 -mr-0.5"
-              >
-                <XIcon className="w-3 h-3" />
-              </button>
-            </span>
+              icon={<FolderIcon className="w-3 h-3" />}
+              label={`@${folder.name}`}
+              onRemove={() => handleRemoveFolderMention(folder.id)}
+            />
           ))}
-          {/* Asset file tags */}
           {mentionedAssetFiles.map(file => (
-            <span
+            <RefChip
               key={file.id}
-              className="inline-flex items-center gap-1 px-2 py-1 text-xs bg-accent/20 text-accent rounded-md border border-accent/30"
-            >
-              {file.type === 'image' ? (
-                <ImageIcon className="w-3 h-3" />
-              ) : (
-                <FileIcon className="w-3 h-3" />
-              )}
-              @{file.name}
-              <button
-                type="button"
-                onClick={() => handleRemoveAssetFileMention(file.id)}
-                className="hover:bg-accent/30 rounded-sm p-0.5 -mr-0.5"
-              >
-                <XIcon className="w-3 h-3" />
-              </button>
-            </span>
+              icon={file.type === 'image' ? <ImageIcon className="w-3 h-3" /> : <FileIcon className="w-3 h-3" />}
+              label={`@${file.name}`}
+              onRemove={() => handleRemoveAssetFileMention(file.id)}
+            />
           ))}
         </div>
       )}
 
-      {/* Input */}
+      {/* Textarea */}
       <textarea
         ref={inputRef}
         value={value}
         onChange={(e) => {
           onChange(e.target.value)
-          // Auto-resize: reset to auto then set to scrollHeight
           const el = e.target
           el.style.height = 'auto'
           el.style.height = Math.min(el.scrollHeight, 160) + 'px'
@@ -428,57 +360,65 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       {showDropdown && filteredItems.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute bottom-full mb-1 left-0 w-full max-w-sm z-50 bg-bg-raised border border-border rounded-lg shadow-lg overflow-hidden"
+          className="absolute bottom-full mb-2 left-0 w-full max-w-sm z-50 rounded-xl overflow-hidden animate-fadeIn"
+          style={{
+            backgroundColor: 'var(--color-bg-base)',
+            boxShadow: `0 0 0 1px ${WINE_HAIRLINE}, 0 12px 32px rgba(35, 31, 32, 0.10), 0 2px 6px rgba(35, 31, 32, 0.06)`,
+          }}
         >
-          {/* Header */}
-          <div className="px-3 py-2 border-b border-border bg-bg-elevated/50">
-            <span className="text-xs text-text-muted">
-              {mentionQuery ? `Searching for "${mentionQuery}"` : 'Reference files'}
+          {/* Header eyebrow */}
+          <div
+            className="px-3 py-2"
+            style={{ borderBottom: `1px solid ${WINE_HAIRLINE}` }}
+          >
+            <span className="text-[10px] uppercase tracking-[0.14em] font-mono text-text-muted">
+              {mentionQuery ? `Filter · ${mentionQuery}` : 'Reference'}
             </span>
           </div>
 
-          {/* Items list */}
-          <div className="max-h-64 overflow-y-auto overscroll-contain">
-            {filteredItems.map((item, index) => (
-              <div
-                key={item.id}
-                ref={el => { itemRefs.current[index] = el }}
-                onClick={() => handleSelectItem(item)}
-                className={cn(
-                  'flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors',
-                  index === selectedIndex
-                    ? 'bg-accent/10 text-accent'
-                    : 'hover:bg-bg-elevated text-text-secondary'
-                )}
-              >
-                <div className={cn(
-                  'shrink-0',
-                  index === selectedIndex ? 'text-accent' : 'text-text-muted'
-                )}>
-                  {getIcon(item.icon, 'w-4 h-4')}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium truncate">
-                    @{item.label}
+          {/* Items */}
+          <div className="max-h-64 overflow-y-auto overscroll-contain py-1">
+            {filteredItems.map((item, index) => {
+              const isSelected = index === selectedIndex
+              return (
+                <div
+                  key={item.id}
+                  ref={el => { itemRefs.current[index] = el }}
+                  onClick={() => handleSelectItem(item)}
+                  className="flex items-center gap-3 px-3 py-2 cursor-pointer transition-colors"
+                  style={{
+                    backgroundColor: isSelected ? 'var(--color-bg-raised-2)' : 'transparent',
+                  }}
+                >
+                  <div className={cn('shrink-0', isSelected ? 'text-accent' : 'text-text-muted')}>
+                    {getIcon(item.icon, 'w-4 h-4')}
                   </div>
-                  {item.description && (
-                    <div className="text-xs text-text-muted truncate">
-                      {item.description}
+                  <div className="flex-1 min-w-0">
+                    <div className="text-sm font-medium text-text-primary truncate">
+                      @{item.label}
                     </div>
+                    {item.description && (
+                      <div className="text-[11px] text-text-muted truncate">
+                        {item.description}
+                      </div>
+                    )}
+                  </div>
+                  {isSelected && (
+                    <span className="text-[11px] font-mono tracking-tight text-text-muted shrink-0">
+                      ↵
+                    </span>
                   )}
                 </div>
-                {index === selectedIndex && (
-                  <span className="text-xs text-text-muted shrink-0">
-                    ↵
-                  </span>
-                )}
-              </div>
-            ))}
+              )
+            })}
           </div>
 
           {/* Footer hint */}
-          <div className="px-3 py-1.5 border-t border-border bg-bg-elevated/50">
-            <span className="text-[10px] text-text-muted">
+          <div
+            className="px-3 py-1.5"
+            style={{ borderTop: `1px solid ${WINE_HAIRLINE}`, backgroundColor: 'var(--color-bg-raised-2)' }}
+          >
+            <span className="text-[10px] font-mono tracking-tight text-text-muted">
               ↑↓ navigate · ↵ select · esc close
             </span>
           </div>
@@ -489,13 +429,44 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       {showDropdown && filteredItems.length === 0 && mentionQuery && (
         <div
           ref={dropdownRef}
-          className="absolute bottom-full mb-1 left-0 w-full max-w-sm z-50 bg-bg-raised border border-border rounded-lg shadow-lg overflow-hidden"
+          className="absolute bottom-full mb-2 left-0 w-full max-w-sm z-50 rounded-xl overflow-hidden animate-fadeIn"
+          style={{
+            backgroundColor: 'var(--color-bg-base)',
+            boxShadow: `0 0 0 1px ${WINE_HAIRLINE}, 0 12px 32px rgba(35, 31, 32, 0.10)`,
+          }}
         >
           <div className="px-3 py-4 text-center text-sm text-text-muted">
-            No files matching "{mentionQuery}"
+            No matches for <span className="font-mono">"{mentionQuery}"</span>
           </div>
         </div>
       )}
     </div>
   )
 })
+
+/**
+ * Editorial reference chip — matches the chip vocabulary used across the workspace.
+ * Cream surface, wine hairline, mono label.
+ */
+function RefChip({ icon, label, onRemove }: { icon: React.ReactNode; label: string; onRemove: () => void }) {
+  return (
+    <span
+      className="inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full text-[11px] font-mono tracking-tight text-text-primary"
+      style={{
+        backgroundColor: 'var(--color-bg-base)',
+        border: `1px solid ${WINE_HAIRLINE}`,
+      }}
+    >
+      <span className="text-text-muted">{icon}</span>
+      <span>{label}</span>
+      <button
+        type="button"
+        onClick={onRemove}
+        className="ml-0.5 p-0.5 rounded-full text-text-muted hover:text-text-primary hover:bg-black/[0.06] transition-colors duration-150"
+        aria-label={`Remove ${label}`}
+      >
+        <XIcon className="w-3 h-3" />
+      </button>
+    </span>
+  )
+}

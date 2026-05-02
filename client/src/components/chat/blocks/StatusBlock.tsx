@@ -8,15 +8,15 @@ interface StatusBlockProps {
 
 const variantStyles = {
   info: {
-    container: 'border-accent/20 bg-accent/5 text-accent',
+    container: 'border-accent/20 bg-accent/[0.06] text-accent',
     icon: Info,
   },
   success: {
-    container: 'border-green-500/20 bg-green-500/5 text-green-600',
+    container: 'border-green-600/20 bg-green-600/[0.06] text-green-700',
     icon: CheckCircle2,
   },
   error: {
-    container: 'border-red-500/20 bg-red-500/5 text-red-500',
+    container: 'border-red-500/20 bg-red-500/[0.06] text-red-600',
     icon: AlertCircle,
   },
 } as const
@@ -26,8 +26,13 @@ export function StatusBlock({ block }: StatusBlockProps) {
   const Icon = variant.icon
 
   return (
-    <div className={cn('inline-flex items-center gap-1.5 rounded-md border px-2.5 py-1.5 text-xs', variant.container)}>
-      <Icon className="h-3.5 w-3.5 flex-shrink-0" />
+    <div
+      className={cn(
+        'inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium',
+        variant.container,
+      )}
+    >
+      <Icon className="h-3 w-3 shrink-0" />
       <span className="break-words">{block.text}</span>
     </div>
   )

@@ -32,7 +32,6 @@ export function BreadcrumbsIndicator({ block }: BreadcrumbsIndicatorProps) {
   const [verb, setVerb] = useState(() => ROTATING_VERBS[Math.floor(Math.random() * ROTATING_VERBS.length)])
   const { children, completedImages, expectedImages } = block
 
-  // Rotate verb every 800ms
   useEffect(() => {
     const interval = setInterval(() => {
       setVerb(ROTATING_VERBS[Math.floor(Math.random() * ROTATING_VERBS.length)])
@@ -40,38 +39,39 @@ export function BreadcrumbsIndicator({ block }: BreadcrumbsIndicatorProps) {
     return () => clearInterval(interval)
   }, [])
 
-  // Split children into completed phases and the current active phase
   const phases = children.filter(c => c.kind === 'phase')
   const completedPhases = phases.slice(0, -1)
   const activePhase = phases[phases.length - 1]
 
-  // Image progress
   const hasImages = expectedImages > 0
   const imageProgress = hasImages ? (completedImages / expectedImages) * 100 : 0
 
   return (
-    <div className="py-1 space-y-1">
-      {/* Completed phases — faded one-liners */}
+    <div className="py-2 space-y-1.5">
+      {/* Completed phases — soft wine dot + faded text */}
       {completedPhases.map((phase) => (
-        <div key={phase.id} className="flex items-center gap-1.5 text-xs text-text-muted">
-          <span className="text-accent/60 flex-shrink-0">&#x2713;</span>
-          <span>{phase.text}</span>
+        <div key={phase.id} className="flex items-center gap-2 text-xs text-text-muted">
+          <span
+            className="inline-block w-1 h-1 rounded-full shrink-0"
+            style={{ backgroundColor: 'var(--color-accent)' }}
+          />
+          <span className="truncate">{phase.text}</span>
         </div>
       ))}
 
-      {/* Active phase — spinner + text + rotating verb */}
-      <div className="flex items-center gap-2">
-        <OrbitalSpinner size="sm" className="flex-shrink-0" />
+      {/* Active phase — orbital spinner + label + rotating verb */}
+      <div className="flex items-center gap-2.5">
+        <OrbitalSpinner size="sm" className="shrink-0" />
         <span className="text-xs text-text-secondary font-medium">
           {activePhase ? activePhase.text : verb}
         </span>
         {activePhase && (
-          <span className="text-xs text-text-muted animate-pulse">
-            {verb}...
+          <span className="text-[11px] font-mono tracking-tight text-text-muted/80 italic animate-pulse">
+            {verb.toLowerCase()}…
           </span>
         )}
         {hasImages && completedImages > 0 && (
-          <span className="text-xs text-text-muted ml-auto">
+          <span className="text-[11px] font-mono text-text-muted ml-auto tabular-nums">
             {completedImages}/{expectedImages}
           </span>
         )}
@@ -79,10 +79,16 @@ export function BreadcrumbsIndicator({ block }: BreadcrumbsIndicatorProps) {
 
       {/* Image progress bar */}
       {hasImages && completedImages > 0 && (
-        <div className="h-0.5 bg-border rounded-full overflow-hidden">
+        <div
+          className="h-px rounded-full overflow-hidden"
+          style={{ backgroundColor: 'rgba(120, 40, 74, 0.12)' }}
+        >
           <div
-            className={cn('h-full bg-accent rounded-full transition-all duration-500')}
-            style={{ width: `${imageProgress}%` }}
+            className={cn('h-full rounded-full transition-all duration-500')}
+            style={{
+              width: `${imageProgress}%`,
+              backgroundColor: 'var(--color-accent)',
+            }}
           />
         </div>
       )}
