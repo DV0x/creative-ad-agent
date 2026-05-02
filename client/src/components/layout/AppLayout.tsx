@@ -385,27 +385,22 @@ function RightSidebar({ open, width, onToggle, onResizeStart, isResizing }: Side
   )
 }
 
-interface ResizeHandleProps {
-  side: 'left' | 'right'
-  onResizeStart: () => void
-}
-
 /**
  * Sage agent identity strip — sits at the top of the chat panel.
- * - Ink square w/ lime "S" letter
- * - Lime status dot bottom-right; breathes via cm-breathe when generating
- * - "Sage" wordmark next to it
+ * Two-line layout: badge + "Sage • thinking..." top line, "Your creative partner" subtitle.
  */
 function SageBadge() {
   const { currentGeneratingMessageId } = useStore()
   const isThinking = !!currentGeneratingMessageId
 
   return (
-    <div className="flex items-center gap-2 min-w-0">
-      <div className="relative w-7 h-7 shrink-0 rounded-md flex items-center justify-center"
-           style={{ backgroundColor: '#231F20' }}>
+    <div className="flex items-center gap-2.5 min-w-0">
+      <div
+        className="relative w-8 h-8 shrink-0 rounded-md flex items-center justify-center"
+        style={{ backgroundColor: '#231F20' }}
+      >
         <span
-          className="text-[15px] leading-none font-semibold"
+          className="text-[17px] leading-none font-semibold"
           style={{
             color: '#C1FF64',
             fontFamily: 'var(--font-display, "Clash Display", "Satoshi", system-ui)',
@@ -415,19 +410,35 @@ function SageBadge() {
           S
         </span>
         <span
-          className="absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full ring-2"
+          className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full"
           style={{
             backgroundColor: '#C1FF64',
-            boxShadow: '0 0 0 1px rgba(35, 31, 32, 0.8)',
+            boxShadow: '0 0 0 2px var(--color-bg-raised-2)',
             animation: isThinking ? 'cm-breathe 1.6s ease-in-out infinite' : undefined,
           }}
         />
       </div>
-      <span className="text-sm font-medium text-text-primary truncate">
-        Sage
-      </span>
+      <div className="flex flex-col min-w-0 leading-tight">
+        <div className="flex items-center gap-1.5 text-sm font-semibold text-text-primary">
+          <span>Sage</span>
+          {isThinking && (
+            <>
+              <span className="w-1 h-1 rounded-full" style={{ backgroundColor: '#C1FF64' }} />
+              <span className="text-text-muted font-normal text-[12px] italic">thinking…</span>
+            </>
+          )}
+        </div>
+        <span className="text-[11px] text-text-muted truncate">
+          Your creative partner
+        </span>
+      </div>
     </div>
   )
+}
+
+interface ResizeHandleProps {
+  side: 'left' | 'right'
+  onResizeStart: () => void
 }
 
 function ResizeHandle({ side, onResizeStart }: ResizeHandleProps) {

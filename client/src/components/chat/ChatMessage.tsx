@@ -9,9 +9,6 @@ interface ChatMessageProps {
 }
 
 const INK = '#231F20'
-const BONE_2 = 'var(--color-bg-raised-2)'
-const WINE = 'var(--color-accent)'
-const WINE_HAIRLINE = 'rgba(120, 40, 74, 0.10)'
 
 export function ChatMessage({ message }: ChatMessageProps) {
   const { toggleBlockExpanded, currentGeneratingMessageId } = useStore()
@@ -29,7 +26,7 @@ export function ChatMessage({ message }: ChatMessageProps) {
   }
 
   return (
-    <div className={cn('flex flex-col gap-1 min-w-0 animate-fadeIn', isUser ? 'items-end' : 'items-start')}>
+    <div className={cn('flex flex-col min-w-0 animate-fadeIn', isUser ? 'items-end' : 'items-start')}>
       {isUser ? (
         <UserBubble message={message} />
       ) : (
@@ -39,53 +36,22 @@ export function ChatMessage({ message }: ChatMessageProps) {
               <BlockRenderer blocks={message.blocks!} isStreaming={false} onToggleThinking={handleToggleBlock} />
             )}
 
-            {/* Live streaming text — wrapped in agent surface */}
             {streamingText && (
-              <AgentSurface>
-                <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-primary">
-                  {streamingText}
-                  <span className="inline-block w-0.5 h-4 bg-accent/70 ml-0.5 align-middle animate-pulse" />
-                </p>
-              </AgentSurface>
+              <p className="whitespace-pre-wrap break-words text-sm leading-relaxed text-text-primary px-1">
+                {streamingText}
+                <span className="inline-block w-0.5 h-4 bg-accent/70 ml-0.5 align-middle animate-pulse" />
+              </p>
             )}
 
-            {/* Fallback content (no text block, not streaming) */}
             {message.content && !isActivelyGenerating && !streamingText &&
              (!hasBlocks || !message.blocks!.some(b => b.type === 'text')) && (
-              <AgentSurface>
+              <div className="px-1">
                 <MarkdownContent content={message.content} />
-              </AgentSurface>
+              </div>
             )}
           </div>
         </div>
       )}
-
-      {/* Timestamp */}
-      <span className={cn(
-        'text-[10px] font-mono tracking-tight text-text-muted/80',
-        isUser ? 'pr-1' : 'pl-1'
-      )}>
-        {isUser ? 'you' : 'sage'} · {formatTime(message.timestamp)}
-      </span>
-    </div>
-  )
-}
-
-/**
- * Editorial agent surface — bone-2 background + wine left rule.
- * The wine rule reads as a quote-mark, signaling this is Sage's voice.
- */
-function AgentSurface({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      className="rounded-r-lg rounded-bl-lg px-4 py-3 min-w-0 overflow-hidden"
-      style={{
-        backgroundColor: BONE_2,
-        borderLeft: `2px solid ${WINE}`,
-        boxShadow: `0 0 0 1px ${WINE_HAIRLINE}`,
-      }}
-    >
-      {children}
     </div>
   )
 }
@@ -128,8 +94,4 @@ function UserBubble({ message }: { message: ChatMessageType }) {
       <p className="whitespace-pre-wrap break-words leading-relaxed">{message.content}</p>
     </div>
   )
-}
-
-function formatTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
 }
