@@ -5,9 +5,9 @@ export const CREDITS_PER_USD = 10;
 
 // 4x cost multiplier on raw AI COGS = 75% gross margin (against Claude+fal.ai only;
 // real all-in margin is lower due to Workers/R2/Dodo/etc).
-// In usage_log: claude_cost_usd & image_cost_usd hold RAW COGS; total_cost_usd
-// holds the already-multiplied USER CHARGE (rawCost × COST_MULTIPLIER) — that's
-// what's deducted from the user's balance.
+// In usage_log: claude_cost_usd & image_cost_usd hold RAW COGS;
+// charged_amount_usd holds the already-multiplied USER CHARGE
+// (rawCost × COST_MULTIPLIER) — that's what's deducted from the user's balance.
 export const COST_MULTIPLIER = 4;
 
 // Two balance pools:
@@ -32,7 +32,7 @@ export interface UsageLogEntry {
   claude_cost_usd: number;
   image_count: number;
   image_cost_usd: number;
-  total_cost_usd: number;
+  charged_amount_usd: number;      // user-facing charge in USD (= rawCost × COST_MULTIPLIER)
   credits_charged: number | null;  // user-facing charge in credits (frozen at write time)
   campaign_name: string | null;    // joined from campaigns table
   input_tokens: number;
@@ -48,7 +48,7 @@ export interface RecordUsageInput {
   claudeCostUsd: number;
   imageCount: number;
   imageCostUsd: number;
-  totalCostUsd: number;       // user-facing charge in USD (already multiplied)
+  chargedAmountUsd: number;   // user-facing charge in USD (= rawCost × COST_MULTIPLIER)
   creditsCharged: number;     // same charge expressed in credits, frozen for the user-facing log
   inputTokens: number;
   outputTokens: number;
@@ -179,11 +179,11 @@ export async function recordUsage(
   // a duplicate attempt yields changes=0 and we skip the deduct entirely.
   const insertResult = await db.prepare(
     `INSERT OR IGNORE INTO usage_log
-      (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, total_cost_usd, credits_charged, input_tokens, output_tokens, num_turns, duration_ms)
+      (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, charged_amount_usd, credits_charged, input_tokens, output_tokens, num_turns, duration_ms)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     id, userId, campaignId, usage.requestId, usage.eventType,
-    usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.totalCostUsd, usage.creditsCharged,
+    usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.chargedAmountUsd, usage.creditsCharged,
     usage.inputTokens, usage.outputTokens, usage.numTurns, usage.durationMs,
   ).run();
 
@@ -215,9 +215,9 @@ export async function recordUsage(
          updated_at = datetime('now')
      WHERE user_id = ?`
   ).bind(
-    usage.totalCostUsd, usage.totalCostUsd,
-    usage.totalCostUsd, usage.totalCostUsd,
-    usage.totalCostUsd, userId,
+    usage.chargedAmountUsd, usage.chargedAmountUsd,
+    usage.chargedAmountUsd, usage.chargedAmountUsd,
+    usage.chargedAmountUsd, userId,
   ).run();
 
   const c = await getOrCreateCredits(db, userId);

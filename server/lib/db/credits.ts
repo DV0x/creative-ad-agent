@@ -21,7 +21,7 @@ export interface UsageLogEntry {
   claude_cost_usd: number;
   image_count: number;
   image_cost_usd: number;
-  total_cost_usd: number;
+  charged_amount_usd: number;       // user-facing charge in USD (= rawCost × COST_MULTIPLIER)
   credits_charged: number | null;
   campaign_name: string | null;
   input_tokens: number;
@@ -37,7 +37,7 @@ export interface RecordUsageInput {
   claudeCostUsd: number;
   imageCount: number;
   imageCostUsd: number;
-  totalCostUsd: number;
+  chargedAmountUsd: number;         // user-facing charge in USD (= rawCost × COST_MULTIPLIER)
   creditsCharged: number;
   inputTokens: number;
   outputTokens: number;
@@ -77,11 +77,11 @@ export function recordUsage(
   const txn = db.transaction(() => {
     const insertResult = db.prepare(
       `INSERT OR IGNORE INTO usage_log
-        (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, total_cost_usd, credits_charged, input_tokens, output_tokens, num_turns, duration_ms)
+        (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, charged_amount_usd, credits_charged, input_tokens, output_tokens, num_turns, duration_ms)
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id, userId, campaignId, usage.requestId, usage.eventType,
-      usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.totalCostUsd, usage.creditsCharged,
+      usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.chargedAmountUsd, usage.creditsCharged,
       usage.inputTokens, usage.outputTokens, usage.numTurns, usage.durationMs,
     );
 
@@ -95,7 +95,7 @@ export function recordUsage(
              total_generations = total_generations + 1,
              updated_at = datetime('now')
          WHERE user_id = ?`
-      ).run(usage.totalCostUsd, usage.totalCostUsd, userId);
+      ).run(usage.chargedAmountUsd, usage.chargedAmountUsd, userId);
     }
 
     return alreadyRecorded;

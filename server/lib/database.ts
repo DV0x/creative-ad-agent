@@ -139,7 +139,7 @@ CREATE TABLE IF NOT EXISTS usage_log (
   claude_cost_usd REAL NOT NULL DEFAULT 0,
   image_count INTEGER NOT NULL DEFAULT 0,
   image_cost_usd REAL NOT NULL DEFAULT 0,
-  total_cost_usd REAL NOT NULL DEFAULT 0,
+  charged_amount_usd REAL NOT NULL DEFAULT 0,
   credits_charged REAL,
   input_tokens INTEGER NOT NULL DEFAULT 0,
   output_tokens INTEGER NOT NULL DEFAULT 0,

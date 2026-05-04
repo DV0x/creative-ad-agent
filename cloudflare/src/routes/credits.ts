@@ -34,7 +34,7 @@ export async function handleCreditsRequest(
 
     // ⚠️ DO NOT add cost or token fields to this response shape.
     // usage_log stores raw COGS for margin tracking — exposing claude_cost_usd,
-    // image_cost_usd, total_cost_usd, input_tokens, output_tokens, num_turns,
+    // image_cost_usd, charged_amount_usd, input_tokens, output_tokens, num_turns,
     // or duration_ms lets users reverse-engineer our gross margin.
     // User-facing fields only.
     return Response.json({
@@ -44,9 +44,9 @@ export async function handleCreditsRequest(
         campaign_name: u.campaign_name,
         event_type: u.event_type,
         image_count: u.image_count,
-        // Prefer the stored value; fall back to total_cost_usd for any row not
-        // yet backfilled (defensive — the migration backfilled all existing rows).
-        credits_charged: u.credits_charged ?? Math.round(u.total_cost_usd * CREDITS_PER_USD * 10) / 10,
+        // Prefer the stored value; fall back to charged_amount_usd for any row
+        // not yet backfilled (defensive — the migration backfilled all existing rows).
+        credits_charged: u.credits_charged ?? Math.round(u.charged_amount_usd * CREDITS_PER_USD * 10) / 10,
         created_at: u.created_at,
       })),
     });

@@ -109,14 +109,15 @@ CREATE TABLE IF NOT EXISTS usage_log (
   request_id TEXT NOT NULL DEFAULT 'initial',
   event_type TEXT NOT NULL,
   -- claude_cost_usd & image_cost_usd: RAW COGS (Claude tokens / fal.ai images).
-  -- total_cost_usd: USER-FACING CHARGE = (claude+image) * COST_MULTIPLIER.
-  --   This is what's actually deducted from user_credits.
-  -- credits_charged: total_cost_usd expressed in credits (× CREDITS_PER_USD),
+  -- charged_amount_usd: USER-FACING CHARGE = (claude+image) * COST_MULTIPLIER.
+  --   This is what's actually deducted from user_credits. NOT the sum of the
+  --   _cost_usd columns — that trap is why we renamed from "total_cost_usd".
+  -- credits_charged: charged_amount_usd expressed in credits (× CREDITS_PER_USD),
   --   stored at write time so historical rows survive multiplier changes.
   claude_cost_usd REAL NOT NULL DEFAULT 0,
   image_count INTEGER NOT NULL DEFAULT 0,
   image_cost_usd REAL NOT NULL DEFAULT 0,
-  total_cost_usd REAL NOT NULL DEFAULT 0,
+  charged_amount_usd REAL NOT NULL DEFAULT 0,
   credits_charged REAL,
   input_tokens INTEGER NOT NULL DEFAULT 0,
   output_tokens INTEGER NOT NULL DEFAULT 0,
