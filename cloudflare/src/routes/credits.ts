@@ -25,18 +25,26 @@ export async function handleCreditsRequest(
     });
   }
 
-  // GET /api/credits/usage — paginated usage history (costs converted to credits)
+  // GET /api/credits/usage — paginated usage history (DTO ONLY — no COGS)
   if (sub === '/usage' && method === 'GET') {
     const url = new URL(request.url);
     const limit = Math.min(parseInt(url.searchParams.get('limit') || '20'), 100);
     const offset = parseInt(url.searchParams.get('offset') || '0');
     const usage = await credits.getUsageLog(env.DB, userId, limit, offset);
+
+    // ⚠️ DO NOT add cost or token fields to this response shape.
+    // usage_log stores raw COGS for margin tracking — exposing claude_cost_usd,
+    // image_cost_usd, total_cost_usd, input_tokens, output_tokens, num_turns,
+    // or duration_ms lets users reverse-engineer our gross margin.
+    // User-facing fields only.
     return Response.json({
       usage: usage.map(u => ({
-        ...u,
-        total_cost: Math.round(u.total_cost_usd * CREDITS_PER_USD * 10) / 10,
-        claude_cost: Math.round(u.claude_cost_usd * CREDITS_PER_USD * 10) / 10,
-        image_cost: Math.round(u.image_cost_usd * CREDITS_PER_USD * 10) / 10,
+        id: u.id,
+        campaign_id: u.campaign_id,
+        event_type: u.event_type,
+        image_count: u.image_count,
+        credits_charged: Math.round(u.total_cost_usd * CREDITS_PER_USD * 10) / 10,
+        created_at: u.created_at,
       })),
     });
   }

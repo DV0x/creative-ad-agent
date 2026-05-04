@@ -455,10 +455,8 @@ export interface ApiUsageEntry {
   id: string;
   campaign_id: string;
   event_type: string;
-  total_cost_usd: number;
-  claude_cost_usd: number;
   image_count: number;
-  image_cost_usd: number;
+  credits_charged: number;
   created_at: string;
 }
 
