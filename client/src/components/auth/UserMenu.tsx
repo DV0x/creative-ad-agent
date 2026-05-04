@@ -34,6 +34,7 @@ function CreditBadge() {
   const subscription = useStore(state => state.subscription);
   const openPricingModal = useStore(state => state.openPricingModal);
   const openTopupModal = useStore(state => state.openTopupModal);
+  const openUsageDrawer = useStore(state => state.openUsageDrawer);
 
   if (balance === null) return null;
 
@@ -108,6 +109,12 @@ function CreditBadge() {
           className="w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors"
         >
           Buy Credits
+        </button>
+        <button
+          onClick={openUsageDrawer}
+          className={`w-full text-left px-3 py-2 text-sm text-text-primary hover:bg-bg-elevated transition-colors ${!isPaid ? 'rounded-b-lg' : ''}`}
+        >
+          Usage
         </button>
         {isPaid && (
           <button

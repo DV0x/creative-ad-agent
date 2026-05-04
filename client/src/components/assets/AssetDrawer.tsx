@@ -19,6 +19,7 @@ import {
   ZapIcon,
   WalletIcon,
   ReceiptIcon,
+  HistoryIcon,
   LogOutIcon,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
@@ -1079,6 +1080,7 @@ function SidebarAccountMenu({
   const subscription = useStore(s => s.subscription)
   const openPricingModal = useStore(s => s.openPricingModal)
   const openTopupModal = useStore(s => s.openTopupModal)
+  const openUsageDrawer = useStore(s => s.openUsageDrawer)
   const ref = useRef<HTMLDivElement>(null)
   const clerk = isDevMode() ? null : useClerk()
 
@@ -1164,6 +1166,13 @@ function SidebarAccountMenu({
         >
           <WalletIcon className="w-3.5 h-3.5 text-text-muted shrink-0" />
           <span className="text-text-primary">Buy Credits</span>
+        </button>
+        <button
+          onClick={() => { openUsageDrawer(); onClose() }}
+          className="w-full flex items-center gap-2.5 px-3.5 py-2 text-[13px] hover:bg-bg-elevated text-left transition-colors"
+        >
+          <HistoryIcon className="w-3.5 h-3.5 text-text-muted shrink-0" />
+          <span className="text-text-primary">Usage</span>
         </button>
         {!isFree && (
           <button

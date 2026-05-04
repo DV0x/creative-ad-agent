@@ -454,10 +454,18 @@ export interface ApiCredits {
 export interface ApiUsageEntry {
   id: string;
   campaign_id: string;
+  campaign_name: string | null;  // null when the campaign was deleted
   event_type: string;
   image_count: number;
   credits_charged: number;
   created_at: string;
+}
+
+export interface ApiUsageSummary {
+  totalCredits: number;
+  campaignCount: number;
+  entryCount: number;
+  since: string;
 }
 
 // ============================================
@@ -484,6 +492,10 @@ export const creditsApi = {
 
   async getUsage(limit = 20, offset = 0): Promise<{ usage: ApiUsageEntry[] }> {
     return apiFetch<{ usage: ApiUsageEntry[] }>(`/credits/usage?limit=${limit}&offset=${offset}`);
+  },
+
+  async getUsageSummary(sinceISODate: string): Promise<ApiUsageSummary> {
+    return apiFetch<ApiUsageSummary>(`/credits/usage/summary?since=${encodeURIComponent(sinceISODate)}`);
   },
 };
 

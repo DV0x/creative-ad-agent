@@ -212,6 +212,12 @@ interface Store {
   openTopupModal: (presetAmount?: number) => void
   closeTopupModal: () => void
 
+  // Usage drawer (slide-over from right showing recent credit charges).
+  // Deliberately NOT in the persist allowlist — purely ephemeral UI state.
+  usageDrawerOpen: boolean
+  openUsageDrawer: () => void
+  closeUsageDrawer: () => void
+
   // Data Loading — three signals combine into "is the workspace safe to render?"
   //   - authReady: Clerk has resolved AND user is signed in (or dev-mode bypass)
   //   - dataLoading: an API fetch is currently in flight
@@ -1195,6 +1201,10 @@ export const useStore = create<Store>()(persist((set, get) => ({
     set({ topupModalOpen: true, topupPresetAmount: presetAmount ?? null }),
   closeTopupModal: () => set({ topupModalOpen: false, topupPresetAmount: null }),
 
+  usageDrawerOpen: false,
+  openUsageDrawer: () => set({ usageDrawerOpen: true }),
+  closeUsageDrawer: () => set({ usageDrawerOpen: false }),
+
   // Data Loading — see Store interface for the three-signal model.
   dataLoading: false,
   dataLoaded: false,
@@ -1285,6 +1295,7 @@ export const useStore = create<Store>()(persist((set, get) => ({
     pricingModalOpen: false,
     topupModalOpen: false,
     topupPresetAmount: null,
+    usageDrawerOpen: false,
     dataLoading: false,
     dataLoaded: false,
     // authReady deliberately NOT reset — auth lifecycle is owned by Clerk's

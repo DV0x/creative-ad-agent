@@ -10,6 +10,7 @@ import { AuthProvider } from '@/contexts/AuthContext'
 import { useStore, selectWorkspaceReady } from '@/store'
 import { PricingModal } from '@/components/pricing/PricingModal'
 import { TopupModal } from '@/components/pricing/TopupModal'
+import { UsageDrawer } from '@/components/billing/UsageDrawer'
 import { isDevMode } from '@/lib/auth'
 import { campaignsApi, assetsApi, creditsApi, paymentsApi, setTokenGetter } from '@/lib/api'
 import * as wsManager from '@/lib/websocket-manager'
@@ -370,6 +371,7 @@ function AppContent() {
       {/* Payment modals (rendered at root, triggered from anywhere) */}
       <PricingModal />
       <TopupModal />
+      <UsageDrawer />
       <WelcomeBanner />
     </>
   )
