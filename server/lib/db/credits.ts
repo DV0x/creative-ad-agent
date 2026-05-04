@@ -22,6 +22,8 @@ export interface UsageLogEntry {
   image_count: number;
   image_cost_usd: number;
   total_cost_usd: number;
+  credits_charged: number | null;
+  campaign_name: string | null;
   input_tokens: number;
   output_tokens: number;
   num_turns: number;
@@ -36,6 +38,7 @@ export interface RecordUsageInput {
   imageCount: number;
   imageCostUsd: number;
   totalCostUsd: number;
+  creditsCharged: number;
   inputTokens: number;
   outputTokens: number;
   numTurns: number;
@@ -74,11 +77,11 @@ export function recordUsage(
   const txn = db.transaction(() => {
     const insertResult = db.prepare(
       `INSERT OR IGNORE INTO usage_log
-        (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, total_cost_usd, input_tokens, output_tokens, num_turns, duration_ms)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, total_cost_usd, credits_charged, input_tokens, output_tokens, num_turns, duration_ms)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).run(
       id, userId, campaignId, usage.requestId, usage.eventType,
-      usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.totalCostUsd,
+      usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.totalCostUsd, usage.creditsCharged,
       usage.inputTokens, usage.outputTokens, usage.numTurns, usage.durationMs,
     );
 
@@ -120,6 +123,40 @@ export function addCredits(userId: string, amount: number): { newBalance: number
 
 export function getUsageLog(userId: string, limit = 20, offset = 0): UsageLogEntry[] {
   return db.prepare(
-    'SELECT * FROM usage_log WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    `SELECT u.*, c.name AS campaign_name
+       FROM usage_log u
+       LEFT JOIN campaigns c ON c.id = u.campaign_id
+      WHERE u.user_id = ?
+      ORDER BY u.created_at DESC
+      LIMIT ? OFFSET ?`
   ).all(userId, limit, offset) as UsageLogEntry[];
+}
+
+export interface UsageSummary {
+  totalCredits: number;
+  campaignCount: number;
+  entryCount: number;
+  since: string;
+}
+
+export function getUsageSummary(userId: string, sinceISODate: string): UsageSummary {
+  const row = db.prepare(
+    `SELECT
+       COALESCE(SUM(credits_charged), 0) AS total_credits,
+       COUNT(DISTINCT campaign_id)       AS campaign_count,
+       COUNT(*)                          AS entry_count
+     FROM usage_log
+     WHERE user_id = ? AND created_at >= ?`
+  ).get(userId, sinceISODate) as {
+    total_credits: number;
+    campaign_count: number;
+    entry_count: number;
+  };
+
+  return {
+    totalCredits: Math.round((row?.total_credits ?? 0) * 10) / 10,
+    campaignCount: row?.campaign_count ?? 0,
+    entryCount: row?.entry_count ?? 0,
+    since: sinceISODate,
+  };
 }

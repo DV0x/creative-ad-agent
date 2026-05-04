@@ -3,7 +3,11 @@ import { generateId } from './utils.js';
 // 10 credits = $1 USD. DB stores USD, convert at API/WS boundary.
 export const CREDITS_PER_USD = 10;
 
-// 4x cost multiplier = 75% gross margin. Raw COGS stays in usage_log for visibility.
+// 4x cost multiplier on raw AI COGS = 75% gross margin (against Claude+fal.ai only;
+// real all-in margin is lower due to Workers/R2/Dodo/etc).
+// In usage_log: claude_cost_usd & image_cost_usd hold RAW COGS; total_cost_usd
+// holds the already-multiplied USER CHARGE (rawCost × COST_MULTIPLIER) — that's
+// what's deducted from the user's balance.
 export const COST_MULTIPLIER = 4;
 
 // Two balance pools:
@@ -29,6 +33,8 @@ export interface UsageLogEntry {
   image_count: number;
   image_cost_usd: number;
   total_cost_usd: number;
+  credits_charged: number | null;  // user-facing charge in credits (frozen at write time)
+  campaign_name: string | null;    // joined from campaigns table
   input_tokens: number;
   output_tokens: number;
   num_turns: number;
@@ -42,7 +48,8 @@ export interface RecordUsageInput {
   claudeCostUsd: number;
   imageCount: number;
   imageCostUsd: number;
-  totalCostUsd: number;
+  totalCostUsd: number;       // user-facing charge in USD (already multiplied)
+  creditsCharged: number;     // same charge expressed in credits, frozen for the user-facing log
   inputTokens: number;
   outputTokens: number;
   numTurns: number;
@@ -172,11 +179,11 @@ export async function recordUsage(
   // a duplicate attempt yields changes=0 and we skip the deduct entirely.
   const insertResult = await db.prepare(
     `INSERT OR IGNORE INTO usage_log
-      (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, total_cost_usd, input_tokens, output_tokens, num_turns, duration_ms)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      (id, user_id, campaign_id, request_id, event_type, claude_cost_usd, image_count, image_cost_usd, total_cost_usd, credits_charged, input_tokens, output_tokens, num_turns, duration_ms)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     id, userId, campaignId, usage.requestId, usage.eventType,
-    usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.totalCostUsd,
+    usage.claudeCostUsd, usage.imageCount, usage.imageCostUsd, usage.totalCostUsd, usage.creditsCharged,
     usage.inputTokens, usage.outputTokens, usage.numTurns, usage.durationMs,
   ).run();
 
@@ -231,10 +238,51 @@ export async function getUsageLog(
   offset = 0,
 ): Promise<UsageLogEntry[]> {
   const result = await db.prepare(
-    'SELECT * FROM usage_log WHERE user_id = ? ORDER BY created_at DESC LIMIT ? OFFSET ?'
+    `SELECT u.*, c.name AS campaign_name
+       FROM usage_log u
+       LEFT JOIN campaigns c ON c.id = u.campaign_id
+      WHERE u.user_id = ?
+      ORDER BY u.created_at DESC
+      LIMIT ? OFFSET ?`
   ).bind(userId, limit, offset).all<UsageLogEntry>();
 
   return result.results;
+}
+
+export interface UsageSummary {
+  totalCredits: number;
+  campaignCount: number;
+  entryCount: number;
+  since: string;
+}
+
+// Aggregate `credits_charged` since a given ISO date — used by the usage drawer
+// header card ("This month: 312 credits across 8 campaigns"). `since` is the
+// caller's responsibility; the drawer passes the start of the calendar month.
+export async function getUsageSummary(
+  db: D1Database,
+  userId: string,
+  sinceISODate: string,
+): Promise<UsageSummary> {
+  const row = await db.prepare(
+    `SELECT
+       COALESCE(SUM(credits_charged), 0) AS total_credits,
+       COUNT(DISTINCT campaign_id)       AS campaign_count,
+       COUNT(*)                          AS entry_count
+     FROM usage_log
+     WHERE user_id = ? AND created_at >= ?`
+  ).bind(userId, sinceISODate).first<{
+    total_credits: number;
+    campaign_count: number;
+    entry_count: number;
+  }>();
+
+  return {
+    totalCredits: Math.round((row?.total_credits ?? 0) * 10) / 10,
+    campaignCount: row?.campaign_count ?? 0,
+    entryCount: row?.entry_count ?? 0,
+    since: sinceISODate,
+  };
 }
 
 // Look up the original credit for a given Dodo payment_id.

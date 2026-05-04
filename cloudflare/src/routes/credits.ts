@@ -41,12 +41,26 @@ export async function handleCreditsRequest(
       usage: usage.map(u => ({
         id: u.id,
         campaign_id: u.campaign_id,
+        campaign_name: u.campaign_name,
         event_type: u.event_type,
         image_count: u.image_count,
-        credits_charged: Math.round(u.total_cost_usd * CREDITS_PER_USD * 10) / 10,
+        // Prefer the stored value; fall back to total_cost_usd for any row not
+        // yet backfilled (defensive — the migration backfilled all existing rows).
+        credits_charged: u.credits_charged ?? Math.round(u.total_cost_usd * CREDITS_PER_USD * 10) / 10,
         created_at: u.created_at,
       })),
     });
+  }
+
+  // GET /api/credits/usage/summary?since=YYYY-MM-DD
+  if (sub === '/usage/summary' && method === 'GET') {
+    const url = new URL(request.url);
+    const since = url.searchParams.get('since');
+    if (!since) {
+      return Response.json({ error: 'since param required (ISO date)' }, { status: 400 });
+    }
+    const summary = await credits.getUsageSummary(env.DB, userId, since);
+    return Response.json(summary);
   }
 
   return new Response('Not Found', { status: 404 });
