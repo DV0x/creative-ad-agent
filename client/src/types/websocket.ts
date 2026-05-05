@@ -5,12 +5,16 @@ import type { HookType } from './chat';
 // ============================================
 
 export interface WSClientMessage {
-  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up';
+  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up' | 'set_active_references';
   prompt?: string;
   sessionId?: string;
   campaignId?: string;
   lastEventId?: number;
-  assetFileIds?: string[];
+  // For 'set_active_references' — replaces per-message assetFileIds (D7 hard cutover).
+  fileIds?: string[];
+  sourceCampaignId?: string;
+  aspectRatio?: '4:5' | '1:1' | '9:16';
+  brand?: string;
 }
 
 // ============================================
@@ -132,6 +136,12 @@ export interface WSTextEndEvent extends WSBaseMessage {
   type: 'text_end';
 }
 
+export interface WSActiveReferencesUpdatedEvent extends WSBaseMessage {
+  type: 'active_references_updated';
+  campaignId: string;
+  fileIds: string[];
+}
+
 // ============================================
 // Union Type for All Server Messages
 // ============================================
@@ -153,7 +163,8 @@ export type WSServerMessage =
   | WSCreditsUpdateEvent
   | WSTextStartEvent
   | WSTextDeltaEvent
-  | WSTextEndEvent;
+  | WSTextEndEvent
+  | WSActiveReferencesUpdatedEvent;
 
 // ============================================
 // Type Guards

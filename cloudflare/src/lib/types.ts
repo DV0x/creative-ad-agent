@@ -3,15 +3,27 @@
 
 // Client -> Server message types
 export interface ClientMessage {
-  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up';
+  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up' | 'set_active_references';
   prompt?: string;
   sessionId?: string;
   campaignId?: string;
   lastEventId?: number;
-  assetFileIds?: string[];
+  // For 'set_active_references' (sticky refs on existing campaigns) AND for
+  // first-turn refs on 'generate' (campaign doesn't exist yet, so we bake them
+  // into the generate message; the DO sets them on the row right after createCampaign).
+  fileIds?: string[];
   sourceCampaignId?: string;
   aspectRatio?: '4:5' | '1:1' | '9:16';
   brand?: string;
+}
+
+// Resolved reference set passed from the WS handler down through runGeneration
+// /runFollowUpFast → setupSandbox so /app/refs.json can be written after the
+// sandbox is mounted (D13).
+export interface ResolvedRefs {
+  falUrls: string[];
+  sandboxPaths: string[];
+  fileIds: string[];
 }
 
 // Hook types for ad concepts
@@ -26,7 +38,7 @@ export function getHookTypeForIndex(index: number): HookType {
 
 // Server -> Client message types
 export interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'credits_update' | 'text_delta' | 'text_start' | 'text_end';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'credits_update' | 'text_delta' | 'text_start' | 'text_end' | 'active_references_updated';
   timestamp: string;
   id?: number | string;
   phase?: string;
@@ -57,6 +69,7 @@ export interface ServerMessage {
   imageCount?: number;
   summary?: string;
   campaignId?: string;
+  fileIds?: string[];  // for 'active_references_updated'
 }
 
 // Event buffer entry

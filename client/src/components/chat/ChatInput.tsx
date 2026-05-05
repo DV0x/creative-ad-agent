@@ -2,6 +2,7 @@ import { useState, useRef } from 'react'
 import { ArrowUp, Square, AtSign } from 'lucide-react'
 import { AssetMention, type AssetMentionHandle } from '@/components/mentions/AssetMention'
 import { ImageChip } from '@/components/chat/ImageChip'
+import { ReferenceChipStrip } from '@/components/chat/ReferenceChipStrip'
 import { useStore, type AssetFolder, type AssetFile, type CampaignFileType } from '@/store'
 
 interface ChatInputProps {
@@ -19,6 +20,7 @@ interface ChatInputProps {
 
 const ASPECT_RATIOS = ['4:5', '1:1', '9:16'] as const
 const WINE_HAIRLINE = 'rgba(120, 40, 74, 0.14)'
+const EMPTY_IDS: string[] = []
 
 export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocus }: ChatInputProps) {
   const {
@@ -30,12 +32,41 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
     setSelectedAspectRatio,
   } = useStore()
 
+  // Reference image flow:
+  //  - Active campaign exists → @mention dispatches addReference (sticky chip strip).
+  //    `mentionedAssetFiles` stays empty so AssetMention's inline chips don't show.
+  //  - No active campaign (creating new one) → fall back to local state; refs are
+  //    threaded into generate() and attached on the freshly-minted campaign.
+  const activeCampaignId = useStore((s) => s.activeCampaignId)
+  const addReference = useStore((s) => s.addReference)
+  // Returning a new [] from the selector on every render trips React's
+  // update-depth-exceeded loop. Pull the value (possibly undefined), fall back
+  // to a stable constant outside the selector.
+  const activeRefIdsRaw = useStore((s) =>
+    activeCampaignId ? s.activeReferencesByCampaign[activeCampaignId] : undefined,
+  )
+  const activeRefIds = activeRefIdsRaw ?? EMPTY_IDS
+
   const mentionRef = useRef<AssetMentionHandle>(null)
 
   const [message, setMessage] = useState('')
   const [mentionedFolders, setMentionedFolders] = useState<AssetFolder[]>([])
   const [mentionedFiles, setMentionedFiles] = useState<CampaignFileType[]>([])
   const [mentionedAssetFiles, setMentionedAssetFiles] = useState<AssetFile[]>([])
+
+  const handleAssetFileMention = (files: AssetFile[]) => {
+    if (activeCampaignId) {
+      // Find the newly-mentioned file (the one not in our previous local snapshot)
+      const known = new Set(mentionedAssetFiles.map((f) => f.id))
+      const newest = files.find((f) => !known.has(f.id))
+      if (newest && !activeRefIds.includes(newest.id)) {
+        addReference(activeCampaignId, newest.id)
+      }
+      // Don't accumulate — chip strip is the persistent surface for active campaigns.
+    } else {
+      setMentionedAssetFiles(files)
+    }
+  }
 
   const selectedImages = getSelectedImages()
   const hasContent = message.trim() ||
@@ -61,10 +92,17 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
       ? `${mentionPrefix} ${message.trim()}`.trim()
       : message.trim()
 
+    // assetRefs for active campaigns: empty — refs already live on the campaign row.
+    // For new-campaign creation, emit local mentionedAssetFiles so generate() can
+    // dispatch set_active_references after minting the campaignId.
+    const assetFileRefs = activeCampaignId
+      ? []
+      : mentionedAssetFiles.map(f => f.id)
+
     onSubmit({
       content: fullMessage,
       fileRefs: mentionedFiles.map(f => ({ fileType: f })),
-      assetRefs: [...mentionedFolders.map(f => f.id), ...mentionedAssetFiles.map(f => f.id)],
+      assetRefs: [...mentionedFolders.map(f => f.id), ...assetFileRefs],
       imageRefs: selectedImageIds.map(id => ({ imageId: id })),
     })
 
@@ -88,6 +126,9 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
   return (
     <div className="px-3 pb-3 pt-2">
       <form onSubmit={handleSubmit}>
+        {/* Persistent reference images for the active campaign (sticky across turns) */}
+        {activeCampaignId && <ReferenceChipStrip campaignId={activeCampaignId} />}
+
         {/* Selected images — reference chips above textarea */}
         {selectedImages.length > 0 && (
           <div className="flex flex-wrap gap-1.5 mb-2">
@@ -125,10 +166,10 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
               onChange={setMessage}
               onFolderMention={setMentionedFolders}
               onFileMention={setMentionedFiles}
-              onAssetFileMention={setMentionedAssetFiles}
+              onAssetFileMention={handleAssetFileMention}
               mentionedFolders={mentionedFolders}
               mentionedFiles={mentionedFiles}
-              mentionedAssetFiles={mentionedAssetFiles}
+              mentionedAssetFiles={activeCampaignId ? [] : mentionedAssetFiles}
               autoFocus={autoFocus}
               placeholder={selectedImages.length > 0
                 ? 'Describe changes for the selected images…'

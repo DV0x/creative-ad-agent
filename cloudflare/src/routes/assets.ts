@@ -120,6 +120,12 @@ export async function deleteFolder(
       const keys = files.map((f) => `users/${userId}/uploads/${f.file_path}`);
       // R2 delete supports batch up to 1000 keys
       await env.R2_BUCKET.delete(keys);
+      // Cascade: sweep these fileIds out of every campaign's active reference set (D14).
+      // Must happen BEFORE deleteFolder — once asset_files rows are gone (CASCADE), we
+      // can't re-derive the fileIds.
+      for (const file of files) {
+        await db.removeFileFromAllCampaigns(env.DB, userId, file.id);
+      }
     }
 
     // Delete from DB (CASCADE deletes file rows)
@@ -296,6 +302,9 @@ export async function deleteFile(
 
     // Delete from D1
     await db.deleteAssetFile(env.DB, fileId);
+
+    // Cascade: remove this fileId from every campaign's active reference set (D14)
+    await db.removeFileFromAllCampaigns(env.DB, userId, fileId);
 
     return Response.json({ success: true, message: 'File deleted' });
   } catch (error: any) {

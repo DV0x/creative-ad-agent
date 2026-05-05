@@ -15,6 +15,9 @@ export {
   updateSdkSessionId,
   getSdkSessionId,
   getRecentCampaigns,
+  getActiveReferences,
+  setActiveReferences,
+  removeFileFromAllCampaigns,
   type Campaign,
 } from './campaigns.js';
 

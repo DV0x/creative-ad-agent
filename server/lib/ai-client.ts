@@ -2,6 +2,7 @@ import { query } from '@anthropic-ai/claude-agent-sdk';
 import type { Options, SDKUserMessage } from '@anthropic-ai/claude-agent-sdk';
 import { SessionManager, type SessionInfo } from './session-manager.js';
 import { nanoBananaMcpServer } from './nano-banana-mcp.js';
+import { refsMcpServer } from './refs-mcp.js';
 import { ORCHESTRATOR_SYSTEM_PROMPT } from './orchestrator-prompt.js';
 import { resolve } from 'path';
 import { existsSync, readdirSync, readFileSync } from 'fs';
@@ -55,6 +56,7 @@ export class AIClient {
         "Write",      // Save campaign brief
         "Glob",       // File pattern matching
         "mcp__nano-banana__generate_ad_images",  // Gemini 2.5 Flash Image generation
+        "mcp__refs__get_reference_images",       // Campaign-level reference image lookup
         // + Can consult skills: viral-meme-creation, nanobanana-meme-prompting
 
         // === UTILITY TOOLS (Available if needed) ===
@@ -65,9 +67,10 @@ export class AIClient {
 
       // Custom system prompt - PURE ORCHESTRATION ROLE
       systemPrompt: ORCHESTRATOR_SYSTEM_PROMPT,
-      // MCP servers - nano_banana for image generation
+      // MCP servers - nano_banana for image generation, refs for campaign reference images
       mcpServers: {
-        "nano-banana": nanoBananaMcpServer
+        "nano-banana": nanoBananaMcpServer,
+        "refs": refsMcpServer,
       }
       // Note: Removed hooks - observability is handled via message stream processing in sdk-server.ts
     };

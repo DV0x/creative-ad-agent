@@ -57,6 +57,7 @@ interface ApiCampaign {
   brand: string | null;
   status: CampaignStatus;
   session_id: string | null;
+  active_reference_file_ids: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -138,6 +139,15 @@ function transformCampaign(
     };
   });
 
+  // Parse active_reference_file_ids JSON column (multi-ref selective replace).
+  let activeReferenceFileIds: string[] = [];
+  if (api.active_reference_file_ids) {
+    try {
+      const parsed = JSON.parse(api.active_reference_file_ids);
+      if (Array.isArray(parsed)) activeReferenceFileIds = parsed;
+    } catch { /* malformed JSON — treat as empty */ }
+  }
+
   return {
     id: api.id,
     name: api.name,
@@ -154,6 +164,7 @@ function transformCampaign(
       version: img.version,
     })),
     sessionId: api.session_id ?? undefined,
+    activeReferenceFileIds,
   };
 }
 

@@ -91,10 +91,14 @@ export interface UseWebSocketReturn {
   connectionState: WSConnectionState;
   isConnected: boolean;
   isRecovering: boolean;
+  // assetFileIds: only used on the FIRST turn of a NEW campaign — refs aren't yet
+  // attached to a campaignId, so we attach them here. Internally dispatches a
+  // 'set_active_references' WS message after startGeneration mints the campaignId,
+  // before sending 'generate'. Follow-ups inherit refs from campaign state instead.
   generate: (prompt: string, assetFileIds?: string[], aspectRatio?: string) => void;
   cancel: () => void;
   resume: (campaignId: string, resumePrompt: string) => void;
-  followUp: (campaignId: string, prompt: string, assetFileIds?: string[], aspectRatio?: string) => void;
+  followUp: (campaignId: string, prompt: string, aspectRatio?: string) => void;
 }
 
 export function useWebSocket(): UseWebSocketReturn {
@@ -347,6 +351,13 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'pong':
           break;
 
+        case 'active_references_updated': {
+          // Server confirmed the new active reference set — overwrite local state.
+          const m = message as { campaignId: string; fileIds: string[] };
+          useStore.getState().setActiveReferences(m.campaignId, m.fileIds);
+          break;
+        }
+
         default:
           console.log('Unknown WebSocket message type:', (message as { type: string }).type);
       }
@@ -490,14 +501,18 @@ export function useWebSocket(): UseWebSocketReturn {
 
     store.openThinkingBlock(campaignId, messageId, `Starting generation for ${brand ? `${brand} — ${campaignName}` : campaignName}...`);
 
+    // First-turn refs piggy-back on the generate WS payload — the campaign doesn't
+    // exist server-side yet, so a separate set_active_references would race
+    // against handleGenerate's createCampaign. The DO sets these on the row
+    // immediately after creating the campaign.
     const sent = wsManager.sendMessage({
       type: 'generate',
       prompt,
       sessionId,
       ...(sourceCampaignId ? { sourceCampaignId } : {}),
-      ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
       ...(aspectRatio ? { aspectRatio } : {}),
       ...(brand ? { brand } : {}),
+      ...(assetFileIds && assetFileIds.length > 0 ? { fileIds: assetFileIds } : {}),
     });
 
     // Clear source campaign state after sending
@@ -554,7 +569,7 @@ export function useWebSocket(): UseWebSocketReturn {
     }
   }, []);
 
-  const followUp = useCallback((campaignId: string, prompt: string, assetFileIds?: string[], aspectRatio?: string) => {
+  const followUp = useCallback((campaignId: string, prompt: string, aspectRatio?: string) => {
     if (!prompt.trim()) return;
 
     // Pre-send paywall check
@@ -581,7 +596,6 @@ export function useWebSocket(): UseWebSocketReturn {
       type: 'follow_up',
       prompt,
       campaignId,
-      ...(assetFileIds && assetFileIds.length > 0 ? { assetFileIds } : {}),
       ...(aspectRatio ? { aspectRatio } : {}),
     });
 

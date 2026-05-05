@@ -26,6 +26,7 @@ CREATE TABLE IF NOT EXISTS campaigns (
   session_id TEXT,
   sdk_session_id TEXT,
   brand TEXT,
+  active_reference_file_ids TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );
@@ -210,6 +211,11 @@ export function initDatabase(): void {
   // Migration: add blocks column to messages for persisting thinking blocks
   try {
     db.exec(`ALTER TABLE messages ADD COLUMN blocks TEXT`);
+  } catch { /* column already exists */ }
+
+  // Migration: campaign-level active reference image set (multi-ref selective replace, 2026-05-05)
+  try {
+    db.exec(`ALTER TABLE campaigns ADD COLUMN active_reference_file_ids TEXT`);
   } catch { /* column already exists */ }
 
   console.log('✅ Database initialized at:', DB_PATH);

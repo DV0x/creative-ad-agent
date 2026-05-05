@@ -46,13 +46,13 @@ export function MobileChatDrawer({ open, onOpenChange }: MobileChatDrawerProps) 
     imageRefs: { imageId: number }[]
   }) => {
     if (!message.content.trim()) return
-    const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
-    const refs = assetFileIds.length > 0 ? assetFileIds : undefined
 
     // Dispatch on data shape — mirrors ChatSidebar.handleSubmit. See comment there.
     if (activeCampaignId) {
-      followUp(activeCampaignId, message.content.trim(), refs)
+      followUp(activeCampaignId, message.content.trim())
     } else if (isConnected) {
+      const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
+      const refs = assetFileIds.length > 0 ? assetFileIds : undefined
       generate(message.content.trim(), refs)
     }
   }

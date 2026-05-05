@@ -1,6 +1,7 @@
 import { query } from '@anthropic-ai/claude-agent-sdk';
 import type { Options } from '@anthropic-ai/claude-agent-sdk';
 import { nanoBananaMcpServer } from './nano-banana-mcp.js';
+import { refsMcpServer } from './refs-mcp.js';
 import { ORCHESTRATOR_SYSTEM_PROMPT } from './orchestrator-prompt.js';
 import { BlockBuilder } from './block-builder.js';
 import type { MessageBlock } from './block-builder.js';
@@ -105,9 +106,13 @@ const baseOptions: Partial<Options> = {
     'WebFetch', 'WebSearch', 'Read', 'Write',
     'Bash', 'Edit', 'Glob', 'Grep',
     'mcp__nano-banana__generate_ad_images',
+    'mcp__refs__get_reference_images',
   ],
   systemPrompt: ORCHESTRATOR_SYSTEM_PROMPT,
-  mcpServers: { 'nano-banana': nanoBananaMcpServer },
+  mcpServers: {
+    'nano-banana': nanoBananaMcpServer,
+    'refs': refsMcpServer,
+  },
 };
 
 // ─── Block-building message processor ────────────────────────────
@@ -122,6 +127,7 @@ const TOOL_DISPLAY_NAMES: Record<string, string> = {
   'Glob': 'Finding files',
   'Grep': 'Searching code',
   'mcp__nano-banana__generate_ad_images': 'Generating images',
+  'mcp__refs__get_reference_images': 'Loading reference images',
 };
 
 function processMessageForBlocks(message: any, blockBuilder: BlockBuilder, textAcc: { text: string }): void {

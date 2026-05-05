@@ -148,6 +148,55 @@ Detect brand category from research brief
 Select 3-4 styles from the category default table
 ```
 
+### Step 2.5: Build Reference Image Roster (only if references exist)
+
+The user may have uploaded reference images for this campaign (e.g. their actual product photos). When references exist, the prompts you generate must explicitly preserve product identity — generic descriptions ("a whey protein tub") cause the image generator to redesign the packaging.
+
+**Process:**
+
+1. **Retrieve refs:** Call `mcp__refs__get_reference_images`. The result is `{ references: [{ falUrl, sandboxPath, fileId }, ...] }`.
+2. **If `references` is empty:** skip this step. Proceed to Step 3 with text-to-image semantics.
+3. **For each reference, load the image:** Call `Read(sandboxPath)`. The image enters your vision context. If `Read()` fails on any path (FUSE flake, missing file), emit a brief warning and skip that reference — do not fail the whole campaign.
+4. **Describe each image:** For every reference you loaded, write a structured description noting:
+   - Form factor (cylindrical tub, rectangular bar, bottle, sachet, etc.)
+   - Material/finish (matte, glossy, foil, glass, plastic)
+   - Wordmark / logo (text, position, font feel)
+   - Distinctive label features (color bands, callouts, badges, ingredient text)
+   - Inferred role (primary product, companion product, brand mark, alt angle)
+5. **Build the IMAGE ROSTER block:** Combine descriptions into one block per the template below. This block must be included in EVERY concept's `prompt` field that uses references.
+
+**Image Roster template (literal text to include in prompts):**
+```
+IMAGE ROSTER:
+- Image 1: <visual description, role inference>
+- Image 2: <visual description, role inference>
+...
+
+PRODUCT FIDELITY: Preserve product identity exactly as shown in the references.
+Do NOT redesign packaging, alter labels, change colors, or modify proportions.
+Use the role inferences above to place each element in the scene appropriately.
+When multiple products appear in one creative, name each one's placement explicitly.
+```
+
+6. **Per-concept reference assignment:** When emitting `prompts.json`, populate each concept's `referenceImageUrls` field:
+   - Some concepts may use ALL refs (e.g. lifestyle scene featuring both products).
+   - Some may use a SUBSET (e.g. infographic showing just the bar).
+   - Some may use NONE (e.g. pure typography hooks where the product doesn't visually appear).
+   - The agent decides per concept based on hook + style + composition logic.
+   - Use the `falUrl` values from step 1 — copy them verbatim into the array.
+
+**Output schema gain (per concept):**
+```json
+{
+  "concept": 1,
+  "...": "...",
+  "prompt": "IMAGE ROSTER:\n- Image 1: matte black whey tub...\nPRODUCT FIDELITY: ...\n\nFeature the user's exact tub...",
+  "referenceImageUrls": ["https://fal.media/.../tub.jpg"]
+}
+```
+
+When references exist, the orchestrator's call to `generate_ad_images` reads `referenceImageUrls` from `prompts.json` per concept — not from your conversation memory. This is the durability boundary.
+
 ### Step 3: Assign Hooks to Styles
 ```
 For each hook:
@@ -267,12 +316,15 @@ When running multi-style, all prompts from all styles are combined into a single
         "...style-specific fields...": "varies per workflow"
       },
       "prompt": "Full prompt text...",
+      "referenceImageUrls": ["https://fal.media/..."],
       "aspectRatio": "user-specified ratio (4:5, 1:1, or 9:16)",
       "dimensions": "matching dimensions (1080x1350, 1080x1080, or 1080x1920)"
     }
   ]
 }
 ```
+
+`referenceImageUrls` is **optional** — populate it only when Step 2.5 ran and you assigned references to this concept. Omit it (or use an empty array) for text-to-image concepts.
 
 When running a single specified style, the output uses that style's name instead of "multi-style" and omits the "stylesUsed" field.
 

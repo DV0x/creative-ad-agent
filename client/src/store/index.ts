@@ -12,6 +12,7 @@ import type {
   ThinkingChild,
 } from '../types/chat'
 import { campaignsApi, assetsApi } from '../lib/api'
+import * as wsManager from '../lib/websocket-manager'
 
 // ============================================
 // Types
@@ -38,6 +39,7 @@ export interface Campaign {
   status: CampaignStatus
   filesReady: FilesReadyState
   sessionId?: string
+  activeReferenceFileIds?: string[]
 }
 
 export interface AssetFile {
@@ -184,6 +186,15 @@ interface Store {
   renameFolder: (id: string, name: string) => void
   addFileToFolder: (folderId: string, file: Omit<AssetFile, 'folderId'>) => void
   removeFile: (fileId: string) => void
+
+  // Reference images per campaign (sticky across turns, server-authoritative).
+  // Keyed by campaignId → array of asset_files.id values.
+  // Mutations dispatch 'set_active_references' to the DO via wsManager — server replies
+  // with 'active_references_updated' which calls setActiveReferences() to confirm.
+  activeReferencesByCampaign: Record<string, string[]>
+  addReference: (campaignId: string, fileId: string) => void
+  removeReference: (campaignId: string, fileId: string) => void
+  setActiveReferences: (campaignId: string, fileIds: string[]) => void
 
   // Async API-synced actions
   deleteCampaignAsync: (id: string) => Promise<void>
@@ -1082,8 +1093,41 @@ export const useStore = create<Store>()(persist((set, get) => ({
     assetFolders: state.assetFolders.map(folder => ({
       ...folder,
       files: folder.files.filter(f => f.id !== fileId)
-    }))
+    })),
+    // Local cascade — keep activeReferencesByCampaign in sync with the asset library.
+    // (Server-side cascade lives in cloudflare/src/routes/assets.ts deleteFile/Folder.)
+    activeReferencesByCampaign: Object.fromEntries(
+      Object.entries(state.activeReferencesByCampaign).map(([cid, ids]) => [cid, ids.filter(id => id !== fileId)])
+    ),
   })),
+
+  // Reference images per campaign — see Store interface for semantics.
+  activeReferencesByCampaign: {},
+
+  addReference: (campaignId, fileId) => {
+    const current = get().activeReferencesByCampaign[campaignId] || []
+    if (current.includes(fileId)) return
+    const next = [...current, fileId]
+    set((state) => ({
+      activeReferencesByCampaign: { ...state.activeReferencesByCampaign, [campaignId]: next }
+    }))
+    wsManager.sendMessage({ type: 'set_active_references', campaignId, fileIds: next })
+  },
+
+  removeReference: (campaignId, fileId) => {
+    const current = get().activeReferencesByCampaign[campaignId] || []
+    const next = current.filter(id => id !== fileId)
+    set((state) => ({
+      activeReferencesByCampaign: { ...state.activeReferencesByCampaign, [campaignId]: next }
+    }))
+    wsManager.sendMessage({ type: 'set_active_references', campaignId, fileIds: next })
+  },
+
+  setActiveReferences: (campaignId, fileIds) => {
+    set((state) => ({
+      activeReferencesByCampaign: { ...state.activeReferencesByCampaign, [campaignId]: fileIds }
+    }))
+  },
 
   // Async API-synced actions
   deleteCampaignAsync: async (id) => {
@@ -1252,8 +1296,20 @@ export const useStore = create<Store>()(persist((set, get) => ({
       return updated;
     });
 
+    // Seed activeReferencesByCampaign from each campaign's parsed JSON column.
+    // Server is authoritative on hydrate — overwrite any local state.
+    const activeReferencesByCampaign = { ...state.activeReferencesByCampaign };
+    for (const c of campaigns) {
+      if (c.activeReferenceFileIds && c.activeReferenceFileIds.length > 0) {
+        activeReferencesByCampaign[c.id] = c.activeReferenceFileIds;
+      } else {
+        delete activeReferencesByCampaign[c.id];
+      }
+    }
+
     return {
       campaigns,
+      activeReferencesByCampaign,
       ...(dirty ? { _pendingImages: pendingImages, _pendingFiles: pendingFiles } : {}),
     };
   }),
@@ -1284,6 +1340,7 @@ export const useStore = create<Store>()(persist((set, get) => ({
     sessionId: null,
     error: null,
     selectedImageIds: [],
+    activeReferencesByCampaign: {},
     generatingCampaignId: null,
     isFollowUp: false,
     currentGeneratingMessageId: null,

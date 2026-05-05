@@ -8,6 +8,7 @@ export interface Campaign {
   status: 'generating' | 'complete' | 'incomplete' | 'error' | 'cancelled';
   session_id: string | null;
   sdk_session_id: string | null;
+  active_reference_file_ids: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -116,4 +117,57 @@ export async function getRecentCampaigns(db: D1Database, userId: string, limit =
     LIMIT ?
   `).bind(userId, limit).all<Campaign>();
   return result.results;
+}
+
+/** Returns the array of asset_files.id values currently active for this campaign. */
+export async function getActiveReferences(db: D1Database, campaignId: string): Promise<string[]> {
+  const row = await db.prepare(`
+    SELECT active_reference_file_ids FROM campaigns WHERE id = ?
+  `).bind(campaignId).first<{ active_reference_file_ids: string | null }>();
+  if (!row?.active_reference_file_ids) return [];
+  try {
+    const parsed = JSON.parse(row.active_reference_file_ids);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+/** Replaces the active reference set for this campaign. Pass [] to clear. */
+export async function setActiveReferences(db: D1Database, campaignId: string, fileIds: string[]): Promise<void> {
+  await db.prepare(`
+    UPDATE campaigns SET active_reference_file_ids = ?, updated_at = datetime('now')
+    WHERE id = ?
+  `).bind(JSON.stringify(fileIds), campaignId).run();
+}
+
+/** Removes a fileId from every campaign's active_reference_file_ids array.
+ *  Called by deleteFile/deleteFolder to keep referential integrity (D14).
+ *  Returns the list of campaign IDs that were affected (so caller can sync clients). */
+export async function removeFileFromAllCampaigns(
+  db: D1Database,
+  userId: string,
+  fileId: string,
+): Promise<string[]> {
+  const rows = await db.prepare(`
+    SELECT id, active_reference_file_ids FROM campaigns
+    WHERE user_id = ? AND active_reference_file_ids LIKE ?
+  `).bind(userId, `%"${fileId}"%`).all<{ id: string; active_reference_file_ids: string }>();
+
+  const affected: string[] = [];
+  for (const row of rows.results) {
+    try {
+      const arr = JSON.parse(row.active_reference_file_ids) as string[];
+      if (!Array.isArray(arr)) continue;
+      const filtered = arr.filter((id) => id !== fileId);
+      if (filtered.length !== arr.length) {
+        await db.prepare(`
+          UPDATE campaigns SET active_reference_file_ids = ?, updated_at = datetime('now')
+          WHERE id = ?
+        `).bind(JSON.stringify(filtered), row.id).run();
+        affected.push(row.id);
+      }
+    } catch { /* malformed JSON — skip */ }
+  }
+  return affected;
 }

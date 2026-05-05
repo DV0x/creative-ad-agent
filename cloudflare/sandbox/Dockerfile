@@ -19,7 +19,7 @@ COPY agent/ /app/agent/
 COPY agent/.claude/ /app/agent/.claude/
 
 # Copy sandbox entry point and supporting modules
-COPY agent-runner.ts orchestrator-prompt.ts nano-banana-mcp.ts block-builder.ts ./
+COPY agent-runner.ts orchestrator-prompt.ts nano-banana-mcp.ts refs-mcp.ts block-builder.ts ./
 COPY tsconfig.json ./
 
 # Install TypeScript compiler + pre-compile to JavaScript

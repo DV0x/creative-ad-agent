@@ -188,6 +188,8 @@ router.delete('/folders/:id', (req: Request, res: Response) => {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
       }
+      // Cascade: sweep this fileId out of every campaign's active reference set (D14)
+      db.removeFileFromAllCampaigns(userId, file.id);
     }
 
     // Delete from database (cascades to files)
@@ -379,6 +381,9 @@ router.delete('/files/:id', (req: Request, res: Response) => {
 
     // Delete from database
     db.deleteAssetFile(id);
+
+    // Cascade: remove this fileId from every campaign's active reference set (D14)
+    db.removeFileFromAllCampaigns(userId, id);
 
     res.json({
       success: true,

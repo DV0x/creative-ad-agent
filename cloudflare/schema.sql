@@ -11,6 +11,10 @@ CREATE TABLE IF NOT EXISTS campaigns (
   session_id TEXT,
   sdk_session_id TEXT,
   brand TEXT,
+  -- JSON array of asset_files.id values active for this campaign (sticky across turns).
+  -- NULL = no refs. Updated via 'set_active_references' WS message; consumed by DO at
+  -- generation time to write /app/refs.json into the sandbox before the agent runs.
+  active_reference_file_ids TEXT,
   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
 );

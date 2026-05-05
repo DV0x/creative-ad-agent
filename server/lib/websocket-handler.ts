@@ -1,6 +1,6 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import { Server, IncomingMessage } from 'http';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync, existsSync, unlinkSync } from 'fs';
 import { readFile } from 'fs/promises';
 import { resolve, extname, dirname, basename } from 'path';
 import { fileURLToPath } from 'url';
@@ -13,18 +13,26 @@ import * as db from './db/index.js';
 import { verifyWebSocketToken, IS_CLERK_CONFIGURED } from './auth.js';
 import { imageEvents, ImageSavedEvent, registerMcpSession, resolveWsSessionId, unregisterByWsSession } from './image-events.js';
 import { BlockBuilder } from './block-builder.js';
+import { REFS_FILE } from './refs-mcp.js';
 
 // Client → Server message types
 interface ClientMessage {
-  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up';
+  type: 'generate' | 'cancel' | 'ping' | 'subscribe' | 'follow_up' | 'set_active_references';
   prompt?: string;
   sessionId?: string;
   campaignId?: string;
   lastEventId?: number;
-  assetFileIds?: string[];
+  // For 'set_active_references' — replaces per-message assetFileIds (D7).
+  fileIds?: string[];
   sourceCampaignId?: string;
   aspectRatio?: '4:5' | '1:1' | '9:16';
   brand?: string;
+}
+
+interface ResolvedRefs {
+  falUrls: string[];
+  sandboxPaths: string[];
+  fileIds: string[];
 }
 
 // ── Asset attachment resolution ────────────────────────────────
@@ -112,6 +120,67 @@ async function resolveAssetAttachments(assetFileIds: string[]): Promise<Resolved
   return { attachments, referenceUrls };
 }
 
+/**
+ * Resolve campaign-level active references for the local refs MCP.
+ * Returns falUrls (for generate_ad_images), sandboxPaths (absolute local paths the
+ * agent can Read()), and fileIds. Skips files that fail to upload to fal.ai or
+ * that have unsupported types.
+ */
+async function resolveRefsForLocal(activeFileIds: string[]): Promise<ResolvedRefs> {
+  const falUrls: string[] = [];
+  const sandboxPaths: string[] = [];
+  const fileIds: string[] = [];
+
+  const falKey = process.env.FAL_KEY;
+  if (!falKey) {
+    console.warn('⚠️ FAL_KEY not set — refs cannot be uploaded to fal.ai');
+    return { falUrls, sandboxPaths, fileIds };
+  }
+  fal.config({ credentials: falKey });
+
+  for (const fileId of activeFileIds) {
+    const assetFile = db.getFile(fileId);
+    if (!assetFile || assetFile.file_type !== 'image') continue;
+    const ext = extname(assetFile.file_path).toLowerCase();
+    const mediaType = EXT_TO_MEDIA_TYPE[ext];
+    if (!mediaType) continue;
+    const fullPath = resolve(UPLOADS_DIR, assetFile.file_path);
+    try {
+      const fileBuffer = await readFile(fullPath);
+      const file = new File([fileBuffer], basename(assetFile.file_path), { type: mediaType });
+      const publicUrl = await fal.storage.upload(file);
+      falUrls.push(publicUrl);
+      sandboxPaths.push(fullPath);
+      fileIds.push(fileId);
+    } catch (err: any) {
+      console.error(`⚠️ Failed to resolve ref ${fileId}:`, err?.message || err);
+    }
+  }
+  return { falUrls, sandboxPaths, fileIds };
+}
+
+/** Write the resolved refs to /tmp/creative-agent-refs.json so the MCP can serve them. */
+function writeLocalRefsFile(refs: ResolvedRefs | null): void {
+  try {
+    if (refs && refs.falUrls.length > 0) {
+      const payload = {
+        references: refs.falUrls.map((falUrl, i) => ({
+          falUrl,
+          sandboxPath: refs.sandboxPaths[i],
+          fileId: refs.fileIds[i],
+        })),
+      };
+      writeFileSync(REFS_FILE, JSON.stringify(payload, null, 2));
+      console.log(`🖼️ Wrote ${REFS_FILE} with ${refs.falUrls.length} reference(s)`);
+    } else if (existsSync(REFS_FILE)) {
+      unlinkSync(REFS_FILE);
+      console.log(`🖼️ Cleared stale ${REFS_FILE}`);
+    }
+  } catch (err: any) {
+    console.error(`⚠️ Failed to write ${REFS_FILE}:`, err?.message || err);
+  }
+}
+
 // Hook types for ad concepts
 type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
 
@@ -124,7 +193,7 @@ function getHookTypeForIndex(index: number): HookType {
 
 // Server → Client message types
 interface ServerMessage {
-  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'credits_update';
+  type: 'phase' | 'tool_start' | 'tool_end' | 'message' | 'status' | 'image' | 'file' | 'complete' | 'error' | 'incomplete' | 'ack' | 'pong' | 'subscribed' | 'credits_update' | 'active_references_updated';
   timestamp: string;
   // Event/Image ID (number for event tracking, string for image IDs)
   id?: number | string;
@@ -162,6 +231,8 @@ interface ServerMessage {
   summary?: string;
   // Ack events
   campaignId?: string;
+  // active_references_updated events
+  fileIds?: string[];
 }
 
 // Connection state
@@ -519,7 +590,7 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
   }
 }
 
-async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string, brand?: string) {
+async function handleGenerate(state: ConnectionState, prompt: string, requestedSessionId?: string, sourceCampaignId?: string, aspectRatio?: string, brand?: string, firstTurnFileIds?: string[]) {
   if (state.isGenerating) {
     send(state.ws, {
       type: 'error',
@@ -578,6 +649,23 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
       console.log(`💾 DB: Using existing campaign ${campaign.id} for session ${sessionId}`);
     }
     state.campaignId = campaign.id;
+
+    // First-turn refs: set the active reference set on the freshly-created campaign.
+    // The client can't dispatch 'set_active_references' before generate() because
+    // the campaignId doesn't exist server-side yet. Auth: validate every fileId
+    // belongs to this user's folders.
+    if (firstTurnFileIds && firstTurnFileIds.length > 0) {
+      const userFolders = db.getFoldersByUser(state.userId);
+      const userFolderIds = new Set(userFolders.map((f) => f.id));
+      const validFileIds = firstTurnFileIds.filter((fid) => {
+        const f = db.getFile(fid);
+        return f && userFolderIds.has(f.folder_id);
+      });
+      if (validFileIds.length > 0) {
+        db.setActiveReferences(campaign.id, validFileIds);
+        console.log(`📎 [ASSET] First-turn refs attached to ${campaign.id}: ${validFileIds.length}/${firstTurnFileIds.length} valid`);
+      }
+    }
 
     // Copy research from source campaign if provided
     if (sourceCampaignId) {
@@ -703,23 +791,22 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     // Initialize instrumentation
     const instrumentor = new SDKInstrumentor(sessionId, prompt, 'websocket');
 
-    // Resolve asset file attachments for multimodal input + fal.ai public URLs
-    let resolvedAttachments: ResolvedAssets['attachments'] | undefined;
+    // Resolve campaign-level active references (multi-ref selective replace).
+    // Refs are now sticky on the campaign row; we read them from D1 every turn.
     let aiPrompt = prompt;
-    if (assetFileIds && assetFileIds.length > 0) {
-      console.log(`📎 [ASSET DEBUG] Resolving ${assetFileIds.length} asset file(s): ${JSON.stringify(assetFileIds)}`);
-      const resolved = await resolveAssetAttachments(assetFileIds);
-      console.log(`📎 [ASSET DEBUG] Resolved: ${resolved.attachments.length} base64 attachment(s), ${resolved.referenceUrls.length} fal.ai URL(s)`);
-      if (resolved.referenceUrls.length > 0) {
-        console.log(`📎 [ASSET DEBUG] fal.ai URLs:\n${resolved.referenceUrls.map((u, i) => `   ${i + 1}. ${u}`).join('\n')}`);
+    const activeFileIds = state.campaignId ? db.getActiveReferences(state.campaignId) : [];
+    if (activeFileIds.length > 0) {
+      console.log(`📎 [ASSET] Resolving ${activeFileIds.length} active reference(s) for campaign ${state.campaignId}`);
+      const resolved = await resolveRefsForLocal(activeFileIds);
+      console.log(`📎 [ASSET] Resolved ${resolved.falUrls.length} reference(s)`);
+      writeLocalRefsFile(resolved);
+      if (resolved.falUrls.length > 0) {
+        // Pointer prompt — actual URLs delivered via mcp__refs__get_reference_images
+        aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${resolved.falUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them. Do not look for URLs in this prompt — use the MCP tool.`;
       }
-      resolvedAttachments = resolved.attachments.length > 0 ? resolved.attachments : undefined;
-      if (resolved.referenceUrls.length > 0) {
-        aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${resolved.referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
-      }
-      console.log(`📎 [ASSET DEBUG] Final prompt injected:\n${aiPrompt.slice(-300)}`);
     } else {
-      console.log(`📎 [ASSET DEBUG] No assetFileIds — generating without reference images`);
+      console.log(`📎 [ASSET] No active references for campaign ${state.campaignId}`);
+      writeLocalRefsFile(null);
     }
 
     // Inject aspect ratio instruction
@@ -728,8 +815,9 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     }
 
     // Process SDK stream — pass the handler's abort controller so cancel
-    // actually terminates the SDK query (including long-running tool calls)
-    for await (const result of aiClient.queryWithSession(aiPrompt, sessionId, undefined, resolvedAttachments, state.abortController!)) {
+    // actually terminates the SDK query (including long-running tool calls).
+    // Reference images are now served via the refs MCP, not as base64 attachments.
+    for await (const result of aiClient.queryWithSession(aiPrompt, sessionId, undefined, undefined, state.abortController!)) {
       // Check for cancellation (only if we haven't already completed)
       if (state.abortController?.signal.aborted && !generationCompleted) {
         wasCancelled = true;
@@ -1037,7 +1125,7 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
   }
 }
 
-async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string, assetFileIds?: string[], aspectRatio?: string) {
+async function handleFollowUp(state: ConnectionState, prompt: string, campaignId: string, aspectRatio?: string) {
   // Concurrency guard — reject if already processing
   if (state.isGenerating) {
     send(state.ws, {
@@ -1186,23 +1274,20 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     // 7. Initialize instrumentation
     const instrumentor = new SDKInstrumentor(wsSessionId, prompt, 'websocket');
 
-    // 8. Resolve asset attachments and call AI with resume
-    let resolvedAttachments: ResolvedAssets['attachments'] | undefined;
+    // 8. Resolve campaign-level active references (sticky across turns) + write refs.json
     let aiPrompt = prompt;
-    if (assetFileIds && assetFileIds.length > 0) {
-      console.log(`📎 [ASSET DEBUG] Follow-up resolving ${assetFileIds.length} asset file(s): ${JSON.stringify(assetFileIds)}`);
-      const resolved = await resolveAssetAttachments(assetFileIds);
-      console.log(`📎 [ASSET DEBUG] Follow-up resolved: ${resolved.attachments.length} base64, ${resolved.referenceUrls.length} fal.ai URL(s)`);
-      if (resolved.referenceUrls.length > 0) {
-        console.log(`📎 [ASSET DEBUG] fal.ai URLs:\n${resolved.referenceUrls.map((u, i) => `   ${i + 1}. ${u}`).join('\n')}`);
+    const activeFileIds = db.getActiveReferences(campaignId);
+    if (activeFileIds.length > 0) {
+      console.log(`📎 [ASSET] Follow-up resolving ${activeFileIds.length} active reference(s)`);
+      const resolved = await resolveRefsForLocal(activeFileIds);
+      console.log(`📎 [ASSET] Follow-up resolved ${resolved.falUrls.length} reference(s)`);
+      writeLocalRefsFile(resolved);
+      if (resolved.falUrls.length > 0) {
+        aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${resolved.falUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them.`;
       }
-      resolvedAttachments = resolved.attachments.length > 0 ? resolved.attachments : undefined;
-      if (resolved.referenceUrls.length > 0) {
-        aiPrompt = `${prompt}\n\n## Reference Image URLs (pass these as referenceImageUrls to generate_ad_images)\n${resolved.referenceUrls.map((url, i) => `- Reference ${i + 1}: ${url}`).join('\n')}`;
-      }
-      console.log(`📎 [ASSET DEBUG] Follow-up final prompt tail:\n${aiPrompt.slice(-300)}`);
     } else {
-      console.log(`📎 [ASSET DEBUG] Follow-up — no assetFileIds`);
+      console.log(`📎 [ASSET] Follow-up — no active references for campaign ${campaignId}`);
+      writeLocalRefsFile(null);
     }
 
     // Inject aspect ratio instruction
@@ -1217,7 +1302,7 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       aiPrompt,
       wsSessionId,
       undefined,
-      resolvedAttachments,
+      undefined,
       state.abortController,
       sdkSessionId ?? undefined
     )) {
@@ -1436,6 +1521,36 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
   }
 }
 
+async function handleSetActiveReferences(state: ConnectionState, campaignId: string, fileIds: string[]): Promise<void> {
+  // Auth: campaign belongs to this user
+  const campaign = db.getCampaignById(campaignId, state.userId);
+  if (!campaign) {
+    send(state.ws, { type: 'error', timestamp: new Date().toISOString(), error: 'Campaign not found' });
+    return;
+  }
+
+  // Auth: every fileId belongs to a folder owned by this user
+  if (fileIds.length > 0) {
+    const userFolders = db.getFoldersByUser(state.userId);
+    const userFolderIds = new Set(userFolders.map((f) => f.id));
+    for (const fileId of fileIds) {
+      const file = db.getFile(fileId);
+      if (!file || !userFolderIds.has(file.folder_id)) {
+        send(state.ws, { type: 'error', timestamp: new Date().toISOString(), error: `Invalid asset reference: ${fileId}` });
+        return;
+      }
+    }
+  }
+
+  db.setActiveReferences(campaignId, fileIds);
+  send(state.ws, {
+    type: 'active_references_updated',
+    timestamp: new Date().toISOString(),
+    campaignId,
+    fileIds,
+  });
+}
+
 function handleCancel(state: ConnectionState) {
   // Try session-based abort controller first (works after reconnect)
   const sessionAbort = state.sessionId ? sessionAbortControllers.get(state.sessionId) : null;
@@ -1598,8 +1713,7 @@ export function initWebSocket(server: Server): WebSocketServer {
         switch (message.type) {
           case 'generate':
             if (message.prompt) {
-              console.log(`📎 [ASSET DEBUG] WS 'generate' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
-              handleGenerate(state, message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio, message.brand);
+              handleGenerate(state, message.prompt, message.sessionId, message.sourceCampaignId, message.aspectRatio, message.brand, message.fileIds);
             }
             break;
 
@@ -1617,8 +1731,13 @@ export function initWebSocket(server: Server): WebSocketServer {
 
           case 'follow_up':
             if (message.prompt && message.campaignId) {
-              console.log(`📎 [ASSET DEBUG] WS 'follow_up' received — assetFileIds: ${JSON.stringify(message.assetFileIds || [])}`);
-              handleFollowUp(state, message.prompt, message.campaignId, message.assetFileIds, message.aspectRatio);
+              handleFollowUp(state, message.prompt, message.campaignId, message.aspectRatio);
+            }
+            break;
+
+          case 'set_active_references':
+            if (message.campaignId && Array.isArray(message.fileIds)) {
+              await handleSetActiveReferences(state, message.campaignId, message.fileIds);
             }
             break;
 

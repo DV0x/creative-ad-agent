@@ -125,10 +125,10 @@ export const nanoBananaMcpServer = createSdkMcpServer({
           "Visual style to apply across all images. Appended to each prompt. " +
           "Examples: 'modern minimal', 'photorealistic', 'vibrant and energetic', 'professional corporate', 'warm and friendly'"
         ),
-        referenceImageUrls: z.array(z.string().url()).max(10).optional().describe(
+        referenceImageUrls: z.array(z.string().url()).max(14).optional().describe(
           "Optional reference image URLs for style transfer or subject consistency. " +
           "When provided, automatically uses the edit endpoint instead of text-to-image. " +
-          "Supports up to 10 reference images. Can be URLs from previous generations or external URLs."
+          "Supports up to 14 reference images. Can be URLs from previous generations or external URLs."
         ),
         aspectRatio: aspectRatioEnum
           .optional()

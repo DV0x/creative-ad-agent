@@ -31,6 +31,7 @@ import {
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
 import { useStore, type AssetFolder, type AssetFile, type Campaign, type CampaignFileType } from '@/store'
+import { FileUpload } from '@/components/assets/FileUpload'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { isDevMode } from '@/lib/auth'
 import { paymentsApi } from '@/lib/api'
@@ -616,9 +617,15 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
           size="icon-xs"
           onClick={() => setIsCreating(true)}
           className="h-5 w-5 text-text-muted hover:text-text-primary"
+          title="New folder"
         >
           <PlusIcon className="w-3 h-3" />
         </Button>
+      </div>
+
+      {/* Upload trigger — opens the FileUpload dialog (drag-drop, multi-file). */}
+      <div className="px-2 mb-2">
+        <FileUpload />
       </div>
 
       {/* Folder List */}

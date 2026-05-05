@@ -90,18 +90,19 @@ export function ChatSidebar() {
     imageRefs: { imageId: number }[]
   }) => {
     if (!message.content.trim()) return
-    const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
     const { selectedAspectRatio: ratio } = useStore.getState()
-    const refs = assetFileIds.length > 0 ? assetFileIds : undefined
 
     // Dispatch on data shape, not on the UI flag isCreatingCampaign:
-    //   - Inside a campaign → follow up on the existing thread
-    //   - No active campaign → start a new one (covers click-new, refresh-mid-creation, fork)
-    // generate() reads sourceCampaignId/sourceCampaignName from the store directly,
-    // so fork context flows through automatically.
+    //   - Inside a campaign → follow up. Refs already attached to the campaign row;
+    //     don't pass any here.
+    //   - No active campaign → start a new one. assetRefs may carry first-turn refs
+    //     (multi-ref selective replace) which generate() attaches to the new campaign
+    //     via 'set_active_references' before sending 'generate'.
     if (activeCampaignId) {
-      followUp(activeCampaignId, message.content.trim(), refs, ratio)
+      followUp(activeCampaignId, message.content.trim(), ratio)
     } else if (isConnected) {
+      const assetFileIds = message.assetRefs.filter(id => id.startsWith('file_'))
+      const refs = assetFileIds.length > 0 ? assetFileIds : undefined
       generate(message.content.trim(), refs, ratio)
     }
   }

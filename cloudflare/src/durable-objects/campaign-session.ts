@@ -3,7 +3,7 @@
 // runGeneration() executes AI generation via Cloudflare Sandbox containers (Phase 4).
 
 import type { Env } from '../env.js';
-import type { ClientMessage, ServerMessage } from '../lib/types.js';
+import type { ClientMessage, ServerMessage, ResolvedRefs } from '../lib/types.js';
 import { extractCampaignName, HOOK_TYPE_ORDER, getHookTypeForIndex } from '../lib/types.js';
 import type { HookType } from '../lib/types.js';
 import { EventBuffer } from '../lib/event-buffer.js';
@@ -675,13 +675,19 @@ export class CampaignSession implements DurableObject {
     switch (message.type) {
       case 'generate':
         if (message.prompt) {
-          await this.handleGenerate(message.prompt, message.sessionId, message.assetFileIds, message.sourceCampaignId, message.aspectRatio, message.brand);
+          await this.handleGenerate(message.prompt, message.sessionId, message.sourceCampaignId, message.aspectRatio, message.brand, message.fileIds);
         }
         break;
 
       case 'follow_up':
         if (message.prompt && message.campaignId) {
-          await this.handleFollowUp(message.prompt, message.campaignId, message.assetFileIds, message.aspectRatio);
+          await this.handleFollowUp(message.prompt, message.campaignId, message.aspectRatio);
+        }
+        break;
+
+      case 'set_active_references':
+        if (message.campaignId && Array.isArray(message.fileIds)) {
+          await this.handleSetActiveReferences(message.campaignId, message.fileIds);
         }
         break;
 
@@ -716,8 +722,8 @@ export class CampaignSession implements DurableObject {
 
   // ─── Message Handlers ─────────────────────────────────────────
 
-  private async handleGenerate(prompt: string, requestedSessionId?: string, assetFileIds?: string[], sourceCampaignId?: string, aspectRatio?: string, brand?: string): Promise<void> {
-    this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', assets: assetFileIds?.length || 0, source: sourceCampaignId || 'none' });
+  private async handleGenerate(prompt: string, requestedSessionId?: string, sourceCampaignId?: string, aspectRatio?: string, brand?: string, firstTurnFileIds?: string[]): Promise<void> {
+    this.trace('handler', 'generate.enter', { promptLen: prompt.length, sessionId: requestedSessionId || 'auto', source: sourceCampaignId || 'none', firstTurnRefs: firstTurnFileIds?.length || 0 });
     if (this.isGenerating) {
       // Safety net: if no sandbox, nothing is actually running (DO reset zombie)
       if (!this.sandbox) {
@@ -776,6 +782,24 @@ export class CampaignSession implements DurableObject {
       }
       this.campaignId = campaign.id;
 
+      // First-turn refs: set the active reference set on the freshly-created campaign.
+      // This is how new-campaign refs reach D1 — the client can't dispatch
+      // 'set_active_references' before generate() because the campaignId doesn't exist
+      // server-side yet. Auth: validate every fileId belongs to this user's folders.
+      if (firstTurnFileIds && firstTurnFileIds.length > 0) {
+        const userFolders = await db.getFoldersByUser(this.env.DB, this.userId);
+        const userFolderIds = new Set(userFolders.map((f) => f.id));
+        const validFileIds: string[] = [];
+        for (const fid of firstTurnFileIds) {
+          const file = await db.getFile(this.env.DB, fid);
+          if (file && userFolderIds.has(file.folder_id)) validFileIds.push(fid);
+        }
+        if (validFileIds.length > 0) {
+          await db.setActiveReferences(this.env.DB, campaign.id, validFileIds);
+          this.log(`[ASSET] First-turn refs attached to ${campaign.id}: ${validFileIds.length}/${firstTurnFileIds.length} valid`);
+        }
+      }
+
       // Copy research from source campaign if provided
       if (sourceCampaignId) {
         try {
@@ -833,18 +857,24 @@ export class CampaignSession implements DurableObject {
       label: 'Parsing Request',
     });
 
-    // Resolve asset reference URLs and prepend to prompt
+    // Resolve campaign-level active references (replaces per-message assetFileIds, D4).
+    // We resolve URLs here (D1 read + fal.ai upload — no sandbox needed) but the actual
+    // /app/refs.json write happens inside setupSandbox after mountBucket succeeds (D13).
     let aiPrompt = prompt;
-    if (assetFileIds && assetFileIds.length > 0) {
-      this.log(`[ASSET] Resolving ${assetFileIds.length} asset(s): ${JSON.stringify(assetFileIds)}`);
-      const { falUrls, sandboxPaths } = await this.resolveAssetUrls(assetFileIds);
-      this.log(`[ASSET] Resolved ${falUrls.length} asset(s)`);
+    let resolvedRefs: ResolvedRefs | null = null;
+    const activeFileIds = this.campaignId
+      ? await db.getActiveReferences(this.env.DB, this.campaignId)
+      : [];
+    if (activeFileIds.length > 0) {
+      this.log(`[ASSET] Resolving ${activeFileIds.length} active reference(s) for campaign ${this.campaignId}`);
+      const { falUrls, sandboxPaths } = await this.resolveAssetUrls(activeFileIds);
+      this.log(`[ASSET] Resolved ${falUrls.length} reference(s)`);
       if (falUrls.length > 0) {
-        aiPrompt = `${prompt}\n\n## Reference Images\nThe user uploaded ${falUrls.length} reference image(s). You MUST use these throughout the pipeline.\n\n### Step 1: Read and analyze each image\n${sandboxPaths.map((p, i) => `- Read("${p}") — analyze product, colors, style, details`).join('\n')}\n\n### Step 2: Use your analysis to inform hooks, art direction, and prompts\n\n### Step 3: When calling generate_ad_images, pass these as referenceImageUrls\n${falUrls.map((url, i) => `- ${url}`).join('\n')}\n\nThis ensures the actual product appears in every generated ad.`;
-        this.log(`[ASSET] Prompt injected with ${falUrls.length} reference image(s)`);
+        resolvedRefs = { falUrls, sandboxPaths, fileIds: activeFileIds.slice(0, falUrls.length) };
+        aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${falUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them. Do not look for URLs in this prompt — use the MCP tool.`;
       }
     } else {
-      this.log(`[ASSET] No assetFileIds — generating without reference images`);
+      this.log(`[ASSET] No active references for campaign ${this.campaignId}`);
     }
 
     // Append system note for source-based campaigns (research already copied to D1)
@@ -864,14 +894,14 @@ export class CampaignSession implements DurableObject {
     // Fire and forget — return immediately so the DO can process pings/subscribes.
     // runGeneration() has its own try/catch/finally that handles all cleanup
     // (D1 status updates, isGenerating reset, session clearing).
-    this.runGeneration(aiPrompt, sessionId).catch((err) => {
+    this.runGeneration(aiPrompt, sessionId, undefined, resolvedRefs).catch((err) => {
       this.trace('handler', 'generate.unhandledError', { err: err?.message?.substring(0, 200) });
       console.error('[gen] Unhandled runGeneration error:', err);
     });
   }
 
-  private async handleFollowUp(prompt: string, campaignId: string, assetFileIds?: string[], aspectRatio?: string): Promise<void> {
-    this.trace('handler', 'followUp.enter', { promptLen: prompt.length, campaignId, assets: assetFileIds?.length || 0 });
+  private async handleFollowUp(prompt: string, campaignId: string, aspectRatio?: string): Promise<void> {
+    this.trace('handler', 'followUp.enter', { promptLen: prompt.length, campaignId });
     if (this.isGenerating) {
       // Safety net: if no sandbox, nothing is actually running (DO reset zombie)
       if (!this.sandbox) {
@@ -899,6 +929,7 @@ export class CampaignSession implements DurableObject {
     let wsSessionId = '';
     let sdkSessionId: string | undefined;
     let aiPrompt = prompt;
+    let resolvedRefs: ResolvedRefs | null = null;
 
     try {
       // Look up campaign
@@ -963,17 +994,19 @@ export class CampaignSession implements DurableObject {
         campaignId,
       });
 
-      // Resolve asset reference URLs and prepend to prompt
-      if (assetFileIds && assetFileIds.length > 0) {
-        this.log(`[ASSET] Follow-up resolving ${assetFileIds.length} asset(s): ${JSON.stringify(assetFileIds)}`);
-        const { falUrls, sandboxPaths } = await this.resolveAssetUrls(assetFileIds);
-        this.log(`[ASSET] Follow-up resolved ${falUrls.length} asset(s)`);
+      // Resolve campaign-level active references (D4). Sticky-until-replaced (D5) — prior
+      // refs persist across turns until user changes them via 'set_active_references'.
+      const activeFileIds = await db.getActiveReferences(this.env.DB, campaignId);
+      if (activeFileIds.length > 0) {
+        this.log(`[ASSET] Follow-up resolving ${activeFileIds.length} active reference(s)`);
+        const { falUrls, sandboxPaths } = await this.resolveAssetUrls(activeFileIds);
+        this.log(`[ASSET] Follow-up resolved ${falUrls.length} reference(s)`);
         if (falUrls.length > 0) {
-          aiPrompt = `${prompt}\n\n## Reference Images\nThe user uploaded ${falUrls.length} reference image(s). You MUST use these.\n\n### Read and analyze each image\n${sandboxPaths.map((p, i) => `- Read("${p}")`).join('\n')}\n\n### When calling generate_ad_images, pass these as referenceImageUrls\n${falUrls.map((url, i) => `- ${url}`).join('\n')}`;
-          this.log(`[ASSET] Follow-up prompt injected with ${falUrls.length} reference image(s)`);
+          resolvedRefs = { falUrls, sandboxPaths, fileIds: activeFileIds.slice(0, falUrls.length) };
+          aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${falUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them.`;
         }
       } else {
-        this.log(`[ASSET] Follow-up — no assetFileIds`);
+        this.log(`[ASSET] Follow-up — no active references for campaign ${campaignId}`);
       }
 
       // Inject aspect ratio instruction
@@ -1020,7 +1053,7 @@ export class CampaignSession implements DurableObject {
       // FAST PATH — agent alive, write prompt file, stream output (~30-60s)
       this.sandbox = sandbox;
       this.trace('handler', 'followUp.fastPath');
-      this.runFollowUpFast(sandbox, aiPrompt, wsSessionId, campaignId).catch((err) => {
+      this.runFollowUpFast(sandbox, aiPrompt, wsSessionId, campaignId, resolvedRefs).catch((err) => {
         this.trace('handler', 'followUp.fastPath.error', { err: err?.message?.substring(0, 200) });
       });
     } else {
@@ -1079,10 +1112,43 @@ export class CampaignSession implements DurableObject {
         this.log(`[gen] Failed to load conversation history: ${err?.message}`);
       }
 
-      this.runGeneration(aiPrompt, wsSessionId, sdkSessionId).catch((err) => {
+      this.runGeneration(aiPrompt, wsSessionId, sdkSessionId, resolvedRefs).catch((err) => {
         console.error('[gen] Unhandled runGeneration error:', err);
       });
     }
+  }
+
+  private async handleSetActiveReferences(campaignId: string, fileIds: string[]): Promise<void> {
+    this.trace('handler', 'setActiveRefs.enter', { campaignId, count: fileIds.length });
+
+    // Auth: campaign belongs to this user
+    const campaign = await db.getCampaignById(this.env.DB, campaignId, this.userId);
+    if (!campaign) {
+      this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: 'Campaign not found' });
+      return;
+    }
+
+    // Auth: every fileId belongs to a folder owned by this user (defense-in-depth)
+    if (fileIds.length > 0) {
+      const userFolders = await db.getFoldersByUser(this.env.DB, this.userId);
+      const userFolderIds = new Set(userFolders.map((f) => f.id));
+      for (const fileId of fileIds) {
+        const file = await db.getFile(this.env.DB, fileId);
+        if (!file || !userFolderIds.has(file.folder_id)) {
+          this.sendWS({ type: 'error', timestamp: new Date().toISOString(), error: `Invalid asset reference: ${fileId}` });
+          return;
+        }
+      }
+    }
+
+    await db.setActiveReferences(this.env.DB, campaignId, fileIds);
+    this.sendWS({
+      type: 'active_references_updated',
+      timestamp: new Date().toISOString(),
+      campaignId,
+      fileIds,
+    });
+    this.trace('handler', 'setActiveRefs.done', { campaignId, count: fileIds.length });
   }
 
   private async handleCancel(): Promise<void> {
@@ -1309,9 +1375,10 @@ export class CampaignSession implements DurableObject {
     prompt: string;
     sessionId: string;
     sdkSessionId?: string;
+    resolvedRefs?: ResolvedRefs | null;
   }): Promise<any> {
     const setupStart = Date.now();
-    const { prompt, sessionId, sdkSessionId } = options;
+    const { prompt, sessionId, sdkSessionId, resolvedRefs } = options;
     this.sandboxSetupInProgress = true;
     this.trace('setup', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, userId: this.userId });
 
@@ -1461,6 +1528,24 @@ export class CampaignSession implements DurableObject {
       }
     }
 
+    // 3c. Write /app/refs.json so the refs MCP can serve campaign-level references
+    // to the agent (D13). Snapshot taken at generation start; mid-turn 'set_active_references'
+    // updates D1 but does NOT rewrite this file (D15).
+    if (resolvedRefs && resolvedRefs.falUrls.length > 0) {
+      const payload = JSON.stringify({
+        references: resolvedRefs.falUrls.map((falUrl, i) => ({
+          falUrl,
+          sandboxPath: resolvedRefs.sandboxPaths[i],
+          fileId: resolvedRefs.fileIds[i],
+        })),
+      }, null, 2);
+      await this.timedRPC('writeRefsFile', () => sandbox.writeFile('/app/refs.json', payload));
+      this.log(`[ASSET] Wrote /app/refs.json with ${resolvedRefs.falUrls.length} reference(s)`);
+    } else {
+      // Clear any stale refs.json from a previous campaign reusing this sandbox
+      await this.timedRPC('clearRefsFile', () => sandbox.exec('rm -f /app/refs.json 2>/dev/null || true'));
+    }
+
     // 4. Check if cancelled before starting agent
     if (this.abortController?.signal.aborted) {
       this.log('[gen] Aborted before starting agent — skipping');
@@ -1546,6 +1631,7 @@ export class CampaignSession implements DurableObject {
     prompt: string,
     sessionId: string,
     campaignId: string,
+    resolvedRefs?: ResolvedRefs | null,
   ): Promise<void> {
     const fastStart = Date.now();
     this.trace('gen-fast', 'enter', { campaignId, sessionId, promptLen: prompt.length });
@@ -1563,6 +1649,22 @@ export class CampaignSession implements DurableObject {
       // 2. Start streaming logs BEFORE writing prompt (avoid race condition)
       const logStream = await this.timedRPC('streamProcessLogs', () => sandbox.streamProcessLogs(this.agentProcessId!)) as ReadableStream;
       this.currentLogStream = logStream;
+
+      // 2b. Refresh /app/refs.json BEFORE next-prompt.json so the MCP picks up any
+      // changes to the campaign's active reference set since the last turn (D13).
+      if (resolvedRefs && resolvedRefs.falUrls.length > 0) {
+        const payload = JSON.stringify({
+          references: resolvedRefs.falUrls.map((falUrl, i) => ({
+            falUrl,
+            sandboxPath: resolvedRefs.sandboxPaths[i],
+            fileId: resolvedRefs.fileIds[i],
+          })),
+        }, null, 2);
+        await this.timedRPC('writeRefsFile', () => sandbox.writeFile('/app/refs.json', payload));
+        this.log(`[ASSET] Refreshed /app/refs.json with ${resolvedRefs.falUrls.length} reference(s)`);
+      } else {
+        await this.timedRPC('clearRefsFile', () => sandbox.exec('rm -f /app/refs.json 2>/dev/null || true'));
+      }
 
       // 3. Write prompt file — triggers agent-runner to process next turn
       await this.timedRPC('writePromptFile', () => sandbox.writeFile('/app/next-prompt.json', JSON.stringify({
@@ -1640,19 +1742,19 @@ export class CampaignSession implements DurableObject {
 
   // ─── Generation (Phase 4: Sandbox execution) ─────────────────
 
-  private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string): Promise<void> {
+  private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string, resolvedRefs?: ResolvedRefs | null): Promise<void> {
     if (this.env.AI_BACKEND === 'local') {
       return this.runGenerationLocal(prompt, sessionId, sdkSessionId);
     }
     const genStart = Date.now();
-    this.trace('gen', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, promptLen: prompt.length });
+    this.trace('gen', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, promptLen: prompt.length, refs: resolvedRefs?.falUrls.length || 0 });
 
     const { ctx } = await this.createStreamingContext(this.campaignId, 'Parsing Request');
     let wasCancelled = false;
 
     try {
       // Setup sandbox: IP retry, R2 mount, workspace prep, start agent
-      const sandbox = await this.setupSandbox({ prompt, sessionId, sdkSessionId });
+      const sandbox = await this.setupSandbox({ prompt, sessionId, sdkSessionId, resolvedRefs });
 
       // Stream logs for live UI only (best-effort, not for completion)
       this.trace('gen', 'streamProcessLogs.start');
