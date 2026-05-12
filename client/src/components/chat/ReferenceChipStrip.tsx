@@ -46,7 +46,7 @@ export function ReferenceChipStrip({ campaignId, className }: ReferenceChipStrip
         return (
           <span
             key={fileId}
-            className="inline-flex items-center gap-1.5 pl-1 pr-1 py-0.5 rounded-full text-[11px] font-mono tracking-tight border transition-colors duration-150"
+            className="inline-flex items-center gap-1.5 pl-1 pr-1 py-0.5 rounded-full text-[11px] tracking-tight border transition-colors duration-150"
             style={{
               borderColor: 'rgba(120, 40, 74, 0.18)',
               backgroundColor: 'var(--color-bg-base)',

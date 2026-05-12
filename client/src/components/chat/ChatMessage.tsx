@@ -70,7 +70,7 @@ function UserBubble({ message }: { message: ChatMessageType }) {
           {message.fileRefs.map((ref, i) => (
             <span
               key={i}
-              className="px-1.5 py-0.5 rounded text-[11px] font-mono"
+              className="px-1.5 py-0.5 rounded text-[11px]"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.10)', color: '#FBF9F5' }}
             >
               @{ref.fileType}
@@ -83,7 +83,7 @@ function UserBubble({ message }: { message: ChatMessageType }) {
           {message.imageRefs.map((ref, i) => (
             <span
               key={i}
-              className="px-1.5 py-0.5 rounded text-[11px] font-mono"
+              className="px-1.5 py-0.5 rounded text-[11px]"
               style={{ backgroundColor: 'rgba(255, 255, 255, 0.10)', color: '#FBF9F5' }}
             >
               @image-{ref.imageId}

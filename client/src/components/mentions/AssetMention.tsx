@@ -371,7 +371,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
             className="px-3 py-2"
             style={{ borderBottom: `1px solid ${WINE_HAIRLINE}` }}
           >
-            <span className="text-[10px] uppercase tracking-[0.14em] font-mono text-text-muted">
+            <span className="text-[10px] uppercase tracking-[0.14em] text-text-muted">
               {mentionQuery ? `Filter · ${mentionQuery}` : 'Reference'}
             </span>
           </div>
@@ -404,7 +404,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
                     )}
                   </div>
                   {isSelected && (
-                    <span className="text-[11px] font-mono tracking-tight text-text-muted shrink-0">
+                    <span className="text-[11px] tracking-tight text-text-muted shrink-0">
                       ↵
                     </span>
                   )}
@@ -418,7 +418,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
             className="px-3 py-1.5"
             style={{ borderTop: `1px solid ${WINE_HAIRLINE}`, backgroundColor: 'var(--color-bg-raised-2)' }}
           >
-            <span className="text-[10px] font-mono tracking-tight text-text-muted">
+            <span className="text-[10px] tracking-tight text-text-muted">
               ↑↓ navigate · ↵ select · esc close
             </span>
           </div>
@@ -436,7 +436,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
           }}
         >
           <div className="px-3 py-4 text-center text-sm text-text-muted">
-            No matches for <span className="font-mono">"{mentionQuery}"</span>
+            No matches for <span>"{mentionQuery}"</span>
           </div>
         </div>
       )}
@@ -451,7 +451,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
 function RefChip({ icon, label, onRemove }: { icon: React.ReactNode; label: string; onRemove: () => void }) {
   return (
     <span
-      className="inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full text-[11px] font-mono tracking-tight text-text-primary"
+      className="inline-flex items-center gap-1.5 pl-2 pr-1 py-0.5 rounded-full text-[11px] tracking-tight text-text-primary"
       style={{
         backgroundColor: 'var(--color-bg-base)',
         border: `1px solid ${WINE_HAIRLINE}`,

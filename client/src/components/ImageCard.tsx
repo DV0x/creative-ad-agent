@@ -145,7 +145,7 @@ export function ImageCard({
           )}
         >
           <span
-            className="px-2 py-1 rounded-md text-[11px] font-mono tracking-tight text-white"
+            className="px-2 py-1 rounded-md text-[11px] tracking-tight text-white"
             style={{ backgroundColor: 'rgba(35, 31, 32, 0.72)', backdropFilter: 'blur(6px)' }}
           >
             @image-{index}
@@ -160,7 +160,7 @@ export function ImageCard({
         >
           {aspectLabel ? (
             <span
-              className="px-2 py-1 rounded-md text-[11px] font-mono tracking-tight text-white pointer-events-none"
+              className="px-2 py-1 rounded-md text-[11px] tracking-tight text-white pointer-events-none"
               style={{ backgroundColor: 'rgba(35, 31, 32, 0.72)', backdropFilter: 'blur(6px)' }}
             >
               {aspectLabel}

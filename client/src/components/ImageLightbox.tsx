@@ -94,7 +94,7 @@ export function ImageLightbox({
       {/* Floating top-left: counter */}
       <div className="absolute top-5 left-5 z-10 animate-fadeIn">
         <span
-          className="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] font-mono tracking-[0.14em] text-white/85"
+          className="inline-flex items-center px-3 py-1.5 rounded-full text-[11px] tracking-[0.14em] text-white/85"
           style={CHROME_PILL}
         >
           {currentPadded} / {totalPadded}

@@ -119,7 +119,7 @@ Please continue from where we left off and complete the remaining images.`
           <div className="flex items-center gap-2 min-w-0">
             {campaign.brand && (
               <>
-                <span className="text-[11px] uppercase tracking-[0.14em] font-mono text-text-muted truncate">
+                <span className="text-[11px] uppercase tracking-[0.14em] text-text-muted truncate">
                   {campaign.brand}
                 </span>
                 <ChevronRight className="w-3 h-3 text-text-muted/60 shrink-0" />
@@ -130,7 +130,7 @@ Please continue from where we left off and complete the remaining images.`
             </span>
             {showActiveChip && (
               <span
-                className="ml-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.12em] font-mono shrink-0"
+                className="ml-1 px-2 py-0.5 rounded-full text-[10px] uppercase tracking-[0.12em] shrink-0"
                 style={{
                   backgroundColor: 'var(--color-accent-subtle)',
                   color: 'var(--color-accent)',
@@ -146,7 +146,7 @@ Please continue from where we left off and complete the remaining images.`
             {/* Connection status — small inline pill */}
             {connectionState === 'reconnecting' && (
               <span
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-mono animate-fadeIn"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] animate-fadeIn"
                 style={{
                   backgroundColor: 'rgba(184, 121, 31, 0.10)',
                   color: '#8a5a18',
@@ -161,7 +161,7 @@ Please continue from where we left off and complete the remaining images.`
             )}
             {connectionState === 'disconnected' && (
               <span
-                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] font-mono animate-fadeIn"
+                className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[11px] animate-fadeIn"
                 style={{
                   backgroundColor: 'rgba(180, 35, 24, 0.10)',
                   color: '#a52a1f',
@@ -243,7 +243,7 @@ Please continue from where we left off and complete the remaining images.`
                     animation: isGenerating ? 'cm-breathe 1.6s ease-in-out infinite' : undefined,
                   }}
                 />
-                <span className="text-[11px] uppercase tracking-[0.14em] font-mono text-text-muted">
+                <span className="text-[11px] uppercase tracking-[0.14em] text-text-muted">
                   Working session
                 </span>
               </div>

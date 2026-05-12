@@ -73,13 +73,13 @@ const components: Components = {
     const isBlock = className?.includes('language-')
     if (isBlock) {
       return (
-        <code className="block text-xs font-mono text-text-secondary">
+        <code className="block text-xs text-text-secondary">
           {children}
         </code>
       )
     }
     return (
-      <code className="font-mono text-[0.85em] bg-bg-overlay text-pop-ink px-1.5 py-0.5 rounded">
+      <code className="text-[0.85em] bg-bg-overlay text-pop-ink px-1.5 py-0.5 rounded">
         {children}
       </code>
     )

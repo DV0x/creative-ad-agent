@@ -67,7 +67,7 @@ export function ThinkingBlock({ block, onToggle }: ThinkingBlockProps) {
             </span>
 
             {progressText && (
-              <span className="text-[11px] font-mono tabular-nums text-text-muted ml-auto shrink-0">
+              <span className="text-[11px] tabular-nums text-text-muted ml-auto shrink-0">
                 {progressText}
               </span>
             )}
@@ -115,7 +115,7 @@ function ChildItem({ child }: { child: ThinkingChild }) {
 
     case 'tool':
       return (
-        <div className="flex items-start gap-1.5 text-[11px] pl-3 font-mono">
+        <div className="flex items-start gap-1.5 text-[11px] pl-3">
           <span className="text-text-muted/70 mt-0.5 shrink-0">⚙</span>
           <span className="text-text-muted break-words">
             └─ {child.text}
@@ -152,7 +152,7 @@ function ChildItem({ child }: { child: ThinkingChild }) {
 
     case 'result':
       return (
-        <div className="flex items-start gap-1.5 text-[11px] pl-3 font-mono">
+        <div className="flex items-start gap-1.5 text-[11px] pl-3">
           <span className="text-text-muted mt-0.5 shrink-0">→</span>
           <span className="text-text-muted break-words">└─ {child.text}</span>
         </div>

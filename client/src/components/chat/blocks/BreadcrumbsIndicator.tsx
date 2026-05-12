@@ -66,12 +66,12 @@ export function BreadcrumbsIndicator({ block }: BreadcrumbsIndicatorProps) {
           {activePhase ? activePhase.text : verb}
         </span>
         {activePhase && (
-          <span className="text-[11px] font-mono tracking-tight text-text-muted/80 italic animate-pulse">
+          <span className="text-[11px] tracking-tight text-text-muted/80 italic animate-pulse">
             {verb.toLowerCase()}…
           </span>
         )}
         {hasImages && completedImages > 0 && (
-          <span className="text-[11px] font-mono text-text-muted ml-auto tabular-nums">
+          <span className="text-[11px] text-text-muted ml-auto tabular-nums">
             {completedImages}/{expectedImages}
           </span>
         )}

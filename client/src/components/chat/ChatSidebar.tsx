@@ -206,7 +206,7 @@ function WelcomeBubble({ firstName, sourceCampaignName }: { firstName: string; s
           </>
         )}
       </div>
-      <span className="text-[10px] font-mono tracking-tight text-text-muted/80 pl-1 mt-0.5">
+      <span className="text-[10px] tracking-tight text-text-muted/80 pl-1 mt-0.5">
         sage · ready
       </span>
     </div>
@@ -221,7 +221,7 @@ function WelcomeBubble({ firstName, sourceCampaignName }: { firstName: string; s
 function EmptyHint() {
   return (
     <div className="flex flex-col items-start justify-center h-full px-2 py-8 animate-fadeIn">
-      <span className="text-[11px] uppercase tracking-[0.14em] font-mono text-text-muted mb-2">
+      <span className="text-[11px] uppercase tracking-[0.14em] text-text-muted mb-2">
         Start creating
       </span>
       <p className="text-sm text-text-secondary leading-relaxed max-w-[28ch]">

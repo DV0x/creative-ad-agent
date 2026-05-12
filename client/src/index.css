@@ -1,6 +1,6 @@
 /* Import fonts */
 @import url('https://api.fontshare.com/v2/css?f[]=clash-display@700,600&f[]=satoshi@400,500,700&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
 
 @import "tailwindcss";
 
@@ -19,7 +19,6 @@
   /* Typography */
   --font-body: 'Satoshi', 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
   --font-display: 'Clash Display', 'Satoshi', 'Archivo Black', Impact, sans-serif;
-  --font-mono: 'JetBrains Mono', monospace;
 
   /* Background Layers — warm cream */
   --color-bg-base: #FBF9F5;
@@ -213,10 +212,6 @@ body {
 /* Utility classes */
 .font-body {
   font-family: var(--font-body);
-}
-
-.font-mono {
-  font-family: var(--font-mono);
 }
 
 /* Animations */
@@ -705,7 +700,6 @@ body {
 
 /* Code - Inline */
 .ProseMirror code {
-  font-family: var(--font-mono);
   font-size: 0.875em;
   background: var(--color-bg-elevated);
   color: var(--color-pop);
@@ -715,7 +709,6 @@ body {
 
 /* Code Block */
 .ProseMirror pre {
-  font-family: var(--font-mono);
   font-size: 0.875rem;
   background: var(--color-bg-elevated);
   border: 1px solid var(--color-border);

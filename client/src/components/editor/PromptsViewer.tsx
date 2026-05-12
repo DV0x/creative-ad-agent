@@ -12,7 +12,7 @@ export function PromptsViewer({ content }: PromptsViewerProps) {
     // Not valid JSON — show as preformatted text
     return (
       <div className="p-4">
-        <pre className="text-xs font-mono text-text-secondary whitespace-pre-wrap break-words leading-relaxed">
+        <pre className="text-xs text-text-secondary whitespace-pre-wrap break-words leading-relaxed">
           {content}
         </pre>
       </div>
@@ -75,7 +75,7 @@ export function PromptsViewer({ content }: PromptsViewerProps) {
           <div key={i} className="border border-border rounded-lg overflow-hidden">
             {/* Concept Header */}
             <div className="bg-bg-elevated px-4 py-2.5 border-b border-border flex items-center gap-2">
-              <span className="text-xs font-mono font-semibold text-accent">
+              <span className="text-xs font-semibold text-accent">
                 Concept {concept.concept as number ?? i + 1}
               </span>
               {story?.hookType && (
@@ -149,7 +149,7 @@ export function PromptsViewer({ content }: PromptsViewerProps) {
               {prompt && (
                 <div>
                   <Label>Image Prompt</Label>
-                  <p className="text-xs font-mono text-text-secondary leading-relaxed bg-bg-base rounded-md p-3 border border-border break-words">
+                  <p className="text-xs text-text-secondary leading-relaxed bg-bg-base rounded-md p-3 border border-border break-words">
                     {prompt}
                   </p>
                 </div>

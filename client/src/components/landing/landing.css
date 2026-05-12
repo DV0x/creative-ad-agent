@@ -55,7 +55,6 @@
 }
 
 .lp-mono {
-  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -195,7 +194,7 @@
 
 .lp-eyebrow {
   display: inline-flex; align-items: center; gap: 10px;
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--color-text-secondary);
   padding: 6px 12px;
   border: 1px solid var(--color-border-emphasis);
@@ -294,7 +293,7 @@
 }
 .lp-ratio-chips { display: flex; gap: 6px; }
 .lp-ratio-chip {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 600;
+  font-size: 11px; font-weight: 600;
   letter-spacing: 0.04em;
   padding: 5px 10px; border-radius: 999px;
   background: transparent; color: var(--color-text-muted);
@@ -323,7 +322,7 @@
 .lp-pipeline {
   list-style: none; padding: 0; margin: 18px 0 0;
   display: flex; align-items: center; flex-wrap: wrap; gap: 14px;
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--color-text-secondary);
 }
 .lp-pipeline li { display: inline-flex; align-items: center; gap: 8px; }
@@ -331,7 +330,7 @@
   display: inline-flex; align-items: center; justify-content: center;
   width: 20px; height: 20px; border-radius: 50%;
   background: var(--color-text-primary); color: var(--color-bg-base);
-  font-family: var(--font-mono); font-size: 10.5px; font-weight: 700; letter-spacing: 0;
+  font-size: 10.5px; font-weight: 700; letter-spacing: 0;
 }
 .lp-pipeline .l { color: var(--color-text-primary); font-weight: 600; }
 .lp-pipeline .dash { color: var(--color-text-muted); }
@@ -388,7 +387,7 @@
    ================================================================ */
 .lp-sec { padding: 112px 0; position: relative; }
 .lp-sec-eyebrow {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+  font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--color-text-secondary);
   display: flex; align-items: center; gap: 10px;
 }
@@ -405,7 +404,7 @@
 .lp-sec-head h2 { margin-top: 24px; }
 .lp-sec-head .right p { font-size: 17px; color: var(--color-text-secondary); max-width: 44ch; line-height: 1.55; }
 .lp-sec-head .right .meta {
-  font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted);
+  font-size: 11px; color: var(--color-text-muted);
   letter-spacing: 0.1em; text-transform: uppercase;
   margin-top: 20px;
 }
@@ -441,7 +440,7 @@
 
 .lp-compare-tag {
   display: inline-flex; align-items: center; gap: 8px;
-  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
   padding: 6px 10px;
   border-radius: 2px;
@@ -470,14 +469,14 @@
   font-size: 15px; line-height: 1.4;
 }
 .lp-compare-rows .k {
-  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
   color: var(--color-text-muted);
 }
 .lp-compare-rows .v { color: var(--color-text-primary); }
 .lp-compare .before .v { color: var(--color-text-secondary); }
 .lp-compare .before .v strong, .lp-compare .after .v strong { color: var(--color-text-primary); font-weight: 600; }
 .lp-compare-rows .n {
-  font-family: var(--font-mono); font-size: 13px; font-weight: 700;
+  font-size: 13px; font-weight: 700;
   letter-spacing: -0.01em;
 }
 .lp-compare .before .n { color: var(--color-text-muted); }
@@ -518,7 +517,7 @@
 }
 .lp-price-toggle button.on { background: var(--color-text-primary); color: var(--color-bg-base); }
 .lp-price-toggle .save {
-  font-family: var(--font-mono); font-size: 10px;
+  font-size: 10px;
   color: var(--color-accent); margin-left: 4px; letter-spacing: 0.08em;
 }
 .lp-price-toggle button.on .save { color: var(--color-pop); }
@@ -549,12 +548,12 @@
   position: absolute; top: 20px; right: 20px;
   background: var(--color-pop); color: var(--color-text-primary);
   padding: 4px 8px;
-  font-family: var(--font-mono); font-size: 10px; font-weight: 700;
+  font-size: 10px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
   border-radius: 2px;
 }
 .lp-plan-name {
-  font-family: var(--font-mono); font-size: 11.5px; font-weight: 700;
+  font-size: 11.5px; font-weight: 700;
   letter-spacing: 0.16em; text-transform: uppercase;
   color: var(--color-text-secondary);
 }
@@ -564,8 +563,8 @@
   line-height: 1.02; letter-spacing: -0.018em;
   color: var(--color-text-primary);
 }
-.lp-price-unit { font-family: var(--font-mono); font-size: 13px; color: var(--color-text-muted); }
-.lp-price-sm { margin-top: 10px; font-family: var(--font-mono); font-size: 12px; color: var(--color-text-muted); letter-spacing: 0.02em; }
+.lp-price-unit { font-size: 13px; color: var(--color-text-muted); }
+.lp-price-sm { margin-top: 10px; font-size: 12px; color: var(--color-text-muted); letter-spacing: 0.02em; }
 .lp-plan-h3 {
   font-family: var(--font-display); font-weight: 600;
   font-size: 20px; line-height: 1.18;
@@ -575,7 +574,7 @@
 }
 .lp-plan ul { list-style: none; padding: 0; margin: 22px 0 28px; font-size: 14px; line-height: 1.85; color: var(--color-text-secondary); }
 .lp-plan li { display: flex; gap: 10px; align-items: baseline; }
-.lp-plan li::before { content: "→"; color: var(--color-accent); font-family: var(--font-mono); font-weight: 700; flex-shrink: 0; }
+.lp-plan li::before { content: "→"; color: var(--color-accent); font-weight: 700; flex-shrink: 0; }
 .lp-plan .lp-plan-cta { width: 100%; justify-content: center; margin-top: auto; }
 
 .lp-topup {
@@ -587,11 +586,11 @@
   border-radius: 4px;
   background: var(--color-bg-base);
 }
-.lp-topup .lbl { font-family: var(--font-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-secondary); }
+.lp-topup .lbl { font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--color-text-secondary); }
 .lp-topup .copy { font-family: var(--font-display); font-weight: 700; font-size: 22px; letter-spacing: -0.012em; line-height: 1.2; margin-top: 6px; color: var(--color-text-primary); }
 .lp-topup .creds { display: flex; gap: 8px; flex-wrap: wrap; }
 .lp-topup .cred {
-  font-family: var(--font-mono); font-size: 12.5px; font-weight: 500;
+  font-size: 12.5px; font-weight: 500;
   padding: 10px 14px;
   background: var(--color-bg-base);
   border: 1px solid var(--color-text-primary);
@@ -609,7 +608,6 @@
 
 .lp-price-foot {
   margin-top: 18px;
-  font-family: var(--font-mono);
   font-size: 12px;
   line-height: 1.6;
   color: var(--color-text-muted);
@@ -680,7 +678,6 @@
   margin: 28px 0 0;
 }
 .lp-dfy-trust-pill {
-  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.02em;
   color: var(--color-text-secondary);
@@ -697,7 +694,6 @@
   flex-wrap: wrap;
 }
 .lp-dfy-cta-note {
-  font-family: var(--font-mono);
   font-size: 12px;
   letter-spacing: 0.02em;
   color: var(--color-text-muted);
@@ -772,7 +768,7 @@
 .lp-footer-brand .word-bold  { font-weight: 700; color: var(--color-text-primary); margin-left: 6px; }
 .lp-footer-brand-blurb { font-size: 14px; color: var(--color-text-secondary); max-width: 32ch; line-height: 1.55; }
 .lp-footer h4 {
-  font-family: var(--font-mono); font-size: 11px; font-weight: 700;
+  font-size: 11px; font-weight: 700;
   letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--color-text-secondary);
   margin: 0 0 16px;
@@ -785,7 +781,7 @@
   margin-top: 56px; padding-top: 24px;
   border-top: 1px solid var(--color-border);
   display: flex; justify-content: space-between;
-  font-family: var(--font-mono); font-size: 11px; color: var(--color-text-muted);
+  font-size: 11px; color: var(--color-text-muted);
   letter-spacing: 0.04em; flex-wrap: wrap; gap: 16px;
 }
 

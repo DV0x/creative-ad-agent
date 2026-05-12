@@ -172,7 +172,7 @@ function CampaignsSection({ searchQuery = '' }: { searchQuery?: string }) {
           />
           Campaigns
           {filtered.length > 0 && (
-            <span className="font-mono text-[10px] text-text-muted/70 normal-case tracking-normal font-normal">
+            <span className="text-[10px] text-text-muted/70 normal-case tracking-normal font-normal">
               {filtered.length}
             </span>
           )}
@@ -322,7 +322,7 @@ function BrandGroup({ brand, campaigns, activeCampaignId, isCreatingCampaign, on
               {brand}
             </span>
             {!showActions && (
-              <span className="font-mono text-[10px] text-text-muted/70">{campaigns.length}</span>
+              <span className="text-[10px] text-text-muted/70">{campaigns.length}</span>
             )}
           </button>
         )}
@@ -607,7 +607,7 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
         <div className="flex items-center gap-1.5 text-[10px] font-semibold text-text-secondary uppercase tracking-[0.14em]">
           <span>Library</span>
           {assetFolders.length > 0 && (
-            <span className="font-mono text-[10px] text-text-muted/70 normal-case tracking-normal font-normal">
+            <span className="text-[10px] text-text-muted/70 normal-case tracking-normal font-normal">
               {assetFolders.length}
             </span>
           )}
@@ -924,8 +924,8 @@ function NewCampaignButton() {
         <PlusIcon className="w-3.5 h-3.5" />
         <span>New campaign</span>
         <span className="ml-auto flex gap-0.5">
-          <kbd className="font-mono text-[10px] bg-white/15 text-white/80 px-1 py-px rounded leading-tight">⌘</kbd>
-          <kbd className="font-mono text-[10px] bg-white/15 text-white/80 px-1 py-px rounded leading-tight">N</kbd>
+          <kbd className="text-[10px] bg-white/15 text-white/80 px-1 py-px rounded leading-tight">⌘</kbd>
+          <kbd className="text-[10px] bg-white/15 text-white/80 px-1 py-px rounded leading-tight">N</kbd>
         </span>
       </button>
     </div>
@@ -959,7 +959,7 @@ function SidebarSearch({ value, onChange }: { value: string; onChange: (v: strin
           placeholder="Search"
           className="flex-1 min-w-0 bg-transparent border-0 outline-none text-xs text-text-primary placeholder:text-text-muted"
         />
-        <kbd className="font-mono text-[10px] bg-bg-raised border border-border px-1 py-px rounded text-text-muted leading-tight">⌘K</kbd>
+        <kbd className="text-[10px] bg-bg-raised border border-border px-1 py-px rounded text-text-muted leading-tight">⌘K</kbd>
       </div>
     </div>
   )
@@ -1047,7 +1047,7 @@ function SidebarFooter() {
       {/* Credits row — indented to align under the name (avatar 28 + gap 10 = 38) */}
       <div className="ml-[38px] flex items-baseline justify-between">
         <div className="flex items-baseline gap-1.5">
-          <span className="font-mono font-bold text-text-primary tabular-nums text-[14px]">
+          <span className="font-bold text-text-primary tabular-nums text-[14px]">
             {formattedCredits}
           </span>
           <span className="text-[11px] text-text-muted">credits</span>
@@ -1062,7 +1062,7 @@ function SidebarFooter() {
 
       {/* Renews date — small, muted, mono. Plan only. */}
       {renewDate && !isFree && (
-        <div className="ml-[38px] mt-1 text-[10px] text-text-muted font-mono">
+        <div className="ml-[38px] mt-1 text-[10px] text-text-muted">
           Renews {renewDate}
         </div>
       )}

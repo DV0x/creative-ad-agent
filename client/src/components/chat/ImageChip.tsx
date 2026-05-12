@@ -36,7 +36,7 @@ export function ImageChip({
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full text-[11px] font-mono tracking-tight',
+        'inline-flex items-center gap-1.5 pl-1 pr-2 py-0.5 rounded-full text-[11px] tracking-tight',
         'border transition-colors duration-150',
         isClickable && 'cursor-pointer hover:bg-bg-elevated',
         isRemovable && 'pr-1',
@@ -94,7 +94,7 @@ export function ImageChipCompact({ imageId, onClick }: ImageChipCompactProps) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px] font-mono',
+        'inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded-full text-[11px]',
         'bg-bg-elevated text-text-secondary border border-border',
         onClick && 'cursor-pointer hover:bg-bg-overlay hover:text-text-primary',
       )}

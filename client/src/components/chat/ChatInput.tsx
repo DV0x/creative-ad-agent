@@ -199,7 +199,7 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
                     key={ratio}
                     type="button"
                     onClick={() => setSelectedAspectRatio(ratio)}
-                    className="px-2 py-0.5 rounded-full text-[10px] font-mono tracking-tight transition-colors"
+                    className="px-2 py-0.5 rounded-full text-[10px] tracking-tight transition-colors"
                     style={{
                       backgroundColor: active ? 'var(--color-accent)' : 'transparent',
                       color: active ? '#fff' : 'var(--color-text-muted)',
@@ -227,7 +227,7 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
 
             {/* ⌘↵ hint — hidden when nothing typed */}
             {hasContent && !isGenerating && (
-              <span className="text-[10px] font-mono tracking-tight text-text-muted/70 hidden sm:inline">
+              <span className="text-[10px] tracking-tight text-text-muted/70 hidden sm:inline">
                 ⌘↵ to send
               </span>
             )}
