@@ -2,6 +2,7 @@ import type { Env } from './env.js';
 import { handleApiRequest } from './router.js';
 import { verifyWebSocketToken } from './auth.js';
 import { handleDodoWebhook } from './routes/webhooks.js';
+import { handleClerkWebhook } from './routes/webhooks-clerk.js';
 
 // Re-export Durable Object classes (required by wrangler)
 export { CampaignSession } from './durable-objects/campaign-session.js';
@@ -40,6 +41,11 @@ export default {
     // Dodo Payments webhook (unauthenticated, signature-verified)
     if (url.pathname === '/webhooks/dodo' && method === 'POST') {
       return handleDodoWebhook(request, env);
+    }
+
+    // Clerk identity webhook — keeps users table in sync with Clerk
+    if (url.pathname === '/webhooks/clerk' && method === 'POST') {
+      return handleClerkWebhook(request, env);
     }
 
     // REST API, image serving, health check

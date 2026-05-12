@@ -187,6 +187,22 @@ CREATE TABLE IF NOT EXISTS payment_events (
 CREATE INDEX IF NOT EXISTS idx_payment_events_user ON payment_events(user_id);
 
 -- ============================================
+-- USERS — mirror of Clerk identity (synced via /webhooks/clerk)
+-- ============================================
+-- Clerk owns identity (email, name, avatar). This table is a denormalized mirror
+-- of just the bits we need (email) so we can do email→user_id lookups + JOINs
+-- without round-tripping to Clerk. Sync path: Clerk webhook → upsert/delete here.
+
+CREATE TABLE IF NOT EXISTS users (
+  user_id TEXT PRIMARY KEY,                              -- Clerk user_id (user_xxx)
+  email TEXT NOT NULL,                                   -- primary email from Clerk
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),    -- when row was first synced
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))     -- last webhook update
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+-- ============================================
 -- TRIGGERS
 -- ============================================
 

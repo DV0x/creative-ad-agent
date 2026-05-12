@@ -18,6 +18,7 @@ export interface Env {
   ANTHROPIC_API_KEY: string;
   FAL_KEY: string;
   CLERK_SECRET_KEY: string;
+  CLERK_WEBHOOK_SECRET: string;       // Svix-signed webhook from Clerk → /webhooks/clerk
 
   // R2 credentials for sandbox FUSE mount (set via `wrangler secret put`)
   R2_ACCESS_KEY_ID: string;

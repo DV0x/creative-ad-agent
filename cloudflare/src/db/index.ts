@@ -100,3 +100,12 @@ export {
   type AssetFolder,
   type AssetFile,
 } from './assets.js';
+
+// Users (Clerk identity mirror)
+export {
+  upsertUser,
+  deleteUser,
+  getUserByEmail,
+  getUserById,
+  type UserRow,
+} from './users.js';
