@@ -162,6 +162,19 @@ function AppContent() {
     loadData()
   }, [isLoaded, isSignedIn, dataLoaded, setDataLoading, setCampaigns, setAssetFolders, setCreditBalance, setSubscription])
 
+  // Paying-intent redirect — fires as soon as auth is ready, before data load.
+  // Pricing.tsx stores plan/wedge intent in sessionStorage before bouncing through
+  // Clerk. For email signup, Clerk honors the component's forceRedirectUrl and
+  // drops the user at /checkout/init directly. For Google OAuth, Clerk's
+  // ClerkProvider-level afterSignUpUrl="/" wins instead, stranding the user at
+  // the landing page with their pending checkout unread. This catches that case.
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn) return
+    if (sessionStorage.getItem('creative-agent:pendingCheckout')) {
+      window.location.href = '/checkout/init'
+    }
+  }, [isLoaded, isSignedIn])
+
   // After data loads: restore pending prompt OR auto-navigate to workspace
   useEffect(() => {
     if (!isLoaded || !isSignedIn || !dataLoaded) return
@@ -175,12 +188,16 @@ function AppContent() {
       return
     }
 
-    // Second priority: if user has campaigns and is on landing, go to workspace
-    if (appState === 'landing' && !isCreatingCampaign && campaigns.length > 0) {
-      const mostRecent = [...campaigns].sort(
-        (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
-      )[0]
-      setActiveCampaignId(mostRecent.id)
+    // Per S86: signed-in users always land in workspace — regardless of whether
+    // they have campaigns. The workspace renders ResultsView when there's an
+    // active campaign and the editorial welcome hero otherwise.
+    if (appState === 'landing' && !isCreatingCampaign) {
+      if (campaigns.length > 0) {
+        const mostRecent = [...campaigns].sort(
+          (a, b) => b.createdAt.getTime() - a.createdAt.getTime()
+        )[0]
+        setActiveCampaignId(mostRecent.id)
+      }
       setAppState('workspace')
     }
   }, [isLoaded, isSignedIn, dataLoaded, setPrompt, setPendingGeneration, appState, isCreatingCampaign, campaigns, setActiveCampaignId, setAppState])
