@@ -1,13 +1,10 @@
 import { useState, useEffect, useRef } from 'react'
 import { useUser, useClerk } from '@clerk/clerk-react'
-import { AuthImage } from '@/components/AuthImage'
 import {
   FolderIcon,
-  FolderOpenIcon,
   PlusIcon,
   Trash2Icon,
   ImageIcon,
-  FileIcon,
   FileTextIcon,
   ChevronRightIcon,
   PencilIcon,
@@ -30,13 +27,11 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from '@/components/ui/collapsible'
-import { useStore, type AssetFolder, type AssetFile, type Campaign, type CampaignFileType } from '@/store'
-import { FileUpload } from '@/components/assets/FileUpload'
+import { useStore, type AssetFolder, type Campaign, type CampaignFileType } from '@/store'
 import { useSidebars } from '@/components/layout/AppLayout'
 import { isDevMode } from '@/lib/auth'
 import { paymentsApi } from '@/lib/api'
 import { cn, formatCampaignName } from '@/lib/utils'
-import { AssetPreview, useAssetPreview } from './AssetPreview'
 
 /** Map file type to a clean display label */
 const FILE_TYPE_LABELS: Record<CampaignFileType, string> = {
@@ -46,7 +41,6 @@ const FILE_TYPE_LABELS: Record<CampaignFileType, string> = {
 }
 
 export function AssetDrawer() {
-  const { previewFiles, previewIndex, isPreviewOpen, openPreview, closePreview, navigatePreview } = useAssetPreview()
   const [searchQuery, setSearchQuery] = useState('')
 
   return (
@@ -65,20 +59,11 @@ export function AssetDrawer() {
         <div className="mx-4 my-3 h-px bg-border-emphasis/40" />
 
         {/* Assets Section */}
-        <AssetsSection onPreviewFile={openPreview} />
+        <AssetsSection />
       </ScrollArea>
 
       {/* Footer: credits panel + account menu */}
       <SidebarFooter />
-
-      {/* Asset Preview Modal */}
-      <AssetPreview
-        files={previewFiles}
-        currentIndex={previewIndex}
-        isOpen={isPreviewOpen}
-        onClose={closePreview}
-        onNavigate={navigatePreview}
-      />
     </div>
   )
 }
@@ -568,26 +553,28 @@ function CampaignItem({ campaign, isActive, onSelect }: CampaignItemProps) {
 // Assets Section
 // ============================================
 
-interface AssetsSectionProps {
-  onPreviewFile: (file: AssetFile, allFiles: AssetFile[]) => void
-}
-
-function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
+function AssetsSection() {
   const {
     assetFolders,
     selectedFolderId,
     setSelectedFolderId,
+    setWorkspaceView,
+    workspaceView,
     createFolderAsync,
-    deleteFolderAsync
+    deleteFolderAsync,
   } = useStore()
   const [isCreating, setIsCreating] = useState(false)
   const [newFolderName, setNewFolderName] = useState('')
 
   const handleCreateFolder = async () => {
-    if (newFolderName.trim()) {
-      await createFolderAsync(newFolderName.trim())
-      setNewFolderName('')
-      setIsCreating(false)
+    const name = newFolderName.trim()
+    if (!name) return
+    const newId = await createFolderAsync(name)
+    setNewFolderName('')
+    setIsCreating(false)
+    if (newId) {
+      setSelectedFolderId(newId)
+      setWorkspaceView('library')
     }
   }
 
@@ -598,6 +585,19 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
       setIsCreating(false)
       setNewFolderName('')
     }
+  }
+
+  const handleQuickStart = async () => {
+    const newId = await createFolderAsync('Uploads')
+    if (newId) {
+      setSelectedFolderId(newId)
+      setWorkspaceView('library')
+    }
+  }
+
+  const handleFolderClick = (folderId: string) => {
+    setSelectedFolderId(folderId)
+    setWorkspaceView('library')
   }
 
   return (
@@ -623,11 +623,6 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
         </Button>
       </div>
 
-      {/* Upload trigger — opens the FileUpload dialog (drag-drop, multi-file). */}
-      <div className="px-2 mb-2">
-        <FileUpload />
-      </div>
-
       {/* Folder List */}
       <div className="space-y-0.5">
         {/* New folder input */}
@@ -651,18 +646,18 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
         )}
 
         {/* Folders */}
-        {assetFolders.map((folder) => (
-          <FolderItem
-            key={folder.id}
-            folder={folder}
-            isSelected={selectedFolderId === folder.id}
-            onSelect={() => setSelectedFolderId(
-              selectedFolderId === folder.id ? null : folder.id
-            )}
-            onDelete={() => deleteFolderAsync(folder.id)}
-            onPreviewFile={onPreviewFile}
-          />
-        ))}
+        {assetFolders.map((folder) => {
+          const isActive = workspaceView === 'library' && selectedFolderId === folder.id
+          return (
+            <FolderItem
+              key={folder.id}
+              folder={folder}
+              isSelected={isActive}
+              onSelect={() => handleFolderClick(folder.id)}
+              onDelete={() => deleteFolderAsync(folder.id)}
+            />
+          )
+        })}
 
         {/* Empty state */}
         {assetFolders.length === 0 && !isCreating && (
@@ -674,11 +669,11 @@ function AssetsSection({ onPreviewFile }: AssetsSectionProps) {
             <Button
               variant="ghost"
               size="xs"
-              onClick={() => setIsCreating(true)}
+              onClick={handleQuickStart}
               className="text-xs"
             >
               <PlusIcon className="w-3 h-3" />
-              New Folder
+              Get started
             </Button>
           </div>
         )}
@@ -692,12 +687,10 @@ interface FolderItemProps {
   isSelected: boolean
   onSelect: () => void
   onDelete: () => void
-  onPreviewFile: (file: AssetFile, allFiles: AssetFile[]) => void
 }
 
-function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: FolderItemProps) {
+function FolderItem({ folder, isSelected, onSelect, onDelete }: FolderItemProps) {
   const { renameFolderAsync } = useStore()
-  const [isOpen, setIsOpen] = useState(false)
   const [showActions, setShowActions] = useState(false)
   const [isRenaming, setIsRenaming] = useState(false)
   const [renamingValue, setRenamingValue] = useState(folder.name)
@@ -763,125 +756,58 @@ function FolderItem({ folder, isSelected, onSelect, onDelete, onPreviewFile }: F
   }
 
   return (
-    <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <div
-        className="group flex items-center min-w-0"
-        onMouseEnter={() => setShowActions(true)}
-        onMouseLeave={() => setShowActions(false)}
-      >
-        <CollapsibleTrigger asChild>
-          <button
-            onClick={() => {
-              if (hasFiles) {
-                setIsOpen(!isOpen)
-              }
-              onSelect()
-            }}
-            onDoubleClick={startRename}
-            className={cn(
-              'flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors',
-              'hover:bg-bg-elevated',
-              isSelected && 'bg-bg-elevated text-text-primary'
-            )}
-          >
-            {isOpen ? (
-              <FolderOpenIcon className="w-4 h-4 text-accent shrink-0" />
-            ) : (
-              <FolderIcon className="w-4 h-4 text-text-muted shrink-0" />
-            )}
-            <span className="flex-1 text-left truncate text-text-secondary text-xs">
-              {folder.name}
-            </span>
-            {!showActions && hasFiles && (
-              <span className="text-xs text-text-muted">
-                {folder.files.length}
-              </span>
-            )}
-          </button>
-        </CollapsibleTrigger>
-
-        {/* Actions */}
-        {showActions && (
-          <div className="shrink-0 flex items-center gap-0.5 mr-1">
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={startRename}
-              className="h-5 w-5 text-text-muted hover:text-text-primary"
-              title="Rename folder"
-            >
-              <PencilIcon className="w-3 h-3" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              onClick={(e) => {
-                e.stopPropagation()
-                onDelete()
-              }}
-              className="h-5 w-5 text-text-muted hover:text-error"
-              title="Delete folder"
-            >
-              <Trash2Icon className="w-3 h-3" />
-            </Button>
-          </div>
-        )}
-      </div>
-
-      <CollapsibleContent>
-        <div className="ml-4 pl-2 border-l border-border space-y-0.5 py-1">
-          {folder.files.map((file) => (
-            <AssetFileItem key={file.id} file={file} onPreview={() => onPreviewFile(file, folder.files)} />
-          ))}
-        </div>
-      </CollapsibleContent>
-    </Collapsible>
-  )
-}
-
-interface AssetFileItemProps {
-  file: AssetFile
-  onPreview: () => void
-}
-
-function AssetFileItem({ file, onPreview }: AssetFileItemProps) {
-  const { deleteFileAsync } = useStore()
-  const [showActions, setShowActions] = useState(false)
-
-  const Icon = file.type === 'image' ? ImageIcon : FileIcon
-
-  return (
     <div
-      className="group flex items-center gap-2 px-2 py-1 rounded-md text-xs hover:bg-bg-elevated transition-colors cursor-pointer min-w-0"
+      className="group flex items-center min-w-0"
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
-      onClick={onPreview}
     >
-      {file.type === 'image' && file.url ? (
-        <AuthImage
-          src={file.url}
-          alt={file.name}
-          className="w-4 h-4 rounded object-cover shrink-0"
-        />
-      ) : (
-        <Icon className="w-3.5 h-3.5 text-text-muted shrink-0" />
-      )}
-      <span className="flex-1 truncate text-text-muted min-w-0">
-        {file.name}
-      </span>
+      <button
+        onClick={onSelect}
+        onDoubleClick={startRename}
+        className={cn(
+          'flex-1 min-w-0 flex items-center gap-2 px-2 py-1.5 rounded-md text-sm transition-colors',
+          'hover:bg-bg-elevated',
+          isSelected
+            ? 'bg-accent/10 text-accent'
+            : 'text-text-secondary',
+        )}
+      >
+        <FolderIcon className={cn('w-4 h-4 shrink-0', isSelected ? 'text-accent' : 'text-text-muted')} />
+        <span className={cn('flex-1 text-left truncate text-xs', isSelected && 'text-accent font-medium')}>
+          {folder.name}
+        </span>
+        {!showActions && hasFiles && (
+          <span className="text-xs text-text-muted">
+            {folder.files.length}
+          </span>
+        )}
+      </button>
 
+      {/* Actions */}
       {showActions && (
-        <Button
-          variant="ghost"
-          size="icon-xs"
-          onClick={(e) => {
-            e.stopPropagation()
-            deleteFileAsync(file.id)
-          }}
-          className="shrink-0 h-5 w-5 text-text-muted hover:text-error"
-        >
-          <Trash2Icon className="w-3 h-3" />
-        </Button>
+        <div className="shrink-0 flex items-center gap-0.5 mr-1">
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={startRename}
+            className="h-5 w-5 text-text-muted hover:text-text-primary"
+            title="Rename folder"
+          >
+            <PencilIcon className="w-3 h-3" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete()
+            }}
+            className="h-5 w-5 text-text-muted hover:text-error"
+            title="Delete folder"
+          >
+            <Trash2Icon className="w-3 h-3" />
+          </Button>
+        </div>
       )}
     </div>
   )

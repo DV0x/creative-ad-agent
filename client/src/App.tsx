@@ -5,6 +5,7 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { EmptyState } from '@/components/EmptyState'
 import { LandingPage } from '@/components/landing/LandingPage'
 import { ResultsView } from '@/components/ResultsView'
+import { LibraryFolderView } from '@/components/library/LibraryFolderView'
 import { SignIn } from '@/components/auth/SignIn'
 import { AuthProvider } from '@/contexts/AuthContext'
 import { useStore, selectWorkspaceReady } from '@/store'
@@ -16,6 +17,7 @@ import { campaignsApi, assetsApi, creditsApi, paymentsApi, setTokenGetter } from
 import * as wsManager from '@/lib/websocket-manager'
 
 function AppContent() {
+  const workspaceView = useStore((s) => s.workspaceView)
   const {
     appState,
     campaigns,
@@ -353,7 +355,8 @@ function AppContent() {
       ) : (
         <AppLayout>
           {showLanding && isCreatingCampaign && <EmptyState />}
-          {showWorkspace && (() => {
+          {showWorkspace && workspaceView === 'library' && <LibraryFolderView />}
+          {showWorkspace && workspaceView === 'campaign' && (() => {
             // Welcome hero is the fresh-start surface. It shows only when there's no real
             // image-pipeline work to display AND no recovery action is needed. Two gates:
             //   1. isGeneratingImages — uses generationExpectedImages > 0 to distinguish a real

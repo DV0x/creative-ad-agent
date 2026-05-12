@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback, useImperativeHandle, forwardRef } from 'react'
 import { FolderIcon, XIcon, FileTextIcon, ImageIcon, FileIcon, LayoutGrid } from 'lucide-react'
+import { AuthImage } from '@/components/AuthImage'
 import { useStore, type AssetFolder, type AssetFile, type CampaignFileType, type GeneratedImage } from '@/store'
 import { cn } from '@/lib/utils'
 import { HOOK_TYPE_LABELS } from '@/types/chat'
@@ -121,30 +122,21 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       })
     }
 
+    // Folders are not mentionable from the picker — selection is per-file only
+    // (folder = container; users pick the individual asset they want to reference).
     assetFolders.forEach(folder => {
-      if (!mentionedFolders.some(f => f.id === folder.id)) {
-        items.push({
-          id: `folder-${folder.id}`,
-          type: 'asset-folder',
-          label: folder.name,
-          description: `${folder.files.length} files`,
-          icon: 'folder',
-          data: folder,
-        })
-
-        folder.files.forEach(file => {
-          if (!mentionedAssetFiles.some(f => f.id === file.id)) {
-            items.push({
-              id: `file-${file.id}`,
-              type: 'asset-file',
-              label: file.name,
-              description: folder.name,
-              icon: file.type === 'image' ? 'image' : 'file',
-              data: file,
-            })
-          }
-        })
-      }
+      folder.files.forEach(file => {
+        if (!mentionedAssetFiles.some(f => f.id === file.id)) {
+          items.push({
+            id: `file-${file.id}`,
+            type: 'asset-file',
+            label: file.name,
+            description: folder.name,
+            icon: file.type === 'image' ? 'image' : 'file',
+            data: file,
+          })
+        }
+      })
     })
 
     return items
@@ -292,6 +284,18 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     onAssetFileMention(mentionedAssetFiles.filter(f => f.id !== fileId))
   }
 
+  const getThumbnailUrl = (item: MentionItem): string | undefined => {
+    if (item.type === 'asset-file') {
+      const file = item.data as AssetFile
+      if (file.type === 'image') return file.thumbnailUrl ?? file.url
+    }
+    if (item.type === 'campaign-image') {
+      const image = item.data as GeneratedImage
+      return image.url
+    }
+    return undefined
+  }
+
   const getIcon = (icon: MentionItem['icon'], className?: string) => {
     switch (icon) {
       case 'file-text': return <FileTextIcon className={className} />
@@ -360,7 +364,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       {showDropdown && filteredItems.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute bottom-full mb-2 left-0 w-full max-w-sm z-50 rounded-xl overflow-hidden animate-fadeIn"
+          className="absolute bottom-full mb-2 left-0 w-full max-w-md z-50 rounded-xl overflow-hidden animate-fadeIn"
           style={{
             backgroundColor: 'var(--color-bg-base)',
             boxShadow: `0 0 0 1px ${WINE_HAIRLINE}, 0 12px 32px rgba(35, 31, 32, 0.10), 0 2px 6px rgba(35, 31, 32, 0.06)`,
@@ -377,9 +381,10 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
           </div>
 
           {/* Items */}
-          <div className="max-h-64 overflow-y-auto overscroll-contain py-1">
+          <div className="max-h-80 overflow-y-auto overscroll-contain py-1">
             {filteredItems.map((item, index) => {
               const isSelected = index === selectedIndex
+              const thumbnailUrl = getThumbnailUrl(item)
               return (
                 <div
                   key={item.id}
@@ -390,9 +395,29 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
                     backgroundColor: isSelected ? 'var(--color-bg-raised-2)' : 'transparent',
                   }}
                 >
-                  <div className={cn('shrink-0', isSelected ? 'text-accent' : 'text-text-muted')}>
-                    {getIcon(item.icon, 'w-4 h-4')}
-                  </div>
+                  {thumbnailUrl ? (
+                    <div
+                      className={cn(
+                        'shrink-0 w-12 h-12 rounded-md overflow-hidden bg-bg-elevated',
+                        isSelected && 'ring-1 ring-accent/40',
+                      )}
+                    >
+                      <AuthImage
+                        src={thumbnailUrl}
+                        alt={item.label}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      className={cn(
+                        'shrink-0 w-12 h-12 rounded-md bg-bg-elevated flex items-center justify-center',
+                        isSelected ? 'text-accent' : 'text-text-muted',
+                      )}
+                    >
+                      {getIcon(item.icon, 'w-5 h-5')}
+                    </div>
+                  )}
                   <div className="flex-1 min-w-0">
                     <div className="text-sm font-medium text-text-primary truncate">
                       @{item.label}
@@ -429,7 +454,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
       {showDropdown && filteredItems.length === 0 && mentionQuery && (
         <div
           ref={dropdownRef}
-          className="absolute bottom-full mb-2 left-0 w-full max-w-sm z-50 rounded-xl overflow-hidden animate-fadeIn"
+          className="absolute bottom-full mb-2 left-0 w-full max-w-md z-50 rounded-xl overflow-hidden animate-fadeIn"
           style={{
             backgroundColor: 'var(--color-bg-base)',
             boxShadow: `0 0 0 1px ${WINE_HAIRLINE}, 0 12px 32px rgba(35, 31, 32, 0.10)`,

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ArrowUp, Square, AtSign } from 'lucide-react'
 import { AssetMention, type AssetMentionHandle } from '@/components/mentions/AssetMention'
 import { ImageChip } from '@/components/chat/ImageChip'
@@ -53,6 +53,22 @@ export function ChatInput({ onSubmit, disabled, isGenerating, onCancel, autoFocu
   const [mentionedFolders, setMentionedFolders] = useState<AssetFolder[]>([])
   const [mentionedFiles, setMentionedFiles] = useState<CampaignFileType[]>([])
   const [mentionedAssetFiles, setMentionedAssetFiles] = useState<AssetFile[]>([])
+
+  // Drain pendingReferences (picked in the library before a campaign existed) into
+  // mentionedAssetFiles so the freshly-rendered chat input shows them as chips and
+  // the existing submit path threads them into the new campaign's active references.
+  const pendingReferences = useStore((s) => s.pendingReferences)
+  const clearPendingReferences = useStore((s) => s.clearPendingReferences)
+  useEffect(() => {
+    if (activeCampaignId) return
+    if (pendingReferences.length === 0) return
+    setMentionedAssetFiles((prev) => {
+      const existing = new Set(prev.map((f) => f.id))
+      const additions = pendingReferences.filter((f) => !existing.has(f.id))
+      return additions.length > 0 ? [...prev, ...additions] : prev
+    })
+    clearPendingReferences()
+  }, [pendingReferences, activeCampaignId, clearPendingReferences])
 
   const handleAssetFileMention = (files: AssetFile[]) => {
     if (activeCampaignId) {

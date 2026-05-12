@@ -66,10 +66,18 @@ export type EditorSaveStatus = 'saved' | 'saving' | 'unsaved'
 // Store Interface
 // ============================================
 
+export type WorkspaceView = 'campaign' | 'library'
+
 interface Store {
   // App State
   appState: AppState
   setAppState: (state: AppState) => void
+
+  // Workspace canvas view — controls whether the main area renders the active
+  // campaign (campaign|EmptyState) or the library folder grid. Set to 'library'
+  // when a folder is clicked in the sidebar; reset to 'campaign' on any campaign click.
+  workspaceView: WorkspaceView
+  setWorkspaceView: (view: WorkspaceView) => void
 
   // Campaigns
   campaigns: Campaign[]
@@ -196,6 +204,14 @@ interface Store {
   removeReference: (campaignId: string, fileId: string) => void
   setActiveReferences: (campaignId: string, fileIds: string[]) => void
 
+  // Pending references — chosen in the library before a campaign exists.
+  // Drained into ChatInput's local mentionedAssetFiles on render and flows through
+  // the existing generate() path to attach to the freshly-minted campaign.
+  pendingReferences: AssetFile[]
+  togglePendingReference: (file: AssetFile) => void
+  removePendingReference: (fileId: string) => void
+  clearPendingReferences: () => void
+
   // Async API-synced actions
   deleteCampaignAsync: (id: string) => Promise<void>
   renameCampaignAsync: (id: string, name: string) => Promise<void>
@@ -308,6 +324,9 @@ export const useStore = create<Store>()(persist((set, get) => ({
   appState: (typeof window !== 'undefined' && window.location.pathname === '/workspace') ? 'workspace' : 'landing',
   setAppState: (appState) => set({ appState }),
 
+  workspaceView: 'campaign',
+  setWorkspaceView: (workspaceView) => set({ workspaceView }),
+
   // Campaigns
   campaigns: [],
   activeCampaignId: null,
@@ -324,11 +343,13 @@ export const useStore = create<Store>()(persist((set, get) => ({
     activeFileType: null,
     isCreatingCampaign: false,
     selectedImageIds: [],
+    workspaceView: 'campaign',
   }),
 
   setIsCreatingCampaign: (isCreatingCampaign) => set({
     isCreatingCampaign,
-    activeCampaignId: isCreatingCampaign ? null : get().activeCampaignId
+    activeCampaignId: isCreatingCampaign ? null : get().activeCampaignId,
+    workspaceView: isCreatingCampaign ? 'campaign' : get().workspaceView,
   }),
 
   setSourceCampaign: (id, name = null) => set({
@@ -1099,6 +1120,7 @@ export const useStore = create<Store>()(persist((set, get) => ({
     activeReferencesByCampaign: Object.fromEntries(
       Object.entries(state.activeReferencesByCampaign).map(([cid, ids]) => [cid, ids.filter(id => id !== fileId)])
     ),
+    pendingReferences: state.pendingReferences.filter(f => f.id !== fileId),
   })),
 
   // Reference images per campaign — see Store interface for semantics.
@@ -1128,6 +1150,23 @@ export const useStore = create<Store>()(persist((set, get) => ({
       activeReferencesByCampaign: { ...state.activeReferencesByCampaign, [campaignId]: fileIds }
     }))
   },
+
+  pendingReferences: [],
+
+  togglePendingReference: (file) => set((state) => {
+    const exists = state.pendingReferences.some(f => f.id === file.id)
+    return {
+      pendingReferences: exists
+        ? state.pendingReferences.filter(f => f.id !== file.id)
+        : [...state.pendingReferences, file],
+    }
+  }),
+
+  removePendingReference: (fileId) => set((state) => ({
+    pendingReferences: state.pendingReferences.filter(f => f.id !== fileId),
+  })),
+
+  clearPendingReferences: () => set({ pendingReferences: [] }),
 
   // Async API-synced actions
   deleteCampaignAsync: async (id) => {
@@ -1331,6 +1370,7 @@ export const useStore = create<Store>()(persist((set, get) => ({
   // Reset
   reset: () => set({
     appState: 'landing',
+    workspaceView: 'campaign',
     prompt: '',
     pendingGeneration: false,
     activeCampaignId: null,
@@ -1341,6 +1381,7 @@ export const useStore = create<Store>()(persist((set, get) => ({
     error: null,
     selectedImageIds: [],
     activeReferencesByCampaign: {},
+    pendingReferences: [],
     generatingCampaignId: null,
     isFollowUp: false,
     currentGeneratingMessageId: null,
