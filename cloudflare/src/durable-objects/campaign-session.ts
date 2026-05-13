@@ -39,6 +39,10 @@ export class CampaignSession implements DurableObject {
   private alarmIteration = 0;
   private lastContainerLogLen = 0; // Track how much of container stdout we've relayed
 
+  // Heartbeat liveness — used to detect "agent went silent" via Sentry heartbeat_silent event
+  private lastHeartbeatAt = 0;
+  private silentHeartbeatReported = false;
+
   constructor(
     private state: DurableObjectState,
     private env: Env,
@@ -145,6 +149,23 @@ export class CampaignSession implements DurableObject {
         wsCount: this.state.getWebSockets().length,
       });
 
+      // Detect "agent went silent" — heartbeats stopped while we still think a gen is running.
+      // Fires once per silence window (reset when a new heartbeat arrives).
+      if (
+        this.isGenerating &&
+        this.lastHeartbeatAt > 0 &&
+        !this.silentHeartbeatReported &&
+        Date.now() - this.lastHeartbeatAt > 30_000
+      ) {
+        const silenceSec = Math.round((Date.now() - this.lastHeartbeatAt) / 1000);
+        Sentry.captureMessage('heartbeat_silent', {
+          level: 'warning',
+          tags: { failure_mode: 'agent_silent' },
+          extra: { silenceSec, agentProcessId: this.agentProcessId, sessionId: this.sessionId, ageSec, alarmIter: iter },
+        });
+        this.silentHeartbeatReported = true;
+      }
+
       // Self-heal after DO reset: restore state if we have nothing in memory
       if (!this.campaignId) {
         this.trace('alarm', 'restoreSession.needed', { reason: 'no_campaignId' });
@@ -229,6 +250,12 @@ export class CampaignSession implements DurableObject {
                 type: 'error',
                 timestamp: new Date().toISOString(),
                 error: 'The creative engine wandered off — your work\'s safe tho, give it another go',
+              });
+              const ageSecDead = this.generationStartedAt ? Math.round((Date.now() - this.generationStartedAt) / 1000) : 0;
+              Sentry.captureMessage('finalize_no_result', {
+                level: 'error',
+                tags: { failure_mode: 'agent_dead_no_result' },
+                extra: { sessionId: this.sessionId, agentProcessId: this.agentProcessId, ageSec: ageSecDead, alarmIter: iter },
               });
               try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
               this.isGenerating = false;
@@ -731,8 +758,19 @@ export class CampaignSession implements DurableObject {
 
   async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
     this.applySentryScope();
-    this.trace('ws', 'close', { code, reason: reason || 'none', session: this.sessionId || 'null', gen: this.isGenerating, wsRemaining: this.state.getWebSockets().length - 1 });
+    const wsRemaining = this.state.getWebSockets().length - 1;
+    const ageSec = this.generationStartedAt ? Math.round((Date.now() - this.generationStartedAt) / 1000) : 0;
+    this.trace('ws', 'close', { code, reason: reason || 'none', session: this.sessionId || 'null', gen: this.isGenerating, wsRemaining });
     console.log(`WS closed: session=${this.sessionId}, code=${code}, reason=${reason}`);
+
+    // 1000 = normal, 4001 = replaced-by-server. Anything else is interesting.
+    if (code !== 1000 && code !== 4001) {
+      Sentry.captureMessage('ws_abnormal_close', {
+        level: 'warning',
+        tags: { ws_close_code: String(code) },
+        extra: { reason, sessionId: this.sessionId, isGenerating: this.isGenerating, wsRemaining, ageSec },
+      });
+    }
     // No cleanup needed — getWebSockets() automatically excludes closed connections
   }
 
@@ -1641,6 +1679,10 @@ export class CampaignSession implements DurableObject {
       blockBuilder,
       imageCounter,
       hasStreamedDeltas: false,
+      onHeartbeat: () => {
+        this.lastHeartbeatAt = Date.now();
+        this.silentHeartbeatReported = false;
+      },
     };
 
     return { ctx, blockBuilder };
@@ -1813,10 +1855,19 @@ export class CampaignSession implements DurableObject {
         // Stream error is non-fatal — agent is still running in sandbox, alarm handles completion
         this.trace('gen', 'streamError.nonFatal', { err: error.message?.substring(0, 200), agent: this.agentProcessId });
         this.emitEvent({ type: 'status', timestamp: new Date().toISOString(), message: 'Live updates paused — generation still in progress...' });
+        Sentry.captureMessage('gen_stream_error', {
+          level: 'warning',
+          tags: { error_name: error?.name || 'unknown' },
+          extra: { errMessage: error?.message?.substring(0, 500), agentProcessId: this.agentProcessId, sessionId: this.sessionId },
+        });
       } else {
         // Setup failed before agent started — this IS fatal, no alarm can recover
         this.trace('gen', 'setupError.fatal', { err: error.message?.substring(0, 200) });
         this.emitEvent({ type: 'error', timestamp: new Date().toISOString(), error: `Setup failed: ${error.message}` });
+        Sentry.captureException(error, {
+          tags: { failure_mode: 'gen_setup_failed', error_name: error?.name || 'unknown' },
+          extra: { errMessage: error?.message?.substring(0, 500), sessionId: this.sessionId },
+        });
         if (this.campaignId) {
           await db.updateCampaignStatus(this.env.DB, this.campaignId, 'error');
         }
@@ -1874,6 +1925,10 @@ export class CampaignSession implements DurableObject {
       blockBuilder,
       imageCounter,
       hasStreamedDeltas: false,
+      onHeartbeat: () => {
+        this.lastHeartbeatAt = Date.now();
+        this.silentHeartbeatReported = false;
+      },
     };
 
     try {

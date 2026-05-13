@@ -5,6 +5,8 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
+    "deploy:staging": "bash scripts/deploy.sh staging",
+    "deploy:production": "bash scripts/deploy.sh production",
     "typecheck": "tsc --noEmit",
     "d1:migrate": "wrangler d1 execute creative-agent-db --remote --file=./schema.sql"
   },
@@ -16,6 +18,7 @@
   "devDependencies": {
     "@anthropic-ai/claude-agent-sdk": "latest",
     "@cloudflare/workers-types": "^4.20260101.0",
+    "@sentry/cli": "^3.4.2",
     "typescript": "^5.7.0",
     "wrangler": "^4.0.0",
     "zod": "^4.0.0"

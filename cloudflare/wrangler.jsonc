@@ -4,6 +4,10 @@
   "compatibility_date": "2026-01-01",
   "compatibility_flags": ["nodejs_compat"],
 
+  // Generate worker source maps and upload them with each deploy.
+  // scripts/deploy.sh re-uploads the same maps to Sentry under SENTRY_RELEASE.
+  "upload_source_maps": true,
+
   // Place Worker near US East — Anthropic API is US-hosted (avoids geo-blocked IP ranges)
   "placement": {
     "region": "aws:us-east-1"

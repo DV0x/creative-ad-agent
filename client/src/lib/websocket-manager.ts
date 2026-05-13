@@ -13,10 +13,15 @@
 
 // ── Constants ──────────────────────────────────────────────────
 
+import * as Sentry from '@sentry/react';
+
 const WS_BASE_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 2000;
 const PING_INTERVAL = 25000;
+
+// Tracks the last client ping send so ws_close_unexpected can carry "time since last ping"
+let lastPingSentAt = 0;
 
 // ── Module-level state (survives React lifecycle) ──────────────
 
@@ -176,6 +181,7 @@ export async function connect(): Promise<void> {
       // Start keepalive pings
       if (pingInterval) clearInterval(pingInterval);
       pingInterval = setInterval(() => {
+        lastPingSentAt = Date.now();
         sendMessage({ type: 'ping' });
       }, PING_INTERVAL);
 
@@ -203,6 +209,22 @@ export async function connect(): Promise<void> {
       }
 
       onStateChange?.('disconnected');
+
+      // Report unexpected closes to Sentry (1000 = normal, 4001 = replaced-by-server)
+      if (event.code !== 1000 && event.code !== 4001) {
+        Sentry.captureMessage('ws_close_unexpected', {
+          level: 'warning',
+          tags: { ws_close_code: String(event.code) },
+          extra: {
+            reason: event.reason,
+            wasClean: event.wasClean,
+            navigatorOnline: navigator.onLine,
+            visibilityState: document.visibilityState,
+            timeSinceLastPingMs: lastPingSentAt ? Date.now() - lastPingSentAt : null,
+            userAgent: navigator.userAgent,
+          },
+        });
+      }
 
       // Reconnect on abnormal close (not clean close, not replaced-by-server)
       if (

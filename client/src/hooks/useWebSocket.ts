@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback } from 'react';
+import * as Sentry from '@sentry/react';
 import { useStore } from '../store';
 import type { WSServerMessage, WSConnectionState } from '../types/websocket';
 import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEvent, isErrorEvent, isCreditsUpdateEvent } from '../types/websocket';
@@ -130,6 +131,22 @@ export function useWebSocket(): UseWebSocketReturn {
         case 'subscribed':
           console.log('WebSocket: Subscribed to session, recovery complete');
           store.setIsRecovering(false);
+          // Detect orphaned generations: a campaign showing isGenerating=true
+          // long after creation almost certainly means the server lost the gen
+          // and the client UI is stuck. Threshold = 5 min (normal gen ~2–4 min).
+          if (campaignId) {
+            const campaign = store.campaigns.find((c) => c.id === campaignId);
+            if (campaign && campaign.status === 'generating') {
+              const ageMs = Date.now() - new Date(campaign.createdAt).getTime();
+              if (ageMs > 5 * 60 * 1000) {
+                Sentry.captureMessage('generation_orphaned', {
+                  level: 'warning',
+                  tags: { campaignStatus: campaign.status },
+                  extra: { campaignId, ageMin: Math.round(ageMs / 60000) },
+                });
+              }
+            }
+          }
           return;
 
         case 'phase':

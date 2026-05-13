@@ -24,6 +24,9 @@ export interface ParserContext {
   blockBuilder: BlockBuilder;
   imageCounter: { next: number };
   hasStreamedDeltas: boolean;
+  // Fired when the agent emits a heartbeat trace. DO uses this to detect
+  // "agent went silent" via heartbeat_silent Sentry event.
+  onHeartbeat?: () => void;
 }
 
 // Strip image URLs and file paths — images are shown in the gallery, not in chat text
@@ -188,6 +191,7 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
   // Debug: log every SDK message type processed
   if (message.type === 'trace' && message.action === 'heartbeat') {
     console.log(`[sdk-parser] heartbeat count=${message.count} req=${message.requestId || 'none'}`);
+    ctx.onHeartbeat?.();
   } else {
     console.log(`[sdk-parser] msg.type=${message.type} uuid=${message.uuid?.substring(0, 8) || 'none'}`);
   }

@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { useAuth, useUser } from '@clerk/clerk-react'
+import * as Sentry from '@sentry/react'
 import { X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { EmptyState } from '@/components/EmptyState'
@@ -540,7 +541,16 @@ function CheckoutInit() {
     // sets this up) doesn't mount on /checkout/init. Without this, paymentsApi
     // calls go without an Authorization header and the worker 401s.
     setTokenGetter(async () => {
-      try { return await getToken() } catch { return null }
+      try {
+        return await getToken()
+      } catch (err) {
+        Sentry.captureMessage('auth_failed', {
+          level: 'warning',
+          tags: { surface: 'checkout' },
+          extra: { errMessage: (err as Error)?.message?.substring(0, 300) },
+        })
+        return null
+      }
     })
 
     const pending = readPendingCheckout()
@@ -598,7 +608,16 @@ function CheckoutSuccess() {
     // Same fix as CheckoutInit — wire the token getter so paymentsApi/creditsApi
     // calls have auth. AuthenticatedApp doesn't mount on /checkout/success.
     setTokenGetter(async () => {
-      try { return await getToken() } catch { return null }
+      try {
+        return await getToken()
+      } catch (err) {
+        Sentry.captureMessage('auth_failed', {
+          level: 'warning',
+          tags: { surface: 'checkout' },
+          extra: { errMessage: (err as Error)?.message?.substring(0, 300) },
+        })
+        return null
+      }
     })
 
     let cancelled = false
