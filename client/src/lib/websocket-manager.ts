@@ -210,8 +210,9 @@ export async function connect(): Promise<void> {
 
       onStateChange?.('disconnected');
 
-      // Report unexpected closes to Sentry (1000 = normal, 4001 = replaced-by-server)
-      if (event.code !== 1000 && event.code !== 4001) {
+      // Report unexpected closes to Sentry. 1000 = normal, 1001 = going-away
+      // (tab close / nav), 4001 = replaced-by-server.
+      if (event.code !== 1000 && event.code !== 1001 && event.code !== 4001) {
         Sentry.captureMessage('ws_close_unexpected', {
           level: 'warning',
           tags: { ws_close_code: String(event.code) },

@@ -763,8 +763,9 @@ export class CampaignSession implements DurableObject {
     this.trace('ws', 'close', { code, reason: reason || 'none', session: this.sessionId || 'null', gen: this.isGenerating, wsRemaining });
     console.log(`WS closed: session=${this.sessionId}, code=${code}, reason=${reason}`);
 
-    // 1000 = normal, 4001 = replaced-by-server. Anything else is interesting.
-    if (code !== 1000 && code !== 4001) {
+    // 1000 = normal, 1001 = going-away (tab close / nav), 4001 = replaced-by-server.
+    // Anything else is interesting.
+    if (code !== 1000 && code !== 1001 && code !== 4001) {
       Sentry.captureMessage('ws_abnormal_close', {
         level: 'warning',
         tags: { ws_close_code: String(code) },
