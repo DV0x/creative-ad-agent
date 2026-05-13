@@ -186,7 +186,11 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
   }
 
   // Debug: log every SDK message type processed
-  console.log(`[sdk-parser] msg.type=${message.type} uuid=${message.uuid?.substring(0, 8) || 'none'}`);
+  if (message.type === 'trace' && message.action === 'heartbeat') {
+    console.log(`[sdk-parser] heartbeat count=${message.count} req=${message.requestId || 'none'}`);
+  } else {
+    console.log(`[sdk-parser] msg.type=${message.type} uuid=${message.uuid?.substring(0, 8) || 'none'}`);
+  }
 
   if (message.type === 'assistant') {
     const content = message.message?.content;

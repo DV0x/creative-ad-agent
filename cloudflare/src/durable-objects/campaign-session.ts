@@ -76,7 +76,9 @@ export class CampaignSession implements DurableObject {
         parts.push(`${k}=${v}`);
       }
     }
-    this.log(parts.join(' '));
+    const line = parts.join(' ');
+    console.log(line);
+    this.log(line);
   }
 
   /** Wrap a sandbox RPC call with trace logging, timing, and timeout */
@@ -1356,7 +1358,7 @@ export class CampaignSession implements DurableObject {
 
             await processSDKMessage(msg, ctx);
           } catch {
-            // Non-JSON line — ignore
+            console.log(`[stream] non-JSON line (${line.length} chars): ${line.substring(0, 200)}`);
           }
         }
       }

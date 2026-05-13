@@ -38,7 +38,7 @@ function trace(action: string, data?: Record<string, any>): void {
   process.stdout.write(JSON.stringify(entry) + '\n');
 }
 
-// Heartbeat — writes a trace line every 30s so the DO alarm can see the agent is alive
+// Heartbeat — writes a trace line every 5s so the DO alarm can see the agent is alive
 // even during long API calls where no SDK messages flow
 let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 let heartbeatCount = 0;
@@ -48,7 +48,7 @@ function startHeartbeat(): void {
   heartbeatInterval = setInterval(() => {
     heartbeatCount++;
     trace('heartbeat', { count: heartbeatCount, sdkSessionId: sdkSessionId || 'none', requestId: currentRequestId || `turn_${Date.now()}` });
-  }, 30_000);
+  }, 5_000);
 }
 
 function stopHeartbeat(): void {
