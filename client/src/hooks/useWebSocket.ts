@@ -6,6 +6,7 @@ import { isPhaseEvent, isToolStartEvent, isFileEvent, isImageEvent, isCompleteEv
 import { getHookTypeForIndex } from '../types/chat';
 import * as wsManager from '../lib/websocket-manager';
 import { campaignsApi } from '../lib/api';
+import { crumb } from '../lib/observability';
 
 // ── Storage keys for session persistence ───────────────────────
 
@@ -127,6 +128,17 @@ export function useWebSocket(): UseWebSocketReturn {
       const campaignId = store.generatingCampaignId;
       const messageId = store.currentGeneratingMessageId;
 
+      // Lifecycle breadcrumb for every inbound message. Filters out high-volume
+      // text_delta (one per token) to avoid burying the trail. The trail is
+      // what lets us reconstruct the agent stream from Sentry when something fails.
+      if (message.type !== 'text_delta') {
+        crumb('ws-rx', message.type, {
+          id: typeof message.id === 'number' ? message.id : undefined,
+          hasCampaignId: !!campaignId,
+          hasMessageId: !!messageId,
+        });
+      }
+
       switch (message.type) {
         case 'subscribed':
           console.log('WebSocket: Subscribed to session, recovery complete');
@@ -232,32 +244,70 @@ export function useWebSocket(): UseWebSocketReturn {
           break;
 
         case 'file':
-          console.log('[ws-rx][file]', { campaignId, fileType: (message as any).fileType, messageIdSet: !!messageId, contentLen: ((message as any).content || '').length });
-          if (isFileEvent(message) && campaignId && messageId) {
-            store.updateCampaignFile(campaignId, message.fileType, message.content);
-            store.addThinkingChild(campaignId, messageId, { kind: 'status', text: `${message.fileType}.md created`, variant: 'info' });
-            // Prompts file is the authoritative source for expected image count
-            if (message.fileType === 'prompts' && message.content) {
-              try {
-                const prompts = JSON.parse(message.content);
-                if (Array.isArray(prompts) && prompts.length > 0) {
-                  store.setGenerationExpectedImages(prompts.length);
-                }
-              } catch { /* not valid JSON, keep current count */ }
+          if (isFileEvent(message)) {
+            crumb('ws-rx', 'file', {
+              fileType: message.fileType,
+              contentLen: (message.content || '').length,
+              hasCampaignId: !!campaignId,
+              hasMessageId: !!messageId,
+            });
+            if (campaignId && messageId) {
+              store.updateCampaignFile(campaignId, message.fileType, message.content);
+              store.addThinkingChild(campaignId, messageId, { kind: 'status', text: `${message.fileType}.md created`, variant: 'info' });
+              // Prompts file is the authoritative source for expected image count
+              if (message.fileType === 'prompts' && message.content) {
+                try {
+                  const prompts = JSON.parse(message.content);
+                  if (Array.isArray(prompts) && prompts.length > 0) {
+                    store.setGenerationExpectedImages(prompts.length);
+                  }
+                } catch { /* not valid JSON, keep current count */ }
+              }
+            } else {
+              // File event arrived but the gate dropped it. Almost always means
+              // a 1006 reconnect+replay window where currentGeneratingMessageId
+              // had transiently nulled. Capture so we can prove or kill the S101
+              // hypothesis from real prod traffic.
+              Sentry.captureMessage('replay_event_dropped', {
+                level: 'warning',
+                tags: { eventType: 'file', fileType: message.fileType },
+                extra: {
+                  fileType: message.fileType,
+                  contentLen: (message.content || '').length,
+                  hasCampaignId: !!campaignId,
+                  hasMessageId: !!messageId,
+                  sessionId: sessionIdRef.current,
+                  lastEventId: lastEventIdRef.current,
+                },
+              });
             }
           }
           break;
 
         case 'image':
-          if (isImageEvent(message) && campaignId && messageId) {
-            store.addImageToCampaign(campaignId, {
-              id: message.imageIndex,
-              url: message.urlPath,
-              prompt: message.prompt,
-              hookType: message.hookType || getHookTypeForIndex(message.imageIndex),
-              version: message.version ?? 1,
-            });
-            store.updateThinkingImages(campaignId, messageId, message.imageIndex);
+          if (isImageEvent(message)) {
+            if (campaignId && messageId) {
+              store.addImageToCampaign(campaignId, {
+                id: message.imageIndex,
+                url: message.urlPath,
+                prompt: message.prompt,
+                hookType: message.hookType || getHookTypeForIndex(message.imageIndex),
+                version: message.version ?? 1,
+              });
+              store.updateThinkingImages(campaignId, messageId, message.imageIndex);
+            } else {
+              Sentry.captureMessage('replay_event_dropped', {
+                level: 'warning',
+                tags: { eventType: 'image' },
+                extra: {
+                  imageIndex: message.imageIndex,
+                  hasCampaignId: !!campaignId,
+                  hasMessageId: !!messageId,
+                  sessionId: sessionIdRef.current,
+                  lastEventId: lastEventIdRef.current,
+                },
+              });
+            }
           }
           break;
 

@@ -13,6 +13,7 @@ import type {
 } from '../types/chat'
 import { campaignsApi, assetsApi } from '../lib/api'
 import * as wsManager from '../lib/websocket-manager'
+import { crumb, setSentryContext } from '../lib/observability'
 
 // ============================================
 // Types
@@ -433,9 +434,14 @@ export const useStore = create<Store>()(persist((set, get) => ({
 
   updateCampaignFile: (campaignId, fileType, content) => set((state) => {
     const exists = state.campaigns.some(c => c.id === campaignId);
-    console.log('[store][updateCampaignFile]', { campaignId, fileType, exists, contentLen: content.length, knownIds: state.campaigns.map(c => c.id) });
+    crumb('store', 'updateCampaignFile', {
+      campaignId,
+      fileType,
+      exists,
+      contentLen: content.length,
+    });
     if (!exists) {
-      console.log('[store][updateCampaignFile] BUFFERING into _pendingFiles', { campaignId, fileType });
+      crumb('store', 'updateCampaignFile.buffering', { campaignId, fileType });
       // Campaign not loaded yet — buffer for flush on setCampaigns
       const pending = { ...state._pendingFiles };
       const list = (pending[campaignId] || []).filter(f => f.fileType !== fileType);
@@ -1426,3 +1432,16 @@ export const useStore = create<Store>()(persist((set, get) => ({
  */
 export const selectWorkspaceReady = (state: Store): boolean =>
   state.authReady && state.dataLoaded
+
+// Keep Sentry tags in sync with the active campaign / generating message so
+// every capture (errors, ws_close_unexpected, replay_event_dropped, etc.)
+// carries enough context to find the user's session in the dashboard.
+let _lastSentryCtx = { campaignId: null as string | null, messageId: null as string | null };
+useStore.subscribe((state) => {
+  const campaignId = state.activeCampaignId || state.generatingCampaignId;
+  const messageId = state.currentGeneratingMessageId;
+  if (campaignId !== _lastSentryCtx.campaignId || messageId !== _lastSentryCtx.messageId) {
+    _lastSentryCtx = { campaignId, messageId };
+    setSentryContext({ campaignId, messageId });
+  }
+})

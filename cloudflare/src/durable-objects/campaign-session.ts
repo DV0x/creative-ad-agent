@@ -47,6 +47,10 @@ export class CampaignSession implements DurableObject {
   private lastHeartbeatAt = 0;
   private silentHeartbeatReported = false;
 
+  // Throttle for ws_send_no_clients capture — one event per minute per session
+  // is enough to know "the server is shouting into the void" without flooding Sentry.
+  private lastNoClientsReportAt = 0;
+
   constructor(
     private state: DurableObjectState,
     private env: Env,
@@ -88,6 +92,15 @@ export class CampaignSession implements DurableObject {
     const line = parts.join(' ');
     console.log(line);
     this.log(line);
+    // Mirror to Sentry as a breadcrumb. Attaches to any captureMessage /
+    // captureException that fires later in this invocation, giving us the
+    // server-side timeline that led up to the failure.
+    Sentry.addBreadcrumb({
+      category: component,
+      message: action,
+      level: 'info',
+      data: { seq, cid: this.campaignId ?? undefined, ...(data || {}) },
+    });
   }
 
   // ─── Sentry scope tagging ───────────────────────────────────────
@@ -2146,6 +2159,30 @@ export class CampaignSession implements DurableObject {
     const t = (event as any).type;
     if (t === 'complete' || t === 'error') {
       console.log(`[ws-emit] ${t} eventId=${eventId} wsCount=${wsCount} cid=${this.campaignId}`);
+    }
+    // Catch the "shouting into the void" case: we're mid-generation but
+    // no client is connected. The event is still buffered (replay will catch
+    // it on reconnect), but persistent 0-client emits mean the user is seeing
+    // nothing live — worth knowing in Sentry.
+    if (wsCount === 0 && this.isGenerating) {
+      const now = Date.now();
+      if (now - this.lastNoClientsReportAt > 60_000) {
+        this.lastNoClientsReportAt = now;
+        Sentry.captureMessage('ws_send_no_clients', {
+          level: 'warning',
+          tags: { eventType: t },
+          extra: {
+            eventId,
+            eventType: t,
+            campaignId: this.campaignId,
+            sessionId: this.sessionId,
+            isGenerating: this.isGenerating,
+            ageSec: this.generationStartedAt
+              ? Math.round((now - this.generationStartedAt) / 1000)
+              : 0,
+          },
+        });
+      }
     }
     const payload = JSON.stringify({ ...event, id: eventId });
     for (const ws of this.state.getWebSockets()) {

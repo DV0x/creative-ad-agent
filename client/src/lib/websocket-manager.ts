@@ -14,14 +14,23 @@
 // ── Constants ──────────────────────────────────────────────────
 
 import * as Sentry from '@sentry/react';
+import { crumb } from './observability';
 
 const WS_BASE_URL = `${window.location.protocol === 'https:' ? 'wss:' : 'ws:'}//${window.location.host}/ws`;
 const MAX_RECONNECT_ATTEMPTS = 5;
 const RECONNECT_DELAY = 2000;
 const PING_INTERVAL = 25000;
+// If we send a ping and no message of any type arrives within this window,
+// the connection is silently dead and we want to know about it before the
+// eventual 1006 close fires. Tuned generously vs PING_INTERVAL (25s).
+const PONG_TIMEOUT = 8000;
 
 // Tracks the last client ping send so ws_close_unexpected can carry "time since last ping"
 let lastPingSentAt = 0;
+// Timer that fires ping_pong_timeout capture if no inbound message arrives
+// after a ping. Cleared by any inbound message (pong or otherwise — any data
+// proves the connection is alive).
+let pongWatcherTimeout: ReturnType<typeof setTimeout> | null = null;
 
 // ── Module-level state (survives React lifecycle) ──────────────
 
@@ -148,17 +157,20 @@ export async function connect(): Promise<void> {
 
   // Build URL with auth token from stored getter
   let wsUrl = WS_BASE_URL;
-  console.log(`[WS-MGR] connect(): hasTokenGetter=${!!storedTokenGetter}, authReady=${authReady}, attempt=${reconnectAttempts}`);
+  crumb('ws', 'connect.start', {
+    hasTokenGetter: !!storedTokenGetter,
+    authReady,
+    attempt: reconnectAttempts,
+  });
   try {
     const token = storedTokenGetter ? await storedTokenGetter() : null;
-    console.log(`[WS-MGR] token result: ${token ? `present (${token.length} chars)` : 'null/empty'}`);
     if (token) {
       wsUrl = `${WS_BASE_URL}?token=${encodeURIComponent(token)}`;
     } else {
-      console.warn('[WS-MGR] No token available — WS will connect without auth');
+      crumb('ws', 'connect.no_token', { reason: 'no token from getter' });
     }
   } catch (err) {
-    console.warn('[WS-MGR] Token getter threw:', err);
+    crumb('ws', 'connect.token_error', { err: String(err).slice(0, 200) });
     // Continue without token (dev mode)
   }
 
@@ -174,15 +186,33 @@ export async function connect(): Promise<void> {
         killSocket(ws);
         return;
       }
-      console.log('WebSocket: Connected');
+      crumb('ws', 'connected');
       onStateChange?.('connected');
       reconnectAttempts = 0;
 
-      // Start keepalive pings
+      // Start keepalive pings + pong watcher
       if (pingInterval) clearInterval(pingInterval);
       pingInterval = setInterval(() => {
         lastPingSentAt = Date.now();
         sendMessage({ type: 'ping' });
+        // Arm pong watcher: if NO inbound message arrives within PONG_TIMEOUT
+        // (resets on any message in ws.onmessage), fire a Sentry capture.
+        // This catches "connection silently dead" before the eventual 1006.
+        if (pongWatcherTimeout) clearTimeout(pongWatcherTimeout);
+        pongWatcherTimeout = setTimeout(() => {
+          pongWatcherTimeout = null;
+          Sentry.captureMessage('ping_pong_timeout', {
+            level: 'warning',
+            extra: {
+              timeoutMs: PONG_TIMEOUT,
+              pingIntervalMs: PING_INTERVAL,
+              navigatorOnline: navigator.onLine,
+              visibilityState: document.visibilityState,
+              readyState: activeSocket?.readyState ?? null,
+            },
+          });
+          crumb('ws', 'pong.timeout', { timeoutMs: PONG_TIMEOUT });
+        }, PONG_TIMEOUT);
       }, PING_INTERVAL);
 
       // Notify hook to run recovery logic
@@ -191,21 +221,34 @@ export async function connect(): Promise<void> {
 
     ws.onmessage = (event: MessageEvent) => {
       if (myGeneration !== connectionGeneration) return;
+      // Any inbound message proves the connection is alive — clear pong watcher
+      if (pongWatcherTimeout) {
+        clearTimeout(pongWatcherTimeout);
+        pongWatcherTimeout = null;
+      }
       onMessage?.(event);
     };
 
     ws.onclose = (event: CloseEvent) => {
       if (myGeneration !== connectionGeneration) {
-        console.log(`[WS-MGR] onclose ignored (stale gen ${myGeneration} vs ${connectionGeneration})`);
+        crumb('ws', 'close.stale', { gen: myGeneration, active: connectionGeneration });
         return;
       }
 
-      console.log(`[WS-MGR] onclose: code=${event.code}, reason="${event.reason}", wasClean=${event.wasClean}`);
+      crumb('ws', 'close', {
+        code: event.code,
+        reason: event.reason,
+        wasClean: event.wasClean,
+      });
       activeSocket = null;
 
       if (pingInterval) {
         clearInterval(pingInterval);
         pingInterval = null;
+      }
+      if (pongWatcherTimeout) {
+        clearTimeout(pongWatcherTimeout);
+        pongWatcherTimeout = null;
       }
 
       onStateChange?.('disconnected');
@@ -234,21 +277,34 @@ export async function connect(): Promise<void> {
         reconnectAttempts < MAX_RECONNECT_ATTEMPTS
       ) {
         reconnectAttempts++;
-        console.log(
-          `WebSocket: Reconnecting (attempt ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})`
-        );
+        crumb('ws', 'reconnect.scheduled', {
+          attempt: reconnectAttempts,
+          max: MAX_RECONNECT_ATTEMPTS,
+          delayMs: RECONNECT_DELAY * reconnectAttempts,
+        });
         onStateChange?.('reconnecting');
         reconnectTimeout = setTimeout(() => {
           connect();
         }, RECONNECT_DELAY * reconnectAttempts);
       } else if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        console.error('WebSocket: Max reconnection attempts reached');
+        Sentry.captureMessage('ws_reconnect_exhausted', {
+          level: 'error',
+          tags: { ws_close_code: String(event.code) },
+          extra: {
+            attempts: reconnectAttempts,
+            navigatorOnline: navigator.onLine,
+            visibilityState: document.visibilityState,
+            lastCloseCode: event.code,
+            lastCloseReason: event.reason,
+          },
+        });
+        crumb('ws', 'reconnect.exhausted', { attempts: reconnectAttempts });
       }
     };
 
     ws.onerror = () => {
       if (myGeneration !== connectionGeneration) return;
-      console.log('WebSocket: Connection error (server may be unavailable)');
+      crumb('ws', 'error', { msg: 'connection error (server may be unavailable)' });
     };
   } catch (error) {
     console.error('WebSocket: Failed to create connection', error);
@@ -269,6 +325,10 @@ export function disconnect(): void {
   if (pingInterval) {
     clearInterval(pingInterval);
     pingInterval = null;
+  }
+  if (pongWatcherTimeout) {
+    clearTimeout(pongWatcherTimeout);
+    pongWatcherTimeout = null;
   }
   if (activeSocket) {
     killSocket(activeSocket);
