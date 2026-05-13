@@ -171,6 +171,18 @@ export async function connect(): Promise<void> {
     }
   } catch (err) {
     crumb('ws', 'connect.token_error', { err: String(err).slice(0, 200) });
+    // Auth refresh broke. The WS will continue without auth and the server
+    // will 4001-close immediately. Surface so we know auth pipeline is
+    // failing (different from the App.tsx getToken paths which fire
+    // auth_failed on checkout flows).
+    Sentry.captureMessage('auth_token_refresh_failed', {
+      level: 'warning',
+      tags: { surface: 'ws' },
+      extra: {
+        errMessage: err instanceof Error ? err.message?.substring(0, 300) : String(err).substring(0, 300),
+        attempt: reconnectAttempts,
+      },
+    });
     // Continue without token (dev mode)
   }
 

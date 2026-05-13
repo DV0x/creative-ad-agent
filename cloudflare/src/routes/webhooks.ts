@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/cloudflare';
 import type { Env } from '../env.js';
 import {
   addPlanCredits,
@@ -104,6 +105,18 @@ export async function handleDodoWebhook(request: Request, env: Env): Promise<Res
   );
   if (!isValid) {
     console.warn(`[webhook] Signature verification failed for ${webhookId}`);
+    // Revenue/security risk: user pays via Dodo but webhook is rejected, so credits
+    // never land. Today: silent 401. Surface so support can investigate stuck payments.
+    Sentry.captureMessage('dodo_webhook_rejected', {
+      level: 'error',
+      tags: { reason: 'invalid_signature' },
+      extra: {
+        webhookId,
+        hasSignature: !!request.headers.get('webhook-signature'),
+        hasTimestamp: !!request.headers.get('webhook-timestamp'),
+        bodyLen: rawBody.length,
+      },
+    });
     return new Response('Invalid signature', { status: 401 });
   }
 
@@ -112,6 +125,11 @@ export async function handleDodoWebhook(request: Request, env: Env): Promise<Res
   try {
     event = JSON.parse(rawBody);
   } catch {
+    Sentry.captureMessage('dodo_webhook_rejected', {
+      level: 'error',
+      tags: { reason: 'invalid_json' },
+      extra: { webhookId, bodyLen: rawBody.length },
+    });
     return new Response('Invalid JSON', { status: 400 });
   }
 

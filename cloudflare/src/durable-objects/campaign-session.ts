@@ -50,6 +50,9 @@ export class CampaignSession implements DurableObject {
   // Throttle for ws_send_no_clients capture — one event per minute per session
   // is enough to know "the server is shouting into the void" without flooding Sentry.
   private lastNoClientsReportAt = 0;
+  // Throttle for agent_process_died capture — once we know the agent's dead, we
+  // don't need to learn it 6 times in a row from successive alarm cycles.
+  private lastAgentDeathReportAt = 0;
 
   constructor(
     private state: DurableObjectState,
@@ -132,7 +135,25 @@ export class CampaignSession implements DurableObject {
       this.trace('rpc', `${label}.done`, { ms: Date.now() - start });
       return result;
     } catch (err: any) {
-      this.trace('rpc', `${label}.error`, { ms: Date.now() - start, err: err?.message?.substring(0, 100) });
+      const ms = Date.now() - start;
+      this.trace('rpc', `${label}.error`, { ms, err: err?.message?.substring(0, 100) });
+      // Distinguish timeout (sandbox unresponsive) from other RPC errors —
+      // the timeout path is the one that hints at sandbox hang / connection
+      // loss, which is what we actually want to alert on.
+      if (typeof err?.message === 'string' && err.message.includes('timed out after')) {
+        Sentry.captureMessage('sandbox_rpc_timeout', {
+          level: 'warning',
+          tags: { rpc_label: label },
+          extra: {
+            label,
+            timeoutMs,
+            elapsedMs: ms,
+            campaignId: this.campaignId,
+            sessionId: this.sessionId,
+            isGenerating: this.isGenerating,
+          },
+        });
+      }
       throw err;
     }
   }
@@ -573,6 +594,20 @@ export class CampaignSession implements DurableObject {
         }
       } catch (err: any) {
         this.log(`[credits] Failed to record usage: ${err?.message}`);
+        // Revenue risk: gen completed but credits weren't deducted. Silent until
+        // someone notices balances are off — surface it.
+        Sentry.captureMessage('credit_record_failed', {
+          level: 'error',
+          tags: { eventType: isFollowUp ? 'follow_up' : 'generation' },
+          extra: {
+            errMessage: err?.message?.substring(0, 500),
+            campaignId,
+            sessionId: this.sessionId,
+            imageCount: imagesThisTurn,
+            chargedUsd: chargedCost,
+            claudeCostUsd: claudeCost,
+          },
+        });
       }
     }
 
@@ -1390,7 +1425,31 @@ export class CampaignSession implements DurableObject {
       const agent = processes.find((p: any) =>
         p.id === this.agentProcessId && p.status === 'running'
       );
-      if (!agent) return false;
+      if (!agent) {
+        // We thought there was an agent (agentProcessId set) but it's gone.
+        // If a generation is still flagged active, this is the moment the
+        // user's job dies silently — surface it.
+        if (this.isGenerating) {
+          const now = Date.now();
+          if (now - this.lastAgentDeathReportAt > 60_000) {
+            this.lastAgentDeathReportAt = now;
+            Sentry.captureMessage('agent_process_died', {
+              level: 'error',
+              tags: { phase: 'gen_in_flight' },
+              extra: {
+                agentProcessId: this.agentProcessId,
+                campaignId: this.campaignId,
+                sessionId: this.sessionId,
+                ageSec: this.generationStartedAt
+                  ? Math.round((now - this.generationStartedAt) / 1000)
+                  : 0,
+                processCount: processes.length,
+              },
+            });
+          }
+        }
+        return false;
+      }
 
       // Check status file for staleness
       try {
