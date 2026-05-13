@@ -1,14 +1,28 @@
+import * as Sentry from '@sentry/cloudflare';
 import type { Env } from './env.js';
 import { handleApiRequest } from './router.js';
 import { verifyWebSocketToken } from './auth.js';
 import { handleDodoWebhook } from './routes/webhooks.js';
 import { handleClerkWebhook } from './routes/webhooks-clerk.js';
+import { CampaignSession as CampaignSessionImpl } from './durable-objects/campaign-session.js';
 
-// Re-export Durable Object classes (required by wrangler)
-export { CampaignSession } from './durable-objects/campaign-session.js';
+// Re-export Durable Object classes (required by wrangler).
+// CampaignSession is wrapped with Sentry to auto-capture exceptions
+// in fetch / alarm / webSocketMessage / webSocketClose handlers.
+// Cast: CampaignSession uses legacy `implements DurableObject`; Sentry types require `extends DurableObject<Env>`. Runtime wrapping is identical.
+export const CampaignSession = Sentry.instrumentDurableObjectWithSentry(
+  (env: Env) => ({
+    dsn: env.SENTRY_DSN,
+    environment: env.SENTRY_ENVIRONMENT,
+    release: env.SENTRY_RELEASE,
+    sendDefaultPii: true,
+  }),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  CampaignSessionImpl as any,
+);
 export { Sandbox } from '@cloudflare/sandbox';
 
-export default {
+const handler = {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
     const method = request.method;
@@ -64,3 +78,14 @@ export default {
     return env.ASSETS.fetch(request);
   },
 } satisfies ExportedHandler<Env>;
+
+export default Sentry.withSentry(
+  (env: Env) => ({
+    dsn: env.SENTRY_DSN,
+    environment: env.SENTRY_ENVIRONMENT,
+    release: env.SENTRY_RELEASE,
+    tracesSampleRate: env.SENTRY_ENVIRONMENT === 'production' ? 0.1 : 1.0,
+    sendDefaultPii: true,
+  }),
+  handler,
+);

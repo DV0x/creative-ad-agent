@@ -40,4 +40,12 @@ export interface Env {
 
   // Optional: set to "local" for wrangler dev (bypasses sandbox, runs SDK in-process)
   AI_BACKEND?: string;
+
+  // Sentry — error tracking and performance monitoring
+  // SENTRY_DSN: secret, set per env via `wrangler secret put SENTRY_DSN --env <staging|production>`
+  // SENTRY_ENVIRONMENT: var, set in wrangler.jsonc per env ("staging" or "production")
+  // SENTRY_RELEASE: var injected at deploy time via `--var SENTRY_RELEASE:<git-sha>`
+  SENTRY_DSN?: string;
+  SENTRY_ENVIRONMENT?: string;
+  SENTRY_RELEASE?: string;
 }

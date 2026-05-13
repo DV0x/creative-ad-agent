@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@cloudflare/sandbox": "^0.7.19",
-    "@fal-ai/client": "^1.2.0"
+    "@fal-ai/client": "^1.2.0",
+    "@sentry/cloudflare": "^10.53.1"
   },
   "devDependencies": {
     "@anthropic-ai/claude-agent-sdk": "latest",

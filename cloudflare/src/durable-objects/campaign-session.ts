@@ -2,6 +2,7 @@
 // Accepts WebSocket via Hibernation API, handles generate/follow_up/cancel/subscribe/ping.
 // runGeneration() executes AI generation via Cloudflare Sandbox containers (Phase 4).
 
+import * as Sentry from '@sentry/cloudflare';
 import type { Env } from '../env.js';
 import type { ClientMessage, ServerMessage, ResolvedRefs } from '../lib/types.js';
 import { extractCampaignName, HOOK_TYPE_ORDER, getHookTypeForIndex } from '../lib/types.js';
@@ -81,6 +82,21 @@ export class CampaignSession implements DurableObject {
     this.log(line);
   }
 
+  // ─── Sentry scope tagging ───────────────────────────────────────
+  // Called at the top of each DO entry point (fetch / alarm / webSocketMessage
+  // / webSocketClose / webSocketError / runGeneration) so any exception captured
+  // by the Sentry DO wrapper carries the right user + session + campaign tags.
+
+  private applySentryScope(): void {
+    if (this.userId && this.userId !== 'anonymous') {
+      Sentry.setUser({ id: this.userId });
+    }
+    if (this.sessionId) Sentry.setTag('sessionId', this.sessionId);
+    if (this.campaignId) Sentry.setTag('campaignId', this.campaignId);
+    if (this.currentRequestId) Sentry.setTag('requestId', this.currentRequestId);
+    Sentry.setTag('isGenerating', String(this.isGenerating));
+  }
+
   /** Wrap a sandbox RPC call with trace logging, timing, and timeout */
   private async timedRPC<T>(label: string, fn: () => Promise<T>, timeoutMs = 60_000): Promise<T> {
     const start = Date.now();
@@ -109,6 +125,7 @@ export class CampaignSession implements DurableObject {
   }
 
   async alarm(): Promise<void> {
+    this.applySentryScope();
     const alarmStart = Date.now();
     this.alarmIteration++;
     const iter = this.alarmIteration;
@@ -627,6 +644,7 @@ export class CampaignSession implements DurableObject {
   async fetch(request: Request): Promise<Response> {
     // Extract userId from internal header (Worker verifies JWT, passes to DO)
     this.userId = request.headers.get('X-User-Id') || 'anonymous';
+    this.applySentryScope();
     const url = new URL(request.url);
     this.trace('do', 'fetch', { userId: this.userId, path: url.pathname, upgrade: request.headers.get('Upgrade') || 'none' });
 
@@ -663,6 +681,7 @@ export class CampaignSession implements DurableObject {
   async webSocketMessage(ws: WebSocket, data: string | ArrayBuffer): Promise<void> {
     // Restore session after DO reset / hibernation wake
     await this.restoreSession();
+    this.applySentryScope();
 
     let message: ClientMessage;
     try {
@@ -711,12 +730,14 @@ export class CampaignSession implements DurableObject {
   }
 
   async webSocketClose(ws: WebSocket, code: number, reason: string): Promise<void> {
+    this.applySentryScope();
     this.trace('ws', 'close', { code, reason: reason || 'none', session: this.sessionId || 'null', gen: this.isGenerating, wsRemaining: this.state.getWebSockets().length - 1 });
     console.log(`WS closed: session=${this.sessionId}, code=${code}, reason=${reason}`);
     // No cleanup needed — getWebSockets() automatically excludes closed connections
   }
 
   async webSocketError(ws: WebSocket, error: unknown): Promise<void> {
+    this.applySentryScope();
     this.trace('ws', 'error', { err: String(error).substring(0, 200), session: this.sessionId || 'null', gen: this.isGenerating });
     console.error('WS error:', error);
     // No cleanup needed — getWebSockets() automatically excludes errored connections
@@ -1745,6 +1766,7 @@ export class CampaignSession implements DurableObject {
   // ─── Generation (Phase 4: Sandbox execution) ─────────────────
 
   private async runGeneration(prompt: string, sessionId: string, sdkSessionId?: string, resolvedRefs?: ResolvedRefs | null): Promise<void> {
+    this.applySentryScope();
     if (this.env.AI_BACKEND === 'local') {
       return this.runGenerationLocal(prompt, sessionId, sdkSessionId);
     }
