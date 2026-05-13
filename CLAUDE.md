@@ -17,10 +17,14 @@ cd server && npm run dev          # Backend on :3001
 cd client && npm run dev          # Frontend on :5173 (proxies to :3001)
 
 # Deploy to staging (creative-agent-staging.alphasapien17.workers.dev)
-cd client && npm run build:staging && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npx wrangler deploy --env staging
+# (deploy:staging wraps wrangler + uploads source maps to Sentry under a release tag)
+cd client && npm run build:staging && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npm run deploy:staging
 
 # Deploy to production (creativemachines.xyz)
-cd client && npm run build:production && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npx wrangler deploy --env production
+cd client && npm run build:production && docker logout registry.cloudflare.com; docker builder prune -af; cd ../cloudflare && npm run deploy:production
+
+# Sentry credentials live in /.env.local (gitignored) — both client build (vite plugin)
+# and worker deploy (scripts/deploy.sh) read SENTRY_AUTH_TOKEN from there.
 
 # Query production D1 (name is creative-agent-db-prod; staging is creative-agent-db)
 npx wrangler d1 execute creative-agent-db-prod --remote --command="SELECT ..."
