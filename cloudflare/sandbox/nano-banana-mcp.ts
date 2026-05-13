@@ -100,12 +100,13 @@ const resolutionEnum = z.enum(['1K', '2K', '4K']);
 // Output format options
 const outputFormatEnum = z.enum(['jpeg', 'png', 'webp']);
 
-// Hook types for ad concepts (matches client types)
-type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
-const HOOK_TYPE_ORDER: HookType[] = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'];
+// Hook types are freeform — agent declares per image via the hookTypes tool arg.
+// HOOK_TYPE_ORDER is a positional fallback for legacy paths only.
+type HookType = string;
+const HOOK_TYPE_ORDER = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'] as const;
 
 function getHookTypeForIndex(index: number): HookType {
-  return HOOK_TYPE_ORDER[index - 1] || 'stat';
+  return HOOK_TYPE_ORDER[index - 1] ?? 'variant';
 }
 
 /**
@@ -118,13 +119,26 @@ export const nanoBananaMcpServer = createSdkMcpServer({
     // Tool 1: Text-to-Image Generation (with optional reference images)
     tool(
       "generate_ad_images",
-      "Generate up to 6 high-quality images using fal.ai Nano Banana Pro. " +
+      "Generate high-quality images using fal.ai Nano Banana Pro. " +
       "Supports 1K/2K/4K resolution, multiple aspect ratios, web search grounding, and optional reference images. " +
-      "When reference images are provided, automatically uses image editing mode for style/subject consistency.",
+      "When reference images are provided, automatically uses image editing mode for style/subject consistency. " +
+      "Pass `targetImageIndices` when iterating on existing image slots; omit when generating fresh.",
       {
-        prompts: z.array(z.string()).min(1).max(6).describe(
-          "Array of 1-6 image generation prompts. Each prompt should be descriptive and detailed. " +
+        prompts: z.array(z.string()).min(1).describe(
+          "Array of image generation prompts (one per image). Each prompt should be descriptive and detailed. " +
           "Example: 'A professional business person working confidently on a laptop in a modern office, warm lighting, photorealistic style'"
+        ),
+        hookTypes: z.array(z.string()).optional().describe(
+          "Per-image hook label (parallel array to `prompts`, same length). The agent should pick from the canonical " +
+          "framework names (stat, story, fomo, curiosity, callout, contrast) when applicable, or invent a brand-specific " +
+          "name (e.g. 'authority', 'social-proof', 'pattern-interrupt') when none fit. Required for new ads to be " +
+          "semantically labeled; omit only on rapid retries where the label is inherited."
+        ),
+        targetImageIndices: z.array(z.number().int().positive()).optional().describe(
+          "When iterating on existing images, pass the 1-based slot indices to replace. Must match prompts.length. " +
+          "Example: prompts=['updated infographic'], targetImageIndices=[1] → bumps Image 1 to a new version. " +
+          "On fresh initial generation, also pass [1..N] so any aspect-ratio retries collide on the same slot " +
+          "(bumps version) instead of leaking abandoned files. Omit only for ad-hoc one-off generations."
         ),
         style: z.string().optional().describe(
           "Visual style to apply across all images. Appended to each prompt. " +
@@ -156,9 +170,29 @@ export const nanoBananaMcpServer = createSdkMcpServer({
         const hasReferenceImages = args.referenceImageUrls && args.referenceImageUrls.length > 0;
         const mode = hasReferenceImages ? 'edit (with references)' : 'text-to-image';
 
+        // Validate parallel-array lengths up front so the agent gets a clear error.
+        if (args.targetImageIndices && args.targetImageIndices.length !== args.prompts.length) {
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify({
+              success: false,
+              error: `targetImageIndices.length (${args.targetImageIndices.length}) must equal prompts.length (${args.prompts.length})`,
+            }) }],
+          };
+        }
+        if (args.hookTypes && args.hookTypes.length !== args.prompts.length) {
+          return {
+            content: [{ type: 'text' as const, text: JSON.stringify({
+              success: false,
+              error: `hookTypes.length (${args.hookTypes.length}) must equal prompts.length (${args.prompts.length})`,
+            }) }],
+          };
+        }
+
         console.log(`[${new Date().toISOString()}] Starting fal.ai Nano Banana Pro image generation`);
         console.log(`   Mode: ${mode}`);
         console.log(`   Prompts: ${args.prompts.length}`);
+        console.log(`   targetImageIndices: ${args.targetImageIndices?.join(',') || 'none (fresh slots)'}`);
+        console.log(`   hookTypes: ${args.hookTypes?.join(',') || 'none (positional fallback)'}`);
         console.log(`   Style: ${args.style || 'default'}`);
         console.log(`   Resolution: ${args.resolution || '1K'}`);
         console.log(`   Aspect Ratio: ${args.aspectRatio || '1:1'}`);
@@ -270,10 +304,17 @@ export const nanoBananaMcpServer = createSdkMcpServer({
               const url = `/images/${args.sessionId ? args.sessionId + '/' : ''}${filename}`;
 
               const imageIndex = i + 1;
+              // Slot to persist into: agent-specified target if given, else positional fallback.
+              const targetImageIndex = args.targetImageIndices?.[i] ?? imageIndex;
+              // Hook label: agent-specified if given, else positional fallback (legacy).
+              const agentHookType = args.hookTypes?.[i];
+              const hookType = agentHookType ?? getHookTypeForIndex(targetImageIndex);
+
               results.push({
                 id: `image_${imageIndex}`,
                 imageIndex,
-                hookType: getHookTypeForIndex(imageIndex),
+                targetImageIndex,
+                hookType,
                 filename: filename,
                 filepath: filepath,
                 url: url,
@@ -291,9 +332,17 @@ export const nanoBananaMcpServer = createSdkMcpServer({
                 description: data.description || '',
               });
 
-              // Track generated image for completion marker (append-only)
+              // Track generated image for completion marker (append-only).
+              // targetImageIndex + hookType travel here so finalize (DO) honors them on the
+              // jsonl-driven path too (parser path reads from tool_result directly).
               try {
-                const trackEntry = JSON.stringify({ filename, path: `images/${filename}` }) + '\n';
+                const trackEntry = JSON.stringify({
+                  filename,
+                  path: `images/${filename}`,
+                  targetImageIndex,
+                  hookType,
+                  prompt,
+                }) + '\n';
                 fs.appendFileSync('/app/generated-images.jsonl', trackEntry);
               } catch { /* non-critical */ }
 

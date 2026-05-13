@@ -37,6 +37,8 @@ export {
   getLatestCampaignImages,
   addCampaignImage,
   getImageCount,
+  getImageRowCount,
+  getMaxImageIndex,
   deleteImage,
   type CampaignImage,
   type HookType,

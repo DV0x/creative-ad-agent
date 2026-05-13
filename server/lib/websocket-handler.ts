@@ -214,6 +214,7 @@ interface ServerMessage {
   filename?: string;
   hookType?: HookType;
   imageIndex?: number;
+  version?: number;
   // File events
   fileType?: 'research' | 'hooks' | 'prompts';
   content?: string;
@@ -541,40 +542,46 @@ function processSDKMessage(message: any, state: ConnectionState, instrumentor: S
                   }
                   if (filename) processedFilenames?.add(filename);
 
-                  // Server assigns global index (not MCP's per-batch index)
-                  const globalIndex = imageCounter ? imageCounter.next++ : 1;
-                  const hookType = getHookTypeForIndex(globalIndex);
+                  // Slot: agent-declared target wins, else allocate fresh.
+                  const targetImageIndex = typeof img.targetImageIndex === 'number' && img.targetImageIndex > 0
+                    ? img.targetImageIndex
+                    : (imageCounter ? imageCounter.next++ : 1);
+                  // Hook: agent-declared > positional fallback.
+                  const hookType = (typeof img.hookType === 'string' && img.hookType.trim())
+                    ? img.hookType.trim()
+                    : getHookTypeForIndex(targetImageIndex);
 
-                  broadcastToConnection(state, {
-                    type: 'image',
-                    timestamp: new Date().toISOString(),
-                    id: `image_${globalIndex}`,
-                    urlPath: imageUrl,
-                    prompt: img.prompt || '',
-                    filename,
-                    hookType,
-                    imageIndex: globalIndex,
-                  });
-
-                  // Track in block builder
-                  if (blockBuilder) {
-                    blockBuilder.incrementCompletedImages();
-                  }
-
-                  // Persist to database
+                  let actualVersion = 1;
                   if (state.campaignId) {
                     try {
-                      db.addCampaignImage({
+                      const row = db.addCampaignImage({
                         campaignId: state.campaignId,
-                        imageIndex: globalIndex,
+                        imageIndex: targetImageIndex,
                         hookType: hookType as db.HookType,
                         prompt: img.prompt || undefined,
                         filePath: imageUrl,
                       });
-                      console.log(`💾 DB: Saved image ${globalIndex} (${hookType}) for campaign ${state.campaignId} [via SDK stream fallback]`);
+                      actualVersion = row.version;
+                      console.log(`💾 DB: Saved image slot=${targetImageIndex} v${row.version} (${hookType}) for campaign ${state.campaignId} [via SDK stream fallback]`);
                     } catch (dbError) {
                       console.error(`❌ DB: Failed to save image:`, dbError);
                     }
+                  }
+
+                  broadcastToConnection(state, {
+                    type: 'image',
+                    timestamp: new Date().toISOString(),
+                    id: `image_${targetImageIndex}`,
+                    urlPath: imageUrl,
+                    prompt: img.prompt || '',
+                    filename,
+                    hookType,
+                    imageIndex: targetImageIndex,
+                    version: actualVersion,
+                  });
+
+                  if (blockBuilder) {
+                    blockBuilder.incrementCompletedImages();
                   }
                 }
               }
@@ -743,37 +750,45 @@ async function handleGenerate(state: ConnectionState, prompt: string, requestedS
     if (processedFilenames.has(event.filename)) return;
     processedFilenames.add(event.filename);
 
-    // Server assigns global index (not MCP's per-batch index)
-    const globalIndex = imageCounter.next++;
-    const hookType = getHookTypeForIndex(globalIndex);
+    // Slot: agent's target wins, else allocate fresh.
+    const targetImageIndex = typeof (event as any).targetImageIndex === 'number' && (event as any).targetImageIndex > 0
+      ? (event as any).targetImageIndex
+      : imageCounter.next++;
+    // Hook: agent's declared value wins, else positional fallback.
+    const hookType = (typeof (event as any).hookType === 'string' && (event as any).hookType.trim())
+      ? (event as any).hookType.trim()
+      : getHookTypeForIndex(targetImageIndex);
 
-    console.log(`[ImageEvent] Real-time image ${globalIndex} for session ${sessionId} (file: ${event.filename})`);
+    console.log(`[ImageEvent] Real-time image slot=${targetImageIndex} for session ${sessionId} (file: ${event.filename})`);
 
-    broadcastToConnection(state, {
-      type: 'image',
-      timestamp: new Date().toISOString(),
-      id: `image_${globalIndex}`,
-      urlPath: event.urlPath,
-      prompt: event.prompt,
-      filename: event.filename,
-      hookType,
-      imageIndex: globalIndex,
-    });
-
+    let actualVersion = 1;
     if (state.campaignId) {
       try {
-        db.addCampaignImage({
+        const row = db.addCampaignImage({
           campaignId: state.campaignId,
-          imageIndex: globalIndex,
+          imageIndex: targetImageIndex,
           hookType: hookType as db.HookType,
           prompt: event.prompt || undefined,
           filePath: event.urlPath,
         });
-        console.log(`💾 DB: Saved image ${globalIndex} (${hookType}) for campaign ${state.campaignId} [via EventEmitter]`);
+        actualVersion = row.version;
+        console.log(`💾 DB: Saved image slot=${targetImageIndex} v${row.version} (${hookType}) for campaign ${state.campaignId} [via EventEmitter]`);
       } catch (dbError) {
         console.error(`❌ DB: Failed to save image via EventEmitter:`, dbError);
       }
     }
+
+    broadcastToConnection(state, {
+      type: 'image',
+      timestamp: new Date().toISOString(),
+      id: `image_${targetImageIndex}`,
+      urlPath: event.urlPath,
+      prompt: event.prompt,
+      filename: event.filename,
+      hookType,
+      imageIndex: targetImageIndex,
+      version: actualVersion,
+    });
 
     // Track image completion in block builder
     blockBuilder.incrementCompletedImages();
@@ -1225,8 +1240,9 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
 
     // 6. Register image event listener (same pattern as handleGenerate)
     const processedFilenames = new Set<string>();
-    const existingImageCount = db.getImageCount(campaignId);
-    const imageCounter = { next: existingImageCount + 1 };
+    // Continue from max image_index (not count) — counts misbehave after edits-as-versions land.
+    const maxIndex = db.getMaxImageIndex(campaignId);
+    const imageCounter = { next: maxIndex + 1 };
 
     // Accumulate AI text for DB persistence
     const textAccumulator: TextAccumulator = { text: '' };
@@ -1238,34 +1254,42 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       if (processedFilenames.has(event.filename)) return;
       processedFilenames.add(event.filename);
 
-      // Server assigns global index (continues from existing images)
-      const globalIndex = imageCounter.next++;
-      const hookType = getHookTypeForIndex(globalIndex);
+      // Slot: agent's target wins, else allocate fresh.
+      const targetImageIndex = typeof (event as any).targetImageIndex === 'number' && (event as any).targetImageIndex > 0
+        ? (event as any).targetImageIndex
+        : imageCounter.next++;
+      const hookType = (typeof (event as any).hookType === 'string' && (event as any).hookType.trim())
+        ? (event as any).hookType.trim()
+        : getHookTypeForIndex(targetImageIndex);
 
-      broadcastToConnection(state, {
-        type: 'image',
-        timestamp: new Date().toISOString(),
-        id: `image_${globalIndex}`,
-        urlPath: event.urlPath,
-        prompt: event.prompt,
-        filename: event.filename,
-        hookType,
-        imageIndex: globalIndex,
-      });
-
+      let actualVersion = 1;
       if (state.campaignId) {
         try {
-          db.addCampaignImage({
+          const row = db.addCampaignImage({
             campaignId: state.campaignId,
-            imageIndex: globalIndex,
+            imageIndex: targetImageIndex,
             hookType: hookType as db.HookType,
             prompt: event.prompt || undefined,
             filePath: event.urlPath,
           });
+          actualVersion = row.version;
         } catch (dbError) {
           console.error('DB: Failed to save image via EventEmitter:', dbError);
         }
       }
+
+      broadcastToConnection(state, {
+        type: 'image',
+        timestamp: new Date().toISOString(),
+        id: `image_${targetImageIndex}`,
+        urlPath: event.urlPath,
+        prompt: event.prompt,
+        filename: event.filename,
+        hookType,
+        imageIndex: targetImageIndex,
+        version: actualVersion,
+      });
+
       blockBuilder.incrementCompletedImages();
     };
 
@@ -1324,7 +1348,7 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
       if (message.type === 'result' && !generationCompleted && !wasCancelled && !apiError) {
         generationCompleted = true;
         const duration = Date.now() - startTime;
-        const imageCount = imageCounter.next - 1 - existingImageCount;
+        const imageCount = imageCounter.next - 1 - maxIndex;
         // Use accumulated AI text if available, otherwise fallback
         const summary = textAccumulator.text.trim() || 'Follow-up completed.';
 
@@ -1392,7 +1416,7 @@ async function handleFollowUp(state: ConnectionState, prompt: string, campaignId
     // Handle silent stream end (SDK finished without 'result' message)
     if (!generationCompleted && !wasCancelled) {
       const duration = Date.now() - startTime;
-      const imageCount = imageCounter.next - 1 - existingImageCount;
+      const imageCount = imageCounter.next - 1 - maxIndex;
       const summary = textAccumulator.text.trim() || 'Follow-up completed.';
 
       broadcastToConnection(state, {

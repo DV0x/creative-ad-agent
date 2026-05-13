@@ -232,6 +232,7 @@ export function useWebSocket(): UseWebSocketReturn {
           break;
 
         case 'file':
+          console.log('[ws-rx][file]', { campaignId, fileType: (message as any).fileType, messageIdSet: !!messageId, contentLen: ((message as any).content || '').length });
           if (isFileEvent(message) && campaignId && messageId) {
             store.updateCampaignFile(campaignId, message.fileType, message.content);
             store.addThinkingChild(campaignId, messageId, { kind: 'status', text: `${message.fileType}.md created`, variant: 'info' });
@@ -254,7 +255,7 @@ export function useWebSocket(): UseWebSocketReturn {
               url: message.urlPath,
               prompt: message.prompt,
               hookType: message.hookType || getHookTypeForIndex(message.imageIndex),
-              version: 1,
+              version: message.version ?? 1,
             });
             store.updateThinkingImages(campaignId, messageId, message.imageIndex);
           }

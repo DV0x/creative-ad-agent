@@ -26,14 +26,16 @@ export interface ResolvedRefs {
   fileIds: string[];
 }
 
-// Hook types for ad concepts
-export type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
+// Hook types are freeform — the agent declares them per image (see hook-methodology skill,
+// which defines 10 canonical types but allows brand-specific invention).
+export type HookType = string;
 
-// Map image index (1-6) to hook type
-export const HOOK_TYPE_ORDER: HookType[] = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'];
+// Canonical hint list — only used as a positional fallback when the agent omits hookTypes
+// (legacy code paths). Indexes 7+ fall back to a generic 'variant' tag, not silent overflow.
+export const HOOK_TYPE_ORDER = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'] as const;
 
 export function getHookTypeForIndex(index: number): HookType {
-  return HOOK_TYPE_ORDER[index - 1] || 'stat';
+  return HOOK_TYPE_ORDER[index - 1] ?? 'variant';
 }
 
 // Server -> Client message types
@@ -54,6 +56,7 @@ export interface ServerMessage {
   filename?: string;
   hookType?: HookType;
   imageIndex?: number;
+  version?: number;
   fileType?: 'research' | 'hooks' | 'prompts';
   content?: string;
   path?: string;

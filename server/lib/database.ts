@@ -59,7 +59,7 @@ CREATE TABLE IF NOT EXISTS campaign_images (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   campaign_id TEXT NOT NULL REFERENCES campaigns(id) ON DELETE CASCADE,
   image_index INTEGER NOT NULL,
-  hook_type TEXT NOT NULL CHECK (hook_type IN ('stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast')),
+  hook_type TEXT NOT NULL,
   prompt TEXT,
   file_path TEXT NOT NULL,
   version INTEGER DEFAULT 1,

@@ -3,7 +3,7 @@ import { FolderIcon, XIcon, FileTextIcon, ImageIcon, FileIcon, LayoutGrid } from
 import { AuthImage } from '@/components/AuthImage'
 import { useStore, type AssetFolder, type AssetFile, type CampaignFileType, type GeneratedImage } from '@/store'
 import { cn } from '@/lib/utils'
-import { HOOK_TYPE_LABELS } from '@/types/chat'
+import { getHookLabel } from '@/types/chat'
 
 export interface AssetMentionHandle {
   openDropdown: () => void
@@ -94,7 +94,7 @@ export const AssetMention = forwardRef<AssetMentionHandle, AssetMentionProps>(fu
     if (activeCampaign && activeCampaign.images.length > 0) {
       activeCampaign.images.forEach(image => {
         if (!selectedImageIds.includes(image.id)) {
-          const hookLabel = image.hookType ? HOOK_TYPE_LABELS[image.hookType] : ''
+          const hookLabel = image.hookType ? getHookLabel(image.hookType) : ''
           items.push({
             id: `image-${image.id}`,
             type: 'campaign-image',

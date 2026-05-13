@@ -88,11 +88,11 @@ Parse → research → hooks → art → images (user-requested count) → done.
 
 // ─── MCP Server (compact version of sandbox/nano-banana-mcp.ts) ─────
 
-type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
-const HOOK_TYPE_ORDER: HookType[] = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'];
+type HookType = string;
+const HOOK_TYPE_ORDER = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'] as const;
 
 function getHookTypeForIndex(index: number): HookType {
-  return HOOK_TYPE_ORDER[index - 1] || 'stat';
+  return HOOK_TYPE_ORDER[index - 1] ?? 'variant';
 }
 
 function sanitizeFilename(text: string): string {

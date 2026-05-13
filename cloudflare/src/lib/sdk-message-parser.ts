@@ -115,6 +115,7 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
       }
 
       if (fileType) {
+        console.log(`[parser][emit][file] type=${fileType} path=${filePath.slice(-50)} contentLen=${fileContent.length}`);
         emitEvent({
           type: 'file',
           timestamp: new Date().toISOString(),
@@ -362,37 +363,59 @@ export async function processSDKMessage(message: any, ctx: ParserContext): Promi
               if (filename && processedFilenames.has(filename)) continue;
               if (filename) processedFilenames.add(filename);
 
-              // Server assigns global index
-              const globalIndex = imageCounter.next++;
-              const hookType = getHookTypeForIndex(globalIndex);
+              // Slot selection: agent-declared target wins (edit case), else allocate fresh.
+              let imageIndex: number;
+              if (typeof img.targetImageIndex === 'number' && img.targetImageIndex > 0) {
+                imageIndex = img.targetImageIndex;
+              } else {
+                imageIndex = imageCounter.next++;
+              }
 
-              emitEvent({
-                type: 'image',
-                timestamp: new Date().toISOString(),
-                id: `image_${globalIndex}`,
-                urlPath: imageUrl,
-                prompt: img.prompt || '',
-                filename,
-                hookType,
-                imageIndex: globalIndex,
-              });
+              // Hook type: agent-declared > inherit existing slot > positional fallback.
+              let hookType: HookType;
+              if (typeof img.hookType === 'string' && img.hookType.trim()) {
+                hookType = img.hookType.trim();
+              } else if (ctx.campaignId && typeof img.targetImageIndex === 'number') {
+                const existing = await ctx.d1.prepare(
+                  `SELECT hook_type FROM campaign_images
+                   WHERE campaign_id = ? AND image_index = ?
+                   ORDER BY version DESC LIMIT 1`
+                ).bind(ctx.campaignId, imageIndex).first<{ hook_type: string }>();
+                hookType = existing?.hook_type ?? getHookTypeForIndex(imageIndex);
+              } else {
+                hookType = getHookTypeForIndex(imageIndex);
+              }
 
-              blockBuilder.incrementCompletedImages();
-
-              // Persist to database
+              // Persist to database first so we know the actual version landed.
+              let actualVersion = 1;
               if (ctx.campaignId) {
                 try {
-                  await db.addCampaignImage(ctx.d1, {
+                  const row = await db.addCampaignImage(ctx.d1, {
                     campaignId: ctx.campaignId,
-                    imageIndex: globalIndex,
-                    hookType: hookType as HookType,
+                    imageIndex,
+                    hookType,
                     prompt: img.prompt || undefined,
                     filePath: imageUrl,
                   });
+                  actualVersion = row.version;
                 } catch (err) {
                   console.error('Failed to save image:', err);
                 }
               }
+
+              emitEvent({
+                type: 'image',
+                timestamp: new Date().toISOString(),
+                id: `image_${imageIndex}`,
+                urlPath: imageUrl,
+                prompt: img.prompt || '',
+                filename,
+                hookType,
+                imageIndex,
+                version: actualVersion,
+              });
+
+              blockBuilder.incrementCompletedImages();
             }
           }
         } catch {

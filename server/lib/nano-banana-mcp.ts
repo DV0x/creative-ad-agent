@@ -113,13 +113,21 @@ export const nanoBananaMcpServer = createSdkMcpServer({
     // Tool 1: Text-to-Image Generation (with optional reference images)
     tool(
       "generate_ad_images",
-      "Generate up to 6 high-quality images using fal.ai Nano Banana Pro. " +
+      "Generate high-quality images using fal.ai Nano Banana Pro. " +
       "Supports 1K/2K/4K resolution, multiple aspect ratios, web search grounding, and optional reference images. " +
-      "When reference images are provided, automatically uses image editing mode for style/subject consistency.",
+      "When reference images are provided, automatically uses image editing mode for style/subject consistency. " +
+      "Pass `targetImageIndices` when iterating on existing image slots; omit when generating fresh.",
       {
-        prompts: z.array(z.string()).min(1).max(6).describe(
-          "Array of 1-6 image generation prompts. Each prompt should be descriptive and detailed. " +
-          "Example: 'A professional business person working confidently on a laptop in a modern office, warm lighting, photorealistic style'"
+        prompts: z.array(z.string()).min(1).describe(
+          "Array of image generation prompts (one per image). Each prompt should be descriptive and detailed."
+        ),
+        hookTypes: z.array(z.string()).optional().describe(
+          "Per-image hook label (parallel array to `prompts`, same length). Prefer canonical names " +
+          "(stat, story, fomo, curiosity, callout, contrast) or invent brand-specific names when none fit."
+        ),
+        targetImageIndices: z.array(z.number().int().positive()).optional().describe(
+          "When iterating on existing images, pass the 1-based slot indices to replace. Must match prompts.length. " +
+          "Bumps version on the targeted slot instead of allocating a new slot."
         ),
         style: z.string().optional().describe(
           "Visual style to apply across all images. Appended to each prompt. " +
@@ -151,9 +159,24 @@ export const nanoBananaMcpServer = createSdkMcpServer({
         const hasReferenceImages = args.referenceImageUrls && args.referenceImageUrls.length > 0;
         const mode = hasReferenceImages ? 'edit (with references)' : 'text-to-image';
 
+        if (args.targetImageIndices && args.targetImageIndices.length !== args.prompts.length) {
+          return { content: [{ type: 'text' as const, text: JSON.stringify({
+            success: false,
+            error: `targetImageIndices.length (${args.targetImageIndices.length}) must equal prompts.length (${args.prompts.length})`,
+          }) }] };
+        }
+        if (args.hookTypes && args.hookTypes.length !== args.prompts.length) {
+          return { content: [{ type: 'text' as const, text: JSON.stringify({
+            success: false,
+            error: `hookTypes.length (${args.hookTypes.length}) must equal prompts.length (${args.prompts.length})`,
+          }) }] };
+        }
+
         console.log(`🎨 [${new Date().toISOString()}] Starting fal.ai Nano Banana Pro image generation`);
         console.log(`   Mode: ${mode}`);
         console.log(`   Prompts: ${args.prompts.length}`);
+        console.log(`   targetImageIndices: ${args.targetImageIndices?.join(',') || 'none (fresh slots)'}`);
+        console.log(`   hookTypes: ${args.hookTypes?.join(',') || 'none (positional fallback)'}`);
         console.log(`   Style: ${args.style || 'default'}`);
         console.log(`   Resolution: ${args.resolution || '1K'}`);
         console.log(`   Aspect Ratio: ${args.aspectRatio || '1:1'}`);
@@ -265,10 +288,15 @@ export const nanoBananaMcpServer = createSdkMcpServer({
               const url = `/images/${args.sessionId ? args.sessionId + '/' : ''}${filename}`;
 
               const imageIndex = i + 1;
+              const targetImageIndex = args.targetImageIndices?.[i] ?? imageIndex;
+              const agentHookType = args.hookTypes?.[i];
+              const hookType = agentHookType ?? getHookTypeForIndex(targetImageIndex);
+
               results.push({
                 id: `image_${imageIndex}`,
                 imageIndex,
-                hookType: getHookTypeForIndex(imageIndex),
+                targetImageIndex,
+                hookType,
                 filename: filename,
                 url: url,
                 originalUrl: image.url,
@@ -290,7 +318,8 @@ export const nanoBananaMcpServer = createSdkMcpServer({
                 imageEvents.emit('image-saved', {
                   sessionId: args.sessionId,
                   imageIndex,
-                  hookType: getHookTypeForIndex(imageIndex),
+                  targetImageIndex,
+                  hookType,
                   prompt: prompt,
                   filename: filename,
                   urlPath: url,

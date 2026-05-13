@@ -2,13 +2,15 @@
 // Chat Types for Chat-First UI
 // ============================================
 
-// Hook types map to the 6 ad concept strategies
-export type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
+// Hook types are freeform — agent declares them per image. The 6 names below are
+// the canonical framework hints; agent may invent new names per brand.
+export type HookType = string;
 
-// Map image index (1-6) to hook type
-export const HOOK_TYPE_ORDER: HookType[] = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'];
+export const HOOK_TYPE_ORDER = ['stat', 'story', 'fomo', 'curiosity', 'callout', 'contrast'] as const;
 
-export const HOOK_TYPE_LABELS: Record<HookType, string> = {
+// Known pretty labels for the canonical types. Lookups fall back to capitalize-the-key
+// for unknown/invented hook types — see getHookLabel().
+export const HOOK_TYPE_LABELS: Record<string, string> = {
   stat: 'Stat Hook',
   story: 'Story Hook',
   fomo: 'FOMO Hook',
@@ -16,6 +18,12 @@ export const HOOK_TYPE_LABELS: Record<HookType, string> = {
   callout: 'Call-out Hook',
   contrast: 'Contrast Hook',
 };
+
+export function getHookLabel(hookType: string | undefined | null): string {
+  if (!hookType) return 'Hook';
+  return HOOK_TYPE_LABELS[hookType]
+    ?? hookType.split(/[-_\s]+/).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') + ' Hook';
+}
 
 // ============================================
 // Block Types (for structured message rendering)
@@ -130,6 +138,6 @@ export function getImageLabel(index: number): string {
 }
 
 export function getImageSubtitle(hookType: HookType): string {
-  return HOOK_TYPE_LABELS[hookType];
+  return getHookLabel(hookType);
 }
 

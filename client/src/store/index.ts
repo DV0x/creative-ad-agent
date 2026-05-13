@@ -433,7 +433,9 @@ export const useStore = create<Store>()(persist((set, get) => ({
 
   updateCampaignFile: (campaignId, fileType, content) => set((state) => {
     const exists = state.campaigns.some(c => c.id === campaignId);
+    console.log('[store][updateCampaignFile]', { campaignId, fileType, exists, contentLen: content.length, knownIds: state.campaigns.map(c => c.id) });
     if (!exists) {
+      console.log('[store][updateCampaignFile] BUFFERING into _pendingFiles', { campaignId, fileType });
       // Campaign not loaded yet — buffer for flush on setCampaigns
       const pending = { ...state._pendingFiles };
       const list = (pending[campaignId] || []).filter(f => f.fileType !== fileType);

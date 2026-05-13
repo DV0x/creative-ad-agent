@@ -392,6 +392,7 @@ try {
       if (Array.isArray(content)) {
         for (const block of content) {
           if (block?.type === 'tool_use') {
+            trace('subagent_tool_synth', { name: block.name, filePath: (block.input?.file_path || '').toString().slice(-50) });
             process.stdout.write(JSON.stringify({
               type: 'tool_use_event',
               name: block.name,

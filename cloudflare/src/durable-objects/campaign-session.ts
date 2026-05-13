@@ -33,6 +33,10 @@ export class CampaignSession implements DurableObject {
   private hasSourceResearch = false; // True when research was copied from a source campaign
   private preGenImageCount = 0; // Image count before current generation (for cancel cost calc)
   private currentLogStream: ReadableStream | null = null; // Reference for cancel to unblock streamForLiveUI
+  // Idempotency guard: finalize can fire from alarm + fast-path race. Records requestIds we've
+  // already finalized this DO lifetime so the second caller no-ops cleanly. (Per Session 100 fix
+  // for the duplicate assistant message bug.)
+  private finalizedRequestIds = new Set<string>();
 
   // Trace instrumentation
   private traceSeq = 0;
@@ -396,12 +400,28 @@ export class CampaignSession implements DurableObject {
   ): Promise<void> {
     if (!this.isGenerating) return;
 
+    // Idempotency: if alarm + fast-path race fire finalize for the same turn, only the first wins.
+    // (Without this guard, both insert duplicate assistant messages — Session 100 duplicate-msg bug.)
+    const turnKey = turnResult.requestId || `initial:${campaignId}`;
+    if (this.finalizedRequestIds.has(turnKey)) {
+      this.trace('finalize', 'skipped.duplicate', { turnKey });
+      return;
+    }
+    this.finalizedRequestIds.add(turnKey);
+    // Cap the set size so it doesn't grow unbounded across many turns on a long-lived DO.
+    if (this.finalizedRequestIds.size > 64) {
+      const oldest = this.finalizedRequestIds.values().next().value;
+      if (oldest) this.finalizedRequestIds.delete(oldest);
+    }
+
     const images = turnResult.images || [];
     const files = turnResult.files || {};
     const text = turnResult.text || '';
     const blocks = turnResult.blocks || [];
 
-    // 1. Reconcile images (dedup against existing D1 records)
+    // 1. Reconcile images (dedup against existing D1 records).
+    // Most images already land via the parser path (sdk-message-parser) — this loop only
+    // picks up anything the live stream missed (cold-start finalize, alarm replays).
     const existingImages = await db.getCampaignImages(this.env.DB, campaignId);
     const knownPaths = new Set(existingImages.map((i: any) => i.file_path));
     let nextIndex = (await db.getMaxImageIndex(this.env.DB, campaignId)) + 1;
@@ -409,15 +429,43 @@ export class CampaignSession implements DurableObject {
 
     for (const img of images) {
       const urlPath = img.path?.startsWith('/images/') ? img.path : `/images/${img.filename}`;
-      if (knownPaths.has(urlPath)) continue;
+      if (knownPaths.has(urlPath)) {
+        Sentry.captureMessage('image_persist_dedup_hit', {
+          level: 'info',
+          tags: { source: 'finalize' },
+          extra: { campaignId, urlPath },
+        });
+        continue;
+      }
 
-      const imageIndex = nextIndex++;
-      const hookType = getHookTypeForIndex(imageIndex);
+      // Slot selection: trust agent's targetImageIndex from the jsonl entry, else next fresh.
+      const imageIndex = typeof img.targetImageIndex === 'number' && img.targetImageIndex > 0
+        ? img.targetImageIndex
+        : nextIndex++;
 
-      await db.addCampaignImage(this.env.DB, {
+      // Hook type: agent's declared value > existing slot's value > positional fallback.
+      let hookType: HookType;
+      if (typeof img.hookType === 'string' && img.hookType.trim()) {
+        hookType = img.hookType.trim();
+      } else if (typeof img.targetImageIndex === 'number') {
+        const existing = existingImages.find((e: any) => e.image_index === imageIndex);
+        hookType = (existing?.hook_type as HookType) ?? getHookTypeForIndex(imageIndex);
+      } else {
+        hookType = getHookTypeForIndex(imageIndex);
+        if (imageIndex > 6) {
+          Sentry.captureMessage('image_slot_overflow_fallback', {
+            level: 'warning',
+            tags: { source: 'finalize' },
+            extra: { campaignId, imageIndex, hookType },
+          });
+        }
+      }
+
+      const row = await db.addCampaignImage(this.env.DB, {
         campaignId,
         imageIndex,
-        hookType: hookType as HookType,
+        hookType,
+        prompt: img.prompt || undefined,
         filePath: urlPath,
       });
 
@@ -426,10 +474,11 @@ export class CampaignSession implements DurableObject {
         timestamp: new Date().toISOString(),
         id: `image_${imageIndex}`,
         urlPath,
-        prompt: '',
+        prompt: img.prompt || '',
         filename: img.filename,
         hookType,
         imageIndex,
+        version: row.version,
       });
 
       imagesAdded++;
@@ -450,8 +499,8 @@ export class CampaignSession implements DurableObject {
       blocks,
     });
 
-    // 4. Emit complete event (summary for client, can be truncated)
-    const currentImageCount = await db.getImageCount(this.env.DB, campaignId);
+    // 4. Emit complete event (summary for client). Uses SLOT count — what user sees in gallery.
+    const currentSlotCount = await db.getImageCount(this.env.DB, campaignId);
     const summary = text ? stripImageUrls(text).substring(0, 500) : 'Generation complete.';
     this.emitEvent({
       type: 'complete',
@@ -459,7 +508,7 @@ export class CampaignSession implements DurableObject {
       sessionId,
       campaignId,
       duration: 0,
-      imageCount: currentImageCount,
+      imageCount: currentSlotCount,
       summary,
     });
 
@@ -470,9 +519,11 @@ export class CampaignSession implements DurableObject {
     const currentMaxIndex = await db.getMaxImageIndex(this.env.DB, campaignId);
     await this.state.storage.put(`maxImageIndex:${campaignId}`, currentMaxIndex);
 
-    // 7. Record cost and deduct credits (COST_MULTIPLIER applied for margin)
-    //    Both sides use getImageCount (DISTINCT indexes) — no row-count vs distinct mismatch
-    const imagesThisTurn = Math.max(0, currentImageCount - this.preGenImageCount);
+    // 7. Record cost and deduct credits (COST_MULTIPLIER applied for margin).
+    //    Billing uses ROW count (every generation, including edits-as-new-versions, is one row).
+    //    preGenImageCount is also a row-count baseline (see createStreamingContext) — symmetric.
+    const currentRowCount = await db.getImageRowCount(this.env.DB, campaignId);
+    const imagesThisTurn = Math.max(0, currentRowCount - this.preGenImageCount);
     const claudeCost = turnResult.cost?.totalCostUsd ?? 0;
     if (claudeCost > 0 || imagesThisTurn > 0) {
       const imageCost = imagesThisTurn * 0.15;
@@ -529,7 +580,9 @@ export class CampaignSession implements DurableObject {
 
   private async recordCancelledUsage(campaignId: string): Promise<void> {
     try {
-      const currentImageCount = await db.getImageCount(this.env.DB, campaignId);
+      // Row count (not slot count) — paired with preGenImageCount which is also a row count.
+      // Ensures edits-in-flight get charged even if they didn't add new slots.
+      const currentImageCount = await db.getImageRowCount(this.env.DB, campaignId);
       const imagesAdded = Math.max(0, currentImageCount - this.preGenImageCount);
       if (imagesAdded === 0) return; // No images generated, nothing to charge
 
@@ -1656,9 +1709,10 @@ export class CampaignSession implements DurableObject {
 
     const textAccumulator: TextAccumulator = { text: '' };
     const processedFilenames = new Set<string>();
-    // Billing baseline: distinct image count (apples-to-apples with post-turn count)
+    // Billing baseline: row count (every generation = one row, including edits-as-versions).
+    // Paired with getImageRowCount at finalize (line ~506) and recordCancelledUsage.
     this.preGenImageCount = campaignId
-      ? (await db.getImageCount(this.env.DB, campaignId)) || 0
+      ? (await db.getImageRowCount(this.env.DB, campaignId)) || 0
       : 0;
     // Image counter: use max index (not count) so new images always get fresh slots.
     // Check DO storage first to survive the race between alarm finalization and next turn.
@@ -1909,10 +1963,11 @@ export class CampaignSession implements DurableObject {
 
     const textAccumulator: TextAccumulator = { text: '' };
     const processedFilenames = new Set<string>();
-    const existingImageCount = this.campaignId
-      ? (await db.getImageCount(this.env.DB, this.campaignId)) || 0
+    // Use max image_index (not count) — counts break after edits-as-versions land.
+    const maxIndex = this.campaignId
+      ? (await db.getMaxImageIndex(this.env.DB, this.campaignId)) || 0
       : 0;
-    const imageCounter = { next: existingImageCount + 1 };
+    const imageCounter = { next: maxIndex + 1 };
     let generationCompleted = false;
     let wasCancelled = false;
 
@@ -2080,7 +2135,13 @@ export class CampaignSession implements DurableObject {
   private emitEvent(event: ServerMessage): void {
     const eventId = this.eventBuffer.append(event);
     const wsCount = this.state.getWebSockets().length;
-    this.trace('emit', event.type, { eventId, wsCount });
+    const extra: Record<string, any> = { eventId, wsCount };
+    const e = event as any;
+    if (e.fileType) extra.fileType = e.fileType;
+    if (e.tool) extra.tool = e.tool;
+    if (typeof e.imageIndex === 'number') extra.imageIndex = e.imageIndex;
+    if (e.phase) extra.phase = e.phase;
+    this.trace('emit', event.type, extra);
     // Direct console.log for complete/error — bypasses tailLog buffer
     const t = (event as any).type;
     if (t === 'complete' || t === 'error') {

@@ -1,4 +1,5 @@
-export type HookType = 'stat' | 'story' | 'fomo' | 'curiosity' | 'callout' | 'contrast';
+// Freeform — agent declares per image. See src/lib/types.ts for canonical hints.
+export type HookType = string;
 
 export interface CampaignImage {
   id: number;
@@ -62,10 +63,24 @@ export async function addCampaignImage(db: D1Database, input: AddImageInput): Pr
 
   const version = (existing?.max_version ?? 0) + 1;
 
-  await db.prepare(`
-    INSERT INTO campaign_images (campaign_id, image_index, hook_type, prompt, file_path, version)
-    VALUES (?, ?, ?, ?, ?, ?)
-  `).bind(campaignId, imageIndex, hookType, prompt ?? null, filePath, version).run();
+  try {
+    await db.prepare(`
+      INSERT INTO campaign_images (campaign_id, image_index, hook_type, prompt, file_path, version)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).bind(campaignId, imageIndex, hookType, prompt ?? null, filePath, version).run();
+  } catch (err: any) {
+    // Lost a race against a concurrent insert at the same (campaign_id, image_index, version).
+    // Re-read to return whichever row landed.
+    const msg = String(err?.message || '');
+    if (msg.includes('UNIQUE') || msg.includes('constraint')) {
+      const winner = await db.prepare(`
+        SELECT * FROM campaign_images
+        WHERE campaign_id = ? AND image_index = ? AND version = ?
+      `).bind(campaignId, imageIndex, version).first<CampaignImage>();
+      if (winner) return winner;
+    }
+    throw err;
+  }
 
   return (await db.prepare(`
     SELECT * FROM campaign_images
@@ -73,9 +88,20 @@ export async function addCampaignImage(db: D1Database, input: AddImageInput): Pr
   `).bind(campaignId, imageIndex, version).first<CampaignImage>())!;
 }
 
+// Slot count (DISTINCT image_index) — used for UI summaries ("Created N ads").
 export async function getImageCount(db: D1Database, campaignId: string): Promise<number> {
   const result = await db.prepare(`
     SELECT COUNT(DISTINCT image_index) as count
+    FROM campaign_images
+    WHERE campaign_id = ?
+  `).bind(campaignId).first<{ count: number }>();
+  return result?.count ?? 0;
+}
+
+// Row count — used for BILLING (every image generation is one row, including edit-versions).
+export async function getImageRowCount(db: D1Database, campaignId: string): Promise<number> {
+  const result = await db.prepare(`
+    SELECT COUNT(*) as count
     FROM campaign_images
     WHERE campaign_id = ?
   `).bind(campaignId).first<{ count: number }>();

@@ -87,11 +87,16 @@ Do NOT skip the MCP call. Do NOT reuse old prompts.json. Do NOT describe the pro
 5. Be brief in updates
 6. **Image generation step ONLY** (after research/hooks/art-style have each run once and produced their files):
    - Read \`prompts.json\` once.
-   - Determine N: default 6 for new campaigns (max 6). For follow-ups, match the previous image count unless the user specifies otherwise.
+   - Determine N: default 6 for new campaigns. For follow-ups, match the previous image count unless the user specifies otherwise.
    - Make N separate calls to \`mcp__nano-banana__generate_ad_images\`. Each call passes a single-element array: \`prompts: [oneStringFromPromptsJson]\`. Calls run sequentially (one finishes before the next starts).
+   - **ALWAYS pass \`targetImageIndices\`**, even on initial generation. For fresh ad N (1-indexed), pass \`targetImageIndices: [N]\`. Why: if you need to retry a slot mid-turn (wrong aspect ratio, bad quality, etc.), the retry MUST target the same slot so it bumps the version instead of leaking an abandoned image into the user's gallery.
+   - **ALWAYS pass \`hookTypes\`**: one label per prompt. Prefer canonical framework names from hook-methodology when applicable (\`stat\`, \`story\`, \`fomo\`, \`curiosity\`, \`callout\`, \`contrast\`). Invent a brand-specific name (e.g. \`authority\`, \`social-proof\`, \`pattern-interrupt\`) ONLY when none of the canonical names fit semantically.
    - Why one-per-call: each image streams to the user as it finishes. Batching multiple prompts in one call hides progress until the whole batch completes.
    - You do NOT need to re-read \`prompts.json\` between calls. You do NOT need to re-run any earlier step between calls. Just keep calling \`generate_ad_images\` with the next prompt until you've made N calls, then stop.
-7. When referenceImageUrls are provided, pass them to EVERY call to generate_ad_images so the product appears in all generated ads.
+7. **Iteration on existing images** (user references \`[Image N]\` or "iterate Image N"):
+   - Pass \`targetImageIndices: [N]\` so the new generation REPLACES Image N as a new version of the same slot (not as a new image appended to the gallery).
+   - You may omit \`hookTypes\` for iteration — the existing slot's hook label is inherited automatically. Only pass \`hookTypes\` if the iteration genuinely changes the psychological angle (e.g. user says "make Image 2 more stat-focused").
+8. When referenceImageUrls are provided, pass them to EVERY call to generate_ad_images so the product appears in all generated ads.
 
 ## Example
 
@@ -107,10 +112,10 @@ You: "Hooks complete. Creating visual concepts..."
 [Trigger art-style skill]
 
 You: "Prompts ready. Generating images..."
-[Read prompts.json once, take first N prompt strings]
-[Call generate_ad_images with prompts: [prompt1] — wait for completion]
-[Call generate_ad_images with prompts: [prompt2] — wait for completion]
-[... continue until N calls have been made, one per prompt ...]
+[Read prompts.json once, take first N prompt strings + their hook labels]
+[Call generate_ad_images with prompts: [prompt1], targetImageIndices: [1], hookTypes: ["stat"] — wait]
+[Call generate_ad_images with prompts: [prompt2], targetImageIndices: [2], hookTypes: ["story"] — wait]
+[... continue until N calls have been made, one per prompt, each with its slot index + hook label ...]
 [Do NOT re-run research, hook-methodology, or art-style between these calls]
 
 You: "Done! N ad creatives generated."
@@ -118,6 +123,10 @@ You: "Done! N ad creatives generated."
 
 Example with specific count:
 User: "Create 2 ads for https://example.com"
-→ Full pipeline runs (research, 6 hooks, 6 prompts), but only 2 images are generated from the first 2 prompts.
+→ Full pipeline runs (research, 6 hooks, 6 prompts), but only 2 images are generated. Calls pass targetImageIndices: [1] then [2].
+
+Example with iteration:
+User: "[Image 2] make it more dynamic"
+→ Skip research/hooks/art-style (already on disk). Generate one image with targetImageIndices: [2]. Omit hookTypes — slot 2's hook label inherits. The new image becomes version 2 of Image 2 (replaces in gallery, doesn't append).
 
 Parse → research → hooks → art → images (user-requested count) → done.`;

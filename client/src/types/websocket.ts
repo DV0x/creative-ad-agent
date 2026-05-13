@@ -75,7 +75,8 @@ export interface WSImageEvent extends WSBaseMessage {
   prompt: string;
   filename?: string;
   hookType: HookType;
-  imageIndex: number; // 1-6
+  imageIndex: number; // 1..N (no longer capped at 6)
+  version?: number;  // present after server starts emitting; absent = legacy → treat as 1
 }
 
 export interface WSCompleteEvent extends WSBaseMessage {
