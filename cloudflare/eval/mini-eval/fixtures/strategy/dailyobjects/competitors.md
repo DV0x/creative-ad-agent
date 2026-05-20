@@ -23,3 +23,20 @@ The brand under research is DailyObjects (see `research.md`).
   brands now compete on "design-led."
 - The category's Meta / Instagram advertising is heavy on product-on-aesthetic-
   background imagery, new-design drops, and festive / gifting offers.
+
+## Current visual zeitgeist (from the competitor-ads scan)
+
+*Approximate read of what is dominating competing Meta ads in Indian D2C tech
+and lifestyle accessories right now (May 2026). Hedged, qualitative.*
+
+- The dominant top-of-feed look is **clean product-on-aesthetic-background
+  stills** — phone case on marble, bag on desk, minimal styling, lots of
+  negative space. New-drop announcements and "Free shipping" / discount
+  overlays sit on top of this base.
+- A clearly **rising trend** is **jumpcut UGC video reels** — creator POV
+  holding the case, quick-cut feature shots, "this is why I switched…" format.
+  Several mid-size players are now putting heavy budget here.
+- Festive / discount overlays spike heavily in season — Q3 / Q4 dominate.
+- What is **under-served**: behind-the-scenes craft / made-by-Indian-artisans
+  content. Almost no competitor shows the production reality — the people, the
+  hands, the workshops. The "artisan provenance" lane is uncontested.

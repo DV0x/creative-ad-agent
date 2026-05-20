@@ -26,3 +26,20 @@ developer in Ongole, Andhra Pradesh.
 - The sharpest competing *choice* a buyer faces is "buy a plot and build" versus
   "buy into a developer's gated community" — more than one developer versus
   another.
+
+## Current visual zeitgeist (from the competitor-ads scan)
+
+*Approximate read of what is dominating competing Meta ads in tier-2 / tier-3
+Andhra residential real estate right now (May 2026). Hedged, qualitative.*
+
+- The dominant ad form is **amenity-focused renders + RERA / HMDA / DTCP
+  approval badges** — clubhouse, pool, gated-entrance shots; big "approved"
+  overlays. Generic and template-feeling.
+- Aerial / drone shots of plots and project layouts run heavily on
+  plot-developer ads.
+- Hoarding-style hard-sell overlays — "Book Now," "Limited Plots," festive
+  templates ("Plots this Ugadi") — are common.
+- What is **conspicuously under-served**: real lived-in community life — what a
+  finished, *occupied* gated community actually feels like. Almost no
+  competitor shows real, inhabited homes in real evening light; the category
+  leans aspirational-renders, not lived-real.

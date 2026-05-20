@@ -102,7 +102,7 @@ agent/.claude/skills/strategy/SKILL.md ... right-size move rewritten (N derived,
 ```
 cloudflare/eval/mini-eval/ ..................... the proven harness — the template for binders 2-9
 agent/.claude/skills/strategy/SKILL.md ......... the validated binder — the model for the other 8
-docs/eval-corpus/implementation-plan.md ........ §5 build sequence (its §5 Status block is now stale)
+docs/eval-corpus/implementation-plan.md ........ §5 build sequence + Status block (updated this session, commit `bebe3f4`)
 cloudflare/sandbox/agent-runner.ts ............. where the orchestrator + AgentDefinitions wire in (Step 2b)
 ```
 
@@ -123,5 +123,30 @@ cloudflare/sandbox/agent-runner.ts ............. where the orchestrator + AgentD
 
 - The strategy binder is validated on **6 held-out brands** across both test shapes, both cost-ladder rungs, and a 50× budget range — a strong Step-1 result. Minor judge-flagged soft spots remain (diagnosis sometimes framed as a channel gap rather than a crisp conversion barrier; some memos allude to the blocker rather than state it) — a refinement layer, not cracks.
 - Harness polish carried: stale-file accumulation in the bets folder; judge-infra-failure should read `inconclusive` not `fail`.
-- The implementation-plan §5 Status block still says "Step 0 — not started" — stale; update next session.
 - There is a large backlog of uncommitted docs in `docs/` (≈20 session docs, plan files) predating this work — not committed here; commit separately if desired.
+
+---
+
+## Addendum — same session, continued 2026-05-20 (visual-zeitgeist lever)
+
+After the Step-0/Step-1 milestone landed and was committed, the session continued into the next day with a related question: *does the binder reason about the category's current visual zeitgeist — viral styles, what is trending on Meta right now — when it assigns visual lanes?* The honest answer was no — and it surfaced a real binder gap, of the same shape as the cost-data problem: anything the air-gapped strategy binder needs to know about the *current* world must come from upstream.
+
+### Three additions
+
+1. **A zeitgeist-as-lever paragraph** added to SKILL.md's "frame the creative" move (commit `4e0c56b`). Alongside identity and angle, the strategist now reasons about the category's *current visual zeitgeist* — what styles dominate Meta right now — with three honest moves: **match** (when the trend fits angle, product and audience), **contrast** (when everyone in the category is running the same look and a pattern-interrupt is the move), or **ignore** (when the trend does not serve identity or angle). Two disciplines: a named trend is often peaking — anchor against the current date; and a viral style is a tactical choice for at most one cell, never the test's hypothesis.
+2. **Comp-binder responsibility extended** in `implementation-plan.md` §4.2 (same commit) — the upstream `competitor-ads` MCP / ScrapeCreators scan now formally owes the "current visual zeitgeist" read (what dominates, what is saturated, what is unoccupied) for the strategy binder to consume. Mini-eval row updated accordingly.
+3. **Fixture additions** — a hedged "Current visual zeitgeist" section added to each of the three `competitors.md` files (Arjun Infra, DailyObjects, Noise) so the lever could actually be exercised in mini-eval runs. Each section is the kind of read the real comp binder would surface: dominant styles, saturated lanes, under-served lanes.
+
+### Re-run on 2026-05-20
+
+3/3 pass, ~$1.19 total. The new lever clearly worked:
+
+- **DailyObjects** built Angle A on the planted under-served *artisan provenance* lane — an explicit **contrast** move. From the produced Bet: *"It is absent from every competitor cluster in the Meta category — rivals compete on price, protection, or generic 'design-led' aesthetics."* And the visual lane: *"The contrast with every competitor's crisp white background **is** the stopper."*
+- **Noise** diagnosed the zeitgeist mismatch directly — *"the premium ad is running the affordable playbook"* — and pushed its premium-piece lanes toward the cinematic / quiet / fashion-adjacent register (the unoccupied lane in the comp file).
+- **Arjun Infra** ran on its pre-edit `competitors.md` (the edit landed after fixture-copy for this run, race condition) and **degraded gracefully** — producing two sensible distinct lanes from brand-identity reasoning alone. An accidental control: absent zeitgeist data, the binder still reaches sensible lanes from identity reasoning.
+
+Files: `cloudflare/eval/mini-eval/results/strategy-2026-05-20.md` + `…-bets/`.
+
+### Honest caveat the user surfaced
+
+"Jumpcut UGC" in the new binder paragraph is a *video* example — the dominant short-form video edit native to Reels / TikTok / Shorts. The match/contrast/ignore logic applies to any current style, video or static — but the **binder does not yet treat video vs static as an explicit lane choice**, and our cell pipeline today is still-image-focused. Flagged for a later session: format choice (still / single video / carousel / Reel) as part of lane assignment.
