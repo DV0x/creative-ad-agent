@@ -116,7 +116,7 @@ interface FixtureResult {
   runError?: string;
   judge?: JudgeResult;
   judgeError?: string;
-  overall: 'pass' | 'fail';
+  overall: 'pass' | 'fail' | 'inconclusive';
   untraced: string[];
   untracedTotal: number;
 }
@@ -258,16 +258,17 @@ function renderReport(app: Apprentice, results: FixtureResult[]): string {
   const today = new Date().toISOString().slice(0, 10);
   const L: string[] = [];
   const passed = results.filter(r => r.overall === 'pass').length;
+  const inconclusive = results.filter(r => r.overall === 'inconclusive').length;
   const totalCost = results.reduce((s, r) => s + r.costUsd, 0);
 
   L.push(`# Mini-eval — \`${app.name}\` binder — ${today}`);
   L.push('');
-  L.push(`**Result: ${passed}/${results.length} fixtures pass.**  Cost: $${totalCost.toFixed(2)}.`);
+  L.push(`**Result: ${passed}/${results.length} fixtures pass${inconclusive ? `, ${inconclusive} inconclusive (judge infra)` : ''}.**  Cost: $${totalCost.toFixed(2)}.`);
   L.push('');
   L.push('| Fixture | Brand | Shape | Overall | Cost |');
   L.push('|---|---|---|---|---|');
   for (const r of results) {
-    L.push(`| ${r.fixture} | ${r.meta.brand} | ${r.meta.shape ?? '—'} | ${r.overall === 'pass' ? '**PASS**' : 'fail'} | $${r.costUsd.toFixed(2)} |`);
+    L.push(`| ${r.fixture} | ${r.meta.brand} | ${r.meta.shape ?? '—'} | ${r.overall === 'pass' ? '**PASS**' : r.overall === 'inconclusive' ? '*inconclusive*' : 'fail'} | $${r.costUsd.toFixed(2)} |`);
   }
   L.push('');
 
@@ -276,7 +277,7 @@ function renderReport(app: Apprentice, results: FixtureResult[]): string {
     L.push('');
     L.push(`## ${r.fixture} — ${r.meta.brand}`);
     L.push('');
-    L.push(`- **Overall:** ${r.overall === 'pass' ? '**PASS**' : 'fail'}`);
+    L.push(`- **Overall:** ${r.overall === 'pass' ? '**PASS**' : r.overall === 'inconclusive' ? '*inconclusive*' : 'fail'}`);
     L.push(`- **Expected shape:** ${r.meta.shape ?? '—'}`);
     if (r.meta.notes) L.push(`- **Fixture notes:** ${r.meta.notes}`);
     L.push(`- **Cost:** $${r.costUsd.toFixed(2)}`);
@@ -384,7 +385,9 @@ async function main() {
       }
     }
 
-    const overall = judge ? computeOverall(app, judge) : 'fail';
+    // A judge *infra* failure (subprocess crash, missing JSON, etc.) is not a binder
+    // failure — surface it as inconclusive so a real fail can't be silently masked.
+    const overall: 'pass' | 'fail' | 'inconclusive' = judge ? computeOverall(app, judge) : 'inconclusive';
     const trace = run.bet ? traceabilityAdvisory(run.bet, run.sources) : { untraced: [], total: 0 };
 
     results.push({
@@ -412,13 +415,18 @@ async function main() {
 
   // Save each produced Bet as its own file, for easy review.
   const betsDir = path.join(resultsDir, `${app.name}-${today}${suffix}-bets`);
+  // Clear stale files from a prior same-date run so the folder reflects only
+  // the current fixture set — no orphaned bets from removed/renamed fixtures.
+  fs.rmSync(betsDir, { recursive: true, force: true });
   fs.mkdirSync(betsDir, { recursive: true });
   for (const r of results) {
     if (r.bet) fs.writeFileSync(path.join(betsDir, `${r.fixture}.md`), r.bet, 'utf8');
   }
 
   const passed = results.filter(r => r.overall === 'pass').length;
-  console.log(`\n${passed}/${results.length} pass — report: ${path.relative(process.cwd(), outPath)}`);
+  const inconclusive = results.filter(r => r.overall === 'inconclusive').length;
+  const tail = inconclusive ? `, ${inconclusive} inconclusive` : '';
+  console.log(`\n${passed}/${results.length} pass${tail} — report: ${path.relative(process.cwd(), outPath)}`);
   console.log(`bets:  ${path.relative(process.cwd(), betsDir)}/`);
 }
 
