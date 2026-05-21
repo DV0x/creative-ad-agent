@@ -20,10 +20,50 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import * as os from 'node:os';
 import { strategyApprentice, type Apprentice } from './apprentices/strategy.js';
+import { researchApprentice } from './apprentices/research.js';
+import { perplexityMcpServer } from './mcp/perplexity.js';
 
 // ── apprentice registry — add an entry per binder as binders land ──────────
 const APPRENTICES: Record<string, Apprentice> = {
   strategy: strategyApprentice,
+  research: researchApprentice,
+};
+
+// MCP servers per apprentice — kept off the Apprentice interface so that type
+// stays SDK-clean. The harness wires these into the SDK's query() options at
+// run time. Strategy has none (works from canned files); research has the
+// Perplexity Agent-API wrapper for grounded retrieval.
+const MCP_SERVERS_FOR: Record<string, Options['mcpServers']> = {
+  research: { perplexity: perplexityMcpServer },
+};
+
+// Extra files copied into each fixture's working directory before the
+// apprentice runs. Used for conditional binder references that aren't inlined
+// into the system prompt — e.g. research's reference/hyperlocal.md, which the
+// apprentice reads at runtime when the locale depth reaches city-or-tighter.
+const EXTRA_FILES_FOR: Record<string, Array<{ src: string; dest: string }>> = {
+  research: [
+    { src: 'agent/.claude/skills/research/reference/hyperlocal.md',
+      dest: 'reference/hyperlocal.md' },
+  ],
+};
+
+// Per-apprentice SDK caps. Strategy works from canned files and finishes in
+// a handful of turns; research has tool calls (Perplexity, WebFetch, Read)
+// that consume both turns and budget, so it gets more headroom.
+const MAX_TURNS_FOR: Record<string, number> = {
+  strategy: 25,
+  research: 40,
+};
+const MAX_BUDGET_USD_FOR: Record<string, number> = {
+  strategy: 1.5,
+  research: 2.5,
+};
+
+// Per-apprentice required env vars. The harness fails fast if anything is
+// missing so the user sees a clear error before the SDK subprocess starts.
+const REQUIRED_ENV_FOR: Record<string, string[]> = {
+  research: ['PERPLEXITY_API_KEY'],
 };
 
 const HERE = __dirname;                              // cloudflare/eval/mini-eval
@@ -129,37 +169,75 @@ async function runFixture(
 ): Promise<{ bet: string | null; costUsd: number; sources: string; meta: FixtureMeta; runError?: string }> {
   const meta: FixtureMeta = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'meta.json'), 'utf8'));
 
-  // Working dir with the fixture's three input files copied in.
+  // Working dir built from the fixture. Every file/folder (except meta.json,
+  // which is harness metadata) is copied across — so adding new fixture files
+  // requires no harness change. Text files (.md/.txt/.json) also flow into
+  // sourceParts as the judge's view of the apprentice's inputs; binary files
+  // (images) are copied but only referenced by name in sourceParts since the
+  // judge is text-only.
   const work = fs.mkdtempSync(path.join(os.tmpdir(), `minieval-${app.name}-`));
-  const inputs = ['research.md', 'competitors.md', 'founder-facts.md'];
   const sourceParts: string[] = [];
-  for (const f of inputs) {
-    const src = path.join(fixtureDir, f);
-    if (!fs.existsSync(src)) continue;
-    const content = fs.readFileSync(src, 'utf8');
-    fs.writeFileSync(path.join(work, f), content);
-    sourceParts.push(`### ${f}\n\n${content}`);
+  const TEXT_EXTS = new Set(['.md', '.txt', '.json', '.yml', '.yaml']);
+
+  for (const entry of fs.readdirSync(fixtureDir, { withFileTypes: true })) {
+    if (entry.name === 'meta.json') continue;
+    const src = path.join(fixtureDir, entry.name);
+    const dest = path.join(work, entry.name);
+
+    if (entry.isDirectory()) {
+      fs.cpSync(src, dest, { recursive: true });
+      const inner = fs.readdirSync(src);
+      const innerList = inner.length > 0
+        ? inner.map(f => `  - ${f}`).join('\n')
+        : '  _(empty)_';
+      sourceParts.push(`### ${entry.name}/ (folder)\n\n${innerList}`);
+    } else if (entry.isFile()) {
+      const ext = path.extname(entry.name).toLowerCase();
+      if (TEXT_EXTS.has(ext)) {
+        const content = fs.readFileSync(src, 'utf8');
+        fs.writeFileSync(dest, content);
+        sourceParts.push(`### ${entry.name}\n\n${content}`);
+      } else {
+        fs.copyFileSync(src, dest);
+        sourceParts.push(`### ${entry.name}\n\n_(binary file — apprentice may Read it; not shown in judge sources)_`);
+      }
+    }
   }
 
+  // Apprentice-specific extra files — conditional binder references that
+  // aren't inlined into the system prompt. Resolves them relative to the
+  // repo root and copies into the work dir at the configured dest path,
+  // creating any needed parent directories.
+  for (const extra of EXTRA_FILES_FOR[app.name] ?? []) {
+    const absSrc = path.join(REPO_ROOT, extra.src);
+    const absDest = path.join(work, extra.dest);
+    fs.mkdirSync(path.dirname(absDest), { recursive: true });
+    fs.copyFileSync(absSrc, absDest);
+  }
+
+  // User prompt is deliberately apprentice-agnostic — the identity prompt
+  // already tells each apprentice what files to expect in its working
+  // directory; we only need to anchor today's date and point at the
+  // deliverable filename.
   const userPrompt = [
-    'Produce The Bet for this brand.',
+    `Today's date is ${meta.date}.`,
     '',
-    'Your working directory contains research.md, competitors.md and founder-facts.md.',
-    'Read all three before you reason. Today\'s date is ' + meta.date + '.',
-    '',
-    `Write your deliverable to ${app.deliverable} in this working directory. Nothing else.`,
+    `Read the files in your working directory and produce ${app.deliverable}.`,
+    'Produce nothing else; when the deliverable is written, you are done.',
   ].join('\n');
 
   const stderrChunks: string[] = [];
+  const mcpServers = MCP_SERVERS_FOR[app.name];
   const options: Partial<Options> = {
     cwd: work,
     model: app.model,
     systemPrompt,
     allowedTools: app.tools,
     settingSources: [],          // isolate — do not auto-load project skills
-    maxTurns: 25,
-    maxBudgetUsd: 1.5,
+    maxTurns: MAX_TURNS_FOR[app.name] ?? 25,
+    maxBudgetUsd: MAX_BUDGET_USD_FOR[app.name] ?? 1.5,
     stderr: (data: string) => { stderrChunks.push(data); },
+    ...(mcpServers ? { mcpServers } : {}),
   };
 
   let costUsd = 0;
@@ -188,24 +266,29 @@ async function runFixture(
 }
 
 // ── LLM judge ──────────────────────────────────────────────────────────────
-async function judgeBet(rubric: string, bet: string, sources: string): Promise<JudgeResult> {
+async function judgeBet(
+  app: Apprentice,
+  rubric: string,
+  deliverable: string,
+  sources: string,
+): Promise<JudgeResult> {
   const judgeSystem =
-    'You are a strict senior performance-marketing reviewer. You grade a ' +
-    'strategist\'s deliverable ("The Bet") against a rubric. You are hard to ' +
-    'impress: polished work that lacks real judgment fails. You return only JSON.';
+    'You are a strict senior performance-marketing reviewer. You grade an ' +
+    'apprentice\'s deliverable against a rubric. You are hard to impress: ' +
+    'polished work that lacks real judgment fails. You return only JSON.';
 
   const judgePrompt = [
     '# Rubric',
     rubric,
     '',
-    '# The research the strategist was given',
+    '# The input the apprentice was given',
     sources,
     '',
-    '# The strategist\'s deliverable — The Bet',
-    bet,
+    `# The apprentice's deliverable — ${app.deliverable}`,
+    deliverable,
     '',
     '# Your task',
-    'Grade The Bet against EVERY criterion in the rubric (critical and',
+    'Grade the deliverable against EVERY criterion in the rubric (critical and',
     'supporting). For each, decide pass or fail and give a one- to two-sentence',
     'reason citing the specific evidence. Do not compute an overall verdict —',
     'that is done elsewhere from your per-criterion verdicts.',
@@ -347,6 +430,13 @@ async function main() {
     process.exit(1);
   }
 
+  for (const key of REQUIRED_ENV_FOR[app.name] ?? []) {
+    if (!process.env[key]) {
+      console.error(`✗ ${key} not set (add it to repo-root .env.local). Required for the ${app.name} apprentice.`);
+      process.exit(1);
+    }
+  }
+
   const systemPrompt = app.identityPrompt + '\n\n' + loadBinder(app);
   const rubric = fs.readFileSync(path.join(HERE, 'rubrics', `${app.name}.md`), 'utf8');
 
@@ -355,10 +445,26 @@ async function main() {
     console.error(`✗ no fixtures directory: ${fixturesDir}`);
     process.exit(1);
   }
-  const fixtures = fs.readdirSync(fixturesDir)
+  // Optional second arg: a fixture name (or comma-separated list) to filter
+  // down to. Lets us re-run a single fixture cheaply when iterating on the
+  // binder, the apprentice's tool surface, or — as in this case — when
+  // probing what strategy actually uses from a given research.md.
+  //   npx tsx run-mini-eval.ts strategy arjun-infra
+  //   npx tsx run-mini-eval.ts strategy arjun-infra,dailyobjects
+  const fixtureFilter = (process.argv[3] ?? '').split(',').map(s => s.trim()).filter(Boolean);
+  const allFixtures = fs.readdirSync(fixturesDir)
     .map(d => path.join(fixturesDir, d))
     .filter(p => fs.statSync(p).isDirectory() && fs.existsSync(path.join(p, 'meta.json')))
     .sort();
+  const fixtures = fixtureFilter.length === 0
+    ? allFixtures
+    : allFixtures.filter(p => fixtureFilter.includes(path.basename(p)));
+  if (fixtureFilter.length > 0 && fixtures.length !== fixtureFilter.length) {
+    const found = new Set(fixtures.map(p => path.basename(p)));
+    const missing = fixtureFilter.filter(n => !found.has(n));
+    console.error(`✗ fixture filter named ${missing.length} unknown fixture(s): ${missing.join(', ')}`);
+    process.exit(1);
+  }
   if (fixtures.length === 0) {
     console.error(`✗ no fixtures (each needs a meta.json) under ${fixturesDir}`);
     process.exit(1);
@@ -379,7 +485,7 @@ async function main() {
     if (run.bet) {
       process.stdout.write('judging … ');
       try {
-        judge = await judgeBet(rubric, run.bet, run.sources);
+        judge = await judgeBet(app, rubric, run.bet, run.sources);
       } catch (err: any) {
         judgeError = err?.message ?? String(err);
       }
