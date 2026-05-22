@@ -153,6 +153,9 @@ interface FixtureResult {
   meta: FixtureMeta;
   bet: string | null;
   costUsd: number;
+  durationMs: number;     // total apprentice wall-time (SDK result.duration_ms)
+  durationApiMs: number;  // time in LLM API calls (SDK result.duration_api_ms)
+  numTurns: number;       // tool round-trips (SDK result.num_turns)
   runError?: string;
   judge?: JudgeResult;
   judgeError?: string;
@@ -166,7 +169,7 @@ async function runFixture(
   app: Apprentice,
   systemPrompt: string,
   fixtureDir: string,
-): Promise<{ bet: string | null; costUsd: number; sources: string; meta: FixtureMeta; runError?: string }> {
+): Promise<{ bet: string | null; costUsd: number; durationMs: number; durationApiMs: number; numTurns: number; sources: string; meta: FixtureMeta; runError?: string }> {
   const meta: FixtureMeta = JSON.parse(fs.readFileSync(path.join(fixtureDir, 'meta.json'), 'utf8'));
 
   // Working dir built from the fixture. Every file/folder (except meta.json,
@@ -241,11 +244,21 @@ async function runFixture(
   };
 
   let costUsd = 0;
+  let durationMs = 0;
+  let durationApiMs = 0;
+  let numTurns = 0;
   let runError: string | undefined;
   try {
     for await (const message of query({ prompt: userPrompt, options })) {
       if ((message as any).type === 'result') {
         costUsd = (message as any).total_cost_usd ?? 0;
+        // SDK result carries wall-time + API-time + turn count. The gap
+        // between durationMs and durationApiMs is harness/tool overhead;
+        // durationApiMs is the model's own thinking+generation time — the
+        // real wall-time driver now that Search API probes are ~1s each.
+        durationMs = (message as any).duration_ms ?? 0;
+        durationApiMs = (message as any).duration_api_ms ?? 0;
+        numTurns = (message as any).num_turns ?? 0;
         if ((message as any).subtype && (message as any).subtype !== 'success') {
           runError = `result subtype: ${(message as any).subtype}`;
         }
@@ -262,7 +275,7 @@ async function runFixture(
   const bet = fs.existsSync(betPath) ? fs.readFileSync(betPath, 'utf8') : null;
   fs.rmSync(work, { recursive: true, force: true });
 
-  return { bet, costUsd, sources: sourceParts.join('\n\n'), meta, runError };
+  return { bet, costUsd, durationMs, durationApiMs, numTurns, sources: sourceParts.join('\n\n'), meta, runError };
 }
 
 // ── LLM judge ──────────────────────────────────────────────────────────────
@@ -364,6 +377,10 @@ function renderReport(app: Apprentice, results: FixtureResult[]): string {
     L.push(`- **Expected shape:** ${r.meta.shape ?? '—'}`);
     if (r.meta.notes) L.push(`- **Fixture notes:** ${r.meta.notes}`);
     L.push(`- **Cost:** $${r.costUsd.toFixed(2)}`);
+    if (r.durationMs) {
+      const mins = (ms: number) => (ms / 60000).toFixed(1);
+      L.push(`- **Timing:** ${mins(r.durationMs)} min wall — ${mins(r.durationApiMs)} min in model (API), ${r.numTurns} turns. Search probes are ~1s each; the API time is the model thinking between batches + writing the deliverable.`);
+    }
     if (r.runError) L.push(`- **⚠ run error:** ${r.runError}`);
     if (r.judgeError) L.push(`- **⚠ judge error:** ${r.judgeError}`);
     L.push('');
@@ -501,6 +518,9 @@ async function main() {
       meta: run.meta,
       bet: run.bet,
       costUsd: run.costUsd,
+      durationMs: run.durationMs,
+      durationApiMs: run.durationApiMs,
+      numTurns: run.numTurns,
       runError: run.runError,
       judge,
       judgeError,
@@ -508,7 +528,14 @@ async function main() {
       untraced: trace.untraced,
       untracedTotal: trace.total,
     });
-    console.log(`${overall.toUpperCase()} ($${run.costUsd.toFixed(2)})`);
+    // Timing breakdown: total wall, of which API (model thinking+generation)
+    // is the dominant term now that Search API probes are ~1s each. `turns`
+    // ≈ number of tool round-trips (each batch is a turn → a thinking gap).
+    const mins = (ms: number) => (ms / 60000).toFixed(1);
+    const timing = run.durationMs
+      ? `, ${mins(run.durationMs)}min wall / ${mins(run.durationApiMs)}min api, ${run.numTurns} turns`
+      : '';
+    console.log(`${overall.toUpperCase()} ($${run.costUsd.toFixed(2)}${timing})`);
   }
 
   const report = renderReport(app, results);

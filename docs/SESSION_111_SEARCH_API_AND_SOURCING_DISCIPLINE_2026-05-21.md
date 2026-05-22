@@ -172,11 +172,53 @@ cloudflare/eval/mini-eval/mcp/perplexity.ts ..................... if Search API 
 
 ---
 
+---
+
+## Continuation (2026-05-22) — timing instrumentation, Haiku test, offer-landscape discipline, research LOCKED
+
+### Timing instrumentation — confirmed the bottleneck is the model, not search
+
+Added `duration_ms` / `duration_api_ms` / `num_turns` capture from the SDK result message to `run-mini-eval.ts` (we were discarding everything but `total_cost_usd`). Now every run logs e.g. `PASS ($1.34, 6.2min wall / 5.8min api, 14 turns)`. First read across runs: **~97% of wall-time is model thinking/generation; Search API probes are ~1s each (a few seconds total).** The 10-min user-facing concern is entirely the model reasoning between batches + writing the deliverable — optimizing search further would do nothing. Levers for later: faster model (Haiku), fewer turns/batches, or stream progress to the user (UX, not speed).
+
+### Haiku test — fast + cheap, research quality strong, but two discipline gaps
+
+Switched the apprentice to `claude-haiku-4-5-20251001` (the implementation-plan §3 production target) and tested on TWT, then on two fresh brands. Haiku is **~2.5-3.9 min, $0.16-0.33** (vs Sonnet ~6 min, $1.34) and produces *substantively above-average* research (judge's words) — strong buyer voice, sharp claim-vs-reality, thorough gaps. But it fails the rubric on two discipline criteria, with **run-to-run variance** (passes sometimes, fails others):
+1. **`sourced`** — leaves a minority of specific stats uncited (most ARE cited) even though it retrieved them. Failed on TWT, TheRateFinder, AS-IT-IS.
+2. **`no-marketing-copy`** — occasionally slips finished ad copy into §7 (e.g. *"Lock in your rate before summer," "pivot to don't auto-renew — save $X/month"*). Held on one TheRateFinder run, slipped on another.
+
+### The "run a new brand, don't keep editing the binder" pivot (user call)
+
+After 5 TWT runs, the user correctly flagged overfitting risk and asked to **test generalization on fresh brands instead of patching the binder against TWT**. Added two held-out fixtures — `theratefinder` (Canada, mortgage lead-gen, intangible service, LEAD conversion) and `asitis` (India, D2C supplements, multi-SKU). This **cleanly disentangled two failure modes**:
+- **`no-fabrication` is a brand-fame artifact, not a binder gap.** TWT failed it (Haiku recalled TWT's real hex codes `#5048D5…` from training because the JS-SPA blocked WebFetch). TheRateFinder + AS-IT-IS, whose sites are crawlable, **retrieved real hex codes and cited the fetch** → passed `no-fabrication`. So the failure is precisely *(unreachable site) × (famous enough to recall)* — narrow, not general. Confirmed: do NOT patch the binder broadly for it.
+- **`sourced` is general** (failed on all three brands) — a real Haiku citation-rigor gap worth fixing.
+
+### Offer-landscape discipline — added + validated on both new brands
+
+User observed: every business has an *offer set* (D2C product lines / local-biz service menu / lending types / clinic procedures / SaaS tiers), and the research must inventory it — because **the line that wins the campaign is often not the headline one** (TheRateFinder's commercial/construction lending was the strategy worked-example's winning lane, and the first research run covered only residential). Generalized the D2C-flavored "multi-product-line" paragraph into a vertical-agnostic **"Map the offer landscape"** discipline (3 moves: inventory the whole set always / go deep on brief-named lines / name uncovered lines as gaps), plus an offer-set line in the §1 output spec. Validated on both fresh brands:
+- **TheRateFinder** now inventories all four lending lines in §1 and flags commercial/construction/bridge as *"discovered-but-unstudied… different buyer profiles… recommend brief clarification"* in §8 — the winning lane is now visible instead of invisible.
+- **AS-IT-IS** inventories the full catalogue, goes deep on whey, and names peanut butter + the rest as gaps (using the binder's own *"needs its own buyer-voice pass"* language). Soft miss: peanut butter was a brief-named *secondary* line and got flagged-as-gap rather than probed deep.
+
+Same binder, same vocabulary, two very different categories — **generalizes, no per-vertical logic.** The non-overfitting outcome the pivot was designed to prove.
+
+### Research LOCKED (2026-05-22)
+
+Binder content is locked and committed. **Apprentice model locked to Haiku** per user decision — production target; the research *quality* is strong and the speed/cost (2.5min/$0.20) is the user-facing win. The two discipline gaps are deferred as known, parked items (see below) — both look mechanically fixable (a self-check pass), not capability ceilings.
+
+### Parked for next session
+
+1. **`sourced` self-check** — a mechanical "scan every number/%/date; each needs an inline (source, date) or delete it" pass. Haiku follows checklists better than principles.
+2. **§7 marketing-copy guard** — a "scan §7 for any hook-style phrase in quotes; it's the hook writer's job" pass. Fixes the run-to-run variance.
+3. **AS-IT-IS soft miss** — brief-named secondary lines should get a probe, not just a gap flag. Possibly a one-line sharpening of move 2 in the offer-landscape discipline.
+4. **Snapshot location** — save reference outputs to `results/_snapshots/` (outside the per-run auto-clear), so good docs survive the next run.
+5. **TWT clean judge run** — the post-attribution-edit TWT judge crashed twice (rate-limit). Confirm a clean verdict when convenient.
+
+---
+
 ## Punch list — redesign workflow
 
 - [x] Step 0 — mini-eval harness (S109)
 - [x] Step 1 — strategy binder + mini-eval (S109)
-- [x] **Step 2a — research binder (S110) — Search API + sourcing discipline validated on arjun-infra (S111); TWT verification pending cold re-run**
+- [x] **Step 2a — research binder — Search API + offer-landscape discipline; validated/generalized across 4 brands (arjun-infra, twt, theratefinder, asitis); LOCKED on Haiku 2026-05-22 with 2 parked discipline gaps**
 - [ ] Step 2a — the remaining 7 binders (comp, rigor-rubric/critic, hook, art, ad-unit, run-plan, next-move)
 - [ ] Step 2b — harness engineering (orchestrator 9-step rewrite, wire apprentices, Bet critic loop, cell code-checks)
 - [ ] Step 3 — integration on staging; run the corpus

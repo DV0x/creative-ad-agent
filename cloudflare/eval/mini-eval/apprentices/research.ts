@@ -96,12 +96,14 @@ export const researchApprentice: Apprentice = {
 
   deliverable: 'research.md',
 
-  // Sonnet 4.6 for mini-eval, matching the strategy apprentice. The
-  // implementation plan §3 assigns research to Haiku (with effort: low)
-  // in production; the model downgrade is tested separately after the
-  // binder content is validated on the stronger model. Opus 4.7 is
-  // incompatible with the pinned SDK (it sends the old thinking-API shape).
-  model: 'claude-sonnet-4-6',
+  // Haiku 4.5 — the implementation-plan §3 production target for research.
+  // The binder content was validated on Sonnet 4.6 first (S110/S111,
+  // arjun-infra PASS); we now test whether Haiku can execute the same
+  // binder, since production wall-time (the user-facing concern) is the
+  // Haiku number, not Sonnet's. If a failure looks model-capability-shaped
+  // rather than binder-shaped, swap back to 'claude-sonnet-4-6' to isolate.
+  // Opus 4.7 is incompatible with the pinned SDK (old thinking-API shape).
+  model: 'claude-haiku-4-5-20251001',
 
   // Read + Write are the SDK's built-in file tools. WebFetch is the SDK's
   // built-in fetcher. The Perplexity tool is namespaced by the MCP server's

@@ -79,7 +79,15 @@ These are the people who have the same problem the brand exists to solve — whe
 
 **For new or thin-review brands, the category-level probe is your primary signal source.** The brand's own voice is thin or absent; the category's voice is dense. The strategist downstream depends on the distinction — a brand needs different treatment when its blocker is category-wide (no brand in this category is solving X) versus brand-specific (this brand is failing at X). You surface both probes so the strategist can tell which is which.
 
-**For multi-product-line brands, anchor probes to the brief — and probe EACH line the brief names.** When the brand sells multiple distinct product lines (a snacks brand with bars + whey + chocolate + spreads; a beauty brand with haircare + skincare + baby care), the founder's brief almost always names which line(s) the campaign targets. Read the brief carefully and **run a category-voice probe for EACH named line, not just the flagship**. The flagship is not a shortcut; if the brief names chocolate alongside the flagship bars, you research chocolate too — its buyer voice, its category context, its competitor map — even when bars are the brand's headline product. Lines NOT named in the brief get at most ONE inventory-style breadth probe (*"what does this brand sell, at what tiers"*) so the strategist sees the portfolio context, not a deep buyer-voice probe. If the brief is itself ambiguous about which line the campaign targets, that is the orchestrator's job to clarify at intake — not yours to absorb by researching every SKU.
+**Map the offer landscape — every business sells more than one thing, and the line that wins the campaign is often not the headline one.** Whatever the vertical, a business has an *offer set*: the distinct things it sells. The clothes differ — a D2C snacks brand has product lines (bars / whey / chocolate / spreads); a hotel has a service menu (rooms / banquet / restaurant / spa); a lending platform has offer types (residential / commercial / construction / private); a clinic has procedures; a SaaS has tiers. The discipline is the same for all of them, and it runs in three moves:
+
+1. **Inventory the whole offer set — always.** One read of the brand's own site (WebFetch) or one breadth probe: *"what does this business sell, in what distinct lines, at what tiers?"* This is cheap and non-negotiable. The strategist must see the full menu, because **the most defensible lane is frequently an offer the founder didn't foreground.** (A real case: a mortgage lead-gen brand whose name promised commodity rate-shopping had its uncontested opportunity in commercial/construction lending — the line no competitor advertised. Research that only covered residential mortgages would have hidden the winning lane.)
+
+2. **Go deep on the line(s) the brief names.** Buyer voice, pricing, competitive map — per line, not just the flagship. If the brief names the chocolate range alongside the flagship bars, you research chocolate too; the flagship is not a shortcut. Different offer lines are often different audiences (a commercial borrower is not a first-time-homebuyer; a banquet client is not a room guest) — they get their own probes.
+
+3. **Name the uncovered lines as gaps — explicitly.** For offer lines you inventoried but didn't research deeply: say so. *"Commercial and construction lending are offered but not researched here; pursuing either needs its own buyer-voice pass."* This surfaces the *option* without paying to fully research every line — the safety valve that lets the strategist spot an unbriefed lane and ask for a deeper pass if they want it.
+
+If the brief is itself ambiguous about which line the campaign targets, that is the orchestrator's job to clarify at intake — not yours to absorb by researching every line to the same depth.
 
 ### Match the probe to the surface — this is load-bearing
 
@@ -218,6 +226,10 @@ Case-file header (preamble)
    third-party coverage) shows it actually is. The gap between the
    two — named explicitly. Legitimacy signals (years in business,
    review count, certifications, founder visibility) noted here.
+   The offer set — the distinct lines this business sells (product
+   lines / service menu / offer types / tiers), inventoried in full,
+   with which line(s) the brief targets marked. (See "Map the offer
+   landscape" above for how deep to go on each.)
 
 2. The buyer — voice from real strangers
    2a. Buyer-as-customer (brand-specific reviews where they exist) —
