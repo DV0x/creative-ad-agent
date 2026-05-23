@@ -68,7 +68,7 @@ Five SDK-doc research passes resolved the open architecture questions. These are
 | 5 | Cell code-checks | Offline only (`floor-graders.ts`) | In-loop per-cell F1/F2/F4/F5/F6 + drop-angle retry | 2-3d |
 | 6 | Intake + checkpoint | Not used | `canUseTool` + `AskUserQuestion`; `question` WS event; chat menu (port `ActionCard`) | 2-3d |
 | 7 | Spend-lock + completeness-lock | No `canUseTool`, no hooks | `canUseTool` freezes image MCP pre-checkpoint; `Stop` hook gates "done" (`stop_hook_active` guard) | 2-3d |
-| 8 | New MCP tools | Don't exist | Budget-calculator (deterministic, learning-phase math) + `competitor-ads` (Step C — wraps ScrapeCreators behind a swappable adapter, D1-cached) | 2-3d |
+| 8 | New MCP tools | Don't exist | Budget-calculator (deterministic, learning-phase math) + `competitor-ads` (Step C — direct ScrapeCreators client, no fallback adapter, D1-cached) | 2-3d |
 | 9 | Test Brief data model | `campaign_files` enum: `research\|hooks\|prompts` | Extend the `file_type` enum (+`bet`, `run_plan`, `next_move`, `cells`); staging + prod migration | 1-2d |
 | 10 | Test Brief file types + validation | Image-centric; 3 file types | New file types ride the existing `campaign_files` + `file` WS-event path; agent writes the 4 brief files; `PostToolUse` hook validates the structured `cells` file | 2-3d |
 | 11 | Test Brief client UI | File list + slide-in `FileEditorPanel`; image grid | Add 4 file-list entries + viewers; the `cells` viewer renders ad-unit previews (`PromptsViewer` pattern); grid unchanged | 3-5d |
@@ -100,7 +100,7 @@ The Q4 subagent-topology table demands **9 binders, not the "~4 new" an earlier 
 | Binder | Apprentice | Status | Mini-eval (canned input → what's judged) |
 |---|---|---|---|
 | research | B | **NEW** | brand URL → is research factual, locale-correct, voice-of-customer present? |
-| comp (light) | C | **NEW** | brand + vertical → are rival clusters / white space + current visual zeitgeist read correctly? |
+| comp (light) | C | **DONE — LOCKED (S113)** | brand + vertical → are rival clusters / white space + current visual zeitgeist read correctly? Built on ScrapeCreators Ad-Library + Perplexity; 6/8 first eval, parked the shared Haiku `sourced` self-check. |
 | strategy | D strategist | **NEW** | canned `research.md` → are the N angles distinct competing hypotheses, blocker sound, no fabrication? **Build + mini-eval this one FIRST** |
 | rigor rubric | D critic | **NEW** (light) | known-good + known-bad Bets → does it catch the bad ones *and* pass the good? (a detection test, not an output-quality test) |
 | hook | F cell | **REWRITE** (from `hook-methodology`, 452 ln) | angle + style + research → is the copy research-anchored, locale-correct, action-oriented? |
@@ -120,7 +120,7 @@ Mini-evals are *not* the Phase-1 GO/NO-GO gate: that gate is the full-corpus flo
 
 **Deliverable storage model:** the Test Brief follows the existing **text→file, image→grid** pattern — the Bet / Run Plan / Next Move / cell-copy are `campaign_files` rows; cell images are `campaign_images` rows. No new storage paradigm and no new workspace layout — it rides the file-list → `FileEditorPanel` mechanism that `research`/`hooks`/`prompts` use today. The `cells` file gets a bespoke viewer (the `PromptsViewer` pattern) that renders each cell as an ad-unit preview — that is where Q2's "complete Meta ad unit / executability bar" is met.
 
-**Research inputs (Steps B & C):** Step B's research binder includes a **voice-of-customer pass** — the research apprentice mines buyer-side sources (Reddit, review sites — Amazon / Trustpilot / Google / TripAdvisor — Q&A, forums) via the `WebSearch` / `WebFetch` it already has, weighted by vertical and locale; no scraper, no new dependency. Step C's competitive scan is upgraded from best-effort `WebSearch` to a real **`competitor-ads` MCP tool** wrapping **ScrapeCreators** (synchronous JSON, India coverage; Apify `curious_coder` / SearchApi as fallback behind a swappable adapter; results D1-cached). It returns rivals' real creatives, copy, CTAs, start dates and variant counts — but **no performance metrics exist** for commercial ads; Step C derives proxy signals only (days-running, variant count, placement breadth) as a triage. From those same creatives Step C also surfaces the **current visual zeitgeist** in the category — which styles, formats and energies dominate competitors' active ads right now, and which look saturated versus unoccupied — for the strategy binder's "frame the creative" move to reason about (match / contrast / ignore). Both feed Step D; neither blocks it.
+**Research inputs (Steps B & C):** Step B's research binder includes a **voice-of-customer pass** — the research apprentice mines buyer-side sources (Reddit, review sites — Amazon / Trustpilot / Google / TripAdvisor — Q&A, forums) via the `WebSearch` / `WebFetch` it already has, weighted by vertical and locale; no scraper, no new dependency. Step C's competitive scan is upgraded from its Phase-1 Perplexity-Search read to a real **`competitor-ads` MCP tool** that calls **ScrapeCreators directly** (synchronous JSON, India coverage; results D1-cached). **Decision (S113): ScrapeCreators only — no fallback providers, no swappable-adapter abstraction.** If ScrapeCreators is ever insufficient we revisit then; we don't pre-build for a vendor swap. It returns rivals' real creatives, copy, CTAs, start dates and variant counts — but **no performance metrics exist** for commercial ads; Step C derives proxy signals only (days-running, variant count, placement breadth) as a triage. From those same creatives Step C also surfaces the **current visual zeitgeist** in the category — which styles, formats and energies dominate competitors' active ads right now, and which look saturated versus unoccupied — for the strategy binder's "frame the creative" move to reason about (match / contrast / ignore). Both feed Step D; neither blocks it.
 
 ---
 
@@ -198,7 +198,7 @@ Goal: founder-in-the-loop. Only worth building if Phase 1 moved the floor.
 - New MCP tools — budget-calculator + `competitor-ads` (ScrapeCreators) — plus real Run Plan (Step G) — *2-4d*
 - Q5 v1 manual feedback — lands free here (reuses the follow-up loop)
 
-(Step C's competitive scan runs from Phase 1 on plain `WebSearch`; the `competitor-ads` tool upgrades it here. Step B's voice-of-customer pass ships in Phase 1 as part of the research-binder rebuild — it needs no new tooling.)
+(Step C's competitive scan runs from Phase 1 on the **Perplexity Search wrapper** the research binder already uses — validated S113 to feed rival-field, clustering, white-space and a hedged category visual-zeitgeist read; only the per-rival live-creative read needs the upgrade. The `competitor-ads` ScrapeCreators tool upgrades it here. Step B's voice-of-customer pass ships in Phase 1 as part of the research-binder rebuild — it needs no new tooling.)
 
 ### Phase 3 — The real deliverable surface · ~6-10d
 

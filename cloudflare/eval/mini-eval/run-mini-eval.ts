@@ -21,20 +21,25 @@ import * as path from 'node:path';
 import * as os from 'node:os';
 import { strategyApprentice, type Apprentice } from './apprentices/strategy.js';
 import { researchApprentice } from './apprentices/research.js';
+import { compApprentice } from './apprentices/comp.js';
 import { perplexityMcpServer } from './mcp/perplexity.js';
+import { scrapecreatorsMcpServer } from './mcp/scrapecreators.js';
 
 // ── apprentice registry — add an entry per binder as binders land ──────────
 const APPRENTICES: Record<string, Apprentice> = {
   strategy: strategyApprentice,
   research: researchApprentice,
+  comp: compApprentice,
 };
 
 // MCP servers per apprentice — kept off the Apprentice interface so that type
 // stays SDK-clean. The harness wires these into the SDK's query() options at
 // run time. Strategy has none (works from canned files); research has the
-// Perplexity Agent-API wrapper for grounded retrieval.
+// Perplexity Search wrapper for grounded retrieval; comp adds the
+// ScrapeCreators Ad-Library wrapper on top of Perplexity.
 const MCP_SERVERS_FOR: Record<string, Options['mcpServers']> = {
   research: { perplexity: perplexityMcpServer },
+  comp: { perplexity: perplexityMcpServer, scrapecreators: scrapecreatorsMcpServer },
 };
 
 // Extra files copied into each fixture's working directory before the
@@ -54,16 +59,19 @@ const EXTRA_FILES_FOR: Record<string, Array<{ src: string; dest: string }>> = {
 const MAX_TURNS_FOR: Record<string, number> = {
   strategy: 25,
   research: 40,
+  comp: 40,
 };
 const MAX_BUDGET_USD_FOR: Record<string, number> = {
   strategy: 1.5,
   research: 2.5,
+  comp: 2.5,
 };
 
 // Per-apprentice required env vars. The harness fails fast if anything is
 // missing so the user sees a clear error before the SDK subprocess starts.
 const REQUIRED_ENV_FOR: Record<string, string[]> = {
   research: ['PERPLEXITY_API_KEY'],
+  comp: ['PERPLEXITY_API_KEY', 'SCRAPECREATORS_API_KEY'],
 };
 
 const HERE = __dirname;                              // cloudflare/eval/mini-eval

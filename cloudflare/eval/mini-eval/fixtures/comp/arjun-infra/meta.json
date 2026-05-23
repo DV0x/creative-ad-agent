@@ -1,0 +1,6 @@
+{
+  "brand": "Arjun Infra",
+  "date": "2026-05-19",
+  "shape": "hyperlocal thin field — tests graceful degradation + the Ad-Library fallback ladder",
+  "notes": "Held-out comp fixture (reuses the strategy fixture's research.md + founder-facts as canned upstream input; competitors.md is the OUTPUT under test, deliberately absent). Indian residential real-estate developer in Ongole, a tier-3 AP city. The THIN-FIELD case: local builders rarely run Meta ads and the field is small/hyperlocal, so this tests (a) honest graceful degradation rather than a padded rival list, (b) the Ad-Library fallback ladder — likely empty live ads → labelled Perplexity category-trend proxy or named gap, and possible CHANNEL white space (rivals advertise locally/offline, Meta feed open). Wrong-field risk: must read the Ongole/coastal-AP local builder field, not national real-estate giants."
+}

@@ -74,6 +74,10 @@ output.md
 docs/error.md
 docs/response.md
 
+# Eval corpus — downloaded R2 images + generated viewer (keep .md notes only)
+docs/eval-corpus/images/
+docs/eval-corpus/viewer.html
+
 # Brand-specific data (example data only in repo)
 agent/files/research/*_research.md
 agent/files/creatives/*_prompts.json
@@ -81,3 +85,5 @@ agent/.claude/skills/hook-methodology/hook-bank/*.md
 !agent/files/research/.gitkeep
 !agent/files/creatives/.gitkeep
 !agent/.claude/skills/hook-methodology/hook-bank/.gitkeep
+# ScrapeCreators eval disk cache (credit-saving; never commit)
+cloudflare/eval/mini-eval/.cache/

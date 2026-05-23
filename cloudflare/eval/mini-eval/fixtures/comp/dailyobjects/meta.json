@@ -1,0 +1,6 @@
+{
+  "brand": "DailyObjects",
+  "date": "2026-05-19",
+  "shape": "crowded D2C field, live ads present — the ground-truth anchor for axes + white space + revealed-winner read",
+  "notes": "Held-out comp fixture (reuses the strategy fixture's research.md + founder-facts; competitors.md is the OUTPUT under test, absent here). Indian D2C tech/lifestyle accessories. The RICH-FIELD case and the anchor: a hand-authored competitors.md already exists in the strategy fixture as the known-good target (clear axes — price floor / protection / design-aesthetic; white space — artisan/made-in-India provenance uncontested by big players). DailyObjects DOES run active Meta ads (confirmed ~30 active, IN), so this is the primary test of the live Ad-Library read: resolving the right page (page_id 112486528887459, 876k likes — beats the low-like namesakes), the revealed-winner ranking, and a sourced visual zeitgeist (video vs still mix, discount/new-drop copy angles)."
+}

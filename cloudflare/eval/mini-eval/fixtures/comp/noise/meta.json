@@ -1,0 +1,6 @@
+{
+  "brand": "Noise",
+  "date": "2026-05-19",
+  "shape": "commoditised market-leader field + generic-name resolution — tests axes in a price-war, premium-escape white space, wrong-brand defence",
+  "notes": "Held-out comp fixture (reuses the strategy fixture's research.md + founder-facts; competitors.md is the OUTPUT under test, absent here). India's #1 smartwatch brand in a shrinking, price-warred, commoditised category trying to escape upmarket (Luna Ring, premium ColorFit). Tests: (a) axes-read in a commoditised field where price is the crowded table-stakes axis and premium/health-tracking may be the open lane; (b) the WRONG-BRAND defence at page resolution — 'Noise' is a generic name (we saw companyName=Noise return 0 ads; the real page must be picked from candidates by likes/category/ig, not a 14-like namesake); (c) revealed-winner read of a high-volume advertiser. Wrong-field risk: must read the Indian wearables field (boAt, Fire-Boltt, etc.), not global smartwatch giants."
+}
