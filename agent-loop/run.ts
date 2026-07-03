@@ -1,7 +1,7 @@
 /**
  * Entry point — runs the pipeline on one brand URL, standalone (no WS, no DB).
  *
- *   tsx run.ts <brand-url> [stage1,stage2,...]
+ *   tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep] [--founder=<brief.md>] [--product=<image>]
  *   tsx run.ts https://thewholetruthfoods.com research          # one-stage smoke
  *   tsx run.ts https://thewholetruthfoods.com                    # full spine
  *
@@ -10,8 +10,9 @@
  * stages hand off through files there, and the TraceLogger writes the eval-ready trace.
  */
 import { config as loadEnv } from 'dotenv';
+import { fal } from '@fal-ai/client';
 import { fileURLToPath } from 'node:url';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import * as fs from 'node:fs';
 import { runPipeline } from './pipeline.ts';
 import { STAGE_ORDER, STAGES, type Mode } from './stages.ts';
@@ -42,7 +43,7 @@ if (modeIdx >= 0) {
 const positionals = rawArgs.filter((a) => !a.startsWith('--'));
 const brandUrl = positionals[0];
 if (!brandUrl) {
-  console.error('usage: tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep]');
+  console.error('usage: tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep] [--founder=<brief.md>] [--product=<image>]');
   process.exit(1);
 }
 const order = positionals[1]?.split(',').map((s) => s.trim()).filter(Boolean) ?? [...STAGE_ORDER];
@@ -57,46 +58,106 @@ for (const s of order) {
 const need = new Set<string>();
 if (order.includes('research') || order.includes('comp')) need.add('PERPLEXITY_API_KEY');
 if (order.includes('comp')) need.add('SCRAPECREATORS_API_KEY');
-if (order.includes('cell')) need.add('FAL_KEY');
+if (order.includes('cell-render')) need.add('FAL_KEY');
 const missing = [...need].filter((k) => !process.env[k]);
 if (missing.length) {
   console.error(`missing required env: ${missing.join(', ')} (expected in ${join(REPO_ROOT, '.env')})`);
   process.exit(1);
 }
 
-// 4) run dir
-const slug = brandUrl.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 40).toLowerCase();
-const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
-const runDir = join(__dirname, 'runs', `${stamp}_${slug}`);
+// 4) run dir — a fresh stamped dir, OR reuse an existing one with --resume=<dir>.
+//    Resume is a FRESH query() over the persisted FILE-state (research.md, thebet.md,
+//    verdict.md, shotspec.md, render-verdict.md, …), NOT SDK session/JSONL resume. The
+//    docs endorse this "pass application state into a fresh session" path as the robust,
+//    host-portable one (session_management.md:313); our files-as-handoff design already
+//    works this way, so a stage subset (e.g. `cell-render`) re-runs on the cache.
+const resumeDir = rawArgs.find((a) => a.startsWith('--resume='))?.split('=')[1];
+let runDir: string;
+if (resumeDir) {
+  runDir = resolve(resumeDir);
+  if (!fs.existsSync(runDir)) {
+    console.error(`--resume dir not found: ${runDir}`);
+    process.exit(1);
+  }
+  console.log(`↻ RESUME — reusing ${runDir}\n   fresh query() over its cached file-state; running: ${order.join(' → ')}`);
+} else {
+  const slug = brandUrl.replace(/^https?:\/\//, '').replace(/[^a-z0-9]+/gi, '-').replace(/^-+|-+$/g, '').slice(0, 40).toLowerCase();
+  const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
+  runDir = join(__dirname, 'runs', `${stamp}_${slug}`);
+}
 fs.mkdirSync(join(runDir, 'images'), { recursive: true });
 
-// 5) founder-facts.md (thin — URL only; research names the gaps)
-fs.writeFileSync(
-  join(runDir, 'founder-facts.md'),
-  [
-    '# Founder Facts',
-    '',
-    `- Brand URL: ${brandUrl}`,
-    '- No additional founder brief was provided for this run. Work from the URL and the open web;',
-    '  name the gaps where founder intake (conversion event, budget, audience, ad history) would normally inform the work.',
-    '',
-  ].join('\n'),
-);
+// 5) founder-facts.md — a supplied brief (--founder=<path.md>), else the thin URL-only stub
+const founderPath = rawArgs.find((a) => a.startsWith('--founder='))?.split('=')[1];
+if (founderPath && !fs.existsSync(founderPath)) {
+  console.error(`--founder file not found: ${founderPath}`);
+  process.exit(1);
+}
+const founderFile = join(runDir, 'founder-facts.md');
+if (resumeDir && !founderPath && fs.existsSync(founderFile)) {
+  console.log('· reusing existing founder-facts.md (from the original run)');
+} else {
+  fs.writeFileSync(
+    founderFile,
+    founderPath
+      ? fs.readFileSync(founderPath, 'utf-8')
+      : [
+          '# Founder Facts',
+          '',
+          `- Brand URL: ${brandUrl}`,
+          '- No additional founder brief was provided for this run. Work from the URL and the open web;',
+          '  name the gaps where founder intake (conversion event, budget, audience, ad history) would normally inform the work.',
+          '',
+        ].join('\n'),
+  );
+}
+
+// 5b) refs.json — bind a real product photo if given (--product=<image>). The image model fetches a URL,
+//     and there is no built-in upload step, so push it to fal here; also copy it locally for the cell's
+//     vision gate. Absent --product, no refs.json is written → the cell runs text-to-image (unchanged).
+const productPath = rawArgs.find((a) => a.startsWith('--product='))?.split('=')[1];
+if (productPath) {
+  if (!fs.existsSync(productPath)) {
+    console.error(`--product file not found: ${productPath}`);
+    process.exit(1);
+  }
+  if (!process.env.FAL_KEY) {
+    console.error('--product needs FAL_KEY to upload the reference image');
+    process.exit(1);
+  }
+  fal.config({ credentials: process.env.FAL_KEY });
+  const buf = fs.readFileSync(productPath);
+  const ext = (productPath.match(/\.([a-z0-9]+)$/i)?.[1] ?? 'jpg').toLowerCase();
+  const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
+  const localPath = join(runDir, `product-ref.${ext}`);
+  fs.writeFileSync(localPath, buf);
+  console.log('· uploading product reference to fal …');
+  const falUrl = await fal.storage.upload(new Blob([buf], { type: mime }));
+  fs.writeFileSync(
+    join(runDir, 'refs.json'),
+    JSON.stringify({ references: [{ falUrl, localPath, fileId: 'product-ref' }] }, null, 2),
+  );
+  console.log(`· product bound → ${falUrl}`);
+}
 
 // 6) stage binder reference files into the working dir (mirrors the eval's EXTRA_FILES_FOR,
 //    so the binders' "read references/X.md" / "reference/hyperlocal.md" resolve relative to cwd)
+// The cell reference bundle — copied into cwd for BOTH cell stages (and the critics
+// read counterexamples.md / the cell reads critic.md from here). Same set for each.
+const CELL_REFS = [
+  ...['layer-stack', 'style-grammar', 'type-grammar', 'shot-spec', 'critic', 'render-critic', 'counterexamples'].map((n) => ({
+    src: `agent/.claude/skills/cell/references/${n}.md`,
+    dest: `references/${n}.md`,
+  })),
+  ...['testimonial', 'founder-pov', 'pas-real-world'].map((n) => ({
+    src: `agent/.claude/skills/cell/references/formats/${n}.md`,
+    dest: `references/formats/${n}.md`,
+  })),
+];
 const EXTRA_FILES: Record<string, Array<{ src: string; dest: string }>> = {
   research: [{ src: 'agent/.claude/skills/research/reference/hyperlocal.md', dest: 'reference/hyperlocal.md' }],
-  cell: [
-    ...['layer-stack', 'style-grammar', 'type-grammar', 'shot-spec', 'critic', 'counterexamples'].map((n) => ({
-      src: `agent/.claude/skills/cell/references/${n}.md`,
-      dest: `references/${n}.md`,
-    })),
-    ...['testimonial', 'founder-pov', 'pas-real-world'].map((n) => ({
-      src: `agent/.claude/skills/cell/references/formats/${n}.md`,
-      dest: `references/formats/${n}.md`,
-    })),
-  ],
+  'cell-generate': CELL_REFS,
+  'cell-render': CELL_REFS,
 };
 for (const s of order) {
   for (const f of EXTRA_FILES[s] ?? []) {

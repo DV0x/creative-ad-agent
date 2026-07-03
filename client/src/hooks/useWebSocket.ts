@@ -7,6 +7,7 @@ import { getHookTypeForIndex } from '../types/chat';
 import * as wsManager from '../lib/websocket-manager';
 import { campaignsApi } from '../lib/api';
 import { crumb } from '../lib/observability';
+import { track } from '../lib/analytics';
 
 // ── Storage keys for session persistence ───────────────────────
 
@@ -330,6 +331,13 @@ export function useWebSocket(): UseWebSocketReturn {
               store.appendTextBlock(campaignId, messageId, summary);
             }
             store.completeGeneration(campaignId, messageId, summary);
+            // Funnel outcome: generation finished. duration measured from the
+            // saved session (read before clearActiveSession wipes it).
+            const startedAt = getActiveSession()?.startedAt;
+            track('generation_completed', {
+              image_count: imgCount,
+              duration_ms: startedAt ? Date.now() - startedAt : undefined,
+            });
             clearActiveSession();
             sessionIdRef.current = null;
           }
@@ -345,6 +353,8 @@ export function useWebSocket(): UseWebSocketReturn {
           if (isErrorEvent(message)) {
             const errorMsg = message.error || 'Unknown error';
             console.error('WebSocket: Error event:', errorMsg);
+
+            track('generation_failed', { reason: 'error', code: message.code });
 
             // Insufficient credits — close spinner, show paywall upsell
             if (message.code === 'INSUFFICIENT_CREDITS') {
@@ -384,6 +394,7 @@ export function useWebSocket(): UseWebSocketReturn {
           break;
 
         case 'incomplete':
+          track('generation_failed', { reason: 'incomplete' });
           // API error (billing, rate limit, etc.) — campaign is resumable
           if (campaignId && messageId) {
             store.closeThinkingBlock(campaignId, messageId, 'error');
@@ -583,6 +594,15 @@ export function useWebSocket(): UseWebSocketReturn {
       ...(assetFileIds && assetFileIds.length > 0 ? { fileIds: assetFileIds } : {}),
     });
 
+    if (sent) {
+      track('generation_started', {
+        kind: sourceCampaignId ? 'from_existing' : 'new',
+        brand: brand || undefined,
+        has_references: !!(assetFileIds && assetFileIds.length > 0),
+        aspect_ratio: aspectRatio,
+      });
+    }
+
     // Clear source campaign state after sending
     if (sourceCampaignId) {
       store.setSourceCampaign(null);
@@ -596,6 +616,7 @@ export function useWebSocket(): UseWebSocketReturn {
 
   const cancel = useCallback(() => {
     wsManager.sendMessage({ type: 'cancel' });
+    track('generation_cancelled');
 
     const store = useStore.getState();
     const campaignId = store.generatingCampaignId;
@@ -630,6 +651,10 @@ export function useWebSocket(): UseWebSocketReturn {
       prompt: resumePrompt,
       sessionId
     });
+
+    if (sent) {
+      track('generation_started', { kind: 'resume' });
+    }
 
     if (!sent) {
       store.failGeneration(campaignId, messageId, 'WebSocket not connected');
@@ -666,6 +691,14 @@ export function useWebSocket(): UseWebSocketReturn {
       campaignId,
       ...(aspectRatio ? { aspectRatio } : {}),
     });
+
+    if (sent) {
+      track('generation_started', {
+        kind: 'follow_up',
+        brand: campaign?.brand || undefined,
+        aspect_ratio: aspectRatio,
+      });
+    }
 
     if (!sent) {
       store.failGeneration(campaignId, messageId, 'WebSocket not connected');

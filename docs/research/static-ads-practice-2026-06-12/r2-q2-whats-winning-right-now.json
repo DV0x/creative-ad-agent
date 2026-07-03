@@ -1,0 +1,162 @@
+{
+  "id": "32773a56-c2cf-478e-a8a7-58df6e6fbcc2",
+  "model": "sonar-pro",
+  "created": 1781269684,
+  "usage": {
+    "prompt_tokens": 299,
+    "completion_tokens": 4777,
+    "total_tokens": 5076,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.0009,
+      "output_tokens_cost": 0.07165,
+      "request_cost": 0.014,
+      "total_cost": 0.08655
+    }
+  },
+  "citations": [
+    "https://www.metamktgagency.com/blog/meta-ads-funnel-optimization-dtc-brands",
+    "https://www.quickads.ai/blog/10-best-video-production-services-tools-you-should-know-in-2026",
+    "https://ie.indeed.com/q-meta-ads-jobs.html",
+    "https://billo.app/blog/meta-ads-best-practices/",
+    "https://play.google.com/store/apps/details?id=com.soarinfotech.coupert&hl=en_US",
+    "https://www.instagram.com/reel/DZXJmwIJkEA/",
+    "https://www.directtoconsumer.co/newsletter/meta-ad-set-spend-minimums",
+    "https://www.instagram.com/p/DZPKmcBDNGt/",
+    "https://www.instagram.com/reel/DYeYFKISloW/",
+    "https://www.instagram.com/reel/DYeuYP6EzqY/",
+    "https://www.instagram.com/reel/DYfC30yCMJk/",
+    "https://www.instagram.com/reel/DZcqArMsnQH/",
+    "https://www.instagram.com/reel/DZby20ixnaK/",
+    "https://www.instagram.com/reel/DZRNkDPjSZC/",
+    "https://adsuploader.com/blog/meta-ads-size"
+  ],
+  "search_results": [
+    {
+      "title": "Meta Ads Funnel Optimization for DTC Brands (2026 Guide)",
+      "url": "https://www.metamktgagency.com/blog/meta-ads-funnel-optimization-dtc-brands",
+      "date": "2026-05-30",
+      "last_updated": "2026-06-09",
+      "snippet": "Meta Ads funnel optimization for DTC brands. Learn 2026 strategies, including Advantage+ Shopping Campaigns, creative testing, and scaling tips.",
+      "source": "web"
+    },
+    {
+      "title": "10 Best Video Production Services Tools You Should ...",
+      "url": "https://www.quickads.ai/blog/10-best-video-production-services-tools-you-should-know-in-2026",
+      "date": "2026-05-26",
+      "last_updated": "2026-06-11",
+      "snippet": "May 26, 2026 ... You can build cinematic sequences, detailed transitions, synchronized audio layers, motion graphics, and custom storytelling formats that AI ...",
+      "source": "web"
+    },
+    {
+      "title": "25+ Meta Ads Jobs, Employment 11 June 2026 - Indeed",
+      "url": "https://ie.indeed.com/q-meta-ads-jobs.html",
+      "date": "2026-06-11",
+      "last_updated": "2026-05-27",
+      "snippet": "Adapt competitor inspiration and swipe files into on-brand ads. Digital & Channel Marketing Manager.",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads Best Practices: What Actually Works in 2025",
+      "url": "https://billo.app/blog/meta-ads-best-practices/",
+      "date": "2026-06-02",
+      "last_updated": "2026-06-11",
+      "snippet": "What's the best Meta ad format for ecommerce? Billo data shows that 4:5 vertical video performs best\u2014especially when paired with product PNG overlays, bold ...",
+      "source": "web"
+    },
+    {
+      "title": "Coupert - Coupons & Cash Back - Apps on Google Play",
+      "url": "https://play.google.com/store/apps/details?id=com.soarinfotech.coupert&hl=en_US",
+      "date": "2026-05-22",
+      "last_updated": "2026-06-11",
+      "snippet": "Coupert \u2014 Your Smart Shopping Assistant Coupert is a free shopping assistant used by over 8 million users. It helps you save time and money while shopping ...",
+      "source": "web"
+    },
+    {
+      "title": "I scaled 20+ ad accounts to 7 figures in the last 6 months. Comment ...",
+      "url": "https://www.instagram.com/reel/DZXJmwIJkEA/",
+      "date": "2026-06-09",
+      "snippet": "Photo by Nixi Ads on June 03, 2026. May be an image of text. Photo ... After $12K+ in ad spend last month, here's what I've learned about running Meta ads",
+      "source": "web"
+    },
+    {
+      "title": "Meta's Ad Set Spend Minimums - DTC Newsletter",
+      "url": "https://www.directtoconsumer.co/newsletter/meta-ad-set-spend-minimums",
+      "date": "2026-06-01",
+      "last_updated": "2026-06-11",
+      "snippet": "Discover how to use ad set spend minimums to bypass Meta's budget delivery roadblocks, leverage Advantage+, and effectively test new ad creatives.",
+      "source": "web"
+    },
+    {
+      "title": "Most people don't have an ad problem. They ...",
+      "url": "https://www.instagram.com/p/DZPKmcBDNGt/",
+      "snippet": "pengjoon on June 6, 2026: \"Most people don't have an ad problem. They have a prompt problem. Because one good prompt can create one good ad.",
+      "source": "web"
+    },
+    {
+      "title": "HOLD THE PHONE Our final 2026 Meta Ads Masterclass dates just ...",
+      "url": "https://www.instagram.com/reel/DYeYFKISloW/",
+      "date": "2026-05-18",
+      "last_updated": "2026-05-23",
+      "snippet": "With 22 sold-out events and 2,500+ marketers trained, you don't want to miss Australia and NZ's most fun Meta Ads training. So what's involved? \u2728In just 6 hours ...",
+      "source": "web"
+    },
+    {
+      "title": "Most brands are running ad creatives that stopped working ...",
+      "url": "https://www.instagram.com/reel/DYeuYP6EzqY/",
+      "date": "2026-05-22",
+      "snippet": "I ranked EVERY major ad creative format from S-Tier to F-Tier based on what's ACTUALLY working in 2026 Some formats are dominating. Some are dying fast. And ...",
+      "source": "web"
+    },
+    {
+      "title": "Stop wasting money on random products! Learn how to find ...",
+      "url": "https://www.instagram.com/reel/DYfC30yCMJk/",
+      "date": "2026-05-22",
+      "snippet": "Stop wasting money on random products! Learn how to find Winning Products & Viral Ads using TikTok, Facebook Ad Library & AI tools.",
+      "source": "web"
+    },
+    {
+      "title": "5 things I stopped doing in Meta Ads Manager. Number 3 is the one ...",
+      "url": "https://www.instagram.com/reel/DZcqArMsnQH/",
+      "date": "2026-06-11",
+      "last_updated": "2026-06-12",
+      "snippet": "Meta Ad Library lets you spy on every competitor's ads for free. #2 Foreplay. Foreplay saves winning ads in a swipe file. #3 Meta Low Impression Count.",
+      "source": "web"
+    },
+    {
+      "title": "How billion dollar brands are scaling in 2026",
+      "url": "https://www.instagram.com/reel/DZby20ixnaK/",
+      "snippet": "I have audited 272 Meta ad accounts in 2026 and there is one common mistake I keep seeing again and again. People use the same creative format repeatedly inside ...",
+      "source": "web"
+    },
+    {
+      "title": "CreativeOS (Proven Ad Templates) ----- Hey I'm Blake. ...",
+      "url": "https://www.instagram.com/reel/DZRNkDPjSZC/",
+      "snippet": "Hey I'm Blake. I help business owners get more customers with paid ads. I started in business 8 years ago with no idea how to get new customers and scale ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads Size Guide 2026: All Facebook Ad Specs",
+      "url": "https://adsuploader.com/blog/meta-ads-size",
+      "date": "2026-06-04",
+      "last_updated": "2026-06-06",
+      "snippet": "Get every Meta ads size for 2026. Complete guide to Facebook ad specs, image sizes, video formats, and character limits for all placements.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The formats that practitioners say are **winning on Meta for DTC/e\u2011commerce in May\u2013June 2026** are heavily skewed to short 4:5 UGC-style video with strong hooks, drama/problem\u2011solution scripting, bold captions/overlays, and catalog/dynamic units layered in for bottom\u2011of\u2011funnel. Meta strategists and creative tools are consistently saying that *format diversity* inside ASC is critical, with a few very specific formats called out as top performers.\n\nBelow are **named formats, how they look, and any concrete performance claims**, grouped by recency and source.\n\n---\n\n## 1. 2026 practitioner breakdowns & rankings\n\n### 1.1. \u201cEvery major ad creative format ranked S\u2013F tier (2026)\u201d \u2013 Instagram Reel\n\nCreative strategist (Reel posted 2026, caption: \u201cI ranked EVERY major ad creative format from S-Tier to F-Tier based on what's ACTUALLY working in 2026\u201d) explicitly says: \u201cSome formats are dominating. Some are dying fast.\u201d[10]  \n\nYou only see the hook in the Reel preview, but combined with other current sources, the **formats this type of S\u2011Tier ranking is pushing in 2026** are:\n\n- **S\u2011Tier: 4:5 UGC short-form video with drama/problem setups**\n  - 15\u201330s vertical, front\u2011camera creators, opening with a hard problem or dramatic statement and moving into solution/product demo.\n  - This matches Billo\u2019s 2025 test data that \u201cdrama set-up scripts, presenting a relatable problem, then resolving it with the product, consistently outperform generic formats\u201d and that structured, serious tone beats playful content on Meta.[4]\n  - Used as **primary prospecting creatives** inside ASC/Advantage+ Shopping Campaigns for DTC.\n\n- **S\u2011Tier: Interview / testimonial UGC**\n  - Talking\u2011head interview style or \u201cWhy I finally bought this\u201d videos, FILMED like a casual podcast or on\u2011the\u2011street Q&A, but with heavy captions.\n  - Billo reports that \u201cthe interview-style video\u2026 mimic social proof and outperform traditional VO-led ads in skincare, fitness, and wellness categories.\u201d[4]\n\n- **A\u2011Tier: Split\u2011screen & \u201cposter\u201d videos**\n  - Split\u2011screen: product/tutorial on one side, face or B\u2011roll on the other; Billo says split-screen formats \u201cimprove recall\u201d and show \u201cup to 12% better memory retention in apps and consumer goods verticals.\u201d[4]\n  - Poster videos: stylized combination of still frames plus short clips, with text blocks and product PNGs; Billo reports ~18% watch-time lift in beauty/fashion.[4]\n\n- **B\u2011Tier: Static lifestyle images with heavy text**\n  - Meta Marketing Agency\u2019s 2026 DTC guide calls out \u201cLifestyle Statics: High-quality images of real people using your product in daily life\u201d and \u201cText-Heavy Graphics: Bold captions, \u2018Us vs. Them\u2019 comparison charts, and feature callouts.\u201d[1]\n  - These are typically used as **supporting creatives** in ASC and in retargeting.\n\n- **Lower tiers: Pure aesthetic b\u2011roll with no hook, trend\u2011only TikTok repurposes**\n  - Multiple 2025\u201326 practitioners (Billo; MetaMktgAgency) emphasize that **Meta \u201crewards structure, not spontaneity,\u201d** and that TikTok\u2011style, trend\u2011led \u201cjust vibes\u201d content underperforms on Meta compared to problem\u2011solution and interview formats.[4][1]\n\nThe Reel itself is essentially a teaching hook to push this ranking and to drive to his template/framework product, but it reinforces that **not all UGC is equal**; narrative structure and overlays are what move formats into the \u201cS\u201d bucket in 2026.[10]\n\n---\n\n## 2. 2026 DTC creative strategy guides (Meta\u2011specific)\n\n### 2.1. MetaMktgAgency \u2013 \u201cMeta Ads Funnel Optimization for DTC Brands (2026 Guide)\u201d\n\nThis is an explicit **2026 DTC playbook** that calls out which creative formats are working at each stage of the funnel.[1]\n\nThey say:\n\n- \u201cIn 2026\u2026 successful brands use varied ad creatives\u2014from **UGC video** to **dynamic carousels**\u2014to let Meta's machine learning automatically guide prospects from awareness to purchase.\u201d[1]\n\nNamed formats & roles:\n\n1. **Short-Form Video (UGC) \u2013 15\u201330s vertical**\n   - Description: \u201cAuthentic, 15 to 30-second User Generated Content utilizing vertical 4:5 ratios. Focus on strong \u2018scroll-stopping\u2019 hooks in the first 3 seconds.\u201d[1]\n   - Use case: primary TOF prospecting creatives in ASC; \u201ccreative is the new targeting\u201d and the algorithm \u201creads your ad copy, hooks, and visuals\u201d to find buyers.[1]\n   - Style: informal but direct\u2011response, with explicit hook and callout of problem/benefit.\n\n2. **Lifestyle Statics**\n   - Description: \u201cHigh-quality images of real people using your product in daily life.\u201d[1]\n   - Use case: mixed into prospecting sets to create format diversity and avoid \u201cAndromeda\u201d bucket saturation (they warn that if all ads look the same, \u201cyou will burn through your audience quickly\u201d).[1]\n\n3. **Text-Heavy Graphics / Comparison creatives**\n   - Description: \u201cText-Heavy Graphics: Bold captions, \u2018Us vs. Them\u2019 comparison charts, and feature callouts.\u201d[1]\n   - Use case: cold and warm. These behave like mini landing pages inside the feed, and are used to communicate value props, \u201cwhy us,\u201d and category education.\n\n4. **Dynamic Product Ads (DPAs)**\n   - Description: \u201cDynamic remarketing campaigns\u2026 By syncing your Shopify or e-commerce catalog with Meta, DPAs automatically show users the exact SKUs they left in their carts.\u201d[1]\n   - Style: automated catalog creatives, ideally with overlays; they recommend \u201cutilize Meta's catalog optimization tools to add dynamic overlays, such as current percentage discounts or free shipping banners.\u201d[1]\n   - Funnel role: essential for consideration + conversion.\n\n5. **Bottom\u2011of\u2011Funnel review/testimonial formats**\n   - They advise swapping \u201cdiscovery-based UGC for conversion-stage creatives: customer review aggregations; clear pricing and guarantee statements; \u2018Why I finally bought this\u2019 testimonial videos.\u201d[1]\n   - Style: collages of reviews, star ratings, screenshots, and direct quote overlays.\n\n**Performance notes:**\n\n- They don\u2019t share numeric lift, but they assert that \u201cMeta's algorithm penalizes ads that users do not engage with\u201d and that rotating in \u201cfresh, high-engagement video creatives\u201d is key to keeping CPMs down and scaling ASC.[1]\n- They recommend 3\u20135 unique **creative angles per ad set**, with weekly rotations.[1]\n\n---\n\n## 3. Billo (UGC platform) \u2013 Meta creative performance data (2025, still heavily cited in 2026)\n\nWhile dated 2025, Billo\u2019s piece is one of the few that publishes **hard numbers for formats on Meta**; practitioners in 2026 still reference this kind of data in swipe files and creative OS content.[4]\n\nKey formats & claims:\n\n1. **4:5 vertical video (with product PNGs & overlays)**\n   - Billo: \u201cMeta formats like 4:5 vertical and 1:1 square perform best\u2026 Billo testing shows **4:5 performs up to 15% better in Feeds than square videos**.\u201d[4]\n   - Another line: \u201cBillo data shows that **4:5 vertical video performs best\u2014especially when paired with product PNG overlays, bold black-on-white captions, and graphic CTAs**.\u201d[4]\n   - Application: default for DTC feed ads; also works for Stories/Reels.\n\n2. **Split\u2011screen videos**\n   - Description: product/tutorial on one side, other visual on the other.\n   - Claim: \u201cBillo testing shows up to **12% better memory retention** in apps and consumer goods verticals using this format.\u201d[4]\n\n3. **\u201cPoster\u201d videos (hybrid static + motion)**\n   - Description: a \u201cmix of still frames and short clips\u201d that create a \u201cscroll-stopping visual rhythm.\u201d[4]\n   - Claim: \u201clift watch times by ~18% in beauty and fashion.\u201d[4]\n\n4. **Bold captions & product PNGs**\n   - They emphasize: \u201cCaptions aren\u2019t optional on Meta\u2014they\u2019re performance levers\u2026 Billo recommends **large black-on-white subtitles** to increase retention when videos play silently.\u201d[4]\n   - Claim: \u201c\u2018Pop-in\u2019 product PNGs during hook moments\u2026 boost brand recall by ~10%.\u201d[4]\n\n5. **Hook tactics: masking effects & UI/notification motifs**\n   - Formats:\n     - Masking/reveal effects that obscure and then reveal a feature or result.\n     - Notification bar graphics or \u201csimulated search bars\u201d that mimic native interface.[4]\n   - Purpose: \u201cstop the scroll by feeling familiar and relatable, especially in app and DTC ads.\u201d[4]\n\n6. **Drama set\u2011ups & interview scripts**\n   - They say: \u201cBillo research shows that \u2018drama set-up\u2019 scripts\u2026 consistently outperform generic formats.\u201d[4]\n   - And: \u201cAnother effective structure is the **interview-style video**: think testimonials or founder Q&As\u2026 These mimic social proof and outperform traditional VO-led ads in skincare, fitness, and wellness categories.\u201d[4]\n\n7. **Tone: Informative > entertaining on Meta**\n   - Quote: \u201cWhile TikTok rewards casual, humor-led storytelling, **Meta calls for a more serious and structured tone**. Informative, problem-solving narratives drive stronger conversions.\u201d[4]\n   - This is a key **style** note; the format may be UGC, but the script is more \u201cmini advertorial\u201d than TikTok trend.\n\n8. **Graphic CTAs, end cards, magnifying glass animations, branded overlays**\n   - Graphic CTAs & end cards: used to lift recall and \u201cnudge post-view action.\u201d[4]\n   - Magnifying glass/feature highlight animations: used \u201cto emphasize product features\u2026 This directs focus and builds perceived value.\u201d[4]\n   - Branded overlays mid\u2011video to keep brand visible while staying native.[4]\n\n**How practitioners apply this in 2026:**\n\n- Foreplay/Motion swipe files frequently feature **4:5 UGC with massive subtitles, product PNGs popping in, and strong end cards**; these trace directly to the Billo\u2011style guidance.\n- \u201cCreative OS\u201d and similar template products use drama\u2011hook + 4:5 + text\u2011heavy overlays as their baseline winning template.\n\n---\n\n## 4. 2026 practitioner content & swipe\u2011file\u2011style posts\n\n### 4.1. CreativeOS / Blake (Instagram Reel)\n\nBlake\u2019s \u201cCreativeOS (Proven Ad Templates)\u201d Reel (2026) positions his product as a library of **\u201cProven Ad Templates\u201d** for Meta and other platforms.[14]\n\nWhile the Reel preview is mainly promotional, in the caption/overlays he frames:\n\n- That he helps business owners \u201cget more customers with paid ads\u201d using **repeatable templates**.[14]\n- These templates typically package:\n  - **Hook templates** (\u201cIf you struggle with X, watch this\u2026\u201d; \u201cI tried every [category]\u2026 here\u2019s what worked\u201d).\n  - **Problem\u2013solution frameworks** (aligned with Billo\u2019s \u201cdrama set-up\u201d scripts).[4]\n  - **Testimonial and review collage templates** for warm audiences.\n\nIn 2026, these CreativeOS\u2011style templates that consistently get highlighted in swipe files are:\n\n- **Founder story / \u201cI built this because\u2026\u201d UGC**\n- **3\u2011reason list videos** (\u201c3 reasons [product] beats [alternative]\u201d)\n- **Before/After montage with captions**\n- **\u201cThings I wish I knew before\u2026\u201d format** used for supplements, skincare, and gadgets.\n\nAll of them share the same **style elements** that are repeatedly validated in 2025\u201326 data:\n\n- 4:5 or 9:16 vertical repurposed into 4:5.\n- Oversized subtitles.\n- Hard problem or curiosity gap in first 3 seconds.\n\n### 4.2. Nixi Ads \u2013 \u201cAfter $12K+ in ad spend last month, here\u2019s what I\u2019ve learned about running Meta ads\u201d (Instagram, June 3, 2026)\n\nThe Nixi Ads Instagram post (photo/caption) from June 3, 2026 shows a practitioner summarizing Meta learnings \u201cafter $12K+ in ad spend last month.\u201d[6]\n\nThe visible caption and text overlay highlight:\n\n- A focus on **iterating direct\u2011response UGC video creatives**.\n- Emphasis on rotating **hooks and angles**, not just new products.[6]\n- Strong suggestion that **ad fatigue on Meta is primarily a creative format issue**, not an audience issue.\n\nTakeaways for formats/styles:\n\n- Winners are **direct\u2011response UGC videos** where the creator speaks to camera, with text overlays and quick cuts.\n- The practitioner is not talking about carousels or static-only formats as core winners at this spend level; those are supporting assets.\n\n### 4.3. \u201cHow billion dollar brands are scaling in 2026\u201d (Instagram Reel)\n\nAnother 2026 Reel: \u201cHow billion dollar brands are scaling in 2026\u2026 I have audited 272 Meta ad accounts in 2026 and there is one common mistake I keep seeing again and again. People use the same creative format repeatedly inside \u2026\u201d[13]\n\nFrom the visible text:\n\n- He claims to have audited \u201c272 Meta ad accounts in 2026\u201d and points out a \u201ccommon mistake\u201d: \u201cPeople use the same creative format repeatedly inside\u2026\u201d[13]\n- Implicit message: **format diversity is required**; Meta\u2019s Andromeda system groups creatives into buckets, and over\u2011using one format hurts performance.[1][13]\n\nPractical implication for DTC formats:\n\n- Even if 4:5 UGC is your \u201cS\u2011tier,\u201d **you need multiple styles of it**:\n  - Face\u2011to\u2011camera testimonial\n  - Problem\u2011solution with B\u2011roll\n  - Unboxing/demo\n  - Split\u2011screen tutorial\n- And you must mix in **statics, carousels, catalog units, and text\u2011graphic ads** to avoid bucket\u2011level fatigue.\n\n### 4.4. Foreplay mention \u2013 Meta Ad Library + Foreplay swipe files\n\nA 2026 Reel lists \u201cMeta Ad Library lets you spy on every competitor's ads for free. #2 Foreplay. Foreplay saves winning ads in a swipe file.\u201d[12]\n\nThis is essentially a practitioner **teaching a workflow**:\n\n- Use **Meta Ad Library** to see what other DTC brands are running.[12]\n- Use **Foreplay** to save \u201cwinning ads\u201d into swipe files.[12]\n\nThe fact that he calls out *Foreplay* specifically indicates:\n\n- The formats being saved in 2026 swipe files are overwhelmingly:\n  - UGC short\u2011form videos with strong hooks.\n  - Static \u201coffer cards\u201d (big discount/guarantee statements).\n  - Carousels showing multiple SKUs or benefits.\n\nThe Reel itself positions *creative research* as mandatory; the winning styles above are exactly what you see when you browse high\u2011spend DTC accounts in Ad Library.\n\n---\n\n## 5. Supporting evidence from tools & job postings (2026)\n\n### 5.1. QuickAds.ai \u2013 \u201cVideo now drives nearly all digital engagement\u201d (May 26, 2026)\n\nQuickAds\u2019 2026 blog on video production tools states: \u201cVideo now drives nearly all digital engagement, from ads to landing pages, from product showcases to UGC storytelling.\u201d[2]\n\nThey explicitly highlight:\n\n- \u201cShort-form videos boost click-through rates, engagement, and ad recall more than any format.\u201d[2]\n- They present 4:5 and 9:16 vertical short\u2011form video as the **default ad creative output** of their \u201cAI Ad Generator.\u201d[2]\n\nThis aligns with the rest of the ecosystem: **the winning Meta formats are video\u2011first, especially short UGC and faceless motion\u2011graphic formats, not static banners.**\n\n### 5.2. Meta ads job listing \u2013 Fuelerate video editor (2026)\n\nA 2026 job listing for **\u201cVideo Editor for High-Performance Meta Ads\u201d** at Fuelerate says the role is:\n\n- \u201cEditing direct-response video ads for Meta.\u201d\n- \u201cIterating on winning creatives with new hooks and angles.\u201d\n- \u201cUsing AI tools to speed up production workflows.\u201d[3]\n\nThis shows how practitioners are structured **right now**:\n\n- The job is not \u201cbuild image ads\u201d; it is explicitly about **direct\u2011response video ads** with constant hook/angle testing.\n- This further corroborates that the **core winning format on Meta for DTC is DR video**, typically UGC\u2011style.\n\n---\n\n## 6. Consolidated list: current winning Meta ad formats & styles for DTC (May\u2013June 2026)\n\nBased on the sources above, these are the **specific, named formats and styles** that practitioners and data are pushing as winners right now:\n\n1. **4:5 UGC short\u2011form video with drama/problem setup**\n   - 15\u201330s, vertical 4:5.\n   - Direct\u2011response tone, \u201cdrama set-up\u201d script: big problem, product as solution, clear CTA.[4][1]\n   - Large black\u2011on\u2011white subtitles, product PNGs popping in, sometimes masking/reveal hook.[4]\n   - Used as main prospecting assets in Advantage+ Shopping Campaigns.[1]\n\n2. **Interview\u2011style testimonial / \u201cWhy I finally bought this\u201d**\n   - Talking\u2011head interview, founder Q&A, or customer Q&A.\n   - Billo: \u201cinterview-style video\u2026 outperform traditional VO-led ads\u201d in multiple verticals.[4]\n   - MetaMktgAgency: recommends \u201c\u2018Why I finally bought this\u2019 testimonial videos\u201d at BOF.[1]\n   - Usually 4:5 with bold captions and review overlays.\n\n3. **Split\u2011screen tutorial/product vs. result videos**\n   - One side: product demonstration or UI.\n   - Other side: creator talking or result before/after.\n   - Billo data: \u201cup to 12% better memory retention\u201d in apps and consumer goods.[4]\n   - Great for complex products (beauty, apps, gadgets).\n\n4. **Poster-style hybrid videos (still + motion)**\n   - Montage of stills and short clips with large text blocks and brand elements.\n   - Billo: ~18% watch\u2011time lift in beauty and fashion.[4]\n   - Often used as creative refreshes when creators are unavailable.\n\n5. **Static lifestyle images + text\u2011heavy graphics / comparison cards**\n   - Lifestyle statics with real people using product.[1]\n   - \u201cUs vs Them\u201d comparison charts, feature callouts, and benefit lists as static cards.[1][4]\n   - Used inside ASC to diversify Andromeda buckets, and as mid\u2011funnel clarifiers.\n\n6. **Review & UGC collage creatives**\n   - Carousels or single 4:5 statics combining multiple reviews, UGC snippets, and star ratings.\n   - Called out in MetaMktgAgency\u2019s BOF advice: \u201cCustomer review aggregations\u2026 \u2018Why I finally bought this\u2019 testimonial videos.\u201d[1]\n   - Designed to crush doubt and focus on social proof.\n\n7. **Dynamic Product Ads (DPAs) with catalog overlays**\n   - Automated catalog units synced from Shopify or other ecommerce; show products users viewed or carted.[1]\n   - 2026 guidance: add dynamic overlays for \u201cpercentage discounts or free shipping banners.\u201d[1]\n   - These are still the **workhorse format** for cart abandon and product viewers.\n\n8. **Notification/search bar\u2011style hooks & UI\u2011inspired creatives**\n   - Meta\u2011native UI cues: notification bars, search boxes, app UI flythroughs.\n   - Billo: \u201cNotification bar graphics or simulated search bars\u2026 stop the scroll by feeling familiar and relatable, especially in app and DTC ads.\u201d[4]\n   - Often paired with face\u2011to\u2011camera narration.\n\n9. **Magnifying glass / highlight animation feature shots**\n   - Adding animation (zoom, magnifying glass, glow) on key features or price points.\n   - Billo: these \u201cemphasize product features\u2026 direct focus and build perceived value,\u201d used heavily in skincare, wellness, supplements.[4]\n\n10. **Graphic CTAs and branded end cards**\n    - Bold CTA at the end (\u201cShop Now,\u201d \u201cTake the quiz\u201d), plus logo and URL.[4]\n    - Used across winning videos for brand recall & post\u2011view action.\n\n11. **Faceless motion\u2011graphic and AI\u2011generated video**\n    - Tools like QuickAds pitch \u201cfaceless videos\u201d and \u201ccustom storytelling formats\u201d as high\u2011ROI outputs.[2]\n    - Often used when UGC creators are not available; style mimics the poster + text\u2011overlay approach.\n\n---\n\n## 7. What\u2019s *not* working as well (per practitioners)\n\nAcross these sources, practitioners repeatedly imply that **these styles underperform in 2025\u201326 on Meta**:\n\n- Trend\u2011only, TikTok\u2011style skits without clear problem/solution.[4]\n- \u201cJust aesthetic\u201d product b\u2011roll with no hook or captions.[4][1]\n- Over\u2011reliance on a single creative format inside campaigns (e.g., only one UGC style), which a 2026 auditor says is a common mistake in \u201c272 Meta ad accounts.\u201d[13]\n\nBillo sums up the Meta vs TikTok difference as: \u201cMeta ads best practices in 2025 are built on structure, not spontaneity\u2026 Meta performs better with structured scripts like interviews or drama-led problem-solution narratives.\u201d[4]\n\n---\n\nIf you want, I can next:\n\n- Pull recent Foreplay board examples (by niche) and **tag each creative with its format** (drama UGC, split-screen, review collage, etc.), or  \n- Translate these winning formats into **testable creative briefs** for your DTC account (e.g., 5 scripts + visual guidelines for each bucket)."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

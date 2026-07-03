@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thinking Block V2 — Creative Concepts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0f0f;
+    color: #f5f5f5;
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    padding: 40px 60px;
+  }
+  :root {
+    --accent: #ff6b6b;
+    --accent-glow: rgba(255, 107, 107, 0.25);
+    --accent-dim: rgba(255, 107, 107, 0.5);
+    --accent-faint: rgba(255, 107, 107, 0.1);
+    --bg-raised: #171717;
+    --bg-elevated: #1f1f1f;
+    --border: #2a2a2a;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-muted: #555;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 48px; }
+  .concept { margin-bottom: 72px; }
+  .concept-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+  .concept-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; max-width: 520px; line-height: 1.6; }
+
+  .chat-frame {
+    max-width: 480px;
+    background: var(--bg-raised);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .chat-body { padding: 20px 16px; }
+  .user-msg {
+    background: var(--accent);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 12px 12px 4px 12px;
+    font-size: 13px;
+    display: inline-block;
+    float: right;
+    margin-bottom: 20px;
+    clear: both;
+  }
+  .agent-area { clear: both; }
+  .ts { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
+
+  /* Twin orbit reused */
+  .orb { position: relative; display: inline-block; width: 14px; height: 14px; flex-shrink: 0; }
+  .orb .t { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--accent-faint); }
+  .orb .dw { position: absolute; inset: 0; animation: os 1.4s linear infinite; }
+  .orb .dw:nth-child(3) { animation-delay: 0.7s; }
+  .orb .d { width: 3.5px; height: 3.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .orb .dw:nth-child(3) .d { background: var(--accent-dim); box-shadow: none; }
+  @keyframes os { from { transform: rotate(0deg) translateX(calc(50% - 1.5px)) rotate(0deg); } to { transform: rotate(360deg) translateX(calc(50% - 1.5px)) rotate(-360deg); } }
+
+  /* ═══════════════════════════════════════ */
+  /* F. EMOJI STORY                          */
+  /* ═══════════════════════════════════════ */
+  .emoji-row {
+    display: flex; align-items: center; gap: 4px;
+    padding: 8px 0;
+  }
+  .emoji-step {
+    display: flex; align-items: center; justify-content: center;
+    width: 36px; height: 36px;
+    border-radius: 10px;
+    font-size: 18px;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    position: relative;
+  }
+  .emoji-step.done {
+    background: rgba(34, 197, 94, 0.08);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  .emoji-step.active {
+    background: var(--accent-faint);
+    border: 1px solid rgba(255, 107, 107, 0.3);
+    box-shadow: 0 0 16px rgba(255, 107, 107, 0.12);
+    animation: emojiPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    transform: scale(1.1);
+  }
+  .emoji-step.pending {
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    opacity: 0.4;
+  }
+  .emoji-arrow {
+    color: var(--text-muted); font-size: 10px;
+    transition: color 0.3s;
+  }
+  .emoji-arrow.lit { color: rgba(34, 197, 94, 0.5); }
+  .emoji-label {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 8px;
+  }
+  .emoji-label .text { font-size: 12px; color: var(--text-secondary); }
+  .emoji-label .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .emoji-label .timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+  @keyframes emojiPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1.1); opacity: 1; }
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* G. TYPEWRITER TICKER                    */
+  /* ═══════════════════════════════════════ */
+  .ticker-container {
+    overflow: hidden;
+    padding: 10px 0;
+  }
+  .ticker-line {
+    display: flex; align-items: center; gap: 10px;
+    min-height: 24px;
+  }
+  .ticker-text {
+    font-size: 13px;
+    color: var(--text-secondary);
+    overflow: hidden;
+    white-space: nowrap;
+    border-right: 2px solid var(--accent);
+    animation: tickerBlink 0.8s step-end infinite;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .ticker-history {
+    font-size: 11px;
+    color: var(--text-muted);
+    padding: 3px 0;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+  }
+  @keyframes tickerBlink {
+    0%, 100% { border-color: var(--accent); }
+    50% { border-color: transparent; }
+  }
+  @keyframes fadeIn {
+    to { opacity: 1; }
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* H. PAINT FILL                           */
+  /* ═══════════════════════════════════════ */
+  .paint-container { padding: 8px 0; }
+  .paint-bar {
+    height: 4px;
+    border-radius: 3px;
+    background: var(--bg-elevated);
+    overflow: hidden;
+    position: relative;
+  }
+  .paint-fill {
+    height: 100%;
+    border-radius: 3px;
+    position: relative;
+    transition: width 1.5s cubic-bezier(0.22, 1, 0.36, 1);
+    background: linear-gradient(90deg,
+      #4361ee 0%,
+      #7c8cf5 25%,
+      var(--accent) 50%,
+      #ff8f8f 75%,
+      #ffb366 100%
+    );
+    background-size: 200% 100%;
+    animation: paintShift 3s ease-in-out infinite;
+  }
+  .paint-fill::after {
+    content: '';
+    position: absolute;
+    right: 0; top: -2px; bottom: -2px;
+    width: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow), 0 0 20px var(--accent-glow);
+    animation: paintGlow 1.5s ease-in-out infinite;
+  }
+  @keyframes paintShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  @keyframes paintGlow {
+    0%, 100% { box-shadow: 0 0 8px var(--accent-glow); }
+    50% { box-shadow: 0 0 16px var(--accent-glow), 0 0 24px rgba(255,107,107,0.15); }
+  }
+  .paint-labels {
+    display: flex; justify-content: space-between;
+    margin-top: 8px;
+  }
+  .paint-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px;
+    transition: color 0.4s;
+  }
+  .paint-label.done { color: var(--text-muted); }
+  .paint-label.active { color: var(--accent); font-weight: 600; }
+  .paint-label.pending { color: #333; }
+  .paint-status {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px;
+  }
+  .paint-status .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .paint-status .timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ═══════════════════════════════════════ */
+  /* I. CONSTELLATION                        */
+  /* ═══════════════════════════════════════ */
+  .constellation {
+    position: relative;
+    width: 200px; height: 60px;
+    margin: 12px 0;
+  }
+  .star {
+    position: absolute;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    transition: all 0.5s ease;
+  }
+  .star.done {
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow);
+  }
+  .star.active {
+    background: var(--accent);
+    box-shadow: 0 0 12px var(--accent-glow), 0 0 24px rgba(255,107,107,0.2);
+    animation: starPulse 1.5s ease-in-out infinite;
+  }
+  .star.pending {
+    background: #333;
+    width: 6px; height: 6px;
+  }
+  .star-label {
+    position: absolute;
+    font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .star-label.done { color: var(--text-muted); }
+  .star-label.active { color: var(--accent); }
+  .star-label.pending { color: #333; }
+  @keyframes starPulse {
+    0%, 100% { transform: scale(1); box-shadow: 0 0 8px var(--accent-glow); }
+    50% { transform: scale(1.4); box-shadow: 0 0 16px var(--accent-glow), 0 0 32px rgba(255,107,107,0.15); }
+  }
+  .star-line {
+    position: absolute;
+    height: 1px;
+    transform-origin: left center;
+    transition: all 0.6s ease;
+  }
+  .star-line.done { background: linear-gradient(90deg, var(--accent-dim), var(--accent-dim)); opacity: 0.4; }
+  .star-line.active { background: linear-gradient(90deg, var(--accent-dim), transparent); opacity: 0.3; animation: linePulse 2s ease-in-out infinite; }
+  .star-line.pending { background: #222; }
+  @keyframes linePulse { 0%,100% { opacity: 0.2; } 50% { opacity: 0.5; } }
+
+  .const-status {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 4px;
+  }
+  .const-status .text { font-size: 12px; color: var(--text-secondary); }
+  .const-status .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .const-status .timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ═══════════════════════════════════════ */
+  /* J. SPARKLE TRAIL                        */
+  /* ═══════════════════════════════════════ */
+  .sparkle-container {
+    position: relative;
+    padding: 12px 0;
+  }
+  .sparkle-line {
+    display: flex; align-items: center; gap: 10px;
+  }
+  .sparkle-icon {
+    font-size: 16px;
+    animation: sparkleRotate 2s ease-in-out infinite;
+    filter: drop-shadow(0 0 4px var(--accent-glow));
+  }
+  @keyframes sparkleRotate {
+    0%, 100% { transform: rotate(0deg) scale(1); filter: drop-shadow(0 0 4px var(--accent-glow)); }
+    25% { transform: rotate(15deg) scale(1.2); filter: drop-shadow(0 0 8px var(--accent-glow)); }
+    50% { transform: rotate(0deg) scale(1); }
+    75% { transform: rotate(-10deg) scale(1.1); filter: drop-shadow(0 0 6px var(--accent-glow)); }
+  }
+  .sparkle-text { font-size: 13px; color: var(--text-secondary); }
+  .sparkle-verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .sparkle-timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+  /* floating sparkles */
+  .sparkles {
+    position: absolute; inset: 0; pointer-events: none; overflow: hidden;
+  }
+  .sparkle-particle {
+    position: absolute;
+    font-size: 10px;
+    opacity: 0;
+    animation: sparkleFloat 2.5s ease-in-out infinite;
+  }
+  @keyframes sparkleFloat {
+    0% { opacity: 0; transform: translateY(0) scale(0.5); }
+    20% { opacity: 0.8; transform: translateY(-8px) scale(1); }
+    80% { opacity: 0.3; transform: translateY(-20px) scale(0.7); }
+    100% { opacity: 0; transform: translateY(-28px) scale(0.3); }
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* K. MORPHING BLOB                        */
+  /* ═══════════════════════════════════════ */
+  .blob-container {
+    display: flex; align-items: center; gap: 14px;
+    padding: 12px 0;
+  }
+  .blob {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), #4361ee);
+    animation: blobMorph 4s ease-in-out infinite, blobRotate 6s linear infinite;
+    box-shadow: 0 0 20px var(--accent-glow);
+    flex-shrink: 0;
+  }
+  @keyframes blobMorph {
+    0%, 100% { border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%; }
+    25% { border-radius: 30% 60% 70% 40% / 50% 60% 30% 60%; }
+    50% { border-radius: 50% 60% 30% 40% / 40% 50% 60% 50%; }
+    75% { border-radius: 40% 30% 60% 50% / 60% 40% 50% 70%; }
+  }
+  @keyframes blobRotate {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  .blob-info { flex: 1; }
+  .blob-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .blob-meta {
+    display: flex; align-items: center; gap: 8px; margin-top: 3px;
+  }
+  .blob-meta .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .blob-meta .timer { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .blob-dots {
+    display: flex; gap: 4px; margin-top: 6px;
+  }
+  .blob-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+  }
+  .blob-dot.done { background: var(--accent); opacity: 0.6; }
+  .blob-dot.active { background: var(--accent); animation: starPulse 1.5s ease-in-out infinite; }
+  .blob-dot.pending { background: #333; }
+
+</style>
+</head>
+<body>
+
+<h1>Thinking Block V2 — Creative Concepts</h1>
+<div class="subtitle">Fun, creative ideas for a creative ad tool. No boring boxes.</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- F. EMOJI STORY                          -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">F. Emoji Story</div>
+  <div class="concept-desc">Each phase is an emoji that bounces in. Active one scales up with a glow. Arrows connect them. Playful, instantly readable, zero cognitive load.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="emoji-row">
+          <div class="emoji-step done">🔍</div>
+          <span class="emoji-arrow lit">→</span>
+          <div class="emoji-step done">🎣</div>
+          <span class="emoji-arrow lit">→</span>
+          <div class="emoji-step active">🎨</div>
+          <span class="emoji-arrow">→</span>
+          <div class="emoji-step pending">🖼️</div>
+        </div>
+        <div class="emoji-label">
+          <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+          <span class="text">Creating art direction</span>
+          <span class="verb" id="vF">Conjuring...</span>
+          <span class="timer" id="tF">2:05</span>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- G. TYPEWRITER TICKER                    -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">G. Typewriter Ticker</div>
+  <div class="concept-desc">The agent's thoughts type out one by one, like watching someone think in real-time. Old thoughts fade to gray. Current one has a blinking cursor. Feels alive and personal.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="ticker-container">
+          <div class="ticker-history" style="animation-delay:0s">🔍 Found educational platform targeting college students</div>
+          <div class="ticker-history" style="animation-delay:0.1s">🎣 Wrote 6 hooks — stat, story, fomo, curiosity, callout, contrast</div>
+          <div class="ticker-line">
+            <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+            <div class="ticker-text" id="tickerG">Creating art direction for bold typography style</div>
+          </div>
+        </div>
+        <div class="ts">Agent · <span id="tG">2:15</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- H. PAINT FILL                           -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">H. Paint Fill</div>
+  <div class="concept-desc">A gradient bar that fills like paint spreading across a canvas. Colors shift as phases change. The leading edge glows. Phase labels below. Feels like watching art being made.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="paint-container">
+          <div class="paint-bar">
+            <div class="paint-fill" id="paintH" style="width: 62%"></div>
+          </div>
+          <div class="paint-labels">
+            <span class="paint-label done">Research</span>
+            <span class="paint-label done">Hooks</span>
+            <span class="paint-label active">Art</span>
+            <span class="paint-label pending">Images</span>
+          </div>
+          <div class="paint-status">
+            <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+            <span style="font-size:12px; color:var(--text-secondary)">Creating art direction</span>
+            <span class="verb" id="vH">Painting...</span>
+            <span class="timer" id="tH">2:05</span>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- I. CONSTELLATION                        -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">I. Constellation</div>
+  <div class="concept-desc">Four stars connected by lines. As phases complete, stars light up and lines connect. The active star pulses. Like charting a creative journey through the stars.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="constellation">
+          <!-- Lines -->
+          <div class="star-line done" style="left:8px; top:12px; width:52px; transform:rotate(20deg)"></div>
+          <div class="star-line done" style="left:62px; top:18px; width:58px; transform:rotate(-15deg)"></div>
+          <div class="star-line active" style="left:122px; top:8px; width:56px; transform:rotate(25deg)"></div>
+          <!-- Stars -->
+          <div class="star done" style="left:4px; top:8px"></div>
+          <div class="star done" style="left:58px; top:22px"></div>
+          <div class="star active" style="left:118px; top:4px"></div>
+          <div class="star pending" style="left:176px; top:28px"></div>
+          <!-- Labels -->
+          <span class="star-label done" style="left:0; top:22px">Research</span>
+          <span class="star-label done" style="left:44px; top:36px">Hooks</span>
+          <span class="star-label active" style="left:108px; top:18px">Art</span>
+          <span class="star-label pending" style="left:168px; top:42px">Images</span>
+        </div>
+        <div class="const-status">
+          <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+          <span class="text">Creating art direction</span>
+          <span class="verb" id="vI">Dreaming...</span>
+          <span class="timer" id="tI">2:05</span>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- J. SPARKLE TRAIL                        -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">J. Sparkle Trail</div>
+  <div class="concept-desc">A magic wand sparkle that dances while the agent works. Floating sparkle particles drift upward. The status line is simple — let the sparkle do the talking. Whimsical and fun.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="sparkle-container">
+          <div class="sparkles">
+            <span class="sparkle-particle" style="left:10%; animation-delay:0s">✦</span>
+            <span class="sparkle-particle" style="left:25%; animation-delay:0.4s">✧</span>
+            <span class="sparkle-particle" style="left:45%; animation-delay:0.8s">✦</span>
+            <span class="sparkle-particle" style="left:65%; animation-delay:1.2s">✧</span>
+            <span class="sparkle-particle" style="left:80%; animation-delay:1.6s">✦</span>
+            <span class="sparkle-particle" style="left:15%; animation-delay:2s">✧</span>
+            <span class="sparkle-particle" style="left:55%; animation-delay:0.2s">✦</span>
+            <span class="sparkle-particle" style="left:35%; animation-delay:1s">✧</span>
+          </div>
+          <div class="sparkle-line">
+            <span class="sparkle-icon">✨</span>
+            <span class="sparkle-text">Creating art direction</span>
+            <span class="sparkle-verb" id="vJ">Conjuring...</span>
+            <span class="sparkle-timer" id="tJ">2:05</span>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- K. MORPHING BLOB                        -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">K. Morphing Blob</div>
+  <div class="concept-desc">A small gradient blob that continuously morphs shape — organic, alive, like creative energy. Phase dots below show progress. The blob IS the spinner. Mesmerizing and unique.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="blob-container">
+          <div class="blob"></div>
+          <div class="blob-info">
+            <div class="blob-phase">Creating art direction</div>
+            <div class="blob-meta">
+              <span class="verb" id="vK">Manifesting...</span>
+              <span class="timer" id="tK">2:05</span>
+            </div>
+            <div class="blob-dots">
+              <div class="blob-dot done"></div>
+              <div class="blob-dot done"></div>
+              <div class="blob-dot active"></div>
+              <div class="blob-dot pending"></div>
+            </div>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 80px"></div>
+
+<script>
+  const VERBS = [
+    'Pondering', 'Cogitating', 'Noodling', 'Brewing', 'Conjuring',
+    'Scheming', 'Vibing', 'Spelunking', 'Wrangling', 'Simmering',
+    'Manifesting', 'Ruminating', 'Percolating', 'Tinkering', 'Musing',
+    'Crafting', 'Painting', 'Imagining', 'Weaving', 'Composing',
+    'Channeling', 'Transmuting', 'Hatching', 'Incubating', 'Dreaming',
+  ];
+  const verbIds = ['vF','vH','vI','vJ','vK'];
+  setInterval(() => {
+    verbIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = VERBS[Math.floor(Math.random() * VERBS.length)] + '...';
+    });
+  }, 800);
+
+  // Timers
+  const timers = { tF:125, tG:135, tH:125, tI:125, tJ:125, tK:125 };
+  setInterval(() => {
+    Object.keys(timers).forEach(id => {
+      timers[id]++;
+      const s = timers[id];
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+    });
+  }, 1000);
+
+  // Typewriter ticker
+  const thoughts = [
+    '🔍 Found educational platform targeting college students',
+    '🎣 Writing stat hook — "89% of students who..."',
+    '🎣 Writing story hook — "Meet Priya, who discovered..."',
+    '🎣 All 6 hooks complete',
+    '🎨 Selecting bold typography style',
+    '🎨 Creating art direction for warm tones',
+    '🖼️ Generating image 1 of 6...',
+    '🖼️ Generating image 2 of 6...',
+  ];
+  let thoughtIdx = 0;
+  const tickerEl = document.getElementById('tickerG');
+  setInterval(() => {
+    thoughtIdx = (thoughtIdx + 1) % thoughts.length;
+    tickerEl.style.opacity = '0';
+    tickerEl.style.transition = 'opacity 0.3s';
+    setTimeout(() => {
+      tickerEl.textContent = thoughts[thoughtIdx];
+      tickerEl.style.opacity = '1';
+    }, 300);
+  }, 3000);
+
+  // Paint fill slow creep
+  let paintWidth = 62;
+  setInterval(() => {
+    paintWidth = Math.min(paintWidth + 0.3, 95);
+    document.getElementById('paintH').style.width = paintWidth + '%';
+  }, 500);
+</script>
+
+</body>
+</html>

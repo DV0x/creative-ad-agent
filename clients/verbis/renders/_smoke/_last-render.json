@@ -1,0 +1,16 @@
+[
+  {
+    "name": "smoke-t2i",
+    "mode": "t2i",
+    "filePath": "/Users/chakra/Documents/Agents/creative_agent/clients/verbis/renders/_smoke/smoke-t2i_2026-07-01T09-19-56.png",
+    "sizeKB": 833,
+    "falUrl": "https://v3b.fal.media/files/b/0aa07c5d/Zk366Hbkm_JPDY8HxDxYR_MizLhiFl.png"
+  },
+  {
+    "name": "smoke-edit",
+    "mode": "edit",
+    "filePath": "/Users/chakra/Documents/Agents/creative_agent/clients/verbis/renders/_smoke/smoke-edit_2026-07-01T09-20-33.png",
+    "sizeKB": 937,
+    "falUrl": "https://v3b.fal.media/files/b/0aa07c60/U32HIwE5gbKVrFmcjEMvP_itdEBvXC.png"
+  }
+]

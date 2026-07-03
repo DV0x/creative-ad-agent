@@ -1,0 +1,18 @@
+Create a 4:5 vertical advertisement, 1080×1350, for an Instagram feed ad.
+
+This is a bright commercial macro product photograph finished with clean designer overlay graphics — shot by a product photographer, overlays added by a performance designer.
+
+Scene: the product pouch is the hero — it fills the center of the frame from near the bottom edge up to about 75% of the frame height, standing upright, photographed nearly straight-on with a slight 10-degree turn, in bright, even, commercial studio light against a plain pale warm-grey studio backdrop. Every printed element of the pack face is crisp and legible. One true soft shadow under the pouch.
+
+Top: a cream horizontal band across the full width with a dark charcoal bold sans-serif headline: "Read the label. That's the whole ad."
+
+Two white rounded callout chips, with NO pointer lines, floating along the right margin beside the pack, each sitting at the exact height of the pack element it labels, slightly overlapping the pack's right edge:
+- Upper chip, at the height of the dark plum protein badge: chip text in dark charcoal: "24g protein per scoop"
+- Lower chip, at the height of the small gold Trustified dot: chip text in dark charcoal: "Trustified — third-party verified"
+
+Bottom-left: small cream rounded chip with dark charcoal text: "#nothingtohide"
+Bottom-right: dark plum rounded chip with cream text: "Shop now · thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): a bright raspberry-magenta stand-up pouch, wide and squat — nearly as wide as it is tall — matte finish, gusseted base. In the upper-left area of the pack face, the white stacked brand wordmark on three lines, exactly in this order: a small lowercase "the" on the first line, then "Whole" in bold on the second line, then "Truth" in bold on the third line — together reading "The Whole Truth". Never reorder these three words. In the upper right, a dark plum rounded badge reading "24 g protein per scoop" in white; beneath it, small white text lines printed directly on the magenta surface — "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" beside a small gold dot. Across the center-left in large white type: "Cleanest, lightest whey protein. Ever." with a small paragraph of fine white text below it. A small green vegetarian mark. Near the bottom, a dark rounded band reading "light cocoa · whey protein isolate + concentrate". A bold white panel with fine grey diagonal stripes wraps the pouch's left edge. There is no red corner ribbon and no large gold seal anywhere — those are website graphics, not part of the pack. The protein badge reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the pale studio backdrop, the hero pouch with its shadow, the top cream headline band, the two callout chips with their pointer lines, and the two bottom chips. All text exactly as written above, no extra words anywhere.

@@ -1,0 +1,171 @@
+{
+  "id": "4f69761b-85af-43f3-8fd8-9a2d3543f93d",
+  "model": "sonar-pro",
+  "created": 1781267877,
+  "usage": {
+    "prompt_tokens": 314,
+    "completion_tokens": 4901,
+    "total_tokens": 5215,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00094,
+      "output_tokens_cost": 0.07351,
+      "request_cost": 0.014,
+      "total_cost": 0.08846
+    }
+  },
+  "citations": [
+    "https://www.socialmediaexaminer.com/facebook-ad-algorithm-changes-for-2026-what-marketers-need-to-know/",
+    "https://www.askneedle.com/blog/meta-ad-agencies",
+    "https://www.flighted.co/blog/7-meta-ads-creative-strategies-that-work",
+    "https://blog.hootsuite.com/instagram-ads-guide/",
+    "https://clicksgeek.com/fb-marketing-company/",
+    "https://www.youtube.com/watch?v=HXox1I6QQvQ",
+    "https://www.youtube.com/watch?v=R1SXcw9leZs&vl=en",
+    "https://sweatpantsagency.com/the-top-9-social-media-ad-agencies",
+    "https://admanage.ai/blog/how-many-ad-creatives-to-test",
+    "https://leadsbridge.com/blog/meta-ads-best-practices/",
+    "https://www.dataally.ai/blog/top-paid-media-agencies",
+    "https://www.admetrics.io/en/post/five-static-ad-formats-outperforming-video-in-2026",
+    "https://www.instagram.com/reel/DXKvS9QEkyo/",
+    "https://www.instagram.com/reel/DUakMrNjuk_/",
+    "https://adventuremedia.ai/blog/types-of-ad-creatives-boost-campaign-performance-en"
+  ],
+  "search_results": [
+    {
+      "title": "Facebook Ad Algorithm Changes for 2026: What Marketers Need to ...",
+      "url": "https://www.socialmediaexaminer.com/facebook-ad-algorithm-changes-for-2026-what-marketers-need-to-know/",
+      "date": "2025-12-18",
+      "last_updated": "2026-06-11",
+      "snippet": "Unlock lower ad costs and higher conversions with Meta's Andromeda algorithm\u2014learn how AI-driven creative targeting outperforms manual setup.",
+      "source": "web"
+    },
+    {
+      "title": "12 Best Resources for Meta Ad Agencies and DTC Brands in 2025",
+      "url": "https://www.askneedle.com/blog/meta-ad-agencies",
+      "date": "2025-12-22",
+      "last_updated": "2026-06-11",
+      "snippet": "Tired of slow, costly partners? Find the best Meta ad agencies and AI-powered alternatives for DTC brands looking to scale ads without the agency overhead.",
+      "source": "web"
+    },
+    {
+      "title": "7 Meta Ads Creative Strategies That Work in 2026 - Flighted",
+      "url": "https://www.flighted.co/blog/7-meta-ads-creative-strategies-that-work",
+      "date": "2026-03-12",
+      "last_updated": "2026-06-11",
+      "snippet": "The ideal number depends on budget, but most brands benefit from testing 8-16 new creative concepts per month, roughly 2-4 per week. This maintains a steady ...",
+      "source": "web"
+    },
+    {
+      "title": "Instagram ads: Everything you need to know in 2026 - Hootsuite Blog",
+      "url": "https://blog.hootsuite.com/instagram-ads-guide/",
+      "date": "2025-12-19",
+      "last_updated": "2026-06-12",
+      "snippet": "Learn how to create successful Instagram ads by addressing an audience that's ready to shop on the platform.",
+      "source": "web"
+    },
+    {
+      "title": "9 Best FB Marketing Companies to Grow Your Business in 2026",
+      "url": "https://clicksgeek.com/fb-marketing-company/",
+      "date": "2026-03-26",
+      "last_updated": "2026-06-11",
+      "snippet": "Voy Media is a performance marketing agency specializing in Facebook and Instagram advertising for e-commerce brands, with in-house creative production ...",
+      "source": "web"
+    },
+    {
+      "title": "Static Ads Ultimate Guide | The Easiest Ads to Scale FAST - YouTube",
+      "url": "https://www.youtube.com/watch?v=HXox1I6QQvQ",
+      "date": "2025-08-15",
+      "last_updated": "2026-06-12",
+      "snippet": "... Variations & A/B Testing 25:20 Measuring Performance 26:10 Final Thoughts & How to Work With Us Tools & Resources Mentioned: \u2022 Creative OS Templates \u2013 For ...",
+      "source": "web"
+    },
+    {
+      "title": "Complete Facebook Ads Course for 2026 (Step-By-Step) - YouTube",
+      "url": "https://www.youtube.com/watch?v=R1SXcw9leZs&vl=en",
+      "date": "2025-12-08",
+      "last_updated": "2026-06-12",
+      "snippet": "In this video you'll go from a brand-new ad account to testing creatives, reading your KPIs, and scaling winners without guessing. By the end of this video, ...",
+      "source": "web"
+    },
+    {
+      "title": "The Top 9 Social Media Ad Agencies in 2026",
+      "url": "https://sweatpantsagency.com/the-top-9-social-media-ad-agencies",
+      "date": "2025-12-10",
+      "last_updated": "2026-05-08",
+      "snippet": "The best social media advertising agencies of 2026, ranked by Meta and TikTok performance, creative testing systems, and proven revenue impact.",
+      "source": "web"
+    },
+    {
+      "title": "How Many Ad Creatives to Test? (The Real Answer) - AdManage.ai",
+      "url": "https://admanage.ai/blog/how-many-ad-creatives-to-test",
+      "date": "2025-12-11",
+      "last_updated": "2026-06-11",
+      "snippet": "For most advertisers, the sweet spot is around 3-5 creative variations in each test. This range provides enough diversity to spot performance patterns, without ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta ads best practices to follow in 2026 - LeadsBridge",
+      "url": "https://leadsbridge.com/blog/meta-ads-best-practices/",
+      "date": "2025-12-19",
+      "last_updated": "2026-06-12",
+      "snippet": "Discover key Meta ads best practices to optimize your campaigns for maximum impact, craft effective strategies to boost engagement and ROI.",
+      "source": "web"
+    },
+    {
+      "title": "Top 15 Paid Media Agencies in 2026 - Data Ally",
+      "url": "https://www.dataally.ai/blog/top-paid-media-agencies",
+      "date": "2026-02-12",
+      "last_updated": "2026-06-06",
+      "snippet": "Verdict: Darkroom is a top choice for DTC and eCommerce brands that need a paid media advertising agency combining creative production with performance ...",
+      "source": "web"
+    },
+    {
+      "title": "5 Static Ad Formats Outperforming Video in 2026 - Admetrics",
+      "url": "https://www.admetrics.io/en/post/five-static-ad-formats-outperforming-video-in-2026",
+      "date": "2026-04-17",
+      "last_updated": "2026-06-10",
+      "snippet": "This guide breaks down the five formats working right now, explains why they work, and shows you how to build them into a repeatable creative testing process.",
+      "source": "web"
+    },
+    {
+      "title": "Meta ran ads so well that it's projected to overtake Google's throne.",
+      "url": "https://www.instagram.com/reel/DXKvS9QEkyo/",
+      "date": "2026-04-15",
+      "last_updated": "2026-04-24",
+      "snippet": "It can run audience research, build reports, and support your ad workflow end to end. ... Static images alone are becoming weaker in many industries. Short ...",
+      "source": "web"
+    },
+    {
+      "title": "Brands using this ad strategy are winning. In this weeks episode we ...",
+      "url": "https://www.instagram.com/reel/DUakMrNjuk_/",
+      "date": "2026-02-06",
+      "last_updated": "2026-05-12",
+      "snippet": "Creative strategy allows you to work with agencies and brands from pre-production to post-production: ... And I just don't think that these big ad agencies or ...",
+      "source": "web"
+    },
+    {
+      "title": "Top types of ad creatives to boost campaign performance",
+      "url": "https://adventuremedia.ai/blog/types-of-ad-creatives-boost-campaign-performance-en",
+      "date": "2026-03-24",
+      "last_updated": "2026-05-31",
+      "snippet": "Allow sufficient impression volume before drawing conclusions, typically 1,000 to 2,000 impressions per variation minimum. Systematic creative testing and ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Most high-performing DTC / performance teams in 2025\u20132026 run **assembly\u2011line style workflows**: a strategist defines angles from data, copy + design build a *batch* of static variations per concept in Canva/Figma/Photoshop (increasingly with AI help), then media buyers test 3\u20135+ variations at once and iterate weekly or faster. Below is how real agencies and practitioners describe that end\u2011to\u2011end.\n\n---\n\n## 1. Who is involved & how the team is structured\n\nAcross performance agencies and DTC teams, roles typically split as:\n\n- **Creative strategist / performance creative lead**  \n  - Defines *angles*, formats, hooks, and test plans from performance data.  \n  - Flighted (a 2026 paid social agency) describes this as building a \u201ccreative variation library\u201d of hooks, bodies, and CTAs that can be \u201cmixed and matched\u201d for fast testing.[3\u202f(\u201cBuild a Creative Variation Library\u201d)]  \n  - Data Ally\u2019s 2026 agency guide says a strong paid media agency \u201cproduce[s] creative in-house based on performance data, with a systematic testing process for hooks, angles, and formats.\u201d[11\u202f(\u201cHow does your creative process work?\u201d)]\n\n- **Copywriter / direct\u2011response writer**  \n  - Writes primary text, headlines, and on\u2011image copy using DR frameworks (problem/solution, testimonials, us\u2011vs\u2011them, etc.).  \n  - In the *Static Ads Ultimate Guide* (2025), the instructor outlines a dedicated stage just for \u201cCopywriting for Conversions\u201d using those frameworks before design starts.[6\u202f(ts:14:30)]\n\n- **Graphic designer / creative producer**  \n  - Builds the static layouts and all variations; often working inside systematized templates.  \n  - Superside (subscription creative production) describes using \u201cspecialized designers\u2026 producing ad creative\u2026 at speeds and price points traditional agencies cannot match,\u201d emphasizing scalable template\u2011driven production.[8\u202f(\u201cSuperside has revolutionized\u2026\u201d)]  \n\n- **Media buyer / paid social strategist**  \n  - Owns campaign structure, uploading assets, and deciding which creatives to kill/scale.  \n  - Flighted emphasizes that creative testing is tied tightly to metrics like thumb\u2011stop rate, CTR, and CPA, and advises defining \u201cwin criteria before launch\u201d and then iterating creatives based on data.[3\u202f(\u201cDefine Win Criteria Before Launch\u201d)]  \n\n- **Occasionally: UGC creators, founder, or product team**  \n  - Provide raw product shots, lifestyle photos, or social proof elements.  \n  - Agencies like MuteSix and inBeat (highlighted in Data Ally\u2019s 2026 list) explicitly combine in\u2011house creative with UGC/creators for performance testing.[11\u202f(\u201cinBeat approaches paid media\u2026\u201d)]\n\nIn lean DTC brands, one person may cover copy + design; in larger agencies, each role is discrete but tightly coordinated.\n\n---\n\n## 2. Creative brief: what\u2019s actually in it\n\nModern performance briefs are short, but very concrete about **angle, offer, and constraints**. Practitioners emphasize:\n\n- **Performance context & goals**  \n  - Flighted recommends defining *win metrics* in the brief: \u201cthumbstop rate, CTR, or CPA threshold\u201d that will determine if a creative is a winner.[3\u202f(\u201cDefine Win Criteria Before Launch\u201d)]  \n  - Agencies also tie creative goals to funnel stage and landing page\u2014\u201cAlign Creative Angle With Funnel Stage and Landing Page.\u201d[3\u202f(\u201cAlign Creative Angle\u2026\u201d)]\n\n- **Audience & pain\u2011points**  \n  - The Static Ads guide starts by \u201cResearch your audience & product deeply \u2014 using AI tools like ChatGPT, Reddit Answers, and review mining to uncover pain points, motivations, and objections.\u201d[6\u202f(ts:01:04\u201306:42)]  \n  - That research is summarized into specific pains/benefits inside the brief (e.g. \u201cbusy moms, wants fast healthy meals, hates cleanup\u201d).\n\n- **Offer & positioning**  \n  - Clear SKU, price, promo (e.g. \u201cBuy 2, get 1 free\u201d), plus main claim(s).  \n  - Admetrics (2026 static creative guide) breaks creative into clear \u201cvalue prop\u201d formats where the offer and differentiation are front and center.[12\u202f(overview of static formats)]\n\n- **Required angles / formats**  \n  - Flighted recommends brands test \u201c8\u201316 new creative concepts per month\u201d and maintain a pipeline of formats and angles, so briefs typically specify which *angle* this batch should cover (e.g. \u201ctestimonial angle\u201d vs \u201cus\u2011vs\u2011them comparison\u201d).[3\u202f(\u201cMost brands benefit from testing 8\u201316\u2026\u201d)]  \n  - Social Media Examiner\u2019s 2026 Meta algorithm guide stresses building a \u201cdiverse library of assets\u201d around different \u201cpsychological angles\u201d such as pain, pleasure, curiosity, and testimonials.[1\u202f(\u201cPsychological Angles\u201d)]\n\n- **Visual constraints / brand guardrails**  \n  - Dimensions (1:1, 4:5, 9:16), allowed colors, logo use, legal disclaimers, compliance notes (especially for health/finance).  \n  - Social Media Examiner warns regulated industries must vet all AI\u2011generated copy because Meta\u2019s AI can easily break compliance rules.[1\u202f(\u201cCritical Warning\u201d)]  \n\n- **Deliverables & variation plan**  \n  - Count of **concepts** (e.g. 3 concepts) and **variations per concept** (e.g. 4\u20136 static variants).  \n  - Many testing frameworks, like AdManage.ai\u2019s, recommend \u201c3\u20135 creative variations in each test\u201d as a baseline.[9\u202f(\u201cFor most advertisers, the sweet spot is around 3\u20135\u2026\u201d)]\n\n---\n\n## 3. End\u2011to\u2011end production workflow (step\u2011by\u2011step)\n\nPulling from 2025\u20132026 resources, the \u201creal world\u201d workflow looks like this:\n\n### Step 1 \u2013 Research & angle discovery\n\nWho: **Creative strategist**, sometimes media buyer + copywriter.\n\nActivities (as described by practitioners):\n\n- **Mine reviews, Reddit, competitors, and UGC**  \n  - The Static Ads guide has a specific phase \u201cDeep Research: AI, Reddit, Reviews\u201d to think through \u201cevery possible reason why someone would buy or wouldn\u2019t buy\u201d and document pain points, objections, and desired outcomes.[6\u202f(ts:01:04\u201306:42, ts:1370+)]  \n  - Media buyers also scout competitors in Meta Ad Library; a 2026 Facebook Ads course shows using Ad Library plus TikTok and other sources to collect creative patterns and angles before building ads.[7\u202f(ts:665\u2013744)]\n\n- **Translate into angles & hooks**  \n  - Flighted recommends identifying angles tied to funnel stages and building a \u201ccreative variation library\u201d of hooks and CTAs that can be recombined.[3\u202f(\u201cCreative variation library\u201d)]  \n  - Social Media Examiner\u2019s 2026 piece stresses designing creatives that map to multiple psychological motivators (pain, pleasure, curiosity, testimonials, questions).[1\u202f(\u201cPsychological Angles\u201d)]  \n\nOutput: a short angle doc plus a filled\u2011in brief for each round of concepts.\n\n---\n\n### Step 2 \u2013 Brief finalization & test plan\n\nWho: **Creative strategist + media buyer**, then shared with copy/design.\n\n- Lock goals: What metric defines a winner (e.g. CTR > X%, CPA <$Y).[3\u202f(\u201cDefine Win Criteria\u2026\u201d)]  \n- Decide **how many concepts** and **variations per concept** for this testing cycle based on spend. Flighted suggests:\n  - Most brands: **2\u20134 new concepts per week**, or **8\u201316 per month**.[3\u202f(\u201cMost brands benefit from testing 2\u20134 new creative concepts per week\u201d)]  \n- Translate this into creative requirements (example):  \n  - 3 concepts \u00d7 4 static variations each = 12 new images for this week.\n\n---\n\n### Step 3 \u2013 Copywriting (ad text + on\u2011image copy)\n\nWho: **Copywriter / strategist\u2011writer**\n\nPractitioner details:\n\n- The Static Ads guide runs copy as its own stage: \u201cCopywriting for Conversions\u201d with frameworks like \u201cproblem/solution, cost\u2011savings, testimonials, and \u2018us vs. them\u2019 comparisons.\u201d[6\u202f(ts:14:30)]  \n- Social Media Examiner advises drafting at least 2 text lengths for Meta\u2019s flexible creative: \u201cAdd two variations of primary text\u2014one short and one medium length\u201d and multiple headlines.[1\u202f(\u201cDraft Text Variations\u201d & \u201cAdd Headlines\u201d)]  \n\nStandard outputs per concept:\n\n- 2\u20134 **primary texts** (short + medium, sometimes long form).  \n- 3\u20135 **headline options** (some direct, some curiosity\u2011driven).  \n- 1\u20132 **on\u2011image headline** variants per visual (for testing).\n\nThis copy is handed off to the designer alongside the brief.\n\n---\n\n### Step 4 \u2013 Static design & variation production\n\nWho: **Graphic designer / creative producer**\n\n**Tools used (by practitioners and agencies)**\n\n- **Canva**  \n  - The Static Ads Ultimate Guide shows building layouts \u201cinside Canva\u201d and then duplicating them for variations, calling this the easiest way to \u201cdesign scroll-stopping creatives \u2014 even if you have zero design experience.\u201d[6\u202f(ts:19:02, ts:1402\u20131413)]\n\n- **Template systems / internal frameworks**  \n  - The same guide references \u201cCreative OS Templates\u201d for static ad layouts, indicating many performance shops rely on reusable Figma/Canva/PSD systems.[6\u202f(description section)]  \n\n- **Figma, Photoshop, Illustrator**  \n  - While specific tools are less often named in blogs, Superside\u2019s description of \u201cspecialized designers\u201d producing ad creatives, landing pages, and social assets within 24\u201348 hours implies a stack of professional design tools (Figma/Adobe) with strict component libraries.[8\u202f(\u201cTheir platform connects brands with specialized designers\u2026\u201d)]\n\n- **AI design helpers**  \n  - Social Media Examiner (2026) recommends \u201cuse external tools like Google Gemini\u201d and gives a concrete use\u2011case: \u201cupload a static logo and ask the AI to animate it onto a coffee cup in a caf\u00e9 scene\u2026 to create high-quality assets faster.\u201d[1\u202f(\u201cUse External AI Tools\u201d)]  \n  - The Static Ads guide suggests using AI to create and tweak variations, including generating alternative headlines or visual ideas and then implementing them in Canva.[6\u202f(ts:1407\u20131413)]  \n\n**How designers actually build ads and variations**\n\nThe Static Ads guide walks through a very typical workflow:\n\n1. Build a base static in Canva using a layout template.[6\u202f(ts:19:02)]  \n2. Once the base is done, \u201cduplicate it\u201d to make a variation and \u201cchange one thing at a time\u201d (e.g. headline, background color, product image) to treat it like a \u201cscience experiment.\u201d[6\u202f(ts:1395\u20131413)]  \n3. Use AI to propose variation ideas, but implement and refine them manually.[6\u202f(ts:1407\u20131413)]  \n\nFor performance agencies that supply high volume, such as:\n\n- **Superside** \u2013 describes turning requests into designs within \u201c24\u201348 hours,\u201d enabling \u201c20\u201330 ad concepts monthly\u201d for a client instead of 3\u20135.[8\u202f(\u201c20\u201330 ad concepts monthly\u2026\u201d)]  \n- **MuteSix** \u2013 according to Sweatpants Agency\u2019s 2026 roundup, they use \u201csystematic testing frameworks producing 30\u201350 ad variations monthly\u201d and combine data science with creative iteration.[8\u202f(\u201cMuteSix has built a reputation\u2026\u201d)]  \n\n\u2026designers often work in **batches** (e.g. 10\u201320 static assets per sprint), using shared design systems (Figma/Canva templates, brand kits) to keep speed and consistency.\n\n---\n\n### Step 5 \u2013 Internal review, compliance & approvals\n\nWho: **Creative lead, account lead, sometimes legal / brand**\n\nPractitioner behaviors:\n\n- For regulated verticals, Social Media Examiner warns brands to \u201cread through the AI\u2011generated text variations before launching\u201d because Meta\u2019s generative tools can create non\u2011compliant copy in sensitive categories.[1\u202f(\u201cCritical Warning\u201d)]  \n- Teams also check: logo usage, brand colors, clarity of offer, and whether each variation truly isolates a variable (hook, angle, layout) rather than changing everything at once, as recommended by Flighted\u2019s \u201cIsolate One Variable Per Test.\u201d[3\u202f(\u201cIsolate One Variable Per Test\u201d)]  \n\nOutput: a shortlist of approved static ads for upload, usually **3\u20135+ variations per concept** entering the test.\n\n---\n\n### Step 6 \u2013 Upload to Meta & campaign build\n\nWho: **Media buyer / paid social strategist**\n\nProcess details from recent guides:\n\n- **Meta setup**  \n  - Hootsuite\u2019s 2026 Instagram ads guide shows the full flow: create a campaign in Meta Ads Manager, set objective, budget, placements, then \u201cupload your creative\u201d at the ad level along with primary text, headline, description, URL, and CTA.[4\u202f(\u201cStep 10: Create your ad\u201d)]  \n  - The 2026 Complete Facebook Ads Course similarly builds a creative testing campaign, then duplicates the first ad so that if you \u201chave five creatives, you want five ads inside that same adset,\u201d each with a different creative but the same targeting and basic settings.[7\u202f(ts:1002\u20131020)]\n\n- **Meta\u2019s Dynamic / Flexible Creative**  \n  - Social Media Examiner notes that to leverage Meta\u2019s Andromeda algorithm, you can turn on \u201cDynamic Creative\u201d (for leads) or \u201cFlexible Creative\u201d (for sales) and then \u201cupload as many high-performing images and videos as the tool allows\u201d and add multiple text and headline variations.[1\u202f(\u201cHow to Set It Up\u201d)]  \n\nMedia buyers in performance teams decide whether to:\n\n- Test static images as separate ad units (each variation = its own ad) for clean, manual read; or  \n- Use Dynamic/Flexible Creative to let Meta mix assets and then pick winners, especially when they have 10+ variations to run.\n\n---\n\n### Step 7 \u2013 Live testing & measurement\n\nWho: **Media buyer**, with creative strategist watching results.\n\nPractitioner approaches:\n\n- **Volume per variation**  \n  - AdManage.ai (2025) advises giving each creative \u201c1,000 to 2,000 impressions per variation minimum\u201d before calling a winner or loser.[15\u202f(\u201cAllow sufficient impression volume\u2026\u201d)]  \n\n- **Metric focus**  \n  - Flighted says before launch you should define specific win metrics (thumbstop rate, CTR, CPA) and then stick to those when evaluating.[3\u202f(\u201cDefine Win Criteria Before Launch\u201d)]  \n  - Social Media Examiner advises monitoring Meta\u2019s newer creative diagnostics like \u201cCreative Fatigue\u201d (rising CPMs as a red flag) and \u201cCreative Similarity\u201d (penalizing repetitive content).[1\u202f(\u201cKeep an eye on your dashboard for Creative Fatigue / Similarity\u201d)]  \n\nMedia buyers typically:\n\n- Kill obvious losers quickly after they hit minimum impressions.  \n- Move winners into scaling campaigns (with higher budgets) while creative teams immediately spin new variations off the winners (see next step).\n\n---\n\n### Step 8 \u2013 Iteration & continual creative refresh\n\nWho: **Creative strategist + copy + design + media**\n\nModern DTC agencies treat this as a continuous loop:\n\n- **Cadence of new creatives**  \n  - Flighted recommends brands keep a \u201cweekly creative testing cadence,\u201d usually **2\u20134 new concepts per week** and notes that \u201chigh-spend creatives start showing fatigue every 2\u20134 weeks.\u201d[3\u202f(\u201cSet a Weekly Creative Testing Cadence\u201d & \u201cFor most accounts\u2026\u201d)]  \n  - Social Media Examiner suggests refreshing static creatives \u201cmonthly\u201d for small accounts and \u201cweekly\u201d for large budgets to avoid algorithmic penalties for fatigue and similarity.[1\u202f(\u201cYou must also refresh your creative frequently\u2026\u201d)]  \n\n- **Scale winners via micro\u2011variations**  \n  - The 2026 Facebook Ads Course shows a classic practice: once a base creative wins (here, a video), they \u201cduplicate it multiple times\u201d and change only the thumbnail, yielding \u201ca total of five different ads,\u201d all with \u201cthe same winning video\u201d but different static thumbs.[7\u202f(ts:1700\u20131755)]  \n  - Static teams do the same with image ads: swap headline, background, color, product angle, or testimonial block to create fresh variations of a proven layout, as explained in the Static Ads guide.[6\u202f(ts:1395\u20131413)]  \n\nThis cycle repeats weekly or bi\u2011weekly in most performance\u2011oriented shops.\n\n---\n\n## 4. How long a static ad takes, and typical volume\n\nProduction time and volume are mostly constrained by process and tooling:\n\n### Turnaround time per static ad / batch\n\nReal\u2011world signals:\n\n- Superside claims its platform delivers ad creatives \u201cwithin 24\u201348 hours\u201d once a request is submitted.[8\u202f(\u201cdelivered\u2026 within 24-48 hours\u201d)]  \n- Needle (an AI\u2011hybrid Meta partner) states that after clients approve a weekly content calendar, \u201cImages arrive in 48 hours. Video in about four days.\u201d[2\u202f(\u201cImages arrive in 48 hours. Video in about four days.\u201d)]  \n\nGiven that:\n\n- A single static ad (from brief + copy + design + review) in a streamlined agency pipeline is usually concepted and designed **in under a day**, but practitioners batch them:  \n  - Writers often script copy for multiple angles in 1\u20132 hours.  \n  - Designers produce several variations off a base layout in the same design session, taking perhaps minutes per variation when working from templates, as shown by duplicating and tweaking statics in Canva.[6\u202f(ts:1402\u20131413)]  \n\nSo in practice, **teams talk in \u201cbatches per 24\u201348 hours,\u201d not per\u2011asset hours**.\n\n### How many static variations per concept\n\nThere is variation between shops, but practitioners give these concrete ranges:\n\n- **Per test / per ad set**  \n  - AdManage.ai: \u201cFor most advertisers, the sweet spot is around **3\u20135 creative variations in each test.**\u201d[9\u202f(\u201csweet spot is around 3\u20135 creative variations in each test\u201d)]  \n  - Many media buyers (as seen in the 2026 Facebook course) run **5 creatives per ad set**, duplicating the base ad 4 times to get five ads with different creatives.[7\u202f(ts:1002\u20131007)]\n\n- **Per month (per account)**  \n  - Flighted: \u201cMost brands benefit from testing **8\u201316 new creative concepts per month**, roughly 2\u20134 per week.\u201d[3\u202f(\u201cMost brands benefit from testing 8\u201316 new creative concepts per month\u201d)]  \n  - MuteSix is described as implementing \u201csystematic testing frameworks producing **30\u201350 ad variations monthly**.\u201d[8\u202f(\u201cproducing 30\u201350 ad variations monthly\u201d)]  \n  - Superside claims it can enable production of \u201c**20\u201330 ad concepts monthly** for the same cost agencies charge for 3\u20135 variations.\u201d[8\u202f(\u201c20\u201330 ad concepts monthly\u2026\u201d)]  \n\nTranslating this:\n\n- A single **concept** (e.g. \u201ctestimonial collage static\u201d) will often have **3\u20135 on\u2011platform variations** (different images/headlines/layout tweaks) in a test.  \n- Across a month, DTC\u2011focused agencies aim for **dozens of variations** (20\u201350+) spread across multiple concepts, especially at higher spend.\n\n---\n\n## 5. Role of AI in 2025\u20132026 static ad workflows\n\nReal practitioners are using AI in **three main ways**:\n\n- **Research & ideation**  \n  - The Static Ads guide explicitly uses \u201cAI tools like ChatGPT\u201d to mine reviews and generate angle ideas.[6\u202f(ts:01:04\u201308:53)]  \n\n- **Copy & creative suggestions**  \n  - Same guide uses AI to help brainstorm variations: \u201cWe can also use AI to help us with that\u201d after duplicating a static and needing a new headline or hook.[6\u202f(ts:1407\u20131413)]  \n  - Meta\u2019s own ad setup now includes generative copy and asset tweaks; Social Media Examiner notes that you can \u201cenable AI optimization\u201d to let Meta generate alternative text and crops, with the caveat that humans must review them.[1\u202f(\u201cEnable AI Optimization with Caution\u201d)]  \n\n- **Visual generation / enhancement**  \n  - Social Media Examiner suggests using \u201cexternal tools like Google Gemini\u201d to create new visuals faster, such as animating a logo into a caf\u00e9 scene \u2014 effectively AI\u2011assisted layout and compositing.[1\u202f(\u201cUse External AI Tools\u201d)]  \n\nThat said, agencies handling high\u2011spend or regulated brands retain **human final control** for compliance and performance alignment.\n\n---\n\n## 6. What\u2019s different now vs earlier years (2025\u20132026 specifics)\n\nCompared to pre\u20112024 workflows, practitioner content in 2025\u20132026 highlights:\n\n- **Creative volume and cadence are non\u2011negotiable**  \n  - Flighted\u2019s and Social Media Examiner\u2019s guidance around constantly refreshing creatives (weekly/monthly) and building large \u201ccreative libraries\u201d is a direct response to Meta\u2019s Andromeda algorithm penalizing \u201cCreative Similarity.\u201d[1\u202f(\u201cCreative Similarity is high\u2026\u201d)][3\u202f(\u201cBuild a Creative Variation Library\u201d)]  \n\n- **Static images are still heavily used**  \n  - Social Media Examiner states that \u201cstatic images still drive approximately **60% to 70% of conversions on Meta**,\u201d cautioning against abandoning them for video.[1\u202f(\u201cNote that static images still drive approximately 60% to 70% of conversions\u2026\u201d)]  \n  - Admetrics (2026) even publishes a guide titled \u201c5 Static Ad Formats Outperforming Video in 2026,\u201d underlining that performance teams continue to invest in static design systems.[12\u202f(title & overview)]  \n\n- **Hybrid human+AI production models**  \n  - Needle is marketed as \u201ca new kind of marketing partner\u201d that \u201cautomates repetitive tasks\u2026 including data analysis, idea generation, and campaign setup,\u201d while humans do high\u2011value creative and strategy, delivering weekly assets with defined SLAs (\u201cImages arrive in 48 hours\u201d).[2\u202f(\u201cNeedle is a new kind of\u2026\u201d)]  \n  - Superside and similar subscription creative shops emphasize 24\u201348\u2011hour turnaround and high\u2011volume variation to match this pace.[8\u202f(\u201cwithin 24-48 hours\u201d & \u201c20\u201330 ad concepts monthly\u201d)]  \n\n---\n\nIf you want, I can next:\n\n- Map this into a **sample SOP** you could hand to a creative team, or  \n- Break down **recommended variation sets** (e.g. 1 concept \u2192 5 static variants) for a specific vertical like skincare or supplements."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

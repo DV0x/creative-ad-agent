@@ -1,0 +1,23 @@
+{
+  "skill_name": "agent-factory",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I want to build an autonomous agent that creates digital art and auctions it as NFTs. The agent should research current art trends, generate artwork using AI image models, mint it on Solana, and list it on Magic Eden. It should run autonomously every 6 hours but also let me intervene to refine the art style. I want to deploy this on Cloudflare.",
+      "expected_output": "Architecture plan with: agent loop definition (research → generate → mint → auction), MCP tools for each external API (image gen, Solana RPC, Magic Eden API), system prompt for the orchestrator, D1 schema (artworks, auctions, cycles), wrangler.jsonc config, DO skeleton with alarm-based autonomous scheduling, agent-runner with SDK integration, and relevant gotchas highlighted.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "prompt": "Build me a content pipeline agent that monitors RSS feeds for tech news, summarizes the best articles, generates social media posts with images, and schedules them across Twitter and LinkedIn. It should run every 2 hours and I want a web dashboard to see what it's posting. Deploy on Cloudflare Workers.",
+      "expected_output": "Architecture plan with: agent loop (monitor feeds → filter/rank → summarize → generate images → compose posts → schedule), MCP tools (rss_fetch, generate_image, twitter_post, linkedin_post), system prompt, D1 schema (feeds, articles, posts, schedules), streaming dashboard via WebSocket, alarm-based 2h scheduling in DO, and scaffolding for the key files.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "prompt": "I need a competitive intelligence agent. It should monitor 5 competitor websites daily, detect changes (new products, pricing changes, blog posts), generate a weekly analysis report, and email it to the team. Must handle failures gracefully since competitor sites might be down. Cloudflare deployment.",
+      "expected_output": "Architecture plan with: agent loop (crawl sites → diff against previous → classify changes → generate report → email), MCP tools (web_crawl, diff_content, send_email), system prompt for analysis, D1 schema (competitors, snapshots, changes, reports), R2 for storing snapshots, error handling patterns for unreliable external sites, alarm-based daily scheduling, and weekly report aggregation logic.",
+      "files": []
+    }
+  ]
+}

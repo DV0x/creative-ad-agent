@@ -1,0 +1,168 @@
+{
+  "id": "7aa2418d-7a49-4fbf-90ef-767b040db3e7",
+  "model": "sonar-pro",
+  "created": 1781267859,
+  "usage": {
+    "prompt_tokens": 296,
+    "completion_tokens": 3312,
+    "total_tokens": 3608,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00089,
+      "output_tokens_cost": 0.04968,
+      "request_cost": 0.014,
+      "total_cost": 0.06457
+    }
+  },
+  "citations": [
+    "https://www.excitemedia.com.au/meta-ads-campaign-setup-or-creative/",
+    "https://themotionagency.com/how-creative-strategy-and-performance-marketing-work-together/",
+    "https://2012books.lardbucket.org/books/advertising-campaigns-start-to-finish/s15-03-executional-frameworks-how-ads.html",
+    "https://www.flighted.co/blog/7-meta-ads-creative-strategies-that-work",
+    "https://witgroupagency.com/performance-vs-brand-marketing/",
+    "https://www.theresearchagency.com/insights/understanding-the-creative-edge-framework",
+    "https://leadenforce.com/blog/how-to-find-the-right-creative-theme-for-your-meta-ads",
+    "https://www.darkroomagency.com/observatory/what-is-performance-creative-and-how-does-it-drive-results",
+    "https://adoven.thrivecart.com/big-book-of-statics/",
+    "https://www.facebook.com/groups/7463652340355926/posts/25952134637747749/",
+    "https://business.adobe.com/blog/why-creative-intelligence-is-the-next-frontier-in-marketing-and-advertising-performance",
+    "https://www.youtube.com/watch?v=NNg9-TDiFDA",
+    "https://www.facebook.com/groups/nbctribe/posts/1252614309812300/",
+    "https://www.jobaajlearnings.com/blog/case-studies-of-brands-winning-with-creativemarketing",
+    "https://launchcodex.com/blog/creative-brand-strategy/creative-testing-frameworks/"
+  ],
+  "search_results": [
+    {
+      "title": "What matters more in Meta Ads: campaign setup or creative?",
+      "url": "https://www.excitemedia.com.au/meta-ads-campaign-setup-or-creative/",
+      "date": "2026-06-05",
+      "last_updated": "2026-06-06",
+      "snippet": "Your creative gives Meta the signals and your campaign setup gives those signals the best chance to work. Which matters most?",
+      "source": "web"
+    },
+    {
+      "title": "How Creative Strategy and Performance Marketing Work Together",
+      "url": "https://themotionagency.com/how-creative-strategy-and-performance-marketing-work-together/",
+      "date": "2026-02-12",
+      "last_updated": "2026-06-08",
+      "snippet": "Here's how advertisers can fulfill data-driven performance marketing needs while maintaining creative strategy and brand identity.",
+      "source": "web"
+    },
+    {
+      "title": "Executional Frameworks: How Ads Generate Relevance",
+      "url": "https://2012books.lardbucket.org/books/advertising-campaigns-start-to-finish/s15-03-executional-frameworks-how-ads.html",
+      "last_updated": "2026-04-07",
+      "snippet": "An executional framework defines how the ad is structured. Like advertising appeals, different frameworks are appropriate to different advertising contexts.",
+      "source": "web"
+    },
+    {
+      "title": "7 Meta Ads Creative Strategies That Work in 2026 - Flighted",
+      "url": "https://www.flighted.co/blog/7-meta-ads-creative-strategies-that-work",
+      "date": "2026-03-12",
+      "last_updated": "2026-06-11",
+      "snippet": "On Meta, creative strategy outweighs audience targeting and bid adjustments as a performance driver. Nielsen research found creative quality ...",
+      "source": "web"
+    },
+    {
+      "title": "Performance vs Brand Marketing - Blending Creativity and Results",
+      "url": "https://witgroupagency.com/performance-vs-brand-marketing/",
+      "date": "2024-08-22",
+      "last_updated": "2026-06-07",
+      "snippet": "Combining creativity with data boosts performance and brand marketing for more effective and engaging campaigns.",
+      "source": "web"
+    },
+    {
+      "title": "Understanding the Creative Edge framework | The Research Agency",
+      "url": "https://www.theresearchagency.com/insights/understanding-the-creative-edge-framework",
+      "date": "2025-12-04",
+      "last_updated": "2026-05-29",
+      "snippet": "TRA's Creative Edge Framework measures creative quality across three pillars: Remarkable, Rewarding, and Remembered. Each ad receives a score on ...",
+      "source": "web"
+    },
+    {
+      "title": "How to Find the Right Creative Theme for Your Meta Ads",
+      "url": "https://leadenforce.com/blog/how-to-find-the-right-creative-theme-for-your-meta-ads",
+      "last_updated": "2026-05-06",
+      "snippet": "What Is a Creative Theme? A creative theme is the central concept or emotional message behind your ad. It's not the CTA. Not the color scheme. It's the big idea ...",
+      "source": "web"
+    },
+    {
+      "title": "What Is Performance Creative and How Does It Drive Results",
+      "url": "https://www.darkroomagency.com/observatory/what-is-performance-creative-and-how-does-it-drive-results",
+      "date": "2026-05-19",
+      "last_updated": "2026-06-06",
+      "snippet": "Traditional creative tells a story first, then checks outcomes later. \u00b7 Performance creative starts with a story worth testing, then iterates based on results.",
+      "source": "web"
+    },
+    {
+      "title": "The Big Book of Static Ad Frameworks - ThriveCart",
+      "url": "https://adoven.thrivecart.com/big-book-of-statics/",
+      "last_updated": "2026-06-12",
+      "snippet": "200+ Real Ad Examples in an easy-to-use swipe file, organized by framework so you can see exactly how top brands execute each one. Monthly Swipe File Updates ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta no longer optimizes the way you think it does. It's not looking at ...",
+      "url": "https://www.facebook.com/groups/7463652340355926/posts/25952134637747749/",
+      "date": "2026-03-02",
+      "last_updated": "2026-05-15",
+      "snippet": "But Meta's system evaluates: \u2022 Engagement behavior \u2022 Creative similarities \u2022 Messaging consistency \u2022 Conversion patterns In other words: It ...",
+      "source": "web"
+    },
+    {
+      "title": "Creative intelligence and the future of marketing - Adobe for Business",
+      "url": "https://business.adobe.com/blog/why-creative-intelligence-is-the-next-frontier-in-marketing-and-advertising-performance",
+      "date": "2026-03-09",
+      "last_updated": "2026-06-10",
+      "snippet": "Learn how creative intelligence helps brands cut production waste, scale personalization, and improve campaign performance across the ...",
+      "source": "web"
+    },
+    {
+      "title": "My Ultimate Meta Ad Creative Framework - YouTube",
+      "url": "https://www.youtube.com/watch?v=NNg9-TDiFDA",
+      "date": "2024-03-14",
+      "last_updated": "2025-12-28",
+      "snippet": "Unlock the secrets to generating limitless, high-converting ad creatives with our in-depth walkthrough. From initial research to mining ...",
+      "source": "web"
+    },
+    {
+      "title": "Is Facebook ad creative more important than targeting?",
+      "url": "https://www.facebook.com/groups/nbctribe/posts/1252614309812300/",
+      "date": "2025-04-10",
+      "last_updated": "2026-05-17",
+      "snippet": "Your Ad creative (your image or video) you use your Facebook Ads is far more important than any targeting you do in the background. It is the Ad ...",
+      "source": "web"
+    },
+    {
+      "title": "Case Studies of Brands Winning with Creative Marketing",
+      "url": "https://www.jobaajlearnings.com/blog/case-studies-of-brands-winning-with-creativemarketing",
+      "date": "2025-11-22",
+      "last_updated": "2026-05-21",
+      "snippet": "In this blog, we'll explore real-life examples of brands that have won big with creative marketing. These case studies will show you the power ...",
+      "source": "web"
+    },
+    {
+      "title": "Creative testing frameworks: How to go from concept to winning ad",
+      "url": "https://launchcodex.com/blog/creative-brand-strategy/creative-testing-frameworks/",
+      "date": "2026-06-08",
+      "last_updated": "2026-06-11",
+      "snippet": "A creative testing framework is a repeatable system for turning ad concepts into validated winners without wasting budget on guesswork. It ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "In Meta performance marketing, practitioners overwhelmingly report that **message/angle/offer\u2013audience match plus systematic testing beats \u201cclever, award-style\u201d big ideas for conversion**, and that high-performing teams treat creative as a **repeatable process and system**, not as one-off genius.\n\nBelow is what performance practitioners, frameworks, and case studies actually say, with direct quotes and dates where available.\n\n---\n\n### 1. How important is creative vs everything else on Meta?\n\nA number of performance-focused agencies describe creative as the primary performance lever on Meta, but they define \u201ccreative\u201d broadly as **hook + message/angle + offer + proof + format**, not just visuals.\n\n- In 2024, Excite Media (Meta ads agency) writes that Meta\u2019s automation means **\u201ccreative has become one of the biggest performance levers in Meta Ads\u201d** and that this is because **\u201cthe ad itself now carries more weight\u201d** as a signal for who the ad should reach and how people respond.[1] They define creative as including **\u201cthe concept, the hook, the message, the format, the offer, the proof and how the ad fits naturally into the feed.\u201d[1]**  \n- The same piece stresses interaction with setup: **\u201cGreat creative can still fail in a poor campaign structure. A perfect campaign setup can still fail with weak creative. The two work together.\u201d[1]**\n\nIndependent practitioners echo that where you used to win via targeting and bid hacks, now creative\u2014especially the **angle and offer**\u2014is the main lever:\n\n- A 2023 post in a Meta ads practitioner group states: **\u201cYour Ad creative (your image or video) you use your Facebook Ads is far more important than any targeting you do in the background\u2026 Your Ad creative is even more important than your Ad copy\u2026 this clearly shows you that your Ad creative is the single most important part of your advert. If you can get your Ad creative right, your Ad is already over 50% more likely to convert.\u201d[13]**\n\nFlighted (paid social agency) references Nielsen research in a 2026 article to claim: **\u201cOn Meta, creative strategy outweighs audience targeting and bid adjustments as a performance driver.\u201d[4]** They then focus almost entirely on **angles, proof, funnel match and formats**\u2014not on award-style cleverness.\n\n---\n\n### 2. Big clever \u201cbrand\u201d ideas vs direct, \u201cboring\u201d performance ads\n\nPractitioners in performance/UGC-heavy environments often contrast \u201cpretty/clever\u201d ads with \u201cboring but direct\u201d ads and consistently report that **the latter usually win for conversion** when the message/offer is strong and matched to intent.\n\n#### a. Practitioners on clever vs direct\n\n- Darkroom (eCommerce performance agency) define **performance creative** explicitly against \u201ctraditional\u201d award-style work. In 2024 they write:  \n  - **\u201cTraditional creative tells a story first, then checks outcomes later.\u201d**  \n  - **\u201cPerformance creative starts with a story worth testing, then iterates based on results.\u201d[8]**  \n  They emphasise that performance creative is **\u201cbuilt, tested, and optimized using real performance data\u201d** and that headlines, visuals, hooks and CTAs **\u201care chosen because they move the number, not because they looked great in a deck.\u201d[8]**\n- They argue that if an ad is beautiful but doesn\u2019t drive revenue: **\u201cIf your ad wins the click but the sale never follows, the creative is not doing its job. Performance creative fixes that.\u201d[8]**\n\nThis is the core divide practitioners describe: **award-style cleverness vs measured effect on CPA/ROAS.** In practice, most performance marketers say that **clarity of problem/solution and offer beats cleverness** once you\u2019re optimizing for purchase.\n\nEven award/research-oriented frameworks like TRA\u2019s Creative Edge (brand-focused) still tie effectiveness to **clarity and linkage to the brand and proposition**, not abstract cleverness:\n\n- TRA (The Research Agency, 2023) notes: **\u201cCreative drives ROI when it captures attention, sparks emotion, and is clearly linked to the brand.\u201d[6]**  \n- They cite work with Mark Ritson/System1 showing that creative is the second-biggest driver of advertising profitability (after brand size) and that **\u201cThe strongest creative can deliver up to 12x higher ROI.\u201d[6]** That\u2019s about relevance and branding, not necessarily Cannes-style ideas.\n\n#### b. Case-style examples: \u201cugly/direct\u201d wins\n\nMost of the direct \u201cpretty vs ugly\u201d comparisons live in practitioner posts and paid content, but there is consistent pattern language:\n\n- AdOven\u2019s \u201cBig Book of Static Ad Frameworks\u201d (2024 sales page) describes discovering that high-performing static ads weren\u2019t random works of genius but followed **\u201cspecific, repeatable patterns\u201d** across brands.[9] They write:  \n  - **\u201cInstead they followed specific, repeatable patterns. Patterns that worked again and again, regardless of industry, product, or audience. It Was Like Discovering The \u2018Periodic Table Of Image Ads.\u2019 Once you understood the elements, you could create winning ads on demand.\u201d[9]**  \n  Those elements are very direct-response: **pattern interruption, social proof, Problem\u2013Agitate\u2013Solution, contrast, curiosity gaps, visual hierarchy**.[9]  \n  The implication is that **framework-driven, \u201cboring\u201d DR layouts** repeatedly beat more ornamental design when the goal is conversion.\n\n- Flighted\u2019s 2026 Meta creative guide prioritizes **social proof upfront, clear offers, and alignment with funnel stage**.[4] For bottom-of-funnel, they specifically recommend **\u201cstatic ads with direct offers\u201d** as conversion drivers, contrasted with more \u201cstory\u201d\u2011oriented UGC at the top of funnel.[4] This is performance teams explicitly steering toward **direct, offer-led creative** when money is on the line.\n\nYou also see practitioners stressing that even visually simple or rough assets can work if the **angle and offer are right**:\n\n- The same Facebook group practitioner in [13] shows an ad image with no copy and comments: **\u201cYet, this ad will still convert if the message is clear.\u201d[13]** Their conclusion: creative\u2019s job is clarity and relevance, not ornament.\n\nOverall: **for conversion on Meta, \u201cboring\u201d but clear and offer-led almost always beats clever-but-obscure** in practitioner reporting.\n\n---\n\n### 3. Message/angle/offer\u2013audience match vs big idea\n\nAcross multiple sources, the **message/angle/offer match to the customer\u2019s reality** is repeatedly emphasised as the decisive factor.\n\n#### a. \u201cTheme\u201d and angle rooted in customer reality\n\nLeadenforce (Meta-focused consultancy) published a 2025 article explaining the idea of a **\u201ccreative theme\u201d** as the central concept behind Meta ads:\n\n- **\u201cA creative theme is the central concept or emotional message behind your ad\u2026 It\u2019s the big idea that holds everything together.\u201d[7]**  \n- Crucially, they argue: **\u201cMatch the theme to your audience's reality \u2014 not just your product\u2019s features.\u201d[7]**  \n- Their core thesis: **\u201cWhen your message matches what your audience feels, wants, or fears \u2014 and when your visuals deliver that theme clearly \u2014 conversion follows.\u201d[7]**\n\nThat is literally \u201cangle\u2013audience fit\u201d treated as the determinant of performance. The \u201cbig idea\u201d here is subordinated to **emotional truth and offer relevance** rather than cleverness.\n\n#### b. Funnel-stage and offer alignment\n\nFlighted\u2019s 2026 Meta creative strategy explicitly links creative angle and offer to customer journey stage:\n\n- **\u201cCreative works best when it matches where the customer is in their journey.\u201d[4]**  \n- They specify that **top-of-funnel** should use UGC/influencer content for awareness and education, while **bottom-of-funnel** should lean on *\u201cstatic ads with direct offers\u201d* for conversion.[4]  \n- They also insist on **\u201cAlign Creative Angle With Funnel Stage and Landing Page\u201d** and note that performance is \u201cultimately capped by the quality of its landing page\u201d and message continuity.[4]\n\nThis is practitioners saying **message, angle, and offer congruence** are more determinative than any single clever concept in isolation.\n\n---\n\n### 4. Do performance teams use process & volume rather than creative genius?\n\nThere is strong, explicit evidence that high-performing teams treat creative as a **process, system, and volume game**, not as \u201cwaiting for the genius idea.\u201d\n\n#### a. Performance-creative as a system\n\nDarkroom (2024) describe their approach as a **learning engine**:\n\n- **\u201cPerformance creative fixes that. It treats creative as a system that learns, not a single asset. Teams ship ideas quickly, measure what happens, and let the data guide the next version.\u201d[8]**  \n- They say the production model is **\u201cbuilt for volume and learning, not for one perfect asset.\u201d[8]**  \n- The process:  \n  1. **\u201cGather quantitative and qualitative data\u201d** from analytics, search terms, comments, reviews, session recordings.[8]  \n  2. **\u201cGenerate hypotheses and creative concepts\u201d** based on patterns in that data.[8]  \n  3. **\u201cProduce variations at scale\u201d** via modular assets (swap hooks, first frames, headlines, CTAs).[8]  \n  4. Run structured tests, then **\u201cAnalyze results and feed insights back to ideation.\u201d[8]**\n\nThis is exactly the kind of systematic, repeatable process you asked about\u2014**creative as testable hypotheses** rather than strokes of genius.\n\n#### b. Creative testing frameworks and cadences\n\nPerformance practitioners have started writing openly about creative testing systems:\n\n- LaunchCodex\u2019s 2024 article describes a **\u201ccreative testing framework\u201d** as **\u201ca repeatable system for turning ad concepts into validated winners without wasting budget on guesswork.\u201d[15]**  \n  They advocate structuring tests so you can see which angles and hooks win, then **scaling those concepts** rather than chasing novelty for its own sake.[15]\n- Flighted\u2019s 2026 guide prescribes a **regular creative testing cadence**:  \n  - **\u201cMost brands benefit from testing 2\u20134 new creative concepts per week.\u201d[4]**  \n  - Larger accounts ($50k+ per month) can push to **4\u20136**.[4]  \n  - They stress **\u201cIsolate One Variable Per Test\u201d**\u2014hook vs visual vs format\u2014so that teams know what actually drove the lift.[4]  \n  - They recommend building a **\u201ccreative library\u2026 a collection of modular ad components, including hooks, bodies, and CTAs, that can be mixed and matched.\u201d[4]**\n\nAgain, this is explicit advocacy for **volume + structure + modularity**, not genius.\n\nLeadenforce recommends **\u201ccreative buckets\u201d** and a small set of **3\u20135 clear themes** to start testing, specifically: **\u201cDon\u2019t rely on one theme \u2014 test several, strategically. The best marketers work with creative buckets: predefined categories of themes that they rotate and measure.\u201d[7]**\n\nA practitioner post that circulates in Meta groups (2024) captures how this interacts with algorithm behavior:\n\n- **\u201cMeta no longer optimizes the way you think it does\u2026 It\u2019s reading patterns\u2026 If your ads are random, your data is noisy. If your ads are structured by angle and intent, your data compounds. That\u2019s the shift.\u201d[10]**\n\nThat line\u2014*\u201cstructured by angle and intent\u201d*\u2014is exactly the systematic concept-generation you\u2019re asking about.\n\n#### c. Research and \u201ccreative intelligence\u201d\n\nAdobe (2023) describes \u201ccreative intelligence\u201d as a next frontier where **data and AI dissect thousands of creative choices and correlate them with performance**:\n\n- **\u201cCreative intelligence refers to understanding why customers engage with pieces of creative content. It goes beyond measuring whether a campaign worked to answer why it worked \u2014 identifying the creative elements and choices that drive engagement and results.\u201d[11]**  \n- They talk about deconstructing assets into attributes (color palette, logo placement, copy clarity) and linking those to outcomes as part of a **repeatable optimization process**.[11]\n\nThis further supports the **process-over-genius** trend: teams are increasingly formalizing *which* elements matter and encoding them into workflows.\n\n---\n\n### 5. Does anyone argue for the \u201cbig idea\u201d in performance?\n\nThere are still defenders of the \u201cbig idea,\u201d but they generally propose it as **directional glue for a system**, not as a single miracle ad.\n\n- Leadenforce frames **\u201ccreative theme\u201d** as the **\u201cbig idea that holds everything together\u201d** but immediately anchors it in research and testing: start from audience emotion and **\u201cstructure your testing\u2026 Learn from patterns.\u201d[7]** They explicitly warn: **\u201cDon\u2019t copy other brands \u2014 study their structure.\u201d[7]**\n- The Motion Agency (2023) talks about balancing creative strategy with performance marketing, arguing that they maintain a **subjective creative point of view** while letting performance data tune the campaign over time.[2] That is more brand-led, but still constrained by data.\n\nBrand-side research like TRA\u2019s Creative Edge and Mark Ritson/System1 suggests **strong creative significantly amplifies ROI**\u2014up to **12x higher ROI for the strongest ads**\u2014but the way they operationalise \u201cstrong\u201d is still through **attention, emotion, and branding** metrics that can be measured and iterated.[6]\n\nSo even among those who defend creative \u201cbigness\u201d, the trend is toward **baked-in testing and frameworks**, not one perfect Cannes case film that magically drives conversions.\n\n---\n\n### 6. Pulling it together for performance on Meta\n\nFrom the practitioner and case evidence above, you can synthesize:\n\n- **For Meta performance (conversions):**\n  - **Message/angle/offer\u2013customer fit** is described as the decisive factor in practitioner literature. Leadenforce: **\u201cWhen your message matches what your audience feels, wants, or fears\u2026 conversion follows.\u201d[7]**\n  - \u201cClever\u201d or \u201caward-style\u201d creative *can* help if it still delivers a clear proposition and is linked to the brand and offer, but if it sacrifices clarity or fit, performance marketers treat it as a failure\u2014even if it\u2019s beautiful.\n\n- **Systematic processes vs genius:**\n  - Agencies like Darkroom, Flighted, LaunchCodex, and Leadenforce all describe structured systems: data-mining, hypothesis generation, modular production, weekly cadences, and framework libraries.[4][7][8][9][15]\n  - Practitioners explicitly talk about **patterns and frameworks** (\u201cPeriodic Table of Image Ads\u201d[9]) and **angle/intent clusters** for Meta\u2019s algorithm[10], underscoring that winning concepts are systematically generated and iterated, not sporadic flashes of inspiration.\n\n- **Where \u201cbig ideas\u201d still matter:**\n  - Themes or \u201cbig ideas\u201d are used as **organizing principles** for clusters of performance creative, not as single hero executions. They are expected to be:\n    - Emotionally anchored in the customer\u2019s real frustrations and desired state.[7]  \n    - Expressed in **direct, offer-relevant creative** at the bottom of the funnel (static + clear offer, heavy proof).[4]  \n\nIf you\u2019re running Meta performance campaigns, the evidence from practitioners and case-style sources suggests you get more reliable gains by:\n\n- Investing heavily in **customer research \u2192 angles \u2192 offers \u2192 themes**,  \n- Encoding this into **frameworks, buckets, and testing cadences**,  \n- Producing **lots of structured, \u201cboringly clear\u201d ads that hammer the right angle and proof**,  \nrather than chasing singular, clever big ideas designed to impress creatives more than customers."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

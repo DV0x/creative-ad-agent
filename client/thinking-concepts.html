@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thinking Block Concepts</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0f0f;
+    color: #f5f5f5;
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    padding: 40px 60px;
+    min-height: 100vh;
+  }
+  :root {
+    --accent: #ff6b6b;
+    --accent-glow: rgba(255, 107, 107, 0.25);
+    --accent-dim: rgba(255, 107, 107, 0.6);
+    --accent-faint: rgba(255, 107, 107, 0.12);
+    --bg-raised: #171717;
+    --bg-elevated: #1f1f1f;
+    --border: #2a2a2a;
+    --text-primary: #f5f5f5;
+    --text-secondary: #a3a3a3;
+    --text-muted: #666;
+    --green: #22c55e;
+  }
+
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 48px; color: var(--text-secondary); }
+  .concept { margin-bottom: 64px; }
+  .concept-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-muted); margin-bottom: 20px; font-weight: 600;
+  }
+  .concept-desc {
+    font-size: 13px; color: var(--text-secondary); margin-bottom: 24px;
+    max-width: 500px; line-height: 1.6;
+  }
+  .chat-frame {
+    max-width: 460px;
+    background: var(--bg-raised);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .chat-header {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    font-size: 12px; color: var(--text-muted);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .chat-body { padding: 20px 16px; }
+  .user-msg {
+    background: var(--accent);
+    color: white;
+    padding: 8px 14px;
+    border-radius: 12px 12px 4px 12px;
+    font-size: 13px;
+    display: inline-block;
+    float: right;
+    margin-bottom: 16px;
+    clear: both;
+  }
+  .agent-area { clear: both; }
+  .timestamp {
+    font-size: 10px; color: var(--text-muted);
+    margin-top: 6px;
+  }
+  .divider {
+    border: none; border-top: 1px solid #1a1a1a;
+    margin: 16px 0 48px;
+  }
+
+  /* ─── Twin orbit spinner (reused across all concepts) ─── */
+  .orbit-spinner { position: relative; display: inline-block; width: 14px; height: 14px; flex-shrink: 0; }
+  .orbit-spinner .track { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--accent-faint); }
+  .orbit-spinner .dot-wrap { position: absolute; inset: 0; animation: orbit-spin 1.4s linear infinite; }
+  .orbit-spinner .dot-wrap:nth-child(3) { animation-delay: 0.7s; }
+  .orbit-spinner .dot { width: 3.5px; height: 3.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .orbit-spinner .dot-wrap:nth-child(3) .dot { background: var(--accent-dim); box-shadow: none; }
+
+  @keyframes orbit-spin {
+    from { transform: rotate(0deg) translateX(calc(50% - 1.5px)) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(calc(50% - 1.5px)) rotate(-360deg); }
+  }
+
+  /* ─────────────────────────────────────────── */
+  /* CONCEPT A: Single Line                      */
+  /* ─────────────────────────────────────────── */
+  .single-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 0;
+  }
+  .single-line .status-text {
+    font-size: 13px; color: var(--text-secondary); font-weight: 500;
+  }
+  .single-line .verb {
+    font-size: 12px; color: var(--accent); font-weight: 500;
+    opacity: 0.7;
+  }
+  .single-line .timer {
+    font-size: 11px; color: var(--text-muted);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .single-line .sep {
+    color: var(--text-muted); font-size: 10px;
+  }
+
+  /* Transition effect */
+  .single-line-container {
+    position: relative;
+    overflow: hidden;
+  }
+  .single-line-container .sl-row {
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .single-line-container .sl-row.exiting {
+    opacity: 0;
+    transform: translateY(-10px);
+    position: absolute;
+    width: 100%;
+  }
+  .single-line-container .sl-row.entering {
+    animation: slideInFromBottom 0.4s ease forwards;
+  }
+  @keyframes slideInFromBottom {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ─────────────────────────────────────────── */
+  /* CONCEPT B: Horizontal Pills                 */
+  /* ─────────────────────────────────────────── */
+  .pills-row {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    align-items: center;
+    padding: 8px 0;
+  }
+  .pill {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 10px;
+    border-radius: 20px;
+    font-size: 11px; font-weight: 500;
+    transition: all 0.3s ease;
+  }
+  .pill.done {
+    background: rgba(34, 197, 94, 0.08);
+    color: rgba(34, 197, 94, 0.7);
+    border: 1px solid rgba(34, 197, 94, 0.15);
+  }
+  .pill.done .pill-check { font-size: 10px; }
+  .pill.active {
+    background: var(--accent-faint);
+    color: var(--accent);
+    border: 1px solid rgba(255, 107, 107, 0.25);
+    box-shadow: 0 0 12px rgba(255, 107, 107, 0.1);
+  }
+  .pill.pending {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+  }
+  .pills-status {
+    display: flex; align-items: center; gap: 8px;
+    padding: 6px 0 2px;
+  }
+  .pills-status .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .pills-status .timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ─────────────────────────────────────────── */
+  /* CONCEPT C: Ambient Border Glow              */
+  /* ─────────────────────────────────────────── */
+  .glow-bubble {
+    background: var(--bg-elevated);
+    border-radius: 12px;
+    padding: 14px 16px;
+    border: 1px solid transparent;
+    animation: borderGlow 2.5s ease-in-out infinite;
+    position: relative;
+  }
+  @keyframes borderGlow {
+    0%, 100% {
+      border-color: rgba(255, 107, 107, 0.2);
+      box-shadow: 0 0 8px rgba(255, 107, 107, 0.05);
+    }
+    50% {
+      border-color: rgba(255, 107, 107, 0.45);
+      box-shadow: 0 0 20px rgba(255, 107, 107, 0.12), 0 0 40px rgba(255, 107, 107, 0.05);
+    }
+  }
+  .glow-text {
+    font-size: 13px; color: var(--text-secondary);
+    line-height: 1.6;
+    min-height: 40px;
+  }
+  .glow-text .cursor {
+    display: inline-block;
+    width: 2px; height: 14px;
+    background: var(--accent);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+  .glow-status {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+  .glow-status .phase { font-size: 11px; color: var(--text-muted); }
+  .glow-status .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .glow-status .timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  /* ─────────────────────────────────────────── */
+  /* CONCEPT D: Conversational Breadcrumbs       */
+  /* ─────────────────────────────────────────── */
+  .breadcrumb-msg {
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding: 6px 0;
+    animation: fadeInUp 0.3s ease forwards;
+    opacity: 0;
+  }
+  .breadcrumb-msg.visible { opacity: 1; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .breadcrumb-msg .accent { color: var(--accent); }
+  .breadcrumb-msg .muted { color: var(--text-muted); font-size: 12px; }
+  .breadcrumb-active {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 0;
+  }
+  .breadcrumb-active .text { font-size: 13px; color: var(--text-secondary); }
+  .breadcrumb-active .verb { font-size: 12px; color: var(--accent); opacity: 0.7; }
+  .progress-bar-mini {
+    width: 120px; height: 3px;
+    background: var(--border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-top: 8px;
+  }
+  .progress-bar-mini .fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+  }
+
+  /* ─────────────────────────────────────────── */
+  /* CONCEPT E: Dot Trail                        */
+  /* ─────────────────────────────────────────── */
+  .dot-trail {
+    display: flex; align-items: center; gap: 8px;
+    padding: 12px 0;
+  }
+  .trail-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    transition: all 0.4s ease;
+  }
+  .trail-dot.done {
+    background: var(--accent);
+    opacity: 0.5;
+  }
+  .trail-dot.done.recent {
+    opacity: 0.8;
+  }
+  .trail-dot.active {
+    /* The orbit spinner replaces the dot */
+  }
+  .trail-dot.pending {
+    background: var(--border);
+  }
+  .dot-trail .status { font-size: 12px; color: var(--text-secondary); margin-left: 4px; }
+  .dot-trail .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .dot-trail .timer { font-size: 11px; color: var(--text-muted); margin-left: auto; font-variant-numeric: tabular-nums; }
+
+</style>
+</head>
+<body>
+
+<h1>Thinking Block Concepts</h1>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CONCEPT A: Single Line                      -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">A. The Single Line</div>
+  <div class="concept-desc">
+    No box. No border. Just one animated line that morphs between phases. Spinner + status + verb + timer. Maximum minimalism.
+  </div>
+
+  <div class="chat-frame">
+    <div class="chat-header">Chat</div>
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <!-- Phase 1: Research -->
+        <div class="single-line-container" id="slA">
+          <div class="single-line sl-row">
+            <div class="orbit-spinner"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+            <span class="status-text" id="slA-text">Researching brand</span>
+            <span class="sep">&middot;</span>
+            <span class="verb" id="slA-verb">Noodling...</span>
+            <span class="timer" id="slA-timer">0:42</span>
+          </div>
+        </div>
+        <div class="timestamp">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CONCEPT B: Horizontal Pills                 -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">B. Horizontal Pills</div>
+  <div class="concept-desc">
+    Phase chips appear left to right. Completed ones dim green, active glows coral, future are ghost outlines. Compact and scannable.
+  </div>
+
+  <div class="chat-frame">
+    <div class="chat-header">Chat</div>
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="pills-row" id="pillsB">
+          <div class="pill done"><span class="pill-check">&#10003;</span> Research</div>
+          <div class="pill done"><span class="pill-check">&#10003;</span> Hooks</div>
+          <div class="pill active">
+            <div class="orbit-spinner"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+            Art Direction
+          </div>
+          <div class="pill pending">Images</div>
+        </div>
+        <div class="pills-status">
+          <span class="verb" id="pillsB-verb">Conjuring...</span>
+          <span class="timer" id="pillsB-timer">2:05</span>
+        </div>
+        <div class="timestamp">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CONCEPT C: Ambient Border Glow              -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">C. Ambient Border Glow</div>
+  <div class="concept-desc">
+    The message bubble itself breathes with a coral glow while the agent works. Text streams in with a cursor. Status sits below as a quiet footnote. Feels alive.
+  </div>
+
+  <div class="chat-frame">
+    <div class="chat-header">Chat</div>
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="glow-bubble">
+          <div class="glow-text" id="glowC-text">
+            I found strong educational positioning for Verbisedu. The brand targets college students with a personal approach to language learning<span class="cursor"></span>
+          </div>
+          <div class="glow-status">
+            <div class="orbit-spinner"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+            <span class="phase">Researching</span>
+            <span class="sep" style="color:var(--text-muted); font-size:10px">&middot;</span>
+            <span class="verb" id="glowC-verb">Percolating...</span>
+            <span class="timer" id="glowC-timer">0:38</span>
+          </div>
+        </div>
+        <div class="timestamp">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CONCEPT D: Conversational Breadcrumbs       -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">D. Conversational Breadcrumbs</div>
+  <div class="concept-desc">
+    Agent drops short, natural updates like a coworker in Slack. No special UI — just brief chat messages that appear as it works.
+  </div>
+
+  <div class="chat-frame">
+    <div class="chat-header">Chat</div>
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="breadcrumb-msg visible"><span class="muted">&#10003;</span> Researched brand &mdash; <span class="accent">educational platform, college audience</span></div>
+        <div class="breadcrumb-msg visible"><span class="muted">&#10003;</span> Wrote 6 hooks &mdash; <span class="muted">stat, story, fomo, curiosity, callout, contrast</span></div>
+        <div class="breadcrumb-active">
+          <div class="orbit-spinner"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+          <span class="text">Generating images</span>
+          <span style="color:var(--text-muted); font-size:12px">3/6</span>
+          <span class="verb" id="breadD-verb">Painting...</span>
+        </div>
+        <div class="progress-bar-mini"><div class="fill" style="width: 50%"></div></div>
+        <div class="timestamp" style="margin-top:10px">Agent &middot; 3:22</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════ -->
+<!-- CONCEPT E: Dot Trail                        -->
+<!-- ═══════════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">E. Dot Trail</div>
+  <div class="concept-desc">
+    A horizontal string of dots. Each completed step adds a dot. The active one is the twin orbit spinner. Minimal — dots tell you "things happened" without naming everything.
+  </div>
+
+  <div class="chat-frame">
+    <div class="chat-header">Chat</div>
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="dot-trail">
+          <div class="trail-dot done"></div>
+          <div class="trail-dot done recent"></div>
+          <div class="trail-dot done recent"></div>
+          <div class="orbit-spinner"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+          <div class="trail-dot pending"></div>
+          <span class="status">Generating images</span>
+          <span class="verb" id="dotE-verb">Simmering...</span>
+          <span class="timer" id="dotE-timer">3:22</span>
+        </div>
+        <div class="timestamp">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 80px"></div>
+
+<script>
+  const VERBS = [
+    'Pondering', 'Cogitating', 'Noodling', 'Brewing', 'Conjuring',
+    'Scheming', 'Vibing', 'Spelunking', 'Wrangling', 'Simmering',
+    'Manifesting', 'Ruminating', 'Percolating', 'Tinkering', 'Musing',
+    'Crafting', 'Painting', 'Imagining', 'Weaving', 'Composing',
+    'Channeling', 'Transmuting', 'Hatching', 'Incubating', 'Dreaming',
+  ];
+
+  const verbEls = ['slA-verb', 'pillsB-verb', 'glowC-verb', 'breadD-verb', 'dotE-verb'];
+
+  function rotateVerbs() {
+    verbEls.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = VERBS[Math.floor(Math.random() * VERBS.length)] + '...';
+    });
+  }
+  setInterval(rotateVerbs, 800);
+
+  // Timers
+  const timers = {
+    'slA-timer': 42,
+    'pillsB-timer': 125,
+    'glowC-timer': 38,
+    'dotE-timer': 202,
+  };
+  setInterval(() => {
+    Object.entries(timers).forEach(([id, start]) => {
+      timers[id]++;
+      const s = timers[id];
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+    });
+  }, 1000);
+
+  // Concept A: cycle through phases
+  const phases = [
+    'Researching brand',
+    'Writing 6 ad hooks',
+    'Creating art direction',
+    'Generating images (3/6)',
+  ];
+  let phaseIdx = 0;
+  setInterval(() => {
+    phaseIdx = (phaseIdx + 1) % phases.length;
+    const el = document.getElementById('slA-text');
+    if (el) {
+      el.style.transition = 'opacity 0.3s';
+      el.style.opacity = '0';
+      setTimeout(() => {
+        el.textContent = phases[phaseIdx];
+        el.style.opacity = '1';
+      }, 300);
+    }
+  }, 3000);
+
+  // Concept C: typing effect
+  const fullText = "I found strong educational positioning for Verbisedu. The brand targets college students with a personal approach to language learning. Key differentiators include adaptive curriculum, peer communities, and career-focused modules. The visual identity is warm and approachable with deep blue and gold tones.";
+  const glowText = document.getElementById('glowC-text');
+  let charIdx = 80; // start partway
+  setInterval(() => {
+    if (charIdx < fullText.length) {
+      charIdx += 1;
+      glowText.innerHTML = fullText.substring(0, charIdx) + '<span class="cursor"></span>';
+    }
+  }, 40);
+</script>
+
+</body>
+</html>

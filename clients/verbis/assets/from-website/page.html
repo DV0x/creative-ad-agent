@@ -1,0 +1,1777 @@
+<!-- @dsCard group="Workshop" name="PTE Score 79+ Masterclass — v5" subtitle="Premium-light · clean-sans · the machine-voice score report" -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Score 79+ in PTE in 4 Hours — Live Masterclass · Verbis Edu</title>
+<meta name="description" content="A 4-hour live PTE masterclass that teaches exactly what the scoring algorithm rewards. Sat 11 July, 10AM–2PM IST. ₹589. By a Pearson-certified trainer.">
+<link rel="stylesheet" href="/workshop-tokens.css">
+<style>
+  /* ============================================================
+     PTE Masterclass — v5 · "The Score Report, premium-light"
+     Exo 2 calm sans everywhere. JetBrains Mono = the machine voice
+     (scores · prices · countdown · kicker index · the receipt).
+     White + warm cream canvas · teal text · contained dark-teal
+     cards as punctuation · gold = CTA + one accent word.
+     ============================================================ */
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+  :root{
+    --font-mono:"JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    /* crisper, less-washed-out text (fixes the dull/flat look) */
+    --fg-2:#2b4248;   /* body — solid dark teal-slate */
+    --fg-3:#5f777c;   /* muted */
+    --ink:#15262b;
+  }
+
+  body{ background:var(--paper); color:var(--fg-2); }
+  .wrap{ overflow-x:clip; }
+  .inner{ max-width:1140px; margin:0 auto; padding:0 22px; }
+
+  /* GrowthSchool-calm headings — override the extrabold/tight base */
+  h1,h2,h3,h4{ font-family:var(--font-sans); color:var(--teal); font-weight:800;
+    letter-spacing:-0.018em; line-height:1.08; text-wrap:balance; margin:0; }
+  em.ac{ font-style:normal; color:var(--gold-600); }
+  .dark em.ac, .hero-card em.ac{ color:var(--gold); }
+
+  /* —— reveal —— */
+  .rev{ opacity:1; }
+  .js .rev{ opacity:0; transform:translateY(16px); }
+  .js .rev.in{ opacity:1; transform:none; transition:opacity .7s var(--ease-out), transform .7s var(--ease-out); }
+  .js .rev.d1{ transition-delay:.06s } .js .rev.d2{ transition-delay:.12s } .js .rev.d3{ transition-delay:.18s } .js .rev.d4{ transition-delay:.24s }
+  @media (prefers-reduced-motion:reduce){ .js .rev{ opacity:1!important; transform:none!important; } }
+
+  .ic{ width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round; flex:none; }
+
+  /* —— the machine voice —— */
+  .mono{ font-family:var(--font-mono); font-feature-settings:"tnum" 1; }
+  .kick{ font-family:var(--font-mono); font-size:11.5px; font-weight:600; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--gold-600); display:inline-flex; align-items:center; gap:11px; }
+  .kick::before{ content:""; width:24px; height:1px; background:var(--gold-600); opacity:.55; }
+  .kick.c{ justify-content:center; }
+  .dark .kick{ color:var(--gold-light); } .dark .kick::before{ background:var(--gold-light); }
+
+  /* —— buttons (gold sheen) —— */
+  .btn{ font-family:var(--font-sans); font-weight:700; font-size:15px; line-height:1;
+    display:inline-flex; align-items:center; justify-content:center; gap:9px; padding:15px 26px;
+    border-radius:var(--radius-pill); border:0; cursor:pointer; text-decoration:none;
+    transition:transform .2s var(--ease-out), box-shadow .3s var(--ease-out); position:relative; overflow:hidden; }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn-primary{ background:var(--gold); color:var(--teal-dark); box-shadow:0 12px 30px -12px rgba(251,189,41,.55); }
+  .btn-primary:hover{ box-shadow:0 18px 42px -12px rgba(251,189,41,.62); }
+  .btn-primary::after{ content:""; position:absolute; top:0; left:-70%; width:45%; height:100%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent); transform:skewX(-18deg); pointer-events:none; }
+  .btn-primary:hover::after{ animation:sheen .85s var(--ease-out); }
+  @keyframes sheen{ from{left:-70%} to{left:150%} }
+  .btn-ghost{ background:transparent; color:var(--teal); border:1px solid var(--line); }
+  .btn-ghost:hover{ background:var(--white); }
+  .btn .ic{ stroke-width:2.2; }
+  .btn-lg{ padding:17px 32px; font-size:16px; }
+  .btn-block{ width:100%; }
+
+  /* —— sections —— */
+  .sec{ padding:54px 0; }
+  .sec-hd{ max-width:660px; }
+  .sec-hd.c{ margin:0 auto; text-align:center; }
+  .sec-hd h2{ font-size:clamp(28px,5.4vw,44px); line-height:1.06; margin-top:16px; }
+  .sec-hd p{ margin-top:16px; font-size:16px; line-height:1.62; color:var(--fg-2); }
+  .cta-row{ margin-top:34px; display:flex; flex-wrap:wrap; gap:14px 18px; align-items:center; }
+  .cta-row.c{ justify-content:center; }
+  .nospam{ display:inline-flex; align-items:center; gap:7px; font-size:13px; color:var(--fg-3); }
+  .nospam .ic{ width:15px; height:15px; color:var(--success); }
+
+  /* —— NAV (floating glass pill — matches /apply) —— */
+  .nav{ position:sticky; top:0; z-index:40; padding:18px 22px 0; }
+  .nav-pill{ max-width:1096px; margin:0 auto; display:flex; align-items:center; gap:16px;
+    height:82px; padding:0 18px 0 24px; border-radius:22px;
+    background:rgba(14,72,82,.06); border:1px solid rgba(14,72,82,.10);
+    backdrop-filter:blur(10px); -webkit-backdrop-filter:blur(10px);
+    transition:background .4s var(--ease-out), border-color .4s var(--ease-out), box-shadow .4s var(--ease-out), height .4s var(--ease-out); }
+  .nav.scrolled .nav-pill{ height:70px; background:rgba(255,255,255,.85);
+    backdrop-filter:blur(20px) saturate(140%); -webkit-backdrop-filter:blur(20px) saturate(140%);
+    border-color:rgba(14,72,82,.08); box-shadow:0 4px 24px rgba(14,72,82,.08); }
+  .nav-logo{ display:flex; align-items:center; flex:none; }
+  .nav-logo img{ height:62px; width:auto; display:block; transition:height .4s var(--ease-out); }
+  .nav.scrolled .nav-logo img{ height:52px; }
+  .nav-right{ margin-left:auto; display:flex; align-items:center; gap:16px; }
+  .nav-cd{ display:none; align-items:center; gap:7px; font-family:var(--font-mono); font-size:13px;
+    color:var(--fg-2); opacity:0; transform:translateY(-4px); transition:opacity .3s, transform .3s; }
+  .nav-cd.show{ opacity:1; transform:none; } .nav-cd b{ color:var(--teal); }
+  .nav-cd .ic{ width:15px; height:15px; color:var(--gold-600); }
+  .nav .btn{ padding:13px 24px; font-size:14.5px; }
+  @media (min-width:720px){ .nav-cd{ display:inline-flex; } }
+  @media (max-width:560px){
+    .nav{ padding:12px 14px 0; }
+    .nav-pill{ height:64px; padding:0 12px 0 16px; border-radius:18px; gap:10px; }
+    .nav-logo img{ height:44px; }
+    .nav.scrolled .nav-pill{ height:58px; }
+    .nav.scrolled .nav-logo img{ height:40px; }
+    .nav .btn{ padding:11px 18px; font-size:13.5px; }
+  }
+
+  /* —— HERO —— */
+  .hero{ padding:22px 0 0; }
+  .hero-card{ position:relative; overflow:hidden; border-radius:28px; background:var(--teal-950);
+    color:var(--paper); padding:clamp(26px,4.6vw,52px); }
+  .grid-tx{ position:absolute; inset:0; pointer-events:none; opacity:.6;
+    background-image:linear-gradient(rgba(255,255,255,.04) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.04) 1px,transparent 1px);
+    background-size:52px 52px; mask-image:radial-gradient(120% 120% at 70% 0%, #000 35%, transparent 80%); }
+  .glow{ position:absolute; width:560px; height:560px; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(251,189,41,.15), transparent 64%); top:-230px; right:-160px; }
+  .hero-inner{ position:relative; display:grid; gap:32px; align-items:center; }
+
+  .eyebrow{ display:inline-flex; align-items:center; gap:9px; font-family:var(--font-mono);
+    font-size:12px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-light); }
+  .live{ width:8px; height:8px; border-radius:50%; background:#ff6a5a; position:relative; flex:none; }
+  .live::after{ content:""; position:absolute; inset:-4px; border-radius:50%; border:1.5px solid #ff6a5a; opacity:.5; animation:ping 2s var(--ease-out) infinite; }
+  @keyframes ping{ 0%{transform:scale(.55);opacity:.6} 100%{transform:scale(2.4);opacity:0} }
+  @media (prefers-reduced-motion:reduce){ .live::after{ animation:none } }
+
+  .hero-card h1{ font-size:clamp(38px,6.6vw,62px); line-height:1.0; color:#fff; margin:18px 0 0; font-weight:800; letter-spacing:-0.022em; }
+  .hero-card h1 em{ font-style:normal; color:var(--gold); }
+  .hero-card .h-sub{ margin-top:16px; font-size:clamp(16px,2.3vw,20px); font-weight:500; color:rgba(247,245,240,.85); letter-spacing:-0.005em; line-height:1.4; }
+  .hero-card .h-sub b{ color:#fff; font-weight:700; }
+  .hero-card .h-sub b{ color:#fff; font-weight:700; }
+  .hero-card .lede{ margin-top:16px; font-size:16px; line-height:1.6; color:rgba(247,245,240,.78); max-width:48ch; font-weight:500; }
+  .hero-card .lede b{ color:#fff; font-weight:600; }
+
+  .h-meta{ display:flex; flex-wrap:wrap; gap:9px 18px; margin-top:24px; }
+  .h-meta span{ display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:12.5px; color:rgba(247,245,240,.72); }
+  .h-meta .ic{ width:15px; height:15px; color:var(--gold-light); }
+
+  .h-cta{ display:flex; align-items:center; gap:18px; flex-wrap:wrap; margin-top:30px; }
+  .h-price{ font-family:var(--font-mono); font-size:13px; color:rgba(247,245,240,.62); }
+  .h-price b{ font-size:18px; font-weight:700; color:#fff; }
+  .h-price s{ color:rgba(247,245,240,.4); margin-right:7px; }
+  .h-nospam{ display:inline-flex; align-items:center; gap:7px; font-size:12.5px; color:rgba(247,245,240,.55); margin-top:16px; }
+  .h-nospam .ic{ width:14px; height:14px; color:var(--gold-light); }
+
+  /* —— native Google reviews badge —— */
+  .gbadge{ display:inline-flex; align-items:center; gap:10px; background:var(--white); border:1px solid var(--line); border-radius:13px; padding:9px 14px; text-decoration:none; box-shadow:var(--shadow-card); }
+  .gbadge-g{ width:24px; height:24px; flex:none; }
+  .gbadge-body{ display:flex; flex-direction:column; line-height:1.12; }
+  .gbadge-top{ display:flex; align-items:center; gap:6px; }
+  .gbadge-top b{ font-size:17px; color:var(--teal); font-weight:700; }
+  .gstars{ color:#FBBC04; letter-spacing:1px; font-size:13px; }
+  .gbadge-sub{ font-size:11.5px; color:var(--fg-3); }
+  .gbadge.on-dark{ background:rgba(255,255,255,.07); border-color:rgba(255,255,255,.15); box-shadow:none; }
+  .gbadge.on-dark .gbadge-top b{ color:#fff; }
+  .gbadge.on-dark .gbadge-sub{ color:rgba(247,245,240,.6); }
+  .nav-g{ padding:6px 11px; border-radius:11px; }
+  .nav-g .gbadge-g{ width:19px; height:19px; }
+  .nav-g .gbadge-top b{ font-size:14px; }
+  .nav-g .gstars{ font-size:10px; }
+  .nav .gbadge{ display:none; }
+  @media (min-width:720px){ .nav .gbadge{ display:inline-flex; } }
+
+  /* —— hero value bullets (the "what you get") —— */
+  .h-gets{ list-style:none; margin:22px 0 0; padding:0; display:grid; gap:12px; }
+  .h-gets li{ display:flex; gap:11px; font-size:15.5px; color:rgba(247,245,240,.86); line-height:1.4; }
+  .h-gets li .ic{ width:19px; height:19px; color:var(--gold); margin-top:1px; flex:none; stroke-width:2.6; }
+  .h-gets li b{ color:#fff; font-weight:700; }
+  .hero-foot{ display:flex; align-items:center; gap:8px 20px; flex-wrap:wrap; margin-top:22px; }
+
+  /* —— hero enroll card (lean: one clear path to the button) —— */
+  .enroll{ background:var(--white); border-radius:22px; padding:24px; position:relative; overflow:hidden;
+    box-shadow:0 44px 90px -38px rgba(0,0,0,.6), 0 4px 16px -6px rgba(0,0,0,.18); color:var(--fg-2); }
+  .enroll::before{ content:""; position:absolute; left:0; right:0; top:0; height:4px; background:linear-gradient(90deg,var(--gold),var(--gold-light)); }
+  .enroll-top{ display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:3px; }
+  .enroll-live{ display:inline-flex; align-items:center; gap:7px; font-family:var(--font-mono); font-size:11px; font-weight:700; letter-spacing:.07em; text-transform:uppercase; color:#D23B30; }
+  .enroll-meta{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.05em; text-transform:uppercase; color:var(--fg-3); }
+  .enroll-head{ display:flex; flex-direction:column; align-items:flex-start; gap:13px; }
+  @media (min-width:520px){ .enroll-head{ flex-direction:row; align-items:center; justify-content:space-between; gap:14px; } }
+  .enroll-price{ display:flex; align-items:flex-end; gap:10px; }
+  .ep-left{ display:flex; align-items:flex-end; gap:11px; }
+  .ep-grev{ display:flex; align-items:center; gap:8px; text-decoration:none; flex:none; }
+  .ep-grev .gbadge-g{ width:26px; height:26px; flex:none; }
+  .epg-body{ display:flex; flex-direction:column; line-height:1.12; }
+  .epg-top{ display:flex; align-items:center; gap:5px; }
+  .epg-top b{ font-size:17px; color:var(--teal); font-weight:800; letter-spacing:-0.01em; }
+  .epg-top .gstars{ font-size:11px; color:#FBBC04; letter-spacing:.5px; }
+  .epg-sub{ font-size:10.5px; color:var(--fg-3); }
+  .ep-now{ font-size:50px; font-weight:800; color:var(--teal); letter-spacing:-0.04em; line-height:.82; }
+  .ep-meta{ display:flex; flex-direction:column; gap:5px; padding-bottom:3px; }
+  .ep-meta s{ font-size:15px; color:var(--fg-3); }
+  .ep-off{ font-size:10px; font-weight:800; color:var(--gold-600); background:var(--gold-soft); padding:3px 8px; border-radius:999px; letter-spacing:.05em; width:max-content; }
+  .enroll .btn{ margin-top:16px; }
+  .enroll-urg{ display:flex; align-items:center; justify-content:flex-start; gap:7px; margin-top:15px; padding-top:16px; border-top:1px solid var(--line); font-family:var(--font-mono); font-size:12px; color:var(--fg-2); }
+  .enroll-urg .ic{ width:14px; height:14px; color:var(--gold-600); flex:none; }
+  .enroll-urg b{ color:var(--teal); font-variant-numeric:tabular-nums; }
+  .enroll-seats{ margin-top:16px; }
+  .es-top{ display:flex; align-items:center; justify-content:space-between; margin-bottom:9px; }
+  .es-lab{ font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-3); }
+  .es-warn{ display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10px; font-weight:700; letter-spacing:.06em; text-transform:uppercase; color:var(--gold-600); background:var(--gold-soft); padding:3px 9px; border-radius:999px; }
+  .es-warn::before{ content:""; width:5px; height:5px; border-radius:50%; background:var(--gold-600); }
+  .enroll-cd{ margin-top:18px; }
+  .ecd-lab{ display:block; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.14em; text-transform:uppercase; color:var(--fg-3); margin-bottom:9px; }
+  .ecd-grid{ display:flex; gap:7px; }
+  .ecd-u{ flex:1; text-align:center; background:var(--teal-950); border-radius:10px; padding:11px 2px 9px; }
+  .ecd-u b{ display:block; font-family:var(--font-mono); font-weight:700; font-size:23px; color:#fff; line-height:1; font-variant-numeric:tabular-nums; }
+  .ecd-u small{ font-family:var(--font-mono); font-size:8px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-light); margin-top:6px; display:block; }
+  .es-t{ font-family:var(--font-mono); font-size:11px; color:var(--fg-3); text-align:left; margin-top:8px; }
+  .es-t b{ color:var(--teal); }
+  .enroll-grev{ display:flex; flex-direction:column; align-items:flex-start; gap:5px; flex:none; text-decoration:none;
+    background:var(--gold-soft); border:1px solid rgba(224,165,15,.22); border-radius:13px; padding:10px 13px;
+    transition:border-color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
+  .enroll-grev:hover{ border-color:rgba(224,165,15,.45); box-shadow:0 6px 16px -10px rgba(224,165,15,.4); }
+  .egr-top{ display:flex; align-items:center; gap:7px; }
+  .enroll-grev .gbadge-g{ width:20px; height:20px; flex:none; }
+  .enroll-grev b{ font-size:17px; color:var(--teal); font-weight:800; letter-spacing:-0.01em; line-height:1; }
+  .enroll-grev .gstars{ font-size:12px; color:#FBBC04; letter-spacing:1px; }
+  .enroll-grev .egr-sub{ font-size:11.5px; color:var(--fg-3); font-weight:500; }
+  .enroll-secure{ display:flex; align-items:center; justify-content:center; gap:6px; margin-top:15px; padding-top:14px; border-top:1px solid var(--line); font-size:11px; color:var(--fg-3); }
+  .enroll-secure .ic{ width:13px; height:13px; color:var(--success); flex:none; }
+  .enroll-when{ margin-top:16px; padding:15px 16px; border:1px solid var(--line); border-radius:14px; background:var(--paper-card); display:grid; gap:12px; }
+  .ew-row{ display:flex; align-items:center; gap:12px; font-size:14px; color:var(--fg-2); line-height:1.3; }
+  .ew-row .ic{ width:17px; height:17px; color:var(--gold-600); flex:none; }
+  .ew-row b{ color:var(--teal); font-weight:700; }
+  .proof2{ display:flex; align-items:center; gap:14px 22px; flex-wrap:wrap; }
+  .proof2-txt{ font-size:14.5px; color:var(--fg-2); line-height:1.5; max-width:52ch; }
+  .proof2-txt b{ color:var(--teal); }
+
+  /* —— SCORECARD (hero lead visual + results) —— */
+  .sc-wrap{ position:relative; }
+  .scorecard{ background:var(--white); color:var(--fg-2); border-radius:16px; padding:22px;
+    box-shadow:0 30px 70px -28px rgba(0,0,0,.6); border:1px solid rgba(255,255,255,.5); margin:0;
+    transform:rotate(-1.4deg); transition:transform .4s var(--ease-out); }
+  .sc-wrap:hover .scorecard{ transform:rotate(0); }
+  .sc-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:14px; border-bottom:1px solid var(--line); }
+  .sc-brand{ font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; color:var(--fg-3); font-weight:600; }
+  .sc-ver{ display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10.5px; color:var(--success); font-weight:600; }
+  .sc-ver .ic{ width:13px; height:13px; }
+  .sc-name{ display:flex; align-items:center; gap:10px; margin:13px 0; }
+  .sc-name .redact{ height:11px; flex:1; max-width:130px; border-radius:3px;
+    background:repeating-linear-gradient(90deg,var(--cream-dark),var(--cream-dark) 8px,var(--paper-warm) 8px,var(--paper-warm) 14px); }
+  .sc-name small{ font-family:var(--font-mono); font-size:9.5px; color:var(--fg-3); }
+  .sc-overall{ display:flex; align-items:flex-end; gap:12px; margin:6px 0 18px; }
+  .sc-overall .lab{ font-family:var(--font-mono); font-size:10px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-3); display:block; margin-bottom:2px; }
+  .sc-overall .big{ font-family:var(--font-mono); font-weight:700; font-size:58px; line-height:.82; color:var(--teal); letter-spacing:-0.03em; }
+  .sc-overall .scale{ font-family:var(--font-mono); font-size:14px; color:var(--fg-3); padding-bottom:6px; }
+  .sc-overall .seal{ margin-left:auto; width:46px; height:46px; border-radius:50%; border:1.5px dashed var(--gold-600);
+    display:grid; place-items:center; font-family:var(--font-mono); font-size:8px; font-weight:600; color:var(--gold-600); text-align:center; line-height:1.1; }
+  .sc-skill{ display:grid; grid-template-columns:78px 1fr 30px; align-items:center; gap:10px; margin:9px 0; }
+  .sc-skill .nm{ font-family:var(--font-mono); font-size:11px; letter-spacing:.04em; text-transform:uppercase; color:var(--fg-2); }
+  .sc-skill .track{ height:7px; border-radius:999px; background:var(--cream-dark); overflow:hidden; }
+  .sc-skill .fill{ display:block; height:100%; border-radius:999px; background:linear-gradient(90deg,var(--teal-light),var(--teal)); width:0; transition:width 1.1s var(--ease-out) .2s; }
+  .sc-skill .vl{ font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--teal); text-align:right; }
+  .scorecard.in .fill{ width:var(--w); }
+  .sc-foot{ margin-top:14px; padding-top:12px; border-top:1px solid var(--line); font-family:var(--font-mono); font-size:9.5px; color:var(--fg-3); line-height:1.5; }
+  .sc-badge{ position:absolute; top:-14px; right:-10px; z-index:2; display:inline-flex; align-items:center; gap:7px;
+    background:var(--gold); color:var(--teal-dark); border-radius:999px; padding:8px 14px; font-weight:700; font-size:13px;
+    box-shadow:0 12px 26px -10px rgba(251,189,41,.6); }
+  .sc-badge .stars{ font-size:11px; }
+  .sc-badge small{ font-weight:500; font-size:11px; opacity:.85; }
+
+  /* —— PROOF BAND —— */
+  .proof{ display:flex; flex-wrap:wrap; align-items:center; gap:14px 26px; padding:26px 0 2px; }
+  .proof .g{ display:inline-flex; align-items:center; gap:10px; }
+  .proof .g .rate{ font-family:var(--font-mono); font-weight:700; font-size:22px; color:var(--teal); }
+  .proof .g .stars{ color:var(--gold); letter-spacing:1px; font-size:15px; }
+  .proof .g .sub{ font-size:13.5px; color:var(--fg-2); } .proof .g .sub b{ color:var(--teal); }
+  .proof .g .sub a{ color:var(--gold-600); text-decoration:underline; text-underline-offset:2px; }
+  .proof .vr{ width:1px; height:34px; background:var(--line); }
+  .proof .geo{ font-size:13.5px; color:var(--fg-2); display:inline-flex; align-items:center; gap:8px; }
+  .proof .geo .ic{ width:16px; height:16px; color:var(--gold-600); }
+
+  /* —— POSITIONING (contained dark card) —— */
+  .posn{ background:var(--teal-950); color:var(--paper); border-radius:22px; padding:clamp(28px,4vw,46px);
+    position:relative; overflow:hidden; display:grid; gap:18px; }
+  .posn::before{ content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(680px 360px at 88% -20%, rgba(251,189,41,.1), transparent 60%); }
+  .posn .q{ position:relative; font-size:clamp(22px,3.4vw,32px); line-height:1.28; font-weight:700; color:#fff; letter-spacing:-0.01em; max-width:24ch; }
+  .posn .q em{ font-style:normal; color:var(--gold); }
+  .posn .s{ position:relative; font-size:15.5px; line-height:1.6; color:rgba(247,245,240,.74); max-width:54ch; }
+
+  /* —— PROBLEM —— */
+  .prob-grid{ margin-top:6px; border-top:1px solid var(--line); }
+  .prob{ display:grid; grid-template-columns:48px 1fr; gap:16px; padding:26px 0; border-bottom:1px solid var(--line); align-items:start; }
+  .prob .no{ font-family:var(--font-mono); font-size:13px; color:var(--gold-600); padding-top:3px; }
+  .prob h4{ font-size:19px; margin-bottom:6px; }
+  .prob p{ font-size:15px; line-height:1.58; color:var(--fg-2); max-width:54ch; }
+  .pivot{ text-align:center; max-width:26ch; margin:42px auto 0; font-size:clamp(22px,3.6vw,32px);
+    font-weight:700; color:var(--teal); line-height:1.26; letter-spacing:-0.01em; }
+  .pivot em{ font-style:normal; color:var(--gold-600); }
+
+  /* —— DARK section (algorithm / final) —— */
+  .dark{ background:var(--teal-950); color:var(--paper); position:relative; overflow:hidden; }
+  .dark::before{ content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(900px 480px at 82% -10%, rgba(251,189,41,.09), transparent 60%); }
+  .dark .inner{ position:relative; }
+  .dark .sec-hd h2{ color:#fff; } .dark .sec-hd p{ color:rgba(247,245,240,.78); }
+  .alg-grid{ display:grid; gap:14px; margin-top:36px; }
+  .alg{ background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:24px; }
+  .alg .n{ font-family:var(--font-mono); font-size:12px; color:var(--gold-light); }
+  .alg h4{ color:#fff; font-size:18px; margin:12px 0 8px; }
+  .alg p{ color:rgba(247,245,240,.72); font-size:14.5px; line-height:1.55; }
+
+  /* —— SECTION 3 · THE ALGORITHM HOOK — editorial "watch the machine read" —— */
+  .hook{ position:relative; overflow:hidden; background:var(--teal-950); color:var(--paper);
+    border-radius:26px; padding:clamp(30px,4.2vw,56px); }
+  .hook::before{ content:""; position:absolute; right:-12%; top:-45%; width:72%; height:135%;
+    background:radial-gradient(ellipse at center, rgba(251,189,41,.12), transparent 60%); pointer-events:none; }
+  .hook>*{ position:relative; }
+  .hook-grid{ display:grid; grid-template-columns:0.82fr 1.18fr; gap:clamp(28px,4vw,56px); align-items:center; }
+  .hook .kick{ color:var(--gold-light); }
+  .hook .kick::before{ background:var(--gold-light); }
+  .hook-q{ font-family:var(--font-sans); font-weight:800; font-size:clamp(27px,3.2vw,39px); line-height:1.06;
+    letter-spacing:-0.025em; color:#fff; margin:18px 0 0; }
+  .hook-q em{ font-style:normal; color:var(--gold); }
+  .hook-lead{ font-size:15.5px; line-height:1.64; color:rgba(247,245,240,.72); margin:18px 0 0; max-width:44ch; }
+  .hook-lead em{ font-style:normal; color:var(--gold); font-weight:600; }
+  .hook-lede .cta-row{ margin-top:30px; }
+
+  /* the reader artifact — the machine's-eye view of an answer */
+  .reader{ background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.12); border-radius:18px;
+    box-shadow:0 44px 90px -42px rgba(0,0,0,.85); overflow:hidden; }
+  .reader-bar{ display:flex; align-items:center; gap:9px; padding:14px 20px; border-bottom:1px solid rgba(255,255,255,.08);
+    font-family:var(--font-mono); font-size:10.5px; letter-spacing:.16em; text-transform:uppercase; color:rgba(247,245,240,.55); }
+  .reader-bar .dot{ width:8px; height:8px; border-radius:50%; background:var(--gold); box-shadow:0 0 11px var(--gold); flex:none; }
+  .reader-status{ margin-left:auto; letter-spacing:.06em; color:rgba(247,245,240,.4); text-transform:none; }
+  .reader-text{ padding:26px 24px 8px; font-size:17px; line-height:2; color:rgba(247,245,240,.92); font-weight:400; }
+  .reader-text mark{ background:rgba(251,189,41,.16); color:#fff; border-bottom:1.5px solid var(--gold);
+    border-radius:3px 3px 0 0; padding:1px 3px; box-decoration-break:clone; -webkit-box-decoration-break:clone;
+    transition:background .35s var(--ease-out), color .35s var(--ease-out), border-color .35s var(--ease-out); }
+  .reader-text mark.pre{ background:transparent; color:rgba(247,245,240,.5); border-bottom-color:transparent; }
+  .reader-tags{ display:flex; flex-wrap:wrap; gap:7px; padding:16px 24px 22px; }
+  .rt{ font-family:var(--font-mono); font-size:10.5px; color:var(--gold); background:rgba(251,189,41,.1);
+    border:1px solid rgba(251,189,41,.22); border-radius:999px; padding:3px 11px;
+    transition:opacity .4s var(--ease-out), transform .4s var(--ease-out); }
+  .rt.pre{ opacity:0; transform:translateY(7px); }
+  .rv-num{ font-variant-numeric:tabular-nums; }
+  .reader-verdict{ display:flex; align-items:flex-end; justify-content:space-between; gap:16px;
+    padding:16px 24px; border-top:1px solid rgba(255,255,255,.08); background:rgba(0,0,0,.2); }
+  .rv-ignored{ font-family:var(--font-mono); font-size:11px; line-height:1.55; color:rgba(247,245,240,.42); max-width:32ch; }
+  .rv-ignored b{ color:rgba(247,245,240,.62); font-weight:600; }
+  .rv-score{ font-family:var(--font-mono); font-size:10px; color:rgba(247,245,240,.5); white-space:nowrap; text-align:right; text-transform:uppercase; letter-spacing:.12em; }
+  .rv-score b{ display:block; font-size:34px; color:var(--gold); font-weight:700; letter-spacing:-0.02em; line-height:1; margin-top:4px; }
+
+  /* motion graphic (the "machine scoring your answer" explainer) is JS-driven — see #reader-anim script.
+     Default state = finished (highlighted, tags shown, Band 79) so it's safe + correct without JS / with reduced-motion. */
+
+  @media (max-width:820px){
+    .hook-grid{ grid-template-columns:1fr; gap:30px; }
+    .hook-lead{ max-width:none; }
+  }
+  @media (max-width:520px){ .reader-status{ display:none; } .reader-text{ font-size:16px; line-height:1.9; } }
+
+  /* —— HOW IT WORKS —— */
+  .steps{ display:grid; gap:14px; margin-top:36px; counter-reset:s; }
+  .step{ background:var(--white); border:1px solid var(--border-soft); border-radius:18px; padding:26px; box-shadow:var(--shadow-card); position:relative; }
+  .step .sn{ font-family:var(--font-mono); font-weight:700; font-size:13px; color:var(--gold-600);
+    width:34px; height:34px; border-radius:50%; background:var(--gold-soft); display:grid; place-items:center; margin-bottom:16px; }
+  .step h4{ font-size:18px; margin-bottom:8px; }
+  .step p{ font-size:14.5px; line-height:1.55; color:var(--fg-2); }
+  .step .ar{ display:none; }
+
+  /* —— CURRICULUM · "THE AGENDA" — light premium syllabus (Maven-grade restraint) —— */
+  .ag-meta{ display:flex; flex-wrap:wrap; align-items:center; margin-top:20px; font-family:var(--font-mono);
+    font-size:11.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--fg-3); }
+  .ag-meta span + span::before{ content:"·"; margin:0 13px; color:var(--line); }
+  .ag-meta b{ color:var(--teal); font-weight:700; }
+
+  .agenda{ margin-top:26px; background:var(--white); border:1px solid var(--line); border-radius:20px; overflow:hidden; box-shadow:var(--shadow-card); }
+  .ag-row{ display:grid; grid-template-columns:108px 1fr; gap:0 28px; padding:28px 30px;
+    border-top:1px solid var(--line-soft); transition:background .2s var(--ease-out); }
+  .agenda .ag-row:first-child{ border-top:0; }
+  .ag-row:hover{ background:var(--paper-card); }
+  .ag-rail{ display:flex; flex-direction:column; align-items:flex-start; gap:12px; }
+  .ag-num{ font-family:var(--font-mono); font-size:23px; font-weight:700; color:var(--teal); opacity:.3; letter-spacing:-0.02em; line-height:1; }
+  .ag-dur{ font-family:var(--font-mono); font-size:10.5px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+    color:var(--gold-600); background:var(--gold-soft); border:1px solid var(--border-gold); border-radius:999px; padding:5px 11px; white-space:nowrap; }
+  .ag-skill{ font-family:var(--font-mono); font-size:10.5px; font-weight:600; letter-spacing:.13em; text-transform:uppercase; color:var(--fg-3); }
+  .ag-title{ font-family:var(--font-sans); font-weight:700; font-size:clamp(18px,2vw,21px); color:var(--teal);
+    letter-spacing:-0.015em; line-height:1.26; margin:8px 0 0; max-width:36ch; }
+  .ag-outs{ list-style:none; margin:15px 0 0; padding:0; display:grid; gap:9px; }
+  .ag-outs li{ position:relative; padding-left:26px; font-size:14.5px; line-height:1.5; color:var(--fg-2); max-width:62ch; }
+  .ag-outs li .ic{ position:absolute; left:0; top:2px; width:16px; height:16px; color:var(--teal-light); stroke-width:2.6; }
+  .ag-outs li b{ color:var(--teal); font-weight:600; }
+
+  .ag-foot{ display:flex; align-items:center; gap:11px; margin-top:22px; font-size:15.5px; font-weight:500; color:var(--fg-2); line-height:1.45; }
+  .ag-foot .ic{ width:20px; height:20px; color:var(--gold-600); flex:none; stroke-width:2.4; }
+  .ag-foot b{ color:var(--teal); font-weight:700; }
+  .ag-foot em{ font-style:normal; color:var(--gold-600); font-weight:700; }
+
+  @media (max-width:680px){
+    .ag-row{ grid-template-columns:1fr; gap:15px; padding:24px 20px; }
+    .ag-rail{ flex-direction:row; align-items:center; gap:14px; }
+    .ag-num{ font-size:19px; }
+    .ag-title{ margin-top:0; }
+  }
+
+  /* —— VALUE · "IT PAYS FOR ITSELF" — break-even math + honest comparison —— */
+  .vmath{ display:flex; flex-wrap:wrap; align-items:stretch; gap:12px; margin-top:30px; }
+  .vm-cell{ flex:1 1 168px; background:var(--white); border:1px solid var(--line); border-radius:16px; padding:18px 20px; box-shadow:var(--shadow-card); }
+  .vm-cell.net{ background:var(--gold-soft); border-color:var(--border-gold); box-shadow:none; }
+  .vm-lab{ display:block; font-family:var(--font-mono); font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-3); margin-bottom:10px; }
+  .vm-num{ font-family:var(--font-mono); font-weight:700; font-size:clamp(28px,3.4vw,33px); letter-spacing:-0.02em; color:var(--teal); line-height:1; }
+  .vm-cell.net .vm-num{ color:var(--gold-600); }
+  .vm-op{ display:flex; align-items:center; font-family:var(--font-mono); font-size:20px; color:var(--fg-3); }
+  .vmath-note{ font-size:14px; color:var(--fg-2); margin-top:15px; max-width:62ch; line-height:1.55; }
+  .vmath-note b{ color:var(--teal); font-weight:600; }
+
+  .vlabel{ font-family:var(--font-sans); font-weight:600; font-size:15.5px; color:var(--teal); margin-top:34px; }
+  .vcompare{ margin-top:15px; border:1px solid var(--line); border-radius:18px; overflow:hidden; background:var(--white); box-shadow:var(--shadow-card); }
+  .vc-row{ display:grid; grid-template-columns:210px 120px 1fr; gap:0 22px; padding:18px 24px; align-items:center; border-top:1px solid var(--line-soft); }
+  .vcompare .vc-row:first-child{ border-top:0; }
+  .vc-row.us{ background:var(--gold-soft); }
+  .vc-name{ font-family:var(--font-sans); font-weight:700; font-size:15.5px; color:var(--teal); letter-spacing:-0.01em; }
+  .vc-cost{ font-family:var(--font-mono); font-weight:700; font-size:17px; color:var(--fg-2); white-space:nowrap; }
+  .vc-row.us .vc-cost{ color:var(--gold-600); }
+  .vc-detail{ font-size:13.5px; color:var(--fg-2); line-height:1.45; }
+  .vc-detail b{ color:var(--teal); font-weight:600; }
+
+  .vguar{ display:flex; flex-wrap:wrap; gap:9px 20px; margin-top:24px; }
+  .vguar span{ display:inline-flex; align-items:center; gap:8px; font-size:13.5px; color:var(--fg-3); }
+  .vguar .ic{ width:16px; height:16px; color:var(--success); flex:none; }
+
+  @media (max-width:680px){
+    .vm-op{ display:none; }
+    .vm-cell{ flex-basis:100%; }
+    .vc-row{ grid-template-columns:1fr auto; gap:4px 14px; padding:16px 18px; }
+    .vc-detail{ grid-column:1 / -1; margin-top:5px; }
+  }
+
+  /* —— WHO IT'S FOR · "is this you?" — numbered self-select personas —— */
+  .fit-lede{ font-size:16px; line-height:1.6; color:var(--fg-2); max-width:56ch; margin-top:16px; }
+  .fit-lede b{ color:var(--teal); font-weight:600; }
+  .fit{ display:grid; gap:14px; margin-top:32px; }
+  .fit-card{ position:relative; background:var(--white); border:1px solid var(--line); border-radius:18px; padding:26px 28px;
+    display:grid; grid-template-columns:auto 1fr; gap:0 20px; align-items:start; transition:border-color .2s var(--ease-out), background .2s var(--ease-out); }
+  .fit-card:hover{ border-color:var(--teal-100); }
+  .fit-num{ font-family:var(--font-mono); font-size:27px; font-weight:700; color:var(--teal-light); opacity:.55; letter-spacing:-0.02em; line-height:1; }
+  .fit-h{ font-family:var(--font-sans); font-weight:700; font-size:17.5px; color:var(--teal); letter-spacing:-0.01em; margin:1px 0 6px; line-height:1.25; }
+  .fit-p{ font-size:14.5px; line-height:1.55; color:var(--fg-2); margin:0; max-width:50ch; }
+  .fit-card.hot{ background:var(--gold-soft); border-color:var(--border-gold); }
+  .fit-card.hot .fit-num{ color:var(--gold-600); opacity:.85; }
+  .fit-tag{ position:absolute; top:0; right:22px; transform:translateY(-50%); font-family:var(--font-mono);
+    font-size:9px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-600);
+    background:var(--white); border:1px solid var(--border-gold); border-radius:999px; padding:4px 10px; }
+
+  @media (min-width:720px){
+    .fit{ grid-template-columns:repeat(2,1fr); }
+  }
+
+  /* —— MENTOR · dark "meet your trainer" spotlight —— */
+  .trainer{ position:relative; overflow:hidden; background:var(--teal-950); color:var(--paper);
+    border-radius:26px; padding:clamp(26px,4vw,50px); box-shadow:inset 0 1px 0 0 rgba(255,255,255,.05); }
+  .trainer::before{ content:""; position:absolute; right:-12%; top:-45%; width:62%; height:135%; pointer-events:none;
+    background:radial-gradient(ellipse at center, rgba(251,189,41,.12), transparent 60%); }
+  .tr-grid{ position:relative; display:grid; gap:clamp(24px,4vw,44px); align-items:stretch; }
+
+  .tr-photo{ position:relative; aspect-ratio:4/5; border-radius:18px; overflow:hidden; border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(160deg,#0d3a43,#061e23); display:grid; place-items:center; }
+  .tr-photo .silh{ width:48%; height:48%; color:rgba(255,255,255,.09); }
+  .tr-photo img{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:50% 22%; }
+  .tr-photo .ph-lab{ position:absolute; bottom:13px; left:50%; transform:translateX(-50%); white-space:nowrap;
+    font-family:var(--font-mono); font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:rgba(247,245,240,.42);
+    background:rgba(0,0,0,.28); border:1px solid rgba(255,255,255,.1); padding:5px 11px; border-radius:999px; }
+  /* google reviews card — aggregate rating + a sample review */
+  .tr-rev{ margin-top:22px; padding:17px 20px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.1); border-radius:14px; }
+  .tr-rev-top{ display:flex; align-items:center; gap:9px; padding-bottom:13px; margin-bottom:13px; border-bottom:1px solid rgba(255,255,255,.08); }
+  .tr-rev-top .gbadge-g{ width:20px; height:20px; flex:none; }
+  .tr-rev-top b{ font-size:16px; color:#fff; font-weight:800; }
+  .tr-rev-top .gstars{ font-size:11px; color:#FBBC04; letter-spacing:.6px; }
+  .tr-rev-top small{ margin-left:auto; font-family:var(--font-mono); font-size:11px; color:rgba(247,245,240,.5); }
+  .tr-revfeed{ position:relative; height:116px; overflow:hidden; margin-top:3px;
+    -webkit-mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent);
+    mask-image:linear-gradient(180deg,transparent,#000 12%,#000 88%,transparent); }
+  .tr-revtrack{ animation:revroll 16s var(--ease-out) infinite; }
+  .tr-revfeed:hover .tr-revtrack{ animation-play-state:paused; }
+  .trv{ height:116px; box-sizing:border-box; margin:0; padding:4px 0; display:flex; flex-direction:column; justify-content:center;
+    font-size:14.5px; line-height:1.6; color:rgba(247,245,240,.9); }
+  .trv cite{ display:block; margin-top:10px; font-style:normal; font-family:var(--font-mono); font-size:11px; color:rgba(247,245,240,.5); }
+  @keyframes revroll{
+    0%,30%{ transform:translateY(0); }
+    34%,63%{ transform:translateY(-25%); }
+    67%,96%{ transform:translateY(-50%); }
+    100%{ transform:translateY(-75%); }
+  }
+  @media (prefers-reduced-motion:reduce){
+    .tr-revfeed{ height:auto; -webkit-mask-image:none; mask-image:none; }
+    .tr-revtrack{ animation:none; }
+    .trv{ height:auto; padding:11px 0; border-top:1px solid rgba(255,255,255,.08); }
+    .trv:first-child{ padding-top:0; border-top:0; }
+  }
+  @media (max-width:680px){ .tr-revfeed{ height:142px; } .trv{ height:142px; } }
+
+  .tr-kick{ font-family:var(--font-mono); font-size:11.5px; font-weight:600; letter-spacing:.16em; text-transform:uppercase;
+    color:var(--gold-light); display:inline-flex; align-items:center; gap:10px; }
+  .tr-kick::before{ content:""; width:22px; height:1px; background:var(--gold-light); opacity:.55; }
+  .tr-name{ font-family:var(--font-sans); font-weight:800; font-size:clamp(26px,3.6vw,38px); color:#fff; letter-spacing:-0.02em; line-height:1.04; margin:13px 0 0; }
+  .tr-role{ font-family:var(--font-mono); font-size:12px; letter-spacing:.03em; color:var(--gold-light); margin-top:10px; }
+  .tr-bio{ font-size:15px; line-height:1.65; color:rgba(247,245,240,.78); margin:18px 0 0; max-width:54ch; }
+  .tr-bio b{ color:#fff; font-weight:600; }
+  .tr-creds{ display:flex; flex-wrap:wrap; gap:9px; margin-top:20px; }
+  .tr-creds span{ display:inline-flex; align-items:center; gap:7px; font-size:12.5px; color:rgba(247,245,240,.82);
+    background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.12); border-radius:999px; padding:7px 13px; }
+  .tr-creds .ic{ width:13px; height:13px; color:var(--gold-light); flex:none; stroke-width:2.6; }
+
+  @media (min-width:820px){
+    .tr-grid{ grid-template-columns:0.82fr 1.18fr; }
+  }
+
+  /* —— RESULTS —— */
+  .res-grid{ display:grid; gap:14px; margin-top:34px; }
+  .res{ background:var(--white); border:1px solid var(--border-soft); border-radius:16px; padding:24px; box-shadow:var(--shadow-card); }
+  .jump{ display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+  .jump .from{ font-family:var(--font-mono); font-size:22px; color:var(--fg-3); font-weight:500; }
+  .jump .arr{ color:var(--gold-600); }
+  .jump .to{ font-family:var(--font-mono); font-size:38px; color:var(--teal); font-weight:700; letter-spacing:-0.02em; line-height:1; }
+  .jump .stars{ margin-left:auto; color:var(--gold); letter-spacing:.5px; font-size:13px; }
+  .res blockquote{ margin:0; font-size:15px; line-height:1.55; color:var(--ink); }
+  .res .who{ font-family:var(--font-mono); font-size:12px; color:var(--fg-3); margin-top:12px; }
+  .res .who b{ color:var(--teal); font-weight:600; }
+  .res-disc{ font-family:var(--font-mono); font-size:11px; color:var(--fg-3); margin:30px auto 0; line-height:1.6; max-width:60ch; text-align:center; }
+  /* real scorecard result cards */
+  .res{ display:flex; flex-direction:column; margin:0; }
+  .rc-frame{ background:var(--white); border:1px solid var(--line); border-radius:10px; padding:12px 10px; overflow:hidden; }
+  .rc-img{ width:100%; height:auto; display:block; }
+  .rc-foot{ display:flex; align-items:center; justify-content:space-between; margin-top:16px; }
+  .rc-num{ font-family:var(--font-mono); font-weight:700; font-size:30px; color:var(--teal); letter-spacing:-0.02em; line-height:1; }
+  .rc-num small{ font-size:11px; color:var(--fg-3); font-weight:500; margin-left:5px; letter-spacing:0; }
+  .res .stars{ color:var(--gold); letter-spacing:.5px; font-size:13px; }
+  .rc-who{ font-family:var(--font-mono); font-size:12px; color:var(--fg-3); margin-top:10px; }
+  .rc-who b{ color:var(--teal); font-weight:600; }
+  /* destinations strip */
+  .dests{ margin-top:42px; text-align:center; }
+  .dests-lab{ font-family:var(--font-sans); font-size:clamp(16px,2.1vw,18.5px); font-weight:700; letter-spacing:-0.01em; color:var(--teal); display:block; margin-bottom:22px; line-height:1.35; }
+  .dests-lab b{ color:var(--gold-600); font-weight:700; }
+  /* auto-scrolling logo marquee (wordmark tiles now → swap real logo <img> later) */
+  .logos{ position:relative; margin-top:22px; overflow:hidden;
+    -webkit-mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent);
+    mask-image:linear-gradient(90deg,transparent,#000 7%,#000 93%,transparent); }
+  .logos-track{ display:flex; gap:14px; width:max-content; animation:logos-scroll 38s linear infinite; }
+  .logos:hover .logos-track{ animation-play-state:paused; }
+  .logos-set{ display:flex; gap:14px; flex:none; }
+  .logo{ flex:none; display:grid; place-items:center; height:62px; padding:0 28px;
+    background:var(--white); border:1px solid var(--line); border-radius:14px; box-shadow:var(--shadow-card);
+    font-family:var(--font-sans); font-weight:700; font-size:15px; color:var(--teal); letter-spacing:-0.01em; white-space:nowrap;
+    transition:box-shadow .25s var(--ease-out), transform .25s var(--ease-out); }
+  .logo:hover{ box-shadow:var(--shadow-lift); transform:translateY(-2px); }
+  @keyframes logos-scroll{ to{ transform:translateX(-50%); } }
+  @media (prefers-reduced-motion: reduce){
+    .logos{ -webkit-mask-image:none; mask-image:none; }
+    .logos-track{ animation:none; width:auto; flex-wrap:wrap; justify-content:center; }
+    .logos-set[aria-hidden="true"]{ display:none; }
+  }
+  /* —— PROOF STRIP — recent results (Overall score + real Pearson circle row) —— */
+  .proofhd{ display:flex; align-items:flex-end; justify-content:space-between; gap:22px 44px; flex-wrap:wrap; }
+  .proofhd-l{ flex:1 1 360px; min-width:min(100%,360px); }
+  .proofhd h2{ font-size:clamp(1.55rem,3.1vw,2.1rem); margin:13px 0 11px; }
+  .proofhd .s{ font-size:14.5px; color:var(--fg-2); line-height:1.55; max-width:48ch; }
+  .proofhd .s b{ color:var(--teal); font-weight:700; }
+  .pstats{ display:flex; align-items:stretch; gap:11px; flex:none; }
+  .pstat{ display:flex; flex-direction:column; justify-content:center; gap:4px; background:var(--white); border:1px solid var(--line); border-radius:14px; padding:13px 17px; box-shadow:var(--shadow-card); min-width:128px; }
+  .pstat .n{ font-family:var(--font-mono); font-weight:700; font-size:25px; color:var(--teal); letter-spacing:-0.02em; line-height:1; }
+  .pstat .l{ font-size:11.5px; color:var(--fg-3); font-weight:500; line-height:1.2; }
+  .pstat.g{ background:var(--gold-soft); border-color:rgba(224,165,15,.22); text-decoration:none; transition:border-color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
+  .pstat.g:hover{ border-color:rgba(224,165,15,.45); box-shadow:0 6px 16px -10px rgba(224,165,15,.4); }
+  .pstat.g .gtop{ display:flex; align-items:center; gap:7px; }
+  .pstat.g .gbadge-g{ width:19px; height:19px; flex:none; }
+  .pstat.g .gtop b{ font-family:var(--font-mono); font-size:21px; color:var(--teal); font-weight:700; line-height:1; letter-spacing:-0.02em; }
+  .pstat.g .gstars{ font-size:11px; color:#FBBC04; letter-spacing:1px; }
+
+  .scwall{ display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-top:30px; }
+  .scw{ margin:0; background:var(--white); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow-card); overflow:hidden; cursor:zoom-in; display:flex; flex-direction:column;
+    transition:transform .2s var(--ease-out), box-shadow .3s var(--ease-out); }
+  .scw:hover{ transform:translateY(-4px); box-shadow:var(--shadow-lift); }
+  .scw:focus-visible{ outline:2px solid var(--gold-600); outline-offset:2px; }
+  .scw-top{ display:flex; align-items:center; justify-content:space-between; padding:12px 14px 0; }
+  .scw-tag{ display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:9px; letter-spacing:.06em; text-transform:uppercase; color:var(--success); font-weight:700; }
+  .scw-tag .ic{ width:12px; height:12px; flex:none; }
+  .scw-zoom{ width:14px; height:14px; color:var(--fg-3); flex:none; }
+  .scw-score{ display:flex; align-items:flex-end; gap:7px; padding:7px 14px 13px; }
+  .scw-score .big{ font-family:var(--font-mono); font-weight:700; font-size:46px; line-height:.78; color:var(--teal); letter-spacing:-0.03em; }
+  .scw-score .max{ font-family:var(--font-mono); font-size:14px; color:var(--fg-3); padding-bottom:5px; }
+  .scw-score .lab{ font-family:var(--font-mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--fg-3); margin-left:auto; padding-bottom:6px; text-align:right; line-height:1.35; }
+  .scw-skills{ display:grid; grid-template-columns:repeat(4,1fr); gap:3px; padding:14px 8px 15px; border-top:1px solid var(--line-soft); }
+  .sk{ display:flex; flex-direction:column; align-items:center; gap:7px; }
+  .sk .ring{ width:43px; height:43px; border-radius:50%; border:2.5px solid var(--cream-dark); display:grid; place-items:center; font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--teal); letter-spacing:-0.01em; }
+  .sk small{ font-family:var(--font-mono); font-size:8px; letter-spacing:.01em; color:var(--fg-3); }
+  .ring.sk-l{ border-color:#1D3362; }
+  .ring.sk-r{ border-color:#C4D600; }
+  .ring.sk-s{ border-color:#6E7376; }
+  .ring.sk-w{ border-color:#A2007A; }
+  @media(max-width:520px){ .sk .ring{ width:36px; height:36px; font-size:12px; } .sk small{ font-size:7px; } .scw-skills{ padding:12px 3px 13px; gap:1px; } }
+  .scw-foot{ display:flex; align-items:center; justify-content:space-between; gap:8px; margin-top:auto; padding:11px 14px; border-top:1px solid var(--line-soft); font-family:var(--font-mono); font-size:10.5px; color:var(--fg-3); }
+  .scw-foot b{ color:var(--teal); font-weight:600; }
+  .scw-foot .verify{ display:inline-flex; align-items:center; gap:4px; color:var(--gold-600); font-weight:600; }
+  .scw-foot .verify .ic{ width:11px; height:11px; }
+  @media(max-width:920px){ .scwall{ grid-template-columns:repeat(2,1fr); } }
+  @media(max-width:520px){ .proofhd .pstats{ width:100%; } .pstat{ flex:1; min-width:0; } }
+  .lightbox{ position:fixed; inset:0; z-index:100; background:rgba(6,30,35,.93); display:none; align-items:center; justify-content:center; padding:20px; cursor:zoom-out; }
+  .lightbox.open{ display:flex; }
+  .lightbox img{ max-width:min(640px,94vw); max-height:94vh; border-radius:8px; box-shadow:0 30px 80px -20px rgba(0,0,0,.7); }
+
+  /* —— RESULTS · video showcase (real students, now abroad) —— */
+  .sec-hd p b{ color:var(--teal); font-weight:600; }
+  .vids{ display:grid; gap:16px; margin-top:36px; }
+  .vid{ position:relative; margin:0; border-radius:18px; overflow:hidden; aspect-ratio:7/8;
+    border:1px solid var(--line); background:#0d3f48; box-shadow:var(--shadow-card); cursor:pointer;
+    transition:transform .28s var(--ease-out), box-shadow .3s var(--ease-out); }
+  .vid:hover{ transform:translateY(-5px); box-shadow:var(--shadow-lift); }
+  .vid:focus-visible{ outline:2px solid var(--gold-600); outline-offset:3px; }
+  .vplayer{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; object-position:top center; background:#0d3f48; z-index:0; }
+  /* layered teal treatment — vignette + top/bottom scrims knock back the busy frame + watermark and unify the three sources */
+  .vid::after{ content:""; position:absolute; inset:0; z-index:1; transition:opacity .3s;
+    background:
+      linear-gradient(rgba(6,30,35,.30), rgba(6,30,35,.30)),
+      radial-gradient(135% 92% at 50% 37%, transparent 36%, rgba(6,30,35,.68)),
+      linear-gradient(to bottom, rgba(6,30,35,.88) 0%, rgba(6,30,35,.34) 14%, transparent 30%),
+      linear-gradient(to top, rgba(6,30,35,.9) 2%, rgba(6,30,35,.14) 42%, transparent 60%); }
+  .vid .play{ position:absolute; left:0; right:0; top:46%; margin:0 auto; transform:translateY(-50%);
+    width:54px; height:54px; border-radius:50%; background:rgba(255,255,255,.94); z-index:2;
+    display:grid; place-items:center; box-shadow:0 14px 32px -10px rgba(0,0,0,.55);
+    transition:transform .25s var(--ease-spring); }
+  .vid:hover .play{ transform:translateY(-50%) scale(1.1); }
+  .vid .play svg{ width:18px; height:18px; fill:var(--teal); margin-left:3px; }
+  .vid .vloc{ position:absolute; top:13px; right:13px; z-index:2; display:inline-flex; align-items:center; gap:6px;
+    font-family:var(--font-mono); font-size:10px; font-weight:600; letter-spacing:.07em; text-transform:uppercase; color:#fff;
+    background:rgba(6,30,35,.4); border:1px solid rgba(255,255,255,.18); border-radius:999px; padding:5px 10px;
+    -webkit-backdrop-filter:blur(6px); backdrop-filter:blur(6px); }
+  .vid .vloc .ic{ width:11px; height:11px; color:var(--gold-light); stroke-width:2.4; flex:none; }
+  .vid .cap{ position:absolute; left:16px; right:16px; bottom:15px; z-index:2; color:#fff; }
+  .vid .cap .nm{ display:block; font-family:var(--font-sans); font-weight:700; font-size:16px; letter-spacing:-0.01em; line-height:1.15; }
+  .vid .cap .uni{ display:flex; align-items:center; gap:8px; margin-top:6px; font-family:var(--font-mono); font-size:11px; color:rgba(247,245,240,.82); }
+  .vid .cap .uni::before{ content:""; width:14px; height:1px; background:var(--gold-light); flex:none; }
+  .vid .play, .vid .cap, .vid .vloc{ transition:opacity .3s; }
+  .vid.playing::after, .vid.playing .play, .vid.playing .cap, .vid.playing .vloc{ opacity:0; pointer-events:none; }
+  .vid.playing .vplayer{ z-index:3; }
+
+  /* —— BOOKING —— */
+  .booking{ display:grid; gap:16px; margin-top:34px; }
+  .urg{ background:var(--white); border:1px solid var(--line); border-radius:18px; padding:24px; box-shadow:var(--shadow-card); }
+  .urg .lab{ font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-3); }
+  .cd{ display:flex; gap:8px; margin-top:14px; }
+  .cd-u{ flex:1; text-align:center; background:var(--teal-950); border-radius:10px; padding:13px 4px; }
+  .cd-u b{ display:block; font-family:var(--font-mono); font-weight:700; font-size:26px; color:#fff; line-height:1; }
+  .cd-u small{ font-family:var(--font-mono); font-size:8.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--gold-light); margin-top:6px; display:block; }
+  .seats{ margin-top:22px; }
+  .seats .t{ display:flex; justify-content:space-between; font-family:var(--font-mono); font-size:12.5px; color:var(--fg-2); margin-bottom:8px; }
+  .seats .t b{ color:var(--teal); }
+  .seatbar{ height:9px; border-radius:999px; background:rgba(14,72,82,0.10); overflow:hidden; }
+  .seatfill{ display:block; height:100%; width:0; background:linear-gradient(90deg,var(--gold-600),var(--gold)); border-radius:999px; box-shadow:0 0 10px -1px rgba(251,189,41,.5); transition:width 1.3s var(--ease-out) .2s; }
+  .seats small{ font-family:var(--font-mono); font-size:11px; color:var(--fg-3); margin-top:9px; display:block; }
+
+  /* quiz */
+  .quiz{ margin-top:18px; padding-top:18px; border-top:1px dashed var(--line); }
+  .quiz .ql{ font-size:13.5px; font-weight:600; color:var(--teal); margin-bottom:12px; display:flex; align-items:center; gap:8px; }
+  .quiz .ql .ic{ width:16px; height:16px; color:var(--gold-600); }
+  .qstep{ margin-bottom:12px; } .qstep .qq{ font-size:12px; color:var(--fg-3); margin-bottom:7px; font-family:var(--font-mono); letter-spacing:.04em; }
+  .qopts{ display:flex; flex-wrap:wrap; gap:7px; }
+  .qopt{ font-family:var(--font-sans); font-size:13px; font-weight:600; color:var(--teal); background:var(--white);
+    border:1px solid var(--line); border-radius:999px; padding:8px 14px; cursor:pointer; transition:transform .15s var(--ease-spring), background .2s, border-color .2s; }
+  .qopt:hover{ border-color:var(--gold-600); }
+  .qopt.sel{ background:var(--gold); border-color:var(--gold); color:var(--teal-dark); transform:translateY(-1px); }
+  .qout{ display:none; margin-top:14px; padding:14px 16px; background:var(--gold-soft); border-radius:12px; font-size:13.5px; color:var(--teal-dark); line-height:1.5; }
+  .qout.show{ display:block; } .qout b{ color:var(--teal); }
+
+  /* offer card */
+  .offer{ background:var(--white); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow-lift); padding:28px; position:relative; }
+  .offer .flag{ font-family:var(--font-mono); font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold-600); }
+  .offer .pr{ display:flex; align-items:baseline; gap:11px; margin:12px 0 3px; font-family:var(--font-mono); }
+  .offer .pr b{ font-size:48px; font-weight:700; color:var(--teal); letter-spacing:-0.03em; line-height:1; }
+  .offer .pr s{ font-size:19px; color:var(--fg-3); }
+  .offer .pr-sub{ font-family:var(--font-mono); font-size:12px; color:var(--fg-3); margin-bottom:20px; }
+  .offer ul{ list-style:none; padding:0; margin:0; display:grid; gap:11px; }
+  .offer li{ display:flex; gap:10px; font-size:14.5px; color:var(--fg-2); line-height:1.45; }
+  .offer li .ic{ width:17px; height:17px; color:var(--gold-600); margin-top:2px; stroke-width:2.4; }
+  .offer li b{ color:var(--teal); }
+  .bump{ margin-top:20px; border:1px dashed var(--gold-600); border-radius:12px; padding:15px; cursor:pointer; display:flex; gap:12px; align-items:flex-start; transition:background .2s; position:relative; }
+  .bump:hover{ background:var(--gold-soft); }
+  .bump input{ position:absolute; opacity:0; pointer-events:none; }
+  .bump .box{ width:22px; height:22px; border-radius:6px; border:2px solid var(--gold-600); background:var(--white); display:grid; place-items:center; flex:none; margin-top:1px; }
+  .bump .box .ic{ width:13px; height:13px; color:#fff; stroke-width:3; opacity:0; }
+  .bump input:checked + .box{ background:var(--gold-600); } .bump input:checked + .box .ic{ opacity:1; }
+  .bump .bt{ font-size:13px; color:var(--teal-dark); line-height:1.5; } .bump .bt b{ color:var(--teal); }
+  .bump .bt .add{ font-family:var(--font-mono); color:var(--gold-600); font-weight:700; }
+  .nowpay{ display:flex; align-items:baseline; justify-content:space-between; margin-top:20px; padding-top:16px; border-top:1px solid var(--line); font-family:var(--font-mono); font-size:13px; color:var(--fg-3); }
+  .nowpay b{ font-size:20px; color:var(--teal); font-weight:700; }
+  .offer .btn{ margin-top:16px; }
+  .trust-chips{ display:flex; flex-wrap:wrap; gap:10px 16px; justify-content:center; margin-top:16px; }
+  .trust-chips span{ display:inline-flex; align-items:center; gap:6px; font-size:12px; color:var(--fg-3); }
+  .trust-chips .ic{ width:14px; height:14px; color:var(--success); }
+
+  /* —— BOOKING · "the live ticket" — single focal enrollment card —— */
+  .ticket{ max-width:600px; margin:34px auto 0; }
+  .tk-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; }
+  .tk-kind{ font-family:var(--font-mono); font-size:11px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--gold-600); }
+  .tk-pricerow{ display:flex; align-items:center; justify-content:space-between; gap:14px; flex-wrap:wrap; margin-bottom:9px; }
+  .tk-pricerow .pr{ margin:0; }
+  .tk-trust{ display:inline-flex; align-items:center; gap:9px; text-decoration:none; background:var(--white); border:1px solid var(--line); border-radius:13px; padding:7px 12px; transition:border-color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
+  .tk-trust:hover{ border-color:var(--border-gold); box-shadow:var(--shadow-card); }
+  .tk-trust .gbadge-g{ width:22px; height:22px; flex:none; }
+  .tk-trust-b{ display:flex; flex-direction:column; line-height:1.12; }
+  .tk-trust-top{ display:flex; align-items:center; gap:6px; }
+  .tk-trust-top b{ font-size:15px; color:var(--teal); font-weight:800; letter-spacing:-0.01em; }
+  .tk-trust-top .gstars{ font-size:10px; color:#FBBC04; letter-spacing:.5px; }
+  .tk-trust small{ font-size:10.5px; color:var(--fg-3); }
+  .tk-when{ display:grid; gap:11px; margin-top:18px; }
+  .tk-row{ display:flex; align-items:center; gap:13px; }
+  .tk-ico{ width:42px; height:42px; border-radius:12px; background:var(--paper-card); border:1px solid var(--line); display:grid; place-items:center; flex:none; }
+  .tk-ico .ic{ width:19px; height:19px; color:var(--teal); }
+  .tk-row .l{ font-family:var(--font-sans); font-weight:700; font-size:15px; color:var(--teal); line-height:1.2; letter-spacing:-0.01em; }
+  .tk-row .s{ font-size:13px; color:var(--fg-2); margin-top:2px; }
+  .ticket ul{ border-top:1px solid var(--line); margin-top:20px; padding-top:20px; }
+  .ticket .seats{ margin-top:20px; }
+  .tk-pay{ border-top:1px solid var(--line); margin-top:22px; padding-top:22px; }
+  .tk-guar{ display:flex; align-items:center; justify-content:center; gap:8px; margin-top:15px; font-size:12.5px; color:var(--fg-3); }
+  .tk-guar .ic{ width:15px; height:15px; color:var(--success); flex:none; }
+
+  /* —— "what happens after you pay" — slim post-purchase rail —— */
+  .postbook{ max-width:600px; margin:18px auto 0; }
+  .pb-lab{ display:block; text-align:center; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--fg-3); margin-bottom:14px; }
+  .pb-steps{ list-style:none; margin:0; padding:0; display:grid; gap:12px; }
+  .pb-steps li{ display:flex; align-items:center; gap:10px; font-size:12.5px; color:var(--fg-2); line-height:1.35; }
+  .pb-n{ font-family:var(--font-mono); font-weight:700; font-size:11px; color:var(--gold-600); background:var(--gold-soft); border:1px solid var(--border-gold); width:24px; height:24px; border-radius:50%; display:grid; place-items:center; flex:none; }
+  .pb-t b{ color:var(--teal); font-weight:700; }
+  @media (min-width:680px){ .pb-steps{ grid-template-columns:repeat(3,1fr); gap:16px; } }
+
+  /* —— FAQ — premium numbered accordion —— */
+  .faq{ max-width:760px; margin:34px auto 0; border-top:1px solid var(--line); }
+  details.q{ border-bottom:1px solid var(--line); }
+  details.q summary{ list-style:none; cursor:pointer; padding:22px 2px; display:flex; gap:16px; align-items:baseline; }
+  details.q summary::-webkit-details-marker{ display:none; }
+  .qn{ font-family:var(--font-mono); font-size:13px; font-weight:600; color:var(--gold-600); flex:none; width:26px; }
+  .qt{ flex:1; font-family:var(--font-sans); font-weight:700; color:var(--teal); font-size:17px; letter-spacing:-0.01em; line-height:1.3; }
+  details.q summary::after{ content:"+"; font-family:var(--font-mono); color:var(--gold-600); font-weight:500; font-size:22px; line-height:1; flex:none; align-self:center; }
+  details.q[open] summary::after{ content:"\2212"; }
+  details.q summary:hover .qt{ color:var(--teal-light); }
+  details.q .a{ padding:0 0 22px 42px; font-size:14.5px; color:var(--fg-2); line-height:1.65; max-width:62ch; }
+
+  /* —— FINAL — contained dark card (matches hero/hook/mentor; the "no full teal-wash" brand rule) —— */
+  .final{ text-align:center; }
+  .final-card{ position:relative; overflow:hidden; background:var(--teal-950); color:var(--paper);
+    border-radius:28px; padding:clamp(46px,7vw,82px) clamp(24px,5vw,56px);
+    box-shadow:inset 0 1px 0 0 rgba(255,255,255,.05); }
+  .final-card::before{ content:""; position:absolute; inset:0; pointer-events:none;
+    background:radial-gradient(760px 420px at 50% -25%, rgba(251,189,41,.13), transparent 62%); }
+  .final-card>*{ position:relative; }
+  .final h2{ color:#fff; font-size:clamp(34px,5.6vw,56px); line-height:1.02; letter-spacing:-0.02em; }
+  .final h2 em{ font-style:normal; color:var(--gold); }
+  .final p{ color:rgba(247,245,240,.74); margin:20px auto 30px; max-width:46ch; font-size:16px; line-height:1.6; }
+  .final .fmicro{ margin-top:18px; font-family:var(--font-mono); font-size:11.5px; color:rgba(247,245,240,.5); letter-spacing:.04em; }
+
+  /* —— TRUST / FOOTER —— */
+  .trust{ background:var(--white); border-top:1px solid var(--line); }
+  .trust .inner{ padding:30px 22px; display:grid; gap:16px; text-align:center; }
+  .trust .badges{ display:flex; flex-wrap:wrap; gap:10px 14px; justify-content:center; align-items:center; }
+  .trust .badges .pay{ font-family:var(--font-mono); font-size:11px; color:var(--fg-2); background:var(--paper); border:1px solid var(--line-soft); padding:7px 12px; border-radius:6px; }
+  .trust .badges .g{ display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--fg-2); }
+  .trust .badges .g .stars{ color:var(--gold); } .trust .badges .g b{ color:var(--teal); }
+  .disc{ font-size:11.5px; color:var(--fg-3); max-width:70ch; margin:0 auto; line-height:1.6; }
+  /* —— SITE FOOTER (structure & content matches /apply) —— */
+  .site-footer{ background:var(--teal-950); color:var(--paper); }
+  .site-footer .inner{ padding:64px 22px; }
+  .ft-grid{ display:grid; grid-template-columns:1.5fr 1fr 1fr 1.3fr 1fr; gap:40px; }
+  .ft-logo{ display:flex; align-items:center; gap:9px; margin-bottom:16px; }
+  .ft-logo-mark{ width:32px; height:32px; border-radius:9px; background:var(--gold); color:var(--teal); display:flex; align-items:center; justify-content:center; font-weight:800; font-size:15px; }
+  .ft-logo-word{ font-family:var(--font-sans); font-weight:700; font-size:18px; color:#fff; }
+  .ft-logo-word b{ color:var(--gold); font-weight:700; }
+  .ft-tag{ color:rgba(247,245,240,.5); font-size:13.5px; line-height:1.65; font-weight:500; max-width:30ch; }
+  .ft-col h4{ font-family:var(--font-sans); font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:.08em; color:rgba(247,245,240,.6); margin:0 0 16px; }
+  .ft-col ul{ list-style:none; margin:0; padding:0; display:grid; gap:11px; }
+  .ft-col a{ color:rgba(247,245,240,.5); font-size:13.5px; font-weight:500; text-decoration:none; transition:color .2s var(--ease-out); }
+  .ft-col a:hover{ color:var(--gold); }
+  .ft-contact li{ display:flex; align-items:flex-start; gap:10px; }
+  .ft-contact .ic{ width:14px; height:14px; color:var(--gold); margin-top:2px; }
+  .ft-contact span{ color:rgba(247,245,240,.5); font-size:13.5px; font-weight:500; line-height:1.5; }
+  .ft-social{ display:flex; gap:10px; }
+  .ft-social a{ width:40px; height:40px; border-radius:10px; background:rgba(247,245,240,.06); display:flex; align-items:center; justify-content:center; transition:background .2s var(--ease-out); }
+  .ft-social a:hover{ background:rgba(251,189,41,.2); }
+  .ft-social svg{ width:16px; height:16px; fill:rgba(247,245,240,.6); transition:fill .2s var(--ease-out); }
+  .ft-social a:hover svg{ fill:var(--gold); }
+  .ft-bottom{ margin-top:52px; padding-top:30px; border-top:1px solid rgba(247,245,240,.08); display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+  .ft-bottom p{ color:rgba(247,245,240,.32); font-size:13px; margin:0; }
+  .ft-legal{ display:flex; gap:24px; }
+  .ft-legal a{ color:rgba(247,245,240,.32); font-size:13px; text-decoration:none; transition:color .2s var(--ease-out); }
+  .ft-legal a:hover{ color:rgba(247,245,240,.6); }
+  @media (max-width:860px){ .ft-grid{ grid-template-columns:1fr 1fr; gap:34px; } .ft-bottom{ flex-direction:column; align-items:flex-start; } }
+  @media (max-width:520px){ .ft-grid{ grid-template-columns:1fr; } }
+
+  /* —— STICKY + MASCOT —— */
+  .mascot{ position:fixed; right:16px; bottom:78px; z-index:49; width:62px; height:62px; pointer-events:none;
+    opacity:0; transform:translateY(10px) scale(.9); transition:opacity .4s var(--ease-out), transform .4s var(--ease-spring); }
+  .mascot.show{ opacity:1; transform:none; }
+  .mascot .badge{ width:54px; height:54px; border-radius:50%; background:var(--white); border:1.5px solid var(--gold);
+    box-shadow:var(--shadow-lift); display:grid; place-items:center; }
+  .mascot .badge .ic{ width:28px; height:28px; color:var(--teal); }
+  .mascot .tip{ position:absolute; right:60px; bottom:14px; white-space:nowrap; font-family:var(--font-mono); font-size:10px;
+    background:var(--teal-950); color:var(--gold-light); padding:5px 9px; border-radius:8px; }
+  .mascot .tip::after{ content:""; position:absolute; right:-4px; bottom:9px; width:8px; height:8px; background:var(--teal-950); transform:rotate(45deg); }
+  @media (max-width:879px){ .mascot .tip{ display:none; } }
+
+  .sticky{ position:fixed; left:0; right:0; bottom:0; z-index:50; background:rgba(247,245,240,.96);
+    backdrop-filter:blur(16px); -webkit-backdrop-filter:blur(16px); border-top:1px solid var(--line);
+    box-shadow:0 -8px 28px -14px rgba(14,72,82,.25); transform:translateY(130%); transition:transform .45s var(--ease-out); }
+  .sticky.show{ transform:none; }
+  .sk-inner{ max-width:1140px; margin:0 auto; padding:11px 16px calc(11px + env(safe-area-inset-bottom)); display:flex; align-items:center; gap:14px; }
+  .sk-cd{ display:none; align-items:center; gap:8px; font-family:var(--font-mono); font-size:12.5px; color:var(--fg-2); }
+  .sk-cd b{ color:var(--teal); } .sk-cd .ic{ width:14px; height:14px; color:var(--gold-600); }
+  .sk-price{ font-family:var(--font-mono); font-weight:700; font-size:16px; color:var(--teal); white-space:nowrap; }
+  .sk-bp{ display:none; }
+  .sk-g{ margin-left:auto; display:inline-flex; padding:6px 11px; border-radius:11px; gap:8px; }
+  .sk-g .gbadge-g{ width:19px; height:19px; }
+  .sk-g .gbadge-top b{ font-size:14px; }
+  .sk-g .gstars{ font-size:10px; }
+  .sk-g .gbadge-sub{ font-size:10.5px; }
+  @media (min-width:560px){ .sk-cd{ display:flex; } }
+  @media (max-width:640px){
+    .sk-inner{ flex-wrap:wrap; gap:9px; justify-content:center; }
+    .sk-price{ display:none; }
+    .sk-bp{ display:inline; }
+    .sk-g{ margin:0; padding:0; background:none; border:0; box-shadow:none; gap:7px; }
+    .sk-g .gbadge-body{ flex-direction:row; align-items:center; gap:7px; }
+    .sk-g .gbadge-sub{ font-size:11.5px; }
+    .sticky .btn{ flex:1 0 100%; margin-left:0; justify-content:center; }
+  }
+  .pad{ height:78px; }
+
+  /* —— RESPONSIVE —— */
+  @media (min-width:640px){
+    .alg-grid{ grid-template-columns:repeat(3,1fr); }
+    .steps{ grid-template-columns:repeat(3,1fr); }
+    .res-grid{ grid-template-columns:repeat(3,1fr); }
+    .vids{ grid-template-columns:repeat(3,1fr); gap:18px; align-items:start; }
+  }
+  @media (min-width:880px){
+    .sec{ padding:60px 0; }
+    .hero{ padding:30px 0 0; }
+    .hero-inner{ grid-template-columns:1.05fr .92fr; gap:48px; }
+    .booking{ grid-template-columns:.9fr 1.1fr; align-items:start; }
+    .report-grid{ grid-template-columns:repeat(4,1fr); }
+  }
+
+  /* —— workshop checkout form —— */
+  .ws-form{ display:grid; gap:10px; margin-top:4px; }
+  .ws-in{ width:100%; font-family:inherit; font-size:15px; color:var(--teal); background:var(--white);
+    border:1px solid var(--line); border-radius:12px; padding:13px 15px; outline:none;
+    transition:border-color .2s var(--ease-out), box-shadow .2s var(--ease-out); }
+  .ws-in::placeholder{ color:var(--fg-3); }
+  .ws-in:focus{ border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft); }
+  .ws-in.err{ border-color:#d23f3f; box-shadow:0 0 0 3px rgba(210,63,63,.12); }
+  .ws-form .btn[disabled]{ opacity:.6; pointer-events:none; }
+  .ws-err{ margin:2px 0 0; font-size:12.5px; color:#c23434; text-align:center; }
+
+  /* —— checkout modal (centered dialog · bottom-sheet on mobile) —— */
+  .ws-modal{ position:fixed; inset:0; z-index:115; display:none; align-items:center; justify-content:center;
+    padding:20px; background:rgba(6,30,35,.5); backdrop-filter:blur(5px); -webkit-backdrop-filter:blur(5px); }
+  .ws-modal.show{ display:flex; }
+  .ws-modal-card{ position:relative; width:100%; max-width:420px; background:var(--white); border-radius:22px;
+    padding:26px 24px 20px; box-shadow:0 40px 90px -30px rgba(6,30,35,.6); }
+  .ws-modal-x{ position:absolute; top:13px; right:13px; width:32px; height:32px; border:0; padding:0; cursor:pointer;
+    background:var(--paper-warm); border-radius:999px; color:var(--fg-2); display:flex; align-items:center; justify-content:center; }
+  .ws-modal-x svg{ width:16px; height:16px; }
+  .ws-co-head{ margin-bottom:16px; padding-right:34px; }
+  .ws-co-head h3{ font-family:var(--font-sans); font-size:21px; font-weight:800; color:var(--teal); margin:0 0 4px; letter-spacing:-0.01em; }
+  .ws-co-sum{ font-size:13px; color:var(--fg-2); margin:0; }
+  .ws-co-sum b{ color:var(--teal); font-weight:700; } .ws-co-sum s{ color:var(--fg-3); margin-left:5px; }
+  .ws-co-trust{ margin:13px 0 0; font-size:11.5px; color:var(--fg-3); text-align:center; }
+  @media (max-width:560px){
+    .ws-modal{ align-items:flex-end; padding:0; }
+    .ws-modal-card{ max-width:none; border-radius:20px 20px 0 0; padding:24px 20px calc(20px + env(safe-area-inset-bottom)); animation:ws-sheet .28s var(--ease-out); }
+    @keyframes ws-sheet{ from{ transform:translateY(100%); } to{ transform:translateY(0); } }
+  }
+
+  /* —— payment success overlay —— */
+  .ws-success{ position:fixed; inset:0; z-index:120; display:none; align-items:center; justify-content:center;
+    padding:20px; background:rgba(6,30,35,.55); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px); }
+  .ws-success.show{ display:flex; }
+  .ws-card{ width:100%; max-width:440px; background:var(--white); border-radius:22px; padding:30px 26px;
+    box-shadow:0 40px 90px -30px rgba(6,30,35,.6); text-align:center; }
+  .ws-check{ width:60px; height:60px; border-radius:999px; margin:0 auto 16px; display:flex; align-items:center; justify-content:center;
+    background:var(--gold-soft); color:var(--gold-600); }
+  .ws-check svg{ width:30px; height:30px; }
+  .ws-card h3{ font-family:var(--font-sans); font-size:23px; font-weight:800; color:var(--teal); margin:0 0 6px; letter-spacing:-0.01em; }
+  .ws-card > p{ font-size:14px; color:var(--fg-2); line-height:1.6; margin:0 0 18px; }
+  .ws-meta{ background:var(--paper-warm); border:1px solid var(--line-soft); border-radius:12px; padding:11px 14px; font-size:13px; color:var(--fg-2); margin-bottom:18px; }
+  .ws-meta b{ color:var(--teal); }
+  .ws-actions{ display:grid; gap:10px; }
+  .ws-wa{ display:inline-flex; align-items:center; justify-content:center; gap:9px; background:#25D366; color:#073d22;
+    font-weight:700; font-size:15px; padding:13px 18px; border-radius:999px; text-decoration:none; }
+  .ws-wa svg{ width:19px; height:19px; }
+  .ws-cal{ display:inline-flex; align-items:center; justify-content:center; gap:8px; background:var(--white);
+    color:var(--teal); font-weight:600; font-size:14px; padding:11px 16px; border-radius:999px; text-decoration:none; border:1px solid var(--line); }
+  .ws-cal .ic{ width:16px; height:16px; color:var(--gold-600); }
+  .ws-ics{ font-size:12px; color:var(--fg-3); text-decoration:underline; margin-top:2px; display:inline-block; }
+  .ws-pid{ font-family:var(--font-mono); font-size:11px; color:var(--fg-3); margin-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true"><symbol id="g-logo" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></symbol></svg>
+
+  <!-- ============ NAV ============ -->
+  <nav class="nav"><div class="nav-pill">
+    <a class="nav-logo" href="#" aria-label="Verbis Edu"><img src="/assets/img/footer.svg" alt="Verbis Edu" /></a>
+    <div class="nav-right">
+      <span class="nav-cd" id="navcd"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Starts in <b data-starts-short>—</b></span>
+      <a class="btn btn-primary" href="#book">Claim my seat</a>
+    </div>
+  </div></nav>
+
+  <!-- ============ HERO ============ -->
+  <header class="hero"><div class="inner">
+    <div class="hero-card rev">
+      <span class="grid-tx"></span><span class="glow"></span>
+      <div class="hero-inner">
+        <div>
+          <span class="eyebrow"><span class="live"></span>Live online masterclass</span>
+          <h1>Crack PTE in <em>4 hours.</em></h1>
+          <p class="h-sub">Score <b>79+</b> the way past students did — one even hit <b>90/90</b>.</p>
+          <ul class="h-gets">
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg><span>Every template for <b>all 22 PTE task types</b></span></li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg><span>A week-by-week <b>79+ study plan</b> + a free mock test</span></li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg><span><b>₹3,000 off</b> your official PTE exam booking</span></li>
+          </ul>
+          <div class="hero-foot">
+            <span class="h-nospam"><svg class="ic" viewBox="0 0 24 24"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/><path d="M9 12l2 2 4-4"/></svg>Pearson-certified trainer · Univ. of Sheffield alumnus</span>
+          </div>
+        </div>
+
+        <!-- hero conversion unit: lean enroll card (one path to the button) -->
+        <aside class="enroll rev d2">
+          <div class="enroll-head">
+            <div class="enroll-price">
+              <span class="ep-now mono">₹589</span>
+              <span class="ep-meta"><s class="mono">₹2,999</s><span class="ep-off">80% OFF</span></span>
+            </div>
+            <a class="enroll-grev" href="#" target="_blank" rel="noopener" aria-label="Rated 4.9 from 491 Google reviews">
+              <span class="egr-top"><svg class="gbadge-g"><use href="#g-logo"/></svg><b>4.9</b><span class="gstars">★★★★★</span></span>
+              <span class="egr-sub">491 reviews</span>
+            </a>
+          </div>
+          <div class="enroll-when">
+            <div class="ew-row"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span><b>Saturday, 11 July 2026</b></span></div>
+            <div class="ew-row"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span><b>10 AM – 2 PM IST</b> · 4 hours live</span></div>
+            <div class="ew-row"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg><span>Online · joining link on WhatsApp</span></div>
+          </div>
+          <div class="enroll-cd" data-countdown>
+            <span class="ecd-lab">Starts in</span>
+            <div class="ecd-grid">
+              <div class="ecd-u"><b data-d>—</b><small>days</small></div>
+              <div class="ecd-u"><b data-h>—</b><small>hrs</small></div>
+              <div class="ecd-u"><b data-m>—</b><small>min</small></div>
+              <div class="ecd-u"><b data-s>—</b><small>sec</small></div>
+            </div>
+          </div>
+          <div class="enroll-seats">
+            <div class="es-top"><span class="es-lab">Seats remaining</span><span class="es-warn">Filling fast</span></div>
+            <div class="seatbar"><span class="seatfill"></span></div>
+            <div class="es-t">Only <b data-seats>—</b> of 100 seats left</div>
+          </div>
+          <a class="btn btn-primary btn-lg btn-block" href="#book">Claim my seat<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </aside>
+      </div>
+    </div>
+  </div></header>
+
+  <!-- ============ PROOF BAND — Google rating + real score reports ============ -->
+  <section class="sec" style="padding:42px 0 6px"><div class="inner">
+    <div class="proofhd rev">
+      <div class="proofhd-l">
+        <span class="kick">Proof, not promises</span>
+        <h2>Students from our previous batches have scored a perfect <em class="ac">90 / 90</em>!</h2>
+        <p class="s">Their <b>actual Pearson Academic score reports</b> — tap any card to open the full report.</p>
+      </div>
+      <div class="pstats">
+        <a class="pstat g" href="#" target="_blank" rel="noopener" aria-label="Rated 4.9 from 491 Google reviews">
+          <span class="gtop"><svg class="gbadge-g"><use href="#g-logo"/></svg><b>4.9</b><span class="gstars">★★★★★</span></span>
+          <span class="l">491 Google reviews</span>
+        </a>
+        <div class="pstat">
+          <span class="n">2,500+</span>
+          <span class="l">students trained</span>
+        </div>
+      </div>
+    </div>
+    <div class="scwall">
+      <figure class="scw rev d1" data-full="/workshop-assets/scorecards/clean/full-nidhi.png" tabindex="0" role="button" aria-label="Dr Nidhi scored Overall 90 of 90 (Listening 90, Reading 78, Speaking 90, Writing 87). Tap to view the full Pearson report.">
+        <div class="scw-top"><span class="scw-tag"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Pearson verified</span><svg class="scw-zoom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div>
+        <div class="scw-score"><span class="big">90</span><span class="max">/ 90</span><span class="lab">Overall<br>PTE Academic</span></div>
+        <div class="scw-skills"><div class="sk"><span class="ring sk-l">90</span><small>Listening</small></div><div class="sk"><span class="ring sk-r">78</span><small>Reading</small></div><div class="sk"><span class="ring sk-s">90</span><small>Speaking</small></div><div class="sk"><span class="ring sk-w">87</span><small>Writing</small></div></div>
+        <div class="scw-foot"><span><b>Dr Nidhi</b> · Feb 2026</span><span class="verify">Verify<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span></div>
+      </figure>
+      <figure class="scw rev d2" data-full="/workshop-assets/scorecards/clean/full-rahul.png" tabindex="0" role="button" aria-label="Dr Rahul scored Overall 90 of 90 (Listening 90, Reading 88, Speaking 90, Writing 84). Tap to view the full Pearson report.">
+        <div class="scw-top"><span class="scw-tag"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Pearson verified</span><svg class="scw-zoom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div>
+        <div class="scw-score"><span class="big">90</span><span class="max">/ 90</span><span class="lab">Overall<br>PTE Academic</span></div>
+        <div class="scw-skills"><div class="sk"><span class="ring sk-l">90</span><small>Listening</small></div><div class="sk"><span class="ring sk-r">88</span><small>Reading</small></div><div class="sk"><span class="ring sk-s">90</span><small>Speaking</small></div><div class="sk"><span class="ring sk-w">84</span><small>Writing</small></div></div>
+        <div class="scw-foot"><span><b>Dr Rahul</b> · Jan 2026</span><span class="verify">Verify<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span></div>
+      </figure>
+      <figure class="scw rev d3" data-full="/workshop-assets/scorecards/clean/full-first.png" tabindex="0" role="button" aria-label="A student scored Overall 90 of 90 on the first attempt (Listening 90, Reading 84, Speaking 89, Writing 79). Tap to view the full Pearson report.">
+        <div class="scw-top"><span class="scw-tag"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>First attempt</span><svg class="scw-zoom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div>
+        <div class="scw-score"><span class="big">90</span><span class="max">/ 90</span><span class="lab">Overall<br>PTE Academic</span></div>
+        <div class="scw-skills"><div class="sk"><span class="ring sk-l">90</span><small>Listening</small></div><div class="sk"><span class="ring sk-r">84</span><small>Reading</small></div><div class="sk"><span class="ring sk-s">89</span><small>Speaking</small></div><div class="sk"><span class="ring sk-w">79</span><small>Writing</small></div></div>
+        <div class="scw-foot"><span><b>First attempt</b> · Dec 2025</span><span class="verify">Verify<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span></div>
+      </figure>
+      <figure class="scw rev d4" data-full="/workshop-assets/scorecards/clean/full-aarti.png" tabindex="0" role="button" aria-label="Aarti scored Overall 83 of 90 (Listening 79, Reading 65, Speaking 86, Writing 68). Tap to view the full Pearson report.">
+        <div class="scw-top"><span class="scw-tag"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>Pearson verified</span><svg class="scw-zoom" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></div>
+        <div class="scw-score"><span class="big">83</span><span class="max">/ 90</span><span class="lab">Overall<br>PTE Academic</span></div>
+        <div class="scw-skills"><div class="sk"><span class="ring sk-l">79</span><small>Listening</small></div><div class="sk"><span class="ring sk-r">65</span><small>Reading</small></div><div class="sk"><span class="ring sk-s">86</span><small>Speaking</small></div><div class="sk"><span class="ring sk-w">68</span><small>Writing</small></div></div>
+        <div class="scw-foot"><span><b>Aarti</b> · May 2026</span><span class="verify">Verify<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M8 7h9v9"/></svg></span></div>
+      </figure>
+    </div>
+    <div class="dests rev">
+      <span class="dests-lab">Our students now study &amp; work across the UK · Ireland · Australia</span>
+      <div class="logos" aria-label="Universities our students now attend">
+        <div class="logos-track">
+          <div class="logos-set">
+            <span class="logo">Strathclyde</span><span class="logo">Liverpool</span><span class="logo">Brunel London</span><span class="logo">Newcastle</span><span class="logo">Warwick</span><span class="logo">Hertfordshire</span><span class="logo">Salford</span><span class="logo">Dublin City</span><span class="logo">TUS Ireland</span>
+          </div>
+          <div class="logos-set" aria-hidden="true">
+            <span class="logo">Strathclyde</span><span class="logo">Liverpool</span><span class="logo">Brunel London</span><span class="logo">Newcastle</span><span class="logo">Warwick</span><span class="logo">Hertfordshire</span><span class="logo">Salford</span><span class="logo">Dublin City</span><span class="logo">TUS Ireland</span>
+          </div>
+        </div>
+      </div>
+    </div>
+    <p class="res-disc rev">Real past-student Pearson score reports, shared with consent. Individual results vary; outcomes are not a guarantee. Verbis Edu is not affiliated with Pearson PLC.</p>
+  </div></section>
+
+  <!-- ============ THE ALGORITHM HOOK (merged: positioning + problem + algorithm) ============ -->
+  <section class="sec" style="padding-top:50px"><div class="inner">
+    <div class="hook rev">
+      <div class="hook-grid">
+        <div class="hook-lede">
+          <span class="kick">How PTE actually works</span>
+          <h2 class="hook-q">PTE isn't an English test. It's a <em>pattern</em> test.</h2>
+          <p class="hook-lead">No examiner reads your answer — an algorithm does. It rewards the markers it's built to find, and is blind to the rest.</p>
+          <p class="hook-lead">Which is good news: those rules can be <em>learned</em>. A Pearson-certified trainer hands you the formula for all 22 task types — the entire 4-hour class.</p>
+          <div class="cta-row"><a class="btn btn-primary" href="#book">Claim my seat · ₹589</a></div>
+        </div>
+        <div class="reader" aria-label="How the PTE engine scores a sample answer">
+          <div class="reader-bar"><span class="dot"></span>PTE scoring engine<span class="reader-status">scoring spoken response…</span></div>
+          <p class="reader-text"><mark>To begin with</mark>, the chart shows a <mark>clear upward trend</mark>. <mark>However</mark>, growth slows after 2020, pointing to <mark>three key factors</mark>.</p>
+          <div class="reader-tags"><span class="rt">+ opener</span><span class="rt">+ keyword</span><span class="rt">+ connector</span><span class="rt">+ data point</span></div>
+          <div class="reader-verdict">
+            <span class="rv-ignored"><b>Never sees:</b> your accent · how eloquent you sound · a big vocabulary</span>
+            <span class="rv-score">Band<b class="rv-num">79</b></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ============ CURRICULUM · THE AGENDA (light premium syllabus) ============ -->
+  <section class="sec" style="background:var(--paper-warm)"><div class="inner">
+    <div class="sec-hd"><span class="kick rev">The 4-hour program</span><h2 class="rev">You'll walk out with a template for <em class="ac">every PTE task.</em></h2><p class="rev">Five focused blocks across one live Saturday — here's exactly what each one hands you.</p>
+      <div class="ag-meta rev"><span><b>4 hours</b> live</span><span><b>5</b> modules</span><span>all <b>22</b> task types</span><span>live Q&amp;A</span></div>
+    </div>
+
+    <div class="agenda rev">
+      <div class="ag-row">
+        <div class="ag-rail"><span class="ag-num">01</span><span class="ag-dur">30 min</span></div>
+        <div class="ag-main">
+          <span class="ag-skill">The System</span>
+          <h3 class="ag-title">Read any PTE task and instantly see where the points are.</h3>
+          <ul class="ag-outs">
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>A scoring map for all four sections — where every mark is won and lost</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Why raw English stalls at 65, and the method that clears <b>79+</b></li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Where to spend effort first, using how partial credit actually works</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ag-row">
+        <div class="ag-rail"><span class="ag-num">02</span><span class="ag-dur">60 min</span></div>
+        <div class="ag-main">
+          <span class="ag-skill">Speaking</span>
+          <h3 class="ag-title">Talk so the engine hands you full marks.</h3>
+          <ul class="ag-outs">
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Fill all 40 seconds of every <b>Describe Image</b> with one repeatable template</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><b>Read Aloud</b> pacing, plus the <b>Repeat Sentence</b> memory hack</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>A <b>Re-tell Lecture</b> skeleton you reuse on any topic</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ag-row">
+        <div class="ag-rail"><span class="ag-num">03</span><span class="ag-dur">60 min</span></div>
+        <div class="ag-main">
+          <span class="ag-skill">Reading &amp; Writing</span>
+          <h3 class="ag-title">Hand in the structure the algorithm rewards — every time.</h3>
+          <ul class="ag-outs">
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>The <b>essay skeleton</b> scored for structure, not flourish</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><b>Summarize Written Text</b> in one clean, high-scoring sentence</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Fill-in-the-blanks by elimination, plus the 2-minute-per-question rule</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ag-row">
+        <div class="ag-rail"><span class="ag-num">04</span><span class="ag-dur">45 min</span></div>
+        <div class="ag-main">
+          <span class="ag-skill">Listening</span>
+          <h3 class="ag-title">Own the highest-yield section on the test.</h3>
+          <ul class="ag-outs">
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>The <b>Write-from-Dictation</b> method and memory bank that bank easy points</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><b>Highlight-Correct-Summary</b> keyword spotting</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Note-taking that actually moves the score</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="ag-row">
+        <div class="ag-rail"><span class="ag-num">05</span><span class="ag-dur">25 min</span></div>
+        <div class="ag-main">
+          <span class="ag-skill">Your plan + live Q&amp;A</span>
+          <h3 class="ag-title">Leave with a plan, not just a pile of templates.</h3>
+          <ul class="ag-outs">
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>A <b>week-by-week study plan</b> mapped to your target band</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>A <b>free mock-test assessment</b> that finds your exact gaps</li>
+            <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Live Q&amp;A — bring your hardest question</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <p class="ag-foot rev"><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><span>By 2 PM you walk out with templates for <b>all 22 task types</b> — and your <em>79+ study plan.</em></span></p>
+
+    <div class="cta-row rev"><a class="btn btn-primary" href="#book">Claim my seat · ₹589</a></div>
+  </div></section>
+
+  <!-- ============ VALUE · IT PAYS FOR ITSELF (break-even + honest comparison) ============ -->
+  <section class="sec"><div class="inner">
+    <div class="sec-hd"><span class="kick rev">Does it pay off?</span><h2 class="rev">It pays for itself — <em class="ac">6× over.</em></h2><p class="rev">Every attendee gets ₹3,000 off the official PTE exam. The seat is ₹589. The coupon alone more than covers it:</p></div>
+
+    <div class="vmath rev">
+      <div class="vm-cell"><span class="vm-lab">Exam coupon back</span><span class="vm-num">₹3,000</span></div>
+      <span class="vm-op">−</span>
+      <div class="vm-cell"><span class="vm-lab">Your seat</span><span class="vm-num">₹589</span></div>
+      <span class="vm-op">=</span>
+      <div class="vm-cell net"><span class="vm-lab">You're ahead</span><span class="vm-num">+₹2,411</span></div>
+    </div>
+    <p class="vmath-note rev">You're up <b>₹2,411 before the class even starts</b> — and that's before you count the live teaching, the 22-task playbook, or the mock test.</p>
+
+    <p class="vlabel rev">And it's still the cheapest route to a 79+:</p>
+    <div class="vcompare rev">
+      <div class="vc-row us">
+        <span class="vc-name">This masterclass</span>
+        <span class="vc-cost">₹589</span>
+        <span class="vc-detail"><b>One Saturday</b> — exam strategy, the 22-task playbook, a mock test + study plan, and the ₹3,000 coupon.</span>
+      </div>
+      <div class="vc-row">
+        <span class="vc-name">Classroom coaching</span>
+        <span class="vc-cost">~₹15,000</span>
+        <span class="vc-detail"><b>6–8 weeks</b> of evenings for the full syllabus, in a crowded batch.</span>
+      </div>
+      <div class="vc-row">
+        <span class="vc-name">Failing &amp; retaking</span>
+        <span class="vc-cost">₹19,000</span>
+        <span class="vc-detail"><b>Months lost</b> — and a second attempt at the same wall.</span>
+      </div>
+    </div>
+
+    <div class="vguar rev">
+      <span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Full refund any time before class starts</span>
+      <span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No spam, ever</span>
+    </div>
+    <div class="cta-row rev"><a class="btn btn-primary" href="#book">Claim my seat · ₹589</a></div>
+  </div></section>
+
+  <!-- ============ WHO IT'S FOR · is this you? (numbered self-select personas) ============ -->
+  <section class="sec" style="background:var(--paper-warm)"><div class="inner">
+    <div class="sec-hd"><span class="kick rev">Is this you?</span><h2 class="rev">This Saturday is for <em class="ac">you</em> if…</h2><p class="fit-lede rev">Whether you're scoring <b>55 or 95</b> in English right now, one of these is you — there's no bar you need to clear to start.</p></div>
+    <div class="fit">
+      <div class="fit-card rev d1">
+        <span class="fit-num">01</span>
+        <div><h4 class="fit-h">You're going abroad to study</h4><p class="fit-p">Your offer letter needs a PTE score, and you'd rather nail it the first time than gamble on exam day.</p></div>
+      </div>
+      <div class="fit-card rev d2">
+        <span class="fit-num">02</span>
+        <div><h4 class="fit-h">You're applying for PR or migration</h4><p class="fit-p">Every PTE point counts toward your visa — you can't afford to leave any on the table.</p></div>
+      </div>
+      <div class="fit-card hot rev d3">
+        <span class="fit-tag">Most common</span>
+        <span class="fit-num">03</span>
+        <div><h4 class="fit-h">You keep landing just under 79</h4><p class="fit-p">You've sat the test before and keep coming away in the 70s. You don't need to start over — just the one thing holding your score down.</p></div>
+      </div>
+      <div class="fit-card rev d4">
+        <span class="fit-num">04</span>
+        <div><h4 class="fit-h">You need English proof for work</h4><p class="fit-p">You're busy and already fluent enough day-to-day. You just need the score that says so — without months of prep.</p></div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- ============ MENTOR · dark "meet your trainer" spotlight ============ -->
+  <section class="sec"><div class="inner">
+    <div class="trainer rev">
+      <div class="tr-grid">
+        <div class="tr-photo">
+          <img src="assets/img/parth-trainer.jpg" alt="Parthasarathy Bhaskara — Pearson-certified PTE trainer" loading="lazy" />
+        </div>
+        <div class="tr-body">
+          <span class="tr-kick">Your trainer</span>
+          <h3 class="tr-name">Parthasarathy Bhaskara</h3>
+          <div class="tr-role">Pearson-certified PTE trainer · University of Sheffield alumnus</div>
+          <p class="tr-bio">He teaches PTE the way the algorithm actually scores it — the templates, timing, and small mechanics that separate a <b>65 from a 79</b>. Months of trial-and-error, compressed into one focused class built entirely around what gets rewarded on test day.</p>
+          <div class="tr-creds">
+            <span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Pearson-certified</span>
+            <span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Univ. of Sheffield alumnus</span>
+            <span><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>2,500+ students trained</span>
+          </div>
+          <div class="tr-rev">
+            <div class="tr-rev-top"><svg class="gbadge-g"><use href="#g-logo"/></svg><b>4.9</b><span class="gstars">★★★★★</span><small>491 Google reviews</small></div>
+            <div class="tr-revfeed">
+              <div class="tr-revtrack">
+                <blockquote class="trv">"A very kind and approachable teacher — he explained every concept so clearly that PTE finally made sense."<cite>— Aditya S. · Google</cite></blockquote>
+                <blockquote class="trv">"The task-by-task templates are gold — I finally knew exactly what to do in every section."<cite>— Sneha K. · Google</cite></blockquote>
+                <blockquote class="trv">"Four focused hours that replaced weeks of confused self-study. Genuinely worth it."<cite>— Karthik M. · Google</cite></blockquote>
+                <blockquote class="trv" aria-hidden="true">"A very kind and approachable teacher — he explained every concept so clearly that PTE finally made sense."<cite>— Aditya S. · Google</cite></blockquote>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div></section>
+
+  <!-- (Score-report wall moved up to the proof band directly below the hero) -->
+
+  <!-- ============ RESULTS · real students, now abroad (video showcase) ============ -->
+  <section class="sec"><div class="inner">
+    <div class="sec-hd">
+      <span class="kick rev">Real Verbis students</span>
+      <h2 class="rev">From our classroom to <em class="ac">campuses abroad.</em></h2>
+      <p class="rev">Not actors. Not paid promos. Real students who walked into Verbis Edu — now studying across the <b>UK, Ireland &amp; Australia.</b></p>
+    </div>
+    <div class="vids">
+      <figure class="vid rev d1" tabindex="0" role="button" aria-label="Play Tanujasri's story — now at Newcastle University, UK">
+        <video class="vplayer" src="/workshop-assets/videos/site-5.mp4" poster="/workshop-assets/videos/posters/site-5.jpg" preload="none" playsinline></video>
+        <span class="vloc"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>UK</span>
+        <span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+        <figcaption class="cap"><span class="nm">Tanujasri</span><span class="uni">Newcastle University</span></figcaption>
+      </figure>
+      <figure class="vid rev d2" tabindex="0" role="button" aria-label="Play Taran's story — now at University of Strathclyde, UK">
+        <video class="vplayer" src="/workshop-assets/videos/site-2.mp4" poster="/workshop-assets/videos/posters/site-2.jpg" preload="none" playsinline></video>
+        <span class="vloc"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>UK</span>
+        <span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+        <figcaption class="cap"><span class="nm">Taran</span><span class="uni">University of Strathclyde</span></figcaption>
+      </figure>
+      <figure class="vid rev d3" tabindex="0" role="button" aria-label="Play Prasad's story — now at Brunel University London">
+        <video class="vplayer" src="/workshop-assets/videos/site-4.mp4" poster="/workshop-assets/videos/posters/site-4.jpg" preload="none" playsinline></video>
+        <span class="vloc"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 21s-7-5.5-7-11a7 7 0 0 1 14 0c0 5.5-7 11-7 11z"/><circle cx="12" cy="10" r="2.5"/></svg>UK</span>
+        <span class="play"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></span>
+        <figcaption class="cap"><span class="nm">Prasad</span><span class="uni">Brunel University London</span></figcaption>
+      </figure>
+    </div>
+    <div class="cta-row rev"><a class="btn btn-primary" href="#book">Claim my seat · ₹589</a><span class="nospam"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No spam, ever</span></div>
+    <p class="res-disc rev" style="text-align:center;max-width:60ch;margin-left:auto;margin-right:auto">Real Verbis Edu students, shared with consent. Study-abroad journeys — individual results vary.</p>
+  </div></section>
+
+  <!-- (How it works folded into Booking below as "what happens the moment you pay" — was redundant as a standalone section) -->
+
+  <!-- ============ BOOKING ============ -->
+  <section class="sec" id="book" style="background:var(--paper-warm)"><div class="inner">
+    <div class="sec-hd c"><span class="kick rev c">Reserve your seat</span><h2 class="rev">Four hours to a <em class="ac">better PTE score.</em></h2></div>
+    <div class="offer ticket rev">
+      <div class="tk-top">
+        <span class="tk-kind">Live masterclass</span>
+      </div>
+      <div class="tk-when">
+        <div class="tk-row">
+          <span class="tk-ico"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg></span>
+          <div><div class="l">Saturday, 11 July 2026</div><div class="s">10 AM – 2 PM IST</div></div>
+        </div>
+        <div class="tk-row">
+          <span class="tk-ico"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></span>
+          <div><div class="l">4 hours live · online</div><div class="s">Joining link on WhatsApp</div></div>
+        </div>
+      </div>
+      <ul>
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>4-hour live masterclass + live Q&amp;A</li>
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>The template playbook for all 22 task types</li>
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg>Free mock-test assessment + your 79+ study plan</li>
+        <li><svg class="ic" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></svg><b>₹3,000 off</b> your official exam booking</li>
+      </ul>
+      <div class="seats">
+        <div class="t"><span>Seats remaining</span><span>Only <b data-seats>—</b> of 100 left</span></div>
+        <div class="seatbar"><span class="seatfill"></span></div>
+        <small>Live online · capped at 100 so Q&amp;A stays personal.</small>
+      </div>
+      <div class="tk-pay">
+        <div class="tk-pricerow">
+          <div class="pr"><b>₹589</b><s>₹2,999</s></div>
+          <a class="tk-trust" href="#" target="_blank" rel="noopener" aria-label="Rated 4.9 from 491 Google reviews">
+            <svg class="gbadge-g"><use href="#g-logo"/></svg>
+            <span class="tk-trust-b"><span class="tk-trust-top"><b>4.9</b><span class="gstars">★★★★★</span></span><small>491 Google reviews</small></span>
+          </a>
+        </div>
+        <div class="pr-sub">One payment · seat confirmed instantly · incl. 18% GST</div>
+        <button class="btn btn-primary btn-lg btn-block" data-checkout type="button">Claim my seat · ₹589<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        <div class="trust-chips">
+          <span><svg class="ic" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>Secured by Razorpay</span>
+          <span><svg class="ic" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>No spam, ever</span>
+          <span><svg class="ic" viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg>Instant confirmation</span>
+        </div>
+        <div class="tk-guar"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2 4 5v6c0 5 3.4 8.5 8 10 4.6-1.5 8-5 8-10V5z"/><path d="M9 12l2 2 4-4"/></svg>Full refund any time before class starts</div>
+      </div>
+    </div>
+    <div class="postbook rev">
+      <span class="pb-lab">What happens the moment you pay</span>
+      <ol class="pb-steps">
+        <li><span class="pb-n">1</span><span class="pb-t"><b>Seat confirmed</b> — instant, no callbacks</span></li>
+        <li><span class="pb-n">2</span><span class="pb-t">WhatsApp join link + calendar invite</span></li>
+        <li><span class="pb-n">3</span><span class="pb-t">A reminder, then you join live</span></li>
+      </ol>
+    </div>
+  </div></section>
+
+  <!-- ============ FAQ ============ -->
+  <section class="sec"><div class="inner">
+    <div class="sec-hd c"><span class="kick rev c">Before you book</span><h2 class="rev">Questions, answered</h2></div>
+    <div class="faq">
+      <details class="q" open><summary><span class="qn">01</span><span class="qt">Is one Saturday really enough?</span></summary><div class="a">PTE rewards method, not months of grinding. The whole class is built around the exact templates and scoring patterns the algorithm looks for — so four focused hours replace weeks of trial-and-error. Past students have used this exact approach to reach 79+, and some a perfect 90/90.</div></details>
+      <details class="q"><summary><span class="qn">02</span><span class="qt">What English level do I need?</span></summary><div class="a">Any level. The templates give you a repeatable structure for every question type — whether you're starting out around 55 or polishing an already-strong score toward 79+. There's no bar you need to clear to begin.</div></details>
+      <details class="q"><summary><span class="qn">03</span><span class="qt">Is this actually legit?</span></summary><div class="a">Yes. Verbis Edu is a Bengaluru-based centre rated 4.9★ across 491 Google reviews, and your trainer is a Pearson-certified PTE expert and University of Sheffield alumnus. Payment is secured via UPI or card through Razorpay, and our team is reachable on WhatsApp before and after you book.</div></details>
+      <details class="q"><summary><span class="qn">04</span><span class="qt">Will you spam me with calls?</span></summary><div class="a">No. You'll get your joining link and class reminders on WhatsApp — nothing else. No daily sales calls, ever.</div></details>
+      <details class="q"><summary><span class="qn">05</span><span class="qt">How does the ₹3,000 exam discount work?</span></summary><div class="a">Attendees get an exclusive link to sit the official PTE exam at ₹16,000 instead of ₹19,000 — a ₹3,000 saving that more than covers your ₹589 seat. You'll get the discounted link when you're ready to book your official exam.</div></details>
+      <details class="q"><summary><span class="qn">06</span><span class="qt">Will I get a recording?</span></summary><div class="a">The class is live, and attendance is where the score jumps happen — the walkthroughs and live Q&amp;A are the whole point. You'll leave with the full template playbook, your study plan, and a free mock-test assessment to keep practising afterward.</div></details>
+    </div>
+  </div></section>
+
+  <!-- ============ FINAL (contained dark card) ============ -->
+  <section class="sec final"><div class="inner">
+    <div class="final-card rev">
+      <span class="grid-tx"></span>
+      <span class="eyebrow" style="justify-content:center"><span class="live"></span>Live · Sat 11 July · 10 AM IST</span>
+      <h2 style="margin-top:18px">One Saturday between you and <em>79+</em>.</h2>
+      <p>You've seen the method and the proof — the rest is just showing up.</p>
+      <a class="btn btn-primary btn-lg" href="#book">Claim my seat · ₹589<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      <div class="fmicro">SECURE UPI / CARD · NO SPAM, EVER · NOT AFFILIATED WITH PEARSON PLC</div>
+    </div>
+  </div></section>
+
+  <footer class="site-footer"><div class="inner">
+    <div class="ft-grid">
+      <!-- Brand -->
+      <div class="ft-brand">
+        <div class="ft-logo">
+          <span class="ft-logo-mark">V</span>
+          <span class="ft-logo-word">Verbis<b>Edu</b></span>
+        </div>
+        <p class="ft-tag">Helping Indian students find their perfect university abroad since 2020. Expert guidance, zero confusion.</p>
+      </div>
+
+      <!-- Quick Links -->
+      <div class="ft-col">
+        <h4>Quick Links</h4>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about">About</a></li>
+          <li><a href="/success-stories">Success Stories</a></li>
+          <li><a href="/blog">Blog</a></li>
+          <li><a href="/contact">Contact</a></li>
+          <li><a href="/apply/form">Check Eligibility</a></li>
+        </ul>
+      </div>
+
+      <!-- Courses -->
+      <div class="ft-col">
+        <h4>Courses</h4>
+        <ul>
+          <li><a href="/ielts">IELTS</a></li>
+          <li><a href="/toefl">TOEFL</a></li>
+          <li><a href="/pte">PTE</a></li>
+          <li><a href="/oet">OET</a></li>
+          <li><a href="/study-abroad-and-work-abroad">Study &amp; Work Abroad</a></li>
+        </ul>
+      </div>
+
+      <!-- Get in Touch -->
+      <div class="ft-col">
+        <h4>Get in Touch</h4>
+        <ul class="ft-contact">
+          <li><svg class="ic" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-10 5L2 7"/></svg><a href="mailto:info@verbisedu.com">info@verbisedu.com</a></li>
+          <li><svg class="ic" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg><a href="tel:+919945328060">+91 9945328060</a></li>
+          <li><svg class="ic" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Mathikere, Bengaluru,<br>Karnataka 560054</span></li>
+        </ul>
+      </div>
+
+      <!-- Follow Us -->
+      <div class="ft-col">
+        <h4>Follow Us</h4>
+        <div class="ft-social">
+          <a href="https://www.instagram.com/verbisedu/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></a>
+          <a href="https://www.facebook.com/verbisedu/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></a>
+          <a href="https://twitter.com/verbisedu" target="_blank" rel="noopener noreferrer" aria-label="Twitter"><svg viewBox="0 0 24 24"><path d="M23.953 4.57a10 10 0 01-2.825.775 4.958 4.958 0 002.163-2.723c-.951.555-2.005.959-3.127 1.184a4.92 4.92 0 00-8.384 4.482C7.69 8.095 4.067 6.13 1.64 3.162a4.822 4.822 0 00-.666 2.475c0 1.71.87 3.213 2.188 4.096a4.904 4.904 0 01-2.228-.616v.06a4.923 4.923 0 003.946 4.827 4.996 4.996 0 01-2.212.085 4.936 4.936 0 004.604 3.417 9.867 9.867 0 01-6.102 2.105c-.39 0-.779-.023-1.17-.067a13.995 13.995 0 007.557 2.209c9.053 0 13.998-7.496 13.998-13.985 0-.21 0-.42-.015-.63A9.935 9.935 0 0024 4.59z"/></svg></a>
+          <a href="https://linkedin.com/company/verbisedu" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><svg viewBox="0 0 24 24"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom bar -->
+    <div class="ft-bottom">
+      <p>&copy; 2026 Verbis Edu. All rights reserved.</p>
+    </div>
+  </div></footer>
+
+  <div class="pad"></div>
+
+  <!-- mascot slot (placeholder — Rive/Lottie drops in during React phase) -->
+  <div class="mascot" id="mascot" aria-hidden="true">
+    <span class="tip">Seats going fast!</span>
+    <span class="badge"><svg class="ic" viewBox="0 0 24 24"><path d="M12 3c4 0 7 3 7 7 0 5-7 11-7 11S5 15 5 10c0-2 1-3.5 2.5-4.5"/><circle cx="10" cy="9" r="1.2" fill="currentColor" stroke="none"/><path d="M13 10c1.5 0 2.5-1 2.5-2.5"/></svg></span>
+  </div>
+
+  <div class="sticky" id="sticky"><div class="sk-inner">
+    <span class="sk-cd"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Starts in <b data-starts-short>—</b></span>
+    <span class="sk-price mono" data-total>₹589</span>
+    <a class="gbadge sk-g" href="#" target="_blank" rel="noopener" aria-label="Rated 4.9 from 491 Google reviews"><svg class="gbadge-g"><use href="#g-logo"/></svg><span class="gbadge-body"><span class="gbadge-top"><b>4.9</b><span class="gstars">★★★★★</span></span><span class="gbadge-sub">491 Google reviews</span></span></a>
+    <a class="btn btn-primary" href="#book">Claim my seat<span class="sk-bp"> · ₹589</span></a>
+  </div></div>
+
+</div>
+<script>
+(function(){
+  document.documentElement.classList.add('js');
+  var reduce = matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  /* —— count-ups —— */
+  function runCount(el){
+    if(el.dataset.done) return; el.dataset.done='1';
+    var m=String(el.textContent).match(/^(\D*)([\d,]+)(.*)$/); if(!m) return;
+    var pre=m[1], num=parseInt(m[2].replace(/,/g,''),10), suf=m[3];
+    if(reduce){ el.textContent=pre+num.toLocaleString('en-IN')+suf; return; }
+    var dur=1100,t0=null;
+    function f(t){ if(!t0)t0=t; var p=Math.min((t-t0)/dur,1); var e=1-Math.pow(1-p,3);
+      el.textContent=pre+Math.round(num*e).toLocaleString('en-IN')+suf; if(p<1)requestAnimationFrame(f); }
+    requestAnimationFrame(f);
+  }
+
+  /* —— reveal via IntersectionObserver —— */
+  var io = ('IntersectionObserver' in window) ? new IntersectionObserver(function(es){
+    es.forEach(function(en){ if(en.isIntersecting){ var el=en.target; el.classList.add('in');
+      if(el.classList.contains('count')) runCount(el);
+      el.querySelectorAll && el.querySelectorAll('.count').forEach(runCount);
+      io.unobserve(el); } });
+  }, {rootMargin:'0px 0px -8% 0px', threshold:0.12}) : null;
+  function watch(sel){ document.querySelectorAll(sel).forEach(function(el){ if(io) io.observe(el); else { el.classList.add('in'); el.querySelectorAll&&el.querySelectorAll('.count').forEach(runCount);} }); }
+  watch('.rev'); watch('.count-fill'); watch('.mcard'); watch('.count');
+
+  /* —— sticky + nav countdown + mascot —— */
+  var sticky=document.getElementById('sticky'), navcd=document.getElementById('navcd'), mascot=document.getElementById('mascot');
+  var navEl=document.querySelector('.nav');
+  var hero=document.querySelector('.hero'), booking=document.getElementById('book');
+  function onScroll(){
+    var y=window.scrollY||document.documentElement.scrollTop, past=hero?hero.offsetHeight*0.7:600;
+    var bookTop = booking?booking.getBoundingClientRect().top:9999, inBooking = bookTop < window.innerHeight && bookTop > -booking.offsetHeight;
+    if(navEl) navEl.classList.toggle('scrolled', y>12);
+    sticky.classList.toggle('show', y>past && !inBooking);
+    navcd.classList.toggle('show', y>past);
+    if(mascot) mascot.classList.toggle('show', y>past && !inBooking);
+  }
+  onScroll(); window.addEventListener('scroll', onScroll, {passive:true}); window.addEventListener('resize', onScroll);
+
+  /* —— order bump price-toggle lives in the payment script below (the modal
+     markup, incl. #bump, is parsed after this block, so it can't bind here) —— */
+
+  /* —— countdown to workshop start: Sat 11 Jul 2026, 10:00 IST —— */
+  var target = new Date('2026-07-11T10:00:00+05:30').getTime();
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    var diff=target-Date.now(); if(diff<0)diff=0;
+    var d=Math.floor(diff/864e5),h=Math.floor(diff%864e5/36e5),m=Math.floor(diff%36e5/6e4),s=Math.floor(diff%6e4/1e3);
+    document.querySelectorAll('[data-countdown]').forEach(function(b){
+      var q=function(k){return b.querySelector('[data-'+k+']')};
+      if(q('d'))q('d').textContent=pad(d); if(q('h'))q('h').textContent=pad(h); if(q('m'))q('m').textContent=pad(m); if(q('s'))q('s').textContent=pad(s);
+    });
+    document.querySelectorAll('[data-starts-short]').forEach(function(el){ el.textContent = d>0 ? d+'d '+h+'h' : h+'h '+m+'m'; });
+  }
+  tick(); setInterval(tick,1000);
+
+  /* —— static seat counter: depletes toward the workshop date (one prop; swap to live count later) —— */
+  (function(){
+    var CAP=100, FLOOR=15, START=53, WINDOW=11; // ~START seats at WINDOW days out → FLOOR at 0
+    var daysLeft = Math.max(0, Math.ceil((target-Date.now())/864e5));
+    var seats = Math.round(FLOOR + (Math.min(daysLeft,WINDOW)/WINDOW)*(START-FLOOR));
+    seats = Math.max(FLOOR, Math.min(START, seats));
+    document.querySelectorAll('[data-seats]').forEach(function(el){ el.textContent=seats; });
+    requestAnimationFrame(function(){ document.querySelectorAll('.seatfill').forEach(function(fill){ fill.style.width=((CAP-seats)/CAP*100).toFixed(0)+'%'; }); });
+  })();
+
+  /* —— target-score micro-quiz —— */
+  (function(){
+    var steps=document.querySelectorAll('.qstep'); var done=0, total=steps.length, out=document.getElementById('qout');
+    steps.forEach(function(st){ st.querySelectorAll('.qopt').forEach(function(b){
+      b.addEventListener('click', function(){
+        var already=st.querySelector('.qopt.sel'); if(!already) done++;
+        st.querySelectorAll('.qopt').forEach(function(o){o.classList.remove('sel');});
+        b.classList.add('sel');
+        if(done>=total && out) out.classList.add('show');
+      });
+    });});
+  })();
+
+  /* —— video showcase: click / keyboard to play —— */
+  document.querySelectorAll('.vid').forEach(function(card){
+    function playVid(){
+      var v=card.querySelector('video'); if(!v) return;
+      if(v.paused){ v.setAttribute('controls',''); var p=v.play(); if(p&&p.catch)p.catch(function(){}); card.classList.add('playing'); }
+    }
+    card.addEventListener('click', playVid);
+    card.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); playVid(); } });
+  });
+
+  /* —— scorecard lightbox (tap to enlarge & verify) —— */
+  (function(){
+    var lb=document.createElement('div'); lb.className='lightbox';
+    var im=document.createElement('img'); lb.appendChild(im); document.body.appendChild(lb);
+    document.querySelectorAll('.scw').forEach(function(fig){
+      var open=function(){ im.src=fig.getAttribute('data-full')||''; lb.classList.add('open'); };
+      fig.addEventListener('click', open);
+      fig.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); open(); } });
+    });
+    lb.addEventListener('click', function(){ lb.classList.remove('open'); });
+    document.addEventListener('keydown', function(e){ if(e.key==='Escape') lb.classList.remove('open'); });
+  })();
+})();
+</script>
+<script id="reader-anim">
+/* Motion graphic: the PTE engine "scoring" a spoken answer. Plays when scrolled into view,
+   ticking the band up as each pattern is detected. Default DOM = finished state (graceful). */
+(function(){
+  var reader = document.querySelector('.reader'); if(!reader) return;
+  var marks  = [].slice.call(reader.querySelectorAll('.reader-text mark'));
+  var tags   = [].slice.call(reader.querySelectorAll('.reader-tags .rt'));
+  var num    = reader.querySelector('.rv-num');
+  var status = reader.querySelector('.reader-status');
+  var STEPS  = [41, 58, 70, 79];      // illustrative band as each marker lands
+  var FINAL  = 'scored on patterns';
+  var SCAN   = 'scanning…';
+  var timers = [], raf = null, running = false;
+
+  function clearAll(){ timers.forEach(clearTimeout); timers = []; if(raf) cancelAnimationFrame(raf); raf = null; }
+  function tick(from, to, ms){
+    var s = null;
+    (function frame(t){ if(s===null) s=t; var p = Math.min(1,(t-s)/ms);
+      if(num) num.textContent = Math.round(from + (to-from)*p);
+      if(p<1) raf = requestAnimationFrame(frame); })(performance.now());
+  }
+  function toStart(){ clearAll(); marks.forEach(function(m){ m.classList.add('pre'); });
+    tags.forEach(function(t){ t.classList.add('pre'); }); if(num) num.textContent='0'; if(status) status.textContent=SCAN; }
+  function toEnd(){ clearAll(); marks.forEach(function(m){ m.classList.remove('pre'); });
+    tags.forEach(function(t){ t.classList.remove('pre'); }); if(num) num.textContent='79'; if(status) status.textContent=FINAL; running=false; }
+  function play(){
+    if(running) return; running = true; toStart();
+    var t = 700;
+    marks.forEach(function(m, i){
+      timers.push(setTimeout(function(){
+        m.classList.remove('pre');
+        if(tags[i]) tags[i].classList.remove('pre');
+        tick(i ? STEPS[i-1] : 0, STEPS[i], 480);
+      }, t));
+      t += 850;
+    });
+    timers.push(setTimeout(function(){ if(status) status.textContent = FINAL; running = false; }, t + 100));
+  }
+
+  if(matchMedia('(prefers-reduced-motion: reduce)').matches) return; // leave finished default
+
+  var io = new IntersectionObserver(function(entries){
+    var e = entries[0];
+    if(e.isIntersecting) play(); else { clearAll(); running=false; toEnd(); }
+  }, { threshold: 0.5 });
+  io.observe(reader);
+})();
+</script>
+
+<!-- ============ PAYMENT: checkout modal (bottom-sheet on mobile) ============ -->
+<div class="ws-modal" id="ws-checkout" role="dialog" aria-modal="true" aria-labelledby="ws-co-h">
+  <div class="ws-modal-card">
+    <button class="ws-modal-x" id="ws-co-close" type="button" aria-label="Close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+    </button>
+    <div class="ws-co-head">
+      <h3 id="ws-co-h">Claim your seat</h3>
+      <p class="ws-co-sum">PTE Score 79+ Masterclass · Sat 11 July · <b id="ws-co-now">₹589</b><s id="ws-co-was">₹2,999</s></p>
+    </div>
+    <form class="ws-form" id="ws-form" novalidate>
+      <input class="ws-in" id="ws-name" name="name" type="text" autocomplete="name" placeholder="Full name" required />
+      <input class="ws-in" id="ws-email" name="email" type="email" autocomplete="email" placeholder="Email address" required />
+      <input class="ws-in" id="ws-phone" name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="WhatsApp number" required />
+      <label class="bump" for="bump">
+        <input type="checkbox" id="bump" />
+        <span class="box"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></span>
+        <span class="bt"><b>Add the Mock Test Pack</b> — 5 full mock tests, 5 sectional tests &amp; 100+ practice questions per task type. Portal login emailed right after class — walk into the real exam having already sat it 5 times. <span class="add"><s>₹1,999</s> +₹590</span></span>
+      </label>
+      <button class="btn btn-primary btn-lg btn-block" id="ws-pay" type="submit">Pay <span id="ws-pay-amt">₹589</span> · Confirm seat<svg class="ic" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+      <p class="ws-err" id="ws-err" hidden></p>
+    </form>
+    <p class="ws-co-trust">Secured by Razorpay · GST included · No spam, ever · Full refund before class starts</p>
+  </div>
+</div>
+
+<!-- ============ PAYMENT: success overlay ============ -->
+<div class="ws-success" id="ws-success" role="dialog" aria-modal="true" aria-labelledby="ws-success-h">
+  <div class="ws-card">
+    <div class="ws-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <h3 id="ws-success-h">Seat confirmed 🎉</h3>
+    <p id="ws-success-p">You're in for the PTE Score 79+ Masterclass. Your private classroom link is on its way to your email — that's where you'll join the live class.</p>
+    <div class="ws-meta"><b>Saturday, 11 July 2026</b> · 10 AM – 2 PM IST · Online</div>
+    <div class="ws-actions">
+      <a class="ws-portal" id="ws-portal" href="#" style="display:none;background:#FBBD29;color:#0E4852;padding:14px 30px;border-radius:999px;font-weight:800;font-size:16px;text-decoration:none;text-align:center;margin-bottom:10px;">Enter the live classroom →</a>
+      <a class="ws-wa" id="ws-wa" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 0 1 8.413 3.488 11.824 11.824 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.51 5.26l-.999 3.648 3.978-1.043zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+        Join the WhatsApp group
+      </a>
+      <a class="ws-cal" id="ws-cal" href="#" target="_blank" rel="noopener">
+        <svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+        Add to calendar
+      </a>
+      <a class="ws-ics" id="ws-ics" download="verbis-pte-masterclass.ics" href="#">Download .ics</a>
+    </div>
+    <div class="ws-pid" id="ws-pid"></div>
+  </div>
+</div>
+
+<!-- ============ PAYMENT: Razorpay checkout ============ -->
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script>
+(function(){
+  // TODO: replace with the real WhatsApp group invite link (chat.whatsapp.com/...)
+  var WHATSAPP_JOIN_URL = "https://chat.whatsapp.com/REPLACE_WITH_GROUP_INVITE";
+  var GCAL_URL = "https://calendar.google.com/calendar/render?action=TEMPLATE"
+    + "&text=" + encodeURIComponent("PTE Score 79+ Masterclass — Verbis Edu")
+    + "&dates=20260711T043000Z/20260711T083000Z"
+    + "&details=" + encodeURIComponent("Your live 4-hour PTE masterclass. The joining link will be shared in the WhatsApp group.")
+    + "&location=" + encodeURIComponent("Online");
+  var ICS = [
+    "BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Verbis Edu//PTE Masterclass//EN","CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT","UID:pte-masterclass-2026-07-11@verbisedu.com","DTSTAMP:20260625T000000Z",
+    "DTSTART:20260711T043000Z","DTEND:20260711T083000Z",
+    "SUMMARY:PTE Score 79+ Masterclass — Verbis Edu",
+    "DESCRIPTION:Your live 4-hour PTE masterclass. The joining link will be shared in the WhatsApp group.",
+    "LOCATION:Online","END:VEVENT","END:VCALENDAR"
+  ].join("\r\n");
+
+  var form = document.getElementById('ws-form');
+  if(!form) return;
+  var btn = document.getElementById('ws-pay');
+  var errEl = document.getElementById('ws-err');
+  var nameEl = document.getElementById('ws-name');
+  var emailEl = document.getElementById('ws-email');
+  var phoneEl = document.getElementById('ws-phone');
+  var bumpEl = document.getElementById('bump');
+  var modal = document.getElementById('ws-checkout');
+
+  // Mock-pack order bump: reflect the +₹590 in the modal summary + pay button.
+  if(bumpEl){
+    var coNow = document.getElementById('ws-co-now');
+    var coWas = document.getElementById('ws-co-was');
+    var payAmt = document.getElementById('ws-pay-amt');
+    bumpEl.addEventListener('change', function(){
+      var on = bumpEl.checked;
+      if(coNow) coNow.textContent = on ? '₹1,179' : '₹589';
+      if(coWas) coWas.textContent = on ? '₹4,998' : '₹2,999';
+      if(payAmt) payAmt.textContent = on ? '₹1,179' : '₹589';
+    });
+  }
+  var successOv = document.getElementById('ws-success');
+
+  function lockScroll(on){ document.documentElement.style.overflow = on ? 'hidden' : ''; }
+  function openCheckout(){ clearErr(); loading(false); modal.classList.add('show'); lockScroll(true); setTimeout(function(){ try{ nameEl.focus(); }catch(_){} }, 60); }
+  function closeCheckout(){ modal.classList.remove('show'); lockScroll(false); }
+
+  // Any "Claim my seat" CTA (they all point to #book) or a [data-checkout] button opens the focused checkout.
+  document.addEventListener('click', function(e){
+    var t = e.target.closest && e.target.closest('a[href="#book"], [data-checkout]');
+    if(!t) return;
+    e.preventDefault();
+    openCheckout();
+  });
+  document.getElementById('ws-co-close').addEventListener('click', closeCheckout);
+  modal.addEventListener('click', function(e){ if(e.target === modal) closeCheckout(); });
+
+  function showErr(m){ errEl.textContent = m; errEl.hidden = false; }
+  function clearErr(){ errEl.hidden = true; }
+  function loading(on){ btn.disabled = on; }
+  function validEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function validPhone(v){ return v.replace(/\D/g,'').length >= 10; }
+  function mark(el, bad){ el.classList.toggle('err', bad); }
+
+  function showSuccess(paymentId, accessToken){
+    modal.classList.remove('show');
+    var portalEl = document.getElementById('ws-portal');
+    var pEl = document.getElementById('ws-success-p');
+    if(accessToken){
+      portalEl.href = '/workshop/live?t=' + encodeURIComponent(accessToken);
+      portalEl.style.display = 'block';
+      if(pEl) pEl.textContent = "You're in! 🎉 Enter the classroom below — we've also emailed your private link (it's tied to your seat, so keep it to yourself).";
+    } else {
+      portalEl.style.display = 'none';
+      if(pEl) pEl.textContent = "You're in! 🎉 Your private classroom link is on its way to your email — that's where you'll join the live class.";
+    }
+    document.getElementById('ws-wa').href = WHATSAPP_JOIN_URL;
+    document.getElementById('ws-cal').href = GCAL_URL;
+    document.getElementById('ws-ics').href = "data:text/calendar;charset=utf-8," + encodeURIComponent(ICS);
+    if(paymentId) document.getElementById('ws-pid').textContent = "Payment ID: " + paymentId;
+    successOv.classList.add('show');
+    lockScroll(true);
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    clearErr();
+    var name = nameEl.value.trim(), email = emailEl.value.trim(), phone = phoneEl.value.trim();
+    mark(nameEl, !name); mark(emailEl, !validEmail(email)); mark(phoneEl, !validPhone(phone));
+    if(!name || !validEmail(email) || !validPhone(phone)){ showErr("Please enter a valid name, email and phone number."); return; }
+    if(typeof Razorpay === 'undefined'){ showErr("Payment couldn't load — check your connection and try again."); return; }
+
+    var mockPack = !!(bumpEl && bumpEl.checked);
+
+    loading(true);
+    try{
+      var res = await fetch('/api/create-order', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ name: name, email: email, phone: phone, mockPack: mockPack })
+      });
+      var order = await res.json();
+      if(!res.ok) throw new Error((order && order.error) || "Could not start the payment.");
+
+      var rzp = new Razorpay({
+        key: order.keyId,
+        order_id: order.orderId,
+        amount: order.amount,
+        currency: order.currency,
+        name: "Verbis Edu",
+        description: mockPack ? "PTE Masterclass + Mock Test Pack" : "PTE Score 79+ Masterclass",
+        image: "/logo-icon.png",
+        prefill: { name: name, email: email, contact: phone },
+        theme: { color: "#FBBD29" },
+        handler: async function(resp){
+          try{
+            var vres = await fetch('/api/verify-payment', {
+              method:'POST', headers:{'Content-Type':'application/json'},
+              body: JSON.stringify({
+                razorpay_order_id: resp.razorpay_order_id,
+                razorpay_payment_id: resp.razorpay_payment_id,
+                razorpay_signature: resp.razorpay_signature,
+                name: name, email: email, phone: phone, mockPack: mockPack
+              })
+            });
+            var v = await vres.json();
+            if(vres.ok && v.success){ showSuccess(resp.razorpay_payment_id, v.accessToken); }
+            else { showErr("We couldn't verify the payment. If you were charged, message us on WhatsApp and we'll confirm your seat."); loading(false); }
+          }catch(_){ showErr("Verification failed. If you were charged, message us on WhatsApp."); loading(false); }
+        },
+        modal: { ondismiss: function(){ loading(false); } }
+      });
+      rzp.on('payment.failed', function(){ showErr("Payment failed or was declined. Please try again."); loading(false); });
+      rzp.open();
+    }catch(err){
+      showErr((err && err.message) || "Something went wrong. Please try again.");
+      loading(false);
+    }
+  });
+
+  successOv.addEventListener('click', function(e){ if(e.target === successOv){ successOv.classList.remove('show'); lockScroll(false); } });
+  document.addEventListener('keydown', function(e){
+    if(e.key !== 'Escape') return;
+    if(modal.classList.contains('show')) closeCheckout();
+    else if(successOv.classList.contains('show')){ successOv.classList.remove('show'); lockScroll(false); }
+  });
+})();
+</script>
+</body>
+</html>

@@ -6,9 +6,9 @@
  *  1. ORCHESTRATOR-MCP GUARD — an mcp__ call with no agent_id is the orchestrator
  *     breaking role → deny. (The §6 hard guarantee the permission system can't give.)
  *
- *  2. NO-RELAUNCH GUARD — the orchestrator launching a stage that already ran once
- *     → deny. (Fixes the runaway: the orchestrator fired a 2nd research instance
- *     because subagents run as async tasks. One instance per stage.)
+ *  2. LAUNCH-CEILING GUARD — per-stage relaunch cap. ALLOWS the bounded retry loops
+ *     (cell-generate/critic re-mine up to 3 rounds; cell-render/render-critic 1 retry)
+ *     but denies a runaway (the old async double-fire that fired a 2nd research).
  *
  *  3. GATHERING BUDGET — per subagent, cap the expensive gathering tools
  *     (WebFetch + perplexity + scrapecreators). Past the cap, deny *gathering*
@@ -22,6 +22,21 @@ import type { Options } from '@anthropic-ai/claude-agent-sdk';
 const isGatheringTool = (name: string): boolean =>
   name === 'WebFetch' || name.startsWith('mcp__perplexity') || name.startsWith('mcp__scrapecreators');
 
+// Per-stage launch ceilings. The retry loops re-launch cell stages + critics
+// (cell-generate/critic re-mine up to 3 rounds; cell-render/render-critic 1 retry),
+// so a flat "once only" rule would block them. Gather/strategy run once. Beyond the
+// ceiling = a runaway (the old async double-fire) — deny it.
+const LAUNCH_CAPS: Record<string, number> = {
+  research: 1,
+  comp: 1,
+  strategy: 1,
+  'cell-generate': 4,
+  critic: 4,
+  'cell-render': 3,
+  'render-critic': 3,
+};
+const DEFAULT_LAUNCH_CAP = 2;
+
 export interface HookConfig {
   /** subagent_type -> max gathering calls (e.g. { research: 15, comp: 15 }). */
   caps: Record<string, number>;
@@ -33,7 +48,7 @@ export interface HookConfig {
 
 export function buildHooks(cfg: HookConfig): Options['hooks'] {
   const gatherCount = new Map<string, number>(); // agent key -> gathering calls so far
-  const launched = new Set<string>(); // subagent_type already launched once
+  const launchCount = new Map<string, number>(); // subagent_type -> launches so far (retry-aware ceiling)
   let identityLogged = false; // log the first gathering call's identity once (diagnostic)
 
   const deny = (reason: string) => {
@@ -63,15 +78,21 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
               return deny(`Orchestrator must not call MCP directly (${tool}); delegate to the appropriate subagent.`);
             }
 
-            // 2) no re-launching a stage that already ran
+            // 2) launch ceiling per stage — ALLOW the bounded retry loops (cell-generate/
+            // critic re-mine up to 3 rounds; cell-render/render-critic 1 retry) but stop a
+            // runaway (a stage fired far past its ceiling — the old async double-fire).
             if ((tool === 'Agent' || tool === 'Task') && fromOrchestrator) {
               const st: string | undefined = input?.tool_input?.subagent_type;
-              if (st && launched.has(st)) {
-                return deny(
-                  `Stage "${st}" already ran once — do NOT re-launch it. Read its deliverable file; if it is missing, that stage failed — proceed to the next stage or stop, but never relaunch.`,
-                );
+              if (st) {
+                const n = (launchCount.get(st) ?? 0) + 1;
+                const cap = LAUNCH_CAPS[st] ?? DEFAULT_LAUNCH_CAP;
+                if (n > cap) {
+                  return deny(
+                    `Stage "${st}" has already been launched ${cap} time(s) — that is its retry ceiling. Do NOT launch it again; read its deliverable and proceed or stop.`,
+                  );
+                }
+                launchCount.set(st, n);
               }
-              if (st) launched.add(st);
               return cont();
             }
 

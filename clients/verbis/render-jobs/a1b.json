@@ -1,0 +1,12 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "a1-reframe-poster-v2",
+      "refs": ["assets/trainer/parth-clean.png"],
+      "prompt": "Direct-response Meta feed ad (portrait) for a LIVE PTE exam masterclass, designed to make study-abroad students register. Use the man in the reference image EXACTLY — same face, beard, warm confident smile, navy bandhgala jacket — but CUT HIM OUT from his original party background and place him on the RIGHT side, cropped from mid-chest up, facing the viewer. Do not change his face.\n\nBackground: warm cream (#F9F7F3). Design system: deep teal (#0E4852) headline ink, gold (#FBBD29) accents, clean modern geometric sans-serif, generous whitespace, premium and trustworthy — not busy. A subtle faint gold concentric-ring motif behind him.\n\nIMPORTANT: do NOT draw any logo, wordmark, star rating, or review text anywhere — leave the very TOP-LEFT corner empty and leave a small empty gap in the lower-left; a real logo and review badge will be added there separately.\n\nLEFT side, stacked top to bottom (leave top-left corner clear first):\n- a small gold pill badge with deep-teal text: 'LIVE · 4-HOUR PTE MASTERCLASS'\n- a huge bold headline, three lines: 'It's not your' / 'English.' / then 'It's the format.' with the word 'format.' in gold\n- one line of medium grey subtext: 'Why fluent speakers still score 65 — and how to fix it in 4 hours.'\n- a trainer credit: in deep teal 'with Parthasarathy Bhaskara', and directly under it smaller grey text 'Pearson-certified PTE Trainer · 2,500+ students trained'\n- a small strikethrough '₹2,999' then a gold rounded button with deep-teal text: 'Claim my seat  →  ₹589'\n\nBOTTOM: a slim deep-teal band spanning the width with gold text: 'Sat 11 July · 10 AM-2 PM IST · Online'.\n\nEvery piece of text must be crisp, correctly spelled and legible. Professional ad-agency quality."
+    }
+  ]
+}

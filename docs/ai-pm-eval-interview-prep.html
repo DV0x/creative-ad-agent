@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI PM Eval — 10-Page Interview Prep</title>
+<style>
+  :root {
+    --coral: #D4603A;
+    --coral-light: #F8EDE8;
+    --coral-dark: #B04A28;
+    --ink: #141413;
+    --ink-light: #3D3D3A;
+    --ink-muted: #8A8A85;
+    --surface: #FAF9F5;
+    --surface-alt: #F2F1EB;
+    --border: #E2E0D8;
+    --white: #FFFFFF;
+    --success: #2D9F5C;
+    --warning: #E89E0D;
+    --danger: #D94040;
+    --blue: #3B82F6;
+    --purple: #7C3AED;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--surface); color: var(--ink); line-height: 1.5; font-size: 14px; -webkit-font-smoothing: antialiased; max-width: 900px; margin: 0 auto; padding: 32px 40px 80px; }
+
+  /* ── Typography ── */
+  h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; text-align: center; margin-bottom: 4px; }
+  h1 em { font-style: normal; color: var(--coral); }
+  .subtitle { text-align: center; font-size: 13px; color: var(--ink-muted); margin-bottom: 32px; }
+  h2 { font-size: 18px; font-weight: 700; color: var(--coral-dark); margin: 28px 0 10px; padding-top: 16px; border-top: 2px solid var(--coral); letter-spacing: -0.2px; }
+  h2:first-of-type { margin-top: 0; }
+  h2 .num { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral); display: block; margin-bottom: 2px; }
+  h3 { font-size: 14px; font-weight: 700; color: var(--ink); margin: 16px 0 6px; }
+  h4 { font-size: 12.5px; font-weight: 700; color: var(--ink-light); margin: 10px 0 4px; }
+  p { margin-bottom: 8px; }
+  strong { font-weight: 600; }
+
+  /* ── Callouts ── */
+  .key { background: var(--coral-light); border-left: 3px solid var(--coral); border-radius: 4px; padding: 10px 14px; margin: 10px 0; font-size: 13px; line-height: 1.5; }
+  .key b { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: var(--coral-dark); margin-bottom: 3px; }
+  .warn { background: #FFF8E6; border-left: 3px solid var(--warning); border-radius: 4px; padding: 10px 14px; margin: 10px 0; font-size: 13px; }
+  .win { background: #ECFDF5; border-left: 3px solid var(--success); border-radius: 4px; padding: 10px 14px; margin: 10px 0; font-size: 13px; }
+
+  /* ── Tables ── */
+  .tw { overflow-x: auto; margin: 8px 0 12px; border-radius: 6px; border: 1px solid var(--border); }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  th { background: var(--surface-alt); font-weight: 600; text-align: left; padding: 6px 10px; border-bottom: 2px solid var(--border); font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--ink-muted); }
+  td { padding: 5px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* ── Lists ── */
+  ul, ol { margin: 4px 0 10px; padding-left: 20px; }
+  li { margin-bottom: 3px; font-size: 13px; line-height: 1.45; }
+
+  /* ── Flow ── */
+  .flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin: 8px 0 12px; font-size: 12px; }
+  .flow-s { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 5px 10px; font-weight: 500; white-space: nowrap; }
+  .flow-s.hi { background: var(--coral-light); border-color: var(--coral); color: var(--coral-dark); }
+  .flow-a { color: var(--ink-muted); font-size: 14px; }
+
+  /* ── Compare columns ── */
+  .cmp { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0 12px; }
+  .cmp-c { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 12px; }
+  .cmp-c.bad { border-color: var(--danger); }
+  .cmp-c.good { border-color: var(--success); }
+  .cmp-l { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4px; }
+  .cmp-c.bad .cmp-l { color: var(--danger); }
+  .cmp-c.good .cmp-l { color: var(--success); }
+
+  /* ── Commandment ── */
+  .cmd { display: flex; gap: 10px; margin: 6px 0; padding: 8px 12px; background: var(--white); border: 1px solid var(--border); border-radius: 6px; font-size: 12px; }
+  .cmd-n { flex-shrink: 0; width: 24px; height: 24px; background: var(--ink); color: var(--white); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 11px; }
+  .cmd-r { font-weight: 600; }
+  .cmd-w { color: var(--ink-light); font-size: 11.5px; margin-top: 2px; }
+
+  /* ── Code ── */
+  code { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.88em; background: var(--surface-alt); padding: 1px 5px; border-radius: 3px; color: var(--coral-dark); border: 1px solid var(--border); }
+  pre { background: #1a1a1a; color: #e8e6e0; border-radius: 6px; padding: 12px 16px; margin: 8px 0 12px; font-family: 'SF Mono', monospace; font-size: 11.5px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; }
+
+  /* ── Two-col grid ── */
+  .g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 8px 0; }
+  .g2 > div { background: var(--white); border: 1px solid var(--border); border-radius: 6px; padding: 10px 12px; font-size: 12px; }
+  .g2 h4 { margin-top: 0; }
+
+  /* ── Page breaks ── */
+  .pb { page-break-before: always; }
+
+  /* ── Print ── */
+  @media print {
+    @page { size: letter; margin: 0.6in 0.7in; }
+    body { font-size: 9pt; line-height: 1.4; background: #fff; color: #000; padding: 0; max-width: 100%; }
+    h1 { font-size: 20pt; }
+    h2 { font-size: 13pt; margin-top: 16pt; padding-top: 8pt; border-top-width: 1.5pt; }
+    h3 { font-size: 10pt; margin-top: 10pt; }
+    h4 { font-size: 9pt; }
+    p, li { font-size: 8.5pt; line-height: 1.35; orphans: 3; widows: 3; }
+    p { margin-bottom: 4pt; }
+    li { margin-bottom: 2pt; }
+    .key, .warn, .win { padding: 6pt 10pt; margin: 5pt 0; font-size: 8.5pt; border: 1px solid #ccc; background: #f9f9f7 !important; }
+    .key { border-left: 3px solid var(--coral); }
+    .warn { border-left: 3px solid var(--warning); }
+    .win { border-left: 3px solid var(--success); }
+    table { font-size: 7.5pt; }
+    th { padding: 3pt 6pt; background: #f0f0ee !important; }
+    td { padding: 3pt 6pt; }
+    pre { font-size: 7pt; padding: 6pt 10pt; background: #f2f2f0 !important; color: #1a1a1a !important; border: 1px solid #ddd; }
+    code { background: #f0f0ee; border-color: #ddd; color: #333; }
+    .tw, .key, .warn, .win, .cmp, .cmd, .flow, .g2, pre, table { page-break-inside: avoid; break-inside: avoid; }
+    h2, h3, h4 { page-break-after: avoid; }
+    .pb { page-break-before: always; }
+    .cmp { gap: 6pt; }
+    .g2 { gap: 6pt; }
+    .cmd { padding: 5pt 8pt; gap: 6pt; }
+    .flow { font-size: 8pt; gap: 3pt; }
+    .flow-s { padding: 3pt 6pt; }
+    .subtitle { margin-bottom: 16pt; }
+    ul, ol { margin: 2pt 0 6pt; padding-left: 14pt; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<h1>AI PM <em>Eval Masterclass</em></h1>
+<div class="subtitle">10-Page Interview Prep &mdash; Every framework, flow, and concept you need &mdash; condensed from 41 chapters</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 1: THE 5 QUESTIONS + WHY AI IS DIFFERENT      -->
+<!-- ═══════════════════════════════════════════════════ -->
+
+<h2><span class="num">The Spine</span>The 5 Questions That Solve Everything</h2>
+
+<p>These 5 questions form a dependency chain. Each requires the previous answer. Skip one and the chain breaks. They also represent your maturity journey&mdash;most teams are stuck at Q1 or earlier.</p>
+
+<div class="tw">
+<table>
+  <thead><tr><th>#</th><th>Question</th><th>Phase</th><th>What You Do</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;color:var(--coral);">Q1</td><td><strong>What does the agent DO?</strong></td><td>Map</td><td>Decompose into discrete jobs. Each job gets its own eval.</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral);">Q2</td><td><strong>How can it FAIL at each job?</strong></td><td>Observe</td><td>Enumerate failure modes per task. Review 50 real traces.</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral);">Q3</td><td><strong>What does SUCCESS look like?</strong></td><td>Define</td><td>Write rubrics. Turn "good" into a number. Define floor &amp; ceiling.</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral);">Q4</td><td><strong>How do I DETECT failure automatically?</strong></td><td>Design + Build</td><td>Structural checks, LLM-as-judge, CI/CD. Every change triggers the suite.</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral);">Q5</td><td><strong>How do I IMPROVE the product?</strong></td><td>Ship + Iterate</td><td>Detect &rarr; diagnose &rarr; fix &rarr; verify with evals &rarr; ship. Never regress.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="flow">
+  <div class="flow-s hi">Q1: What does it DO?</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Q2: How can it FAIL?</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s hi">Q3: What is SUCCESS?</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Q4: DETECT failure</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s hi">Q5: IMPROVE</div>
+</div>
+
+<div class="warn"><b>Q1&ndash;Q3 are cheap (thinking). Q4&ndash;Q5 are expensive (building). Do the cheap thinking first.</b> The #1 mistake: PM buys an eval platform, writes 20 test cases, hooks into CI/CD &mdash; but tests for the wrong things because they skipped error analysis (Q2) and rubric design (Q3).</div>
+
+
+<h2><span class="num">Foundation</span>The 4 Breakages &mdash; Why AI Broke Testing</h2>
+
+<div class="tw">
+<table>
+  <thead><tr><th>#</th><th>Breakage</th><th>What It Means</th><th>PM Consequence</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1</strong></td><td>Invisible Errors</td><td>HTTP 200, polished text, but wrong. No crash, no error page.</td><td>You can't trust demos.</td></tr>
+    <tr><td><strong>2</strong></td><td>Non-Determinism</td><td>Same input &rarr; different outputs each time. Invisible model updates.</td><td>You can't trust one-off testing.</td></tr>
+    <tr><td><strong>3</strong></td><td>5% Catastrophic Tail</td><td>95% great, 5% confidently wrong/offensive/dangerous. Tail generates tweets.</td><td>You can't trust development-phase confidence.</td></tr>
+    <tr><td><strong>4</strong></td><td>Cross-Task Regression</td><td>Fix one task, break another. One brain handles everything.</td><td>You can't trust that an improvement actually improved things.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="key"><b>The Math of 5% Failure</b>
+10,000 DAUs &times; 3 requests/day = 30,000 interactions. At 5% failure: <strong>1,500 bad outputs/day</strong> &rarr; ~150 support tickets/day &rarr; ~450 public complaints/month. Your latency dashboard says everything is green.</div>
+
+<h3>Traditional Software vs. AI Products</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Dimension</th><th>Traditional</th><th>AI Product</th></tr></thead>
+  <tbody>
+    <tr><td>Determinism</td><td>Same input = same output</td><td>Same input = different output</td></tr>
+    <tr><td>Failure visibility</td><td>Crashes, error pages</td><td>Failures look identical to successes</td></tr>
+    <tr><td>Component isolation</td><td>Fix one module, others fine</td><td>Improve one task, others may degrade</td></tr>
+    <tr><td>Who judges</td><td>A computer (pass/fail)</td><td>Requires human judgment or LLM proxy</td></tr>
+    <tr><td>Test approach</td><td><code>assertEquals(result, 42)</code></td><td>Check properties of fuzzy output</td></tr>
+    <tr><td>Who owns it</td><td>Engineering / QA</td><td><strong>PM</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 2-3: PM OWNERSHIP + FIRST WEEK                -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Ownership</span>Why Evals Are the PM's Job</h2>
+
+<div class="key"><b>The Most Important Idea</b>
+"The PM who defines the eval rubric defines the product." Rubric weights are product strategy decisions disguised as scoring criteria. Delegating eval ownership to engineering is like asking IT to judge whether ad agency copy is on-brand.</div>
+
+<h3>Two Rubrics = Two Product Strategies</h3>
+<div class="cmp">
+  <div class="cmp-c">
+    <div class="cmp-l" style="color:var(--blue);">Perplexity (Trust Product)</div>
+    Accuracy 35%, Source Grounding 30%, Completeness 20%, Conciseness 15%
+  </div>
+  <div class="cmp-c">
+    <div class="cmp-l" style="color:var(--purple);">Jasper (Brand Product)</div>
+    Brand Voice 30%, Specificity 25%, Persuasiveness 25%, Accuracy 20%
+  </div>
+</div>
+
+<h3>Industry Consensus</h3>
+<ul>
+  <li><strong>Kevin Weil (CPO, OpenAI):</strong> "Writing evals will become a core PM skill."</li>
+  <li><strong>Braintrust:</strong> "Evals are the new PRD."</li>
+  <li><strong>Anthropic:</strong> "Start with 20-50 tasks from actual user failures."</li>
+  <li><strong>Hamel Husain:</strong> "Remove ALL friction from looking at data."</li>
+</ul>
+
+<h3>PM vs. Engineering Ownership</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>PM Owns</th><th>Engineering Owns</th></tr></thead>
+  <tbody>
+    <tr><td>Define quality dimensions &amp; weights</td><td>Build eval runner &amp; automation</td></tr>
+    <tr><td>Write rubrics &amp; scoring criteria</td><td>Build data collection &amp; logging</td></tr>
+    <tr><td>Curate test cases from user failures</td><td rowspan="2" style="vertical-align:middle;">Prompt iteration (shared with PM)</td></tr>
+    <tr><td>Interpret results &amp; decide actions</td></tr>
+    <tr><td>Prioritize which failures to fix</td><td>&nbsp;</td></tr>
+    <tr><td>Maintain &amp; expand test case library</td><td>&nbsp;</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Eval Maturity Levels</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Level</th><th>Name</th><th>What</th><th>Time to Reach</th></tr></thead>
+  <tbody>
+    <tr><td>0</td><td>Flying Blind</td><td>No systematic measurement. ~35% of companies.</td><td>&mdash;</td></tr>
+    <tr><td>1</td><td>Spreadsheet Era</td><td>10-50 test cases, run manually</td><td>1 day</td></tr>
+    <tr><td>2</td><td>CI/CD Integration</td><td>50-200 cases, automated, LLM-as-judge</td><td>2-4 weeks</td></tr>
+    <tr><td>3</td><td>Live Quality Signal</td><td>Production monitoring, real user outputs scored</td><td>Top 5%</td></tr>
+    <tr><td>4</td><td>Self-Improving</td><td>Evals drive product decisions automatically</td><td>Top 1%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Your First Week Playbook</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Day</th><th>Activity</th><th>Output</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Read 15 production traces, freeform notes</td><td>15 annotated traces</td></tr>
+    <tr><td>2</td><td>Read 15 more, group failures into dimensions</td><td>30 traces, 3-5 named dimensions</td></tr>
+    <tr><td>3</td><td>Shadow 10 user sessions</td><td>Expectation gap notes</td></tr>
+    <tr><td>4</td><td>Interview engineers, map blueprint, write 10 test cases</td><td>First eval spreadsheet</td></tr>
+    <tr><td>5</td><td>Score test cases, write State of Quality doc</td><td>1-page baseline + ownership claim</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Trace selection (30 total):</strong> 10 normal + 10 varied + 5 failures + 5 excellent.</p>
+
+<h3>Weekly Cadence (3-4 hrs/week)</h3>
+<ul>
+  <li><strong>Mon:</strong> Review 30-50 recent outputs (1 hr) &mdash; most important hour</li>
+  <li><strong>Tue:</strong> Update suite, add 2-3 test cases (30 min)</li>
+  <li><strong>Wed-Thu:</strong> Run evals on prompt changes (30 min each)</li>
+  <li><strong>Fri:</strong> Weekly quality snapshot, track trendline (30 min)</li>
+</ul>
+
+<h3>5 Anti-Patterns to Call Out</h3>
+<ol>
+  <li><strong>"We'll add evals later"</strong> &mdash; they never stabilize</li>
+  <li><strong>"Our users are our eval"</strong> &mdash; by the time they complain, damage done</li>
+  <li><strong>"We have unit tests"</strong> &mdash; infrastructure tests &ne; quality evals</li>
+  <li><strong>"We do manual QA"</strong> &mdash; not repeatable, doesn't scale</li>
+  <li><strong>"Set and forget"</strong> &mdash; failure modes evolve, suite must too</li>
+</ol>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 3-4: MAP + ERROR ANALYSIS                     -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Q1 &mdash; Map</span>Decompose the Agent &amp; Identify Jobs</h2>
+
+<h3>Agent Spectrum (5 Levels)</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Level</th><th>Architecture</th><th>Example</th><th>Eval Surface</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td>Single LLM Call</td><td>Notion AI "Summarize"</td><td>~3 dimensions, 20-50 cases</td></tr>
+    <tr><td>2</td><td>Tool-Augmented</td><td>Perplexity</td><td>~5 dimensions, 50-100 cases</td></tr>
+    <tr><td>3</td><td>Multi-Step Pipeline</td><td>Lead research pipeline</td><td>~12 dimensions, 100-200 cases</td></tr>
+    <tr><td>4</td><td>Autonomous Agent</td><td>Creative campaign agent</td><td>15-20+ dimensions, 200-500 cases</td></tr>
+    <tr><td>5</td><td>Multi-Agent</td><td>Planner + coder + reviewer</td><td>500-1000+ cases</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>5 Composable Patterns (Anthropic)</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Pattern</th><th>What to Evaluate</th><th>Grading Approach</th></tr></thead>
+  <tbody>
+    <tr><td>Prompt Chaining</td><td>Each step's output; error cascade</td><td>Gate checks between steps</td></tr>
+    <tr><td>Routing</td><td>Classification accuracy</td><td>Deterministic vs labeled ground truth</td></tr>
+    <tr><td>Parallelization</td><td>Each branch; aggregation quality</td><td>Score branches + synthesis separately</td></tr>
+    <tr><td>Orchestrator-Workers</td><td>Decomposition; each worker; assembly</td><td>3 layers: plan + workers + assembly</td></tr>
+    <tr><td>Evaluator-Optimizer</td><td>Evaluator accuracy; convergence</td><td>Quality should increase monotonically</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="key"><b>Grade Outcomes, Not Paths (Anthropic)</b>
+Don't check the agent followed a specific step sequence. Evaluate the quality of outputs at each decision point. <strong>Path-Based (fragile):</strong> "Called web_search 3 times, then read_page." <strong>Outcome-Based (robust):</strong> "Research correctly identifies brand audience, products, competitive positioning."</div>
+
+<h3>Steps vs. Jobs</h3>
+<p><strong>Step</strong> = internal (visible in traces). <strong>Job</strong> = what the user gets (visible in satisfaction). <em>Litmus test:</em> Can you explain it to a user? Would they file a support ticket if it failed?</p>
+
+<h3>Prioritization Formula</h3>
+<p><strong>Priority = Frequency &times; Severity &times; User Impact</strong> (each 1-5, multiply &mdash; range 1-125). The Cascade Principle: jobs earlier in the chain always have higher severity.</p>
+
+
+<h2><span class="num">Q2 &mdash; Observe</span>Error Analysis &amp; Failure Modes</h2>
+
+<h3>The Husain-Shankar Methodology (4 Steps)</h3>
+<ol>
+  <li><strong>Open Coding:</strong> Review 50 real traces. Freeform notes. NO predefined categories. Let patterns emerge.</li>
+  <li><strong>Axial Coding:</strong> Feed open codes to a frontier LLM. Ask for 5-6 failure categories with percentages. YOU validate, LLM proposes.</li>
+  <li><strong>Theoretical Saturation:</strong> Keep reviewing until no new failure modes. Typically 30-50 traces. Track: new categories per batch of 10 (5&rarr;3&rarr;1&rarr;0 = saturated).</li>
+  <li><strong>Formalization:</strong> Each category gets: clear definition, pass/fail criterion, 2-3 PASS examples, 2-3 FAIL examples.</li>
+</ol>
+
+<h3>7 Universal Failure Modes</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Mode</th><th>What Happens</th><th>Most Vulnerable</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Generic Trap</strong></td><td>Vague, could apply to anyone. Test: Logo Swap Test</td><td>Marketing, copywriting</td></tr>
+    <tr><td><strong>Sycophancy</strong></td><td>Agrees with everything, never pushes back</td><td>Coaching, code review</td></tr>
+    <tr><td><strong>Hallucination Bridge</strong></td><td>8 real facts + 2 invented, seamlessly blended</td><td>Search, research</td></tr>
+    <tr><td><strong>Format Break</strong></td><td>Good content, wrong structure</td><td>API-driven products</td></tr>
+    <tr><td><strong>Instruction Drift</strong></td><td>Follows 8/10 instructions, ignores 2</td><td>Multi-constraint tasks</td></tr>
+    <tr><td><strong>Overconfidence</strong></td><td>States uncertain things as facts</td><td>Medical, legal, financial</td></tr>
+    <tr><td><strong>Stale Information</strong></td><td>Uses outdated data as current</td><td>News, market research</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6 Agent-Specific Failure Modes</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Mode</th><th>Root Cause</th><th>Detection</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Ghost Actions</strong></td><td>Claims completion without calling tool</td><td>Compare claims vs. tool call logs</td></tr>
+    <tr><td><strong>Interrogation Loops</strong></td><td>Can't map language to parameters</td><td>Count turns before tool invocation</td></tr>
+    <tr><td><strong>Confident Fabricators</strong></td><td>Weaves garbage tool output into response</td><td>Inject known-bad tool outputs</td></tr>
+    <tr><td><strong>Cascade Failures</strong></td><td>Small Step 1 error &rarr; catastrophic Step 3</td><td>Eval each step + end-to-end</td></tr>
+    <tr><td><strong>Tool Misfires</strong></td><td>Right tool, wrong parameters</td><td>Inspect tool call parameters</td></tr>
+    <tr><td><strong>Context Amnesia</strong></td><td>Attention degrades over distance</td><td>Inject constraints early, verify late</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="key"><b>Cascade Math</b>
+90% accuracy/step &times; 4 steps = 0.9<sup>4</sup> = <strong>65.6%</strong> end-to-end. Adding retry at each gate (80% retry success): ~98%/step &rarr; 0.98<sup>4</sup> = <strong>92.2%</strong>. Retries alone = +26 pp without improving any step.</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 5: QUALITY DEFINITION + ACCT                  -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Q3 &mdash; Define</span>Quality Definition &amp; the ACCT Framework</h2>
+
+<div class="key"><b>Quality Formula</b>
+"User needs X so they can Y <strong>without</strong> Z." The "without" clause IS the eval north star &mdash; it describes the work the AI eliminates. Zero rework = exceptional. Light editing = good. Significant rework = poor. Start over = failure.</div>
+
+<h3>The ACCT Framework (4 Dimensions)</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Dimension</th><th>Core Question</th><th>Example Failure</th></tr></thead>
+  <tbody>
+    <tr><td><strong>A &mdash; Accuracy</strong></td><td>Is the information correct?</td><td>"Apple founded 1974" (was 1976)</td></tr>
+    <tr><td><strong>C &mdash; Completeness</strong></td><td>Did it do the whole job?</td><td>Summarizes 3 of 5 key points</td></tr>
+    <tr><td><strong>C &mdash; Calibration</strong></td><td>Does it know what it doesn't know?</td><td>"You definitely have strep"</td></tr>
+    <tr><td><strong>T &mdash; Taste</strong></td><td>Does the output feel right?</td><td>Luxury brand AI writes like intern</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>ACCT Weights by Product Type</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Product Type</th><th>Primary</th><th>Secondary</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>Search / Research</td><td>Accuracy</td><td>Calibration</td><td>Users act on facts</td></tr>
+    <tr><td>Customer Support</td><td>Accuracy</td><td>Completeness</td><td>Wrong policy = liability</td></tr>
+    <tr><td>Creative / Marketing</td><td>Taste</td><td>Accuracy</td><td>Generic copy = #1 failure</td></tr>
+    <tr><td>Code Generation</td><td>Accuracy</td><td>Completeness</td><td>Code works or doesn't</td></tr>
+    <tr><td>Medical / Legal</td><td>Calibration</td><td>Accuracy</td><td>"Consult a professional" most important</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Non-Negotiables (Automatic Fail)</h3>
+<ul>
+  <li><strong>Trust-breaking:</strong> Fabricated facts, hallucinated sources, made-up stats</li>
+  <li><strong>Harm-causing:</strong> Offensive content, dangerous advice, privacy violations</li>
+  <li><strong>Contract-breaking:</strong> Things product explicitly promises not to do</li>
+</ul>
+
+<h3>Required vs. Additional (Hebbia's Two-Tier Approach)</h3>
+<p><strong>Required</strong> = minimum acceptable (SLA). Any failure = output fails. <strong>Additional</strong> = quality differentiators. Track how many pass. A 60% score means: all Required passed, ~60% of Additional passed. <em>This is NOT a failure.</em></p>
+
+<h3>The 5-Point Quality Scale</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Score</th><th>Description</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1</strong></td><td>Unusable. Fundamentally wrong, harmful, or broken.</td></tr>
+    <tr><td><strong>2</strong></td><td>Poor. Some relevant info, but user must start over.</td></tr>
+    <tr><td><strong>3</strong></td><td>Acceptable (quality floor). Gets core job done. User edits, doesn't restart.</td></tr>
+    <tr><td><strong>4</strong></td><td>Good. Correct, complete, appropriate. Minor polish.</td></tr>
+    <tr><td><strong>5</strong></td><td>Exceptional (quality ceiling). Insightful, synthesized, not just correct.</td></tr>
+  </tbody>
+</table>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 6: DIMENSIONS, RUBRICS, TEST CASES            -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Q3 cont'd</span>Dimensions, Rubrics &amp; Test Cases</h2>
+
+<h3>Discover Eval Dimensions (3 Steps)</h3>
+<ol>
+  <li>Start with error analysis taxonomy</li>
+  <li>Convert each failure category to a positive dimension: "Stale Information" &rarr; "Information Recency"</li>
+  <li>Validate: Does it map to real failures? Can an engineer fix it? Distinct from other dimensions?</li>
+</ol>
+
+<p><strong>Sweet spot: 3-6 dimensions.</strong> Fewer than 3 = too coarse. More than 6 = grading exhaustion + overlap.</p>
+
+<h4>Hebbia's 4 Constraints</h4>
+<ul>
+  <li><strong>Atomic</strong> &mdash; single diagnosable issue</li>
+  <li><strong>Binary-Friendly</strong> &mdash; can make clear pass/fail</li>
+  <li><strong>Specific</strong> &mdash; "LINE chart for trends, BAR for comparisons" not "appropriate visualization"</li>
+  <li><strong>Distinct</strong> &mdash; if two dimensions always score the same, they measure the same thing</li>
+</ul>
+
+<h4>The Logo Swap Test (for Specificity)</h4>
+<p>Replace brand name with a competitor's. If output still makes sense, it's too generic. <strong>Fails.</strong></p>
+
+<h3>Build Rubrics from Scratch</h3>
+
+<div class="key"><b>Rubric Standard</b>
+"A rubric must be so clear that two strangers would agree 80% of the time." Every disagreement is a rubric bug. Fix the rubric, not the graders.</div>
+
+<p><strong>Start binary (PASS/FAIL).</strong> Higher inter-rater reliability. LLM judges cluster at 3-4 on scaled rubrics. Forces you to articulate the exact boundary.</p>
+
+<h4>3 Components of a Rubric</h4>
+<ol>
+  <li><strong>PASS:</strong> Observable, bounded, falsifiable ("contains at least 2 data points" not "demonstrates understanding")</li>
+  <li><strong>FAIL:</strong> At least one concrete failure marker, covers most common failure mode</li>
+  <li><strong>Edge Cases:</strong> Borderline situations with explicit rulings. 80% of disagreements live here.</li>
+</ol>
+
+<h4>Cohen's Kappa Validation</h4>
+<p>Two reviewers independently label 30 traces &rarr; measure Kappa &rarr; discuss every disagreement &rarr; refine until &ge;0.6 with new 30 traces.</p>
+<ul>
+  <li>&lt; 0.4: Basically random. Major revision.</li>
+  <li>0.4-0.6: Moderate. One more round.</li>
+  <li><strong>0.6-0.8: Good. Target for production.</strong></li>
+  <li>&gt; 0.8: Excellent. Rare.</li>
+</ul>
+
+<h3>Build Test Cases from Real Failures</h3>
+
+<h4>Anatomy: Input + Context + Expected Properties (NOT exact text)</h4>
+
+<div class="tw">
+<table>
+  <thead><tr><th>Category</th><th>% of Suite</th><th>Purpose</th></tr></thead>
+  <tbody>
+    <tr><td>Happy Path</td><td>40%</td><td>Canary for regressions</td></tr>
+    <tr><td>Edge Cases</td><td>20%</td><td>Push boundaries</td></tr>
+    <tr><td>Adversarial</td><td>15%</td><td>Break/manipulate agent</td></tr>
+    <tr><td>Minimum Input</td><td>10%</td><td>Graceful degradation</td></tr>
+    <tr><td>Regression</td><td>0%&rarr;15%</td><td>Real production failures (never remove)</td></tr>
+    <tr><td>Category Coverage</td><td>varies</td><td>One test per domain</td></tr>
+    <tr><td>Comparison Pairs</td><td>5%</td><td>Similar inputs &rarr; different outputs</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Sizing:</strong> Start 20-30 &rarr; 50-75 at 1 month &rarr; 100-200 mature. 20 cases detect 0.5+ point diffs. 50 detect 0.3. 100 detect 0.15.</p>
+
+<p><strong>First 20 (2-3 hours):</strong> 5 real queries (happy) + 5 real complaints (regression) + 5 edge variants + 3 adversarial + 2 minimum input.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 7: AGENT-SPECIFIC EVAL                        -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Q4 &mdash; Detect</span>Agent-Specific Evaluation</h2>
+
+<h3>Step-Level Evaluation</h3>
+<p>An agent is a chain. If link 3 breaks, everything after is garbage. Step-level eval answers: WHERE in the chain did it break?</p>
+
+<h4>Eval Gate Design (between steps)</h4>
+<ul>
+  <li><strong>After Research:</strong> Sources found? Authoritative? Correct entity?</li>
+  <li><strong>After Analysis:</strong> Conclusions supported? Specific not generic? (Logo Swap Test)</li>
+  <li><strong>After Generation:</strong> Matches analysis? Format correct? Brand-appropriate?</li>
+  <li><strong>After Execution:</strong> Actually performed? Parameters correct?</li>
+</ul>
+
+<div class="tw">
+<table>
+  <thead><tr><th>Gate Type</th><th>Cost</th><th>Speed</th><th>Use When</th></tr></thead>
+  <tbody>
+    <tr><td>Deterministic</td><td>Free</td><td>&lt;1ms</td><td>Checkable structure</td></tr>
+    <tr><td>Regex/Pattern</td><td>Free</td><td>&lt;1ms</td><td>Must contain/exclude patterns</td></tr>
+    <tr><td>Embedding Similarity</td><td>Cheap</td><td>~50ms</td><td>Semantic relatedness</td></tr>
+    <tr><td>LLM-as-Judge (fast)</td><td>Moderate</td><td>1-3s</td><td>Quality judgment, not complex</td></tr>
+    <tr><td>LLM-as-Judge (strong)</td><td>Expensive</td><td>3-10s</td><td>Nuanced judgment</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Tool Use Evaluation (3 Surfaces per Tool Call)</h3>
+<ol>
+  <li><strong>Tool Selection Accuracy</strong> &mdash; Did it choose the right tool? (Often deterministic)</li>
+  <li><strong>Argument Correctness</strong> &mdash; Right tool, correct parameters? (Context-dependent)</li>
+  <li><strong>Result Interpretation</strong> &mdash; Right tool, right input, but did agent correctly USE the output? (Hardest &mdash; needs LLM judge)</li>
+</ol>
+
+<h3>Multi-Turn &amp; Memory (5 Things to Test)</h3>
+<ol>
+  <li><strong>Persistence:</strong> Recall planted facts 15+ turns later</li>
+  <li><strong>Knowledge Updates:</strong> When user corrects info, agent uses new version</li>
+  <li><strong>Abstention:</strong> Asked about info never provided &rarr; "we haven't discussed that" not inventing</li>
+  <li><strong>Feedback Incorporation:</strong> "Make it edgier" &rarr; tone actually shifts, context retained</li>
+  <li><strong>Context Window Pressure:</strong> Test at 25%, 50%, 75%, 90% capacity</li>
+</ol>
+
+<div class="warn"><strong>Context Rot:</strong> Models claim 200K tokens but become unreliable ~130K (~65% of capacity). "Lost in the middle" &mdash; high recall early/late, low in middle.</div>
+
+<h3>Multi-Agent (4-Layer Architecture)</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Layer</th><th>What</th><th>Grading</th></tr></thead>
+  <tbody>
+    <tr><td>1. Individual Agent</td><td>Each sub-agent's output quality</td><td>Dedicated test datasets per sub-agent</td></tr>
+    <tr><td>2. Orchestration</td><td>Task decomposition, routing, synthesis</td><td>Decomp quality (LLM), routing (deterministic)</td></tr>
+    <tr><td>3. End-to-End</td><td>Final output as user experiences it</td><td>Standard rubric-based eval</td></tr>
+    <tr><td>4. Efficiency</td><td>Total tokens, latency, invocations</td><td>Deterministic metrics</td></tr>
+  </tbody>
+</table>
+</div>
+<p><strong>Build order:</strong> Layer 3 first (week 1) &rarr; Layer 4 (week 2) &rarr; Layer 1 only if Layer 3 below target &rarr; Layer 2 if individuals pass but end-to-end fails.</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 8: EVAL MACHINERY + PRODUCTION                -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Q4 cont'd</span>Build the Eval Machinery</h2>
+
+<h3>Anthropic's Grading Hierarchy</h3>
+<div class="flow">
+  <div class="flow-s hi">Code-based (fastest, cheapest)</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">LLM-based (flexible, costs money)</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Human (gold standard, expensive)</div>
+</div>
+<p><strong>The 60/40 Rule:</strong> 60% of checks can be structural (free, instant). Only 40% need LLM-as-judge. Most teams do the opposite.</p>
+
+<h3>Structural Checks (First Line of Defense)</h3>
+<p><strong>Format:</strong> Valid JSON, required fields, no [PLACEHOLDER] text, no "As an AI..." preamble<br>
+<strong>Length:</strong> Within range, no suspiciously short responses<br>
+<strong>Content:</strong> Expected sections, valid URLs, reasonable numbers<br>
+<strong>Safety:</strong> No PII (regex), no profanity, no competitor disparagement, no unauthorized advice<br>
+<strong>Consistency:</strong> Brand name consistent, numbers don't contradict</p>
+
+<h3>LLM-as-Judge (4-Part Prompt Structure)</h3>
+<ol>
+  <li><strong>Identity statement</strong> &mdash; "You are an expert evaluator"</li>
+  <li><strong>Rubric with anchored levels</strong> &mdash; 1/3/5 with descriptions (prevents score compression)</li>
+  <li><strong>Forced process</strong> &mdash; quote evidence &rarr; reason &rarr; THEN score (chain-of-evidence)</li>
+  <li><strong>Structured output</strong> &mdash; JSON for aggregation</li>
+</ol>
+
+<h4>6 Reliability Techniques</h4>
+<div class="tw">
+<table>
+  <thead><tr><th>Technique</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Chain-of-Evidence</strong> (cite &rarr; reason &rarr; score)</td><td>Always (non-negotiable)</td></tr>
+    <tr><td><strong>Anchored Examples</strong> (real 1/5, 3/5, 5/5 outputs)</td><td>When scores cluster at 3-4</td></tr>
+    <tr><td><strong>Adversarial framing</strong> ("find every flaw")</td><td>When judge is too generous</td></tr>
+    <tr><td><strong>Reference Comparison</strong> (known-good benchmark)</td><td>When you have golden examples</td></tr>
+    <tr><td><strong>Multi-Judge</strong> (2-3 judges, check agreement)</td><td>High-stakes decisions</td></tr>
+    <tr><td><strong>Pairwise A/B</strong> (compare two side-by-side)</td><td>Comparing versions (most reliable)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="warn"><strong>Self-Enhancement Bias:</strong> LLMs rate their own outputs higher. Use a different (stronger) model as judge. Generator = Sonnet? Judge = Opus.</div>
+
+<p><strong>Optimal setup:</strong> 100% structural + 10% LLM judge + 1% human review.</p>
+
+<h3>Running Evals &mdash; Reading Results</h3>
+<ul>
+  <li><strong>Mean alone lies.</strong> Always report mean, min, max, SD, % below floor.</li>
+  <li><strong>SD &lt; 0.5:</strong> Consistent. <strong>SD 0.5-1.0:</strong> Normal. <strong>SD &gt; 1.5:</strong> Fix this first.</li>
+  <li><strong>pass@k</strong> = at least 1 success in k tries (optimistic). <strong>pass^k</strong> = ALL succeed (strict).</li>
+  <li>Code generation &rarr; pass@k. Customer support &rarr; pass^k.</li>
+  <li><strong>Win rate &gt; 60% on 40+ cases</strong> usually significant.</li>
+</ul>
+
+<div class="cmp">
+  <div class="cmp-c bad">
+    <div class="cmp-l">Prompt A: Mean 4.0, SD 1.8</div>
+    Looks great but 20% catastrophic failures
+  </div>
+  <div class="cmp-c good">
+    <div class="cmp-l">Prompt B: Mean 3.5, SD 0.5</div>
+    Lower average but zero failures. <strong>Better for most products.</strong>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 9: PRODUCTION + EDD + ADVANCED                -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Q5 &mdash; Improve</span>Production Monitoring &amp; Eval-Driven Development</h2>
+
+<h3>The Closed Feedback Loop (8 Steps)</h3>
+<div class="flow">
+  <div class="flow-s">Detect</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Investigate</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Root Cause</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s hi">Fix</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Add to Suite</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s hi">Run Evals</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Deploy</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Monitor</div><div class="flow-a">&circlearrowright;</div>
+</div>
+
+<h3>Implicit User Signals</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Positive</th><th>Negative</th></tr></thead>
+  <tbody>
+    <tr><td>Uses output without editing</td><td>Regenerates immediately</td></tr>
+    <tr><td>Comes back next day</td><td>Edits output heavily</td></tr>
+    <tr><td>Shares or exports output</td><td>Abandons mid-generation</td></tr>
+    <tr><td>Gives follow-up prompt</td><td>Doesn't return (silent churn)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Regeneration Rate (#1 implicit eval):</strong> &le;5% = love it. ~15% = acceptable. &ge;30% = quality crisis.</p>
+
+<h3>Alert Thresholds</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Metric</th><th style="color:var(--success);">Green</th><th style="color:var(--warning);">Yellow</th><th style="color:var(--danger);">Red</th></tr></thead>
+  <tbody>
+    <tr><td>Overall quality</td><td>&ge; 4.0</td><td>3.5-3.9</td><td>&lt; 3.5</td></tr>
+    <tr><td>% below floor</td><td>&le; 5%</td><td>6-15%</td><td>&gt; 15%</td></tr>
+    <tr><td>Regeneration rate</td><td>&le; 10%</td><td>11-25%</td><td>&gt; 25%</td></tr>
+    <tr><td>Week-over-week delta</td><td>&ge; -0.1</td><td>-0.1 to -0.3</td><td>&lt; -0.3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Eval-Driven Development (EDD)</h3>
+<p><strong>Anthropic:</strong> "Practice eval-driven development: build evals before agent capabilities."</p>
+<div class="flow">
+  <div class="flow-s hi">Define</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Build harness</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s hi">Run (FAIL)</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Implement</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s hi">Measure</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Iterate</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">CI/CD</div><div class="flow-a">&rarr;</div>
+  <div class="flow-s">Monitor</div>
+</div>
+
+<h4>Cost Tiering</h4>
+<div class="tw">
+<table>
+  <thead><tr><th>Tier</th><th>When</th><th>What</th><th>Cost</th></tr></thead>
+  <tbody>
+    <tr><td>Fast Smoke</td><td>Every commit</td><td>5-10 critical, structural only</td><td>~free</td></tr>
+    <tr><td>Comprehensive</td><td>Nightly / before merge</td><td>50+ cases + LLM judge</td><td>$1-$10</td></tr>
+    <tr><td>Full Regression</td><td>Weekly / before release</td><td>Complete set + multi-turn + pass^5</td><td>$10-$100</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Advanced Techniques (Quick Reference)</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Technique</th><th>What</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Contrastive Evals</strong></td><td>Pairwise A/B. Win rate thresholds: 20 cases=75%, 30=67%, 100=60%</td><td>Comparing prompt/model versions</td></tr>
+    <tr><td><strong>Ablation Studies</strong></td><td>Remove one component, measure what breaks</td><td>Quarterly roadmap planning</td></tr>
+    <tr><td><strong>Cross-Model</strong></td><td>Same eval suite, different models</td><td>Model selection decisions</td></tr>
+    <tr><td><strong>Stress Testing</strong></td><td>Token, speed, context, memory, language, adversarial</td><td>Before launch or scaling</td></tr>
+    <tr><td><strong>Meta-Evals</strong></td><td>30 outputs: human grades vs. LLM judge. Correlation &gt;0.85 = trust</td><td>Quarterly</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Safety &amp; Protection</h3>
+<p><strong>5 LLM Judge Biases:</strong> Self-Enhancement (fix: different model), Position (fix: swap orderings), Verbosity (fix: "brevity preferred"), Sycophancy (fix: "find flaws"), Source (fix: strip metadata).</p>
+
+<p><strong>Eval Contamination:</strong> Anthropic's BrowseComp &mdash; Claude independently found the benchmark source code and decoded the encrypted answer key. <em>Keep test cases private. Rotate quarterly. Verify reasoning, not just answers.</em></p>
+
+<p><strong>B2C priority:</strong> Safety &gt; Calibration &gt; Taste &gt; Completeness &gt; Accuracy<br>
+<strong>B2B priority:</strong> Accuracy &gt; Reasoning &gt; Completeness &gt; Calibration &gt; Taste</p>
+
+
+<!-- ═══════════════════════════════════════════════════ -->
+<!-- PAGE 10: CAREER + 10 COMMANDMENTS + GLOSSARY       -->
+<!-- ═══════════════════════════════════════════════════ -->
+<h2 class="pb"><span class="num">Career</span>Land the AI PM Job</h2>
+
+<h3>5 Interview Questions &amp; Great Answers</h3>
+
+<div class="tw">
+<table>
+  <thead><tr><th>Question</th><th>Great Answer Framework</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>"Design an eval framework for [product]."</td>
+      <td>Start with failure modes &rarr; 3-4 specific dimensions &rarr; describe test cases &rarr; grading method. <span style="color:var(--danger);">Red flag: "I'd measure accuracy, helpfulness, and satisfaction."</span></td>
+    </tr>
+    <tr>
+      <td>"How would you know if AI quality is getting worse?"</td>
+      <td>Production quality sampling, implicit signals (regeneration rate), drift detection, automatic alerting.</td>
+    </tr>
+    <tr>
+      <td>"5% CSAT drop. Debug it."</td>
+      <td>Segment data &rarr; sample 30 low-CSAT outputs &rarr; categorize failures &rarr; check recent changes &rarr; propose fix &rarr; contrastive eval before shipping.</td>
+    </tr>
+    <tr>
+      <td>"Human eval vs. LLM judge vs. code?"</td>
+      <td>Code for clear right/wrong. LLM judge for subjective quality at scale. Human for high-stakes calibration.</td>
+    </tr>
+    <tr>
+      <td>"Team wants to ship a new prompt. How do you decide?"</td>
+      <td>Contrastive eval on 30+ cases. Win rate &gt;60%. No regression on any dimension below floor. Check edge cases.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Interview Case Study Format</h3>
+<pre>1. CONTEXT: Product, AI feature, problem
+2. ERROR ANALYSIS: Reviewed 50 outputs. 35% failed on X, 20% on Y.
+3. EVAL DESIGN: 3 dimensions, 25 test cases, pass/fail + LLM judge
+4. EXECUTION: Ran weekly for 4 weeks, iterated prompts
+5. RESULTS: Quality 3.2 → 4.1. Hallucination 12% → 3%. Cost -20%.
+6. IMPACT: Regeneration rate 28% → 9%.</pre>
+
+<h3>Resume Language</h3>
+<ul>
+  <li>"Designed 75-case eval suite across 8 industry segments"</li>
+  <li>"Built LLM-as-judge pipeline achieving 0.85 Cohen's Kappa"</li>
+  <li>"Reduced hallucination rate from 12% to 3% via eval-driven prompt iteration"</li>
+  <li>"Implemented production quality sampling on 10% of outputs"</li>
+</ul>
+
+
+<h2><span class="num">The Law</span>The 10 Commandments</h2>
+
+<div class="cmd"><div class="cmd-n">1</div><div><div class="cmd-r">Look at your data first. Build evals second.</div><div class="cmd-w">60-80% of time on error analysis, not infrastructure. &mdash; Husain</div></div></div>
+<div class="cmd"><div class="cmd-n">2</div><div><div class="cmd-r">You own the rubric. Engineers own the infrastructure.</div><div class="cmd-w">Don't delegate "what good looks like." They'll optimize what's measurable, not what matters.</div></div></div>
+<div class="cmd"><div class="cmd-n">3</div><div><div class="cmd-r">Start with 20 test cases, not 200.</div><div class="cmd-w">Well-chosen cases from real failures beat large synthetic collections. &mdash; Anthropic</div></div></div>
+<div class="cmd"><div class="cmd-n">4</div><div><div class="cmd-r">Prefer code checks over LLM judges.</div><div class="cmd-w">Anthropic hierarchy: code-based &gt; LLM-based &gt; human. Use simplest that works.</div></div></div>
+<div class="cmd"><div class="cmd-n">5</div><div><div class="cmd-r">Run each test case multiple times.</div><div class="cmd-w">Single run = what CAN happen. Multiple runs = what WILL happen. k&ge;3 minimum.</div></div></div>
+<div class="cmd"><div class="cmd-n">6</div><div><div class="cmd-r">Never use the same model as generator and judge.</div><div class="cmd-w">Self-enhancement bias: inflated by 0.3-0.6 points. Miss regressions.</div></div></div>
+<div class="cmd"><div class="cmd-n">7</div><div><div class="cmd-r">Report distributions, not just averages.</div><div class="cmd-w">Average 4.0 with two catastrophic 1s is worse than consistent 3.5.</div></div></div>
+<div class="cmd"><div class="cmd-n">8</div><div><div class="cmd-r">Check statistical significance before celebrating.</div><div class="cmd-w">0.3-point improvement on 15 cases might be noise. Use confidence intervals.</div></div></div>
+<div class="cmd"><div class="cmd-n">9</div><div><div class="cmd-r">Add every production failure to your test suite.</div><div class="cmd-w">Regression cases compound into a quality moat. Never remove them.</div></div></div>
+<div class="cmd"><div class="cmd-n">10</div><div><div class="cmd-r">Calibrate your judge quarterly.</div><div class="cmd-w">30 outputs, human vs. judge. Kappa &lt; 0.6 = rewrite judge prompt.</div></div></div>
+
+
+<h2><span class="num">Reference</span>Key Math &amp; Essential Glossary</h2>
+
+<div class="g2">
+  <div>
+    <h4>Confidence Intervals</h4>
+    <p>SE = SD / &radic;n<br>95% CI = Mean &plusmn; 1.96 &times; SE<br>Non-overlapping CIs = real difference<br>4x cases to halve CI width</p>
+  </div>
+  <div>
+    <h4>Sample Size Guide</h4>
+    <p>Big diffs (0.5+ pts): 15-20 cases<br>Small diffs (0.2-0.3): 40-50 cases<br>High variance (SD&gt;1.5): 60+ cases</p>
+  </div>
+  <div>
+    <h4>Win Rate Thresholds</h4>
+    <p>20 cases: 75% needed<br>30 cases: 67%<br>40 cases: 63%<br>100 cases: 60%</p>
+  </div>
+  <div>
+    <h4>Cohen's Kappa</h4>
+    <p>&kappa; = (P<sub>o</sub> - P<sub>e</sub>) / (1 - P<sub>e</sub>)<br>&gt;0.8: Strong. 0.6-0.8: Good (target).<br>0.4-0.6: Weak. &lt;0.4: Random.</p>
+  </div>
+</div>
+
+<h3>Essential Glossary</h3>
+<div class="tw">
+<table>
+  <thead><tr><th>Term</th><th>Definition</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Eval</strong></td><td>Test case + rubric + automated scorer</td></tr>
+    <tr><td><strong>Rubric</strong></td><td>Criteria for judging AI output (dimensions, score levels, examples)</td></tr>
+    <tr><td><strong>LLM-as-Judge</strong></td><td>Using an LLM to grade another LLM's output</td></tr>
+    <tr><td><strong>Hallucination</strong></td><td>AI confidently states something untrue</td></tr>
+    <tr><td><strong>Regression</strong></td><td>Quality got worse after a change</td></tr>
+    <tr><td><strong>EDD</strong></td><td>Eval-Driven Development &mdash; write eval test cases first, then build (TDD for AI)</td></tr>
+    <tr><td><strong>pass@k</strong></td><td>&ge;1 success in k tries (optimistic)</td></tr>
+    <tr><td><strong>pass^k</strong></td><td>ALL k attempts succeed (strict)</td></tr>
+    <tr><td><strong>Contrastive Eval</strong></td><td>Compare two outputs head-to-head (pairwise)</td></tr>
+    <tr><td><strong>Ablation</strong></td><td>Remove one component, measure what breaks</td></tr>
+    <tr><td><strong>Meta-Eval</strong></td><td>Evaluating your eval system itself (human vs. judge correlation)</td></tr>
+    <tr><td><strong>Trajectory Eval</strong></td><td>Evaluating sequence of steps, not just final output</td></tr>
+    <tr><td><strong>Red-Teaming</strong></td><td>Deliberately trying to break AI with adversarial inputs</td></tr>
+    <tr><td><strong>Prompt Injection</strong></td><td>Adversarial input overriding system prompt (#1 agent security risk)</td></tr>
+    <tr><td><strong>RAG</strong></td><td>Retrieval-Augmented Generation. Eval both retrieval AND generation.</td></tr>
+    <tr><td><strong>Faithfulness</strong></td><td>RAG metric: answer only uses info from retrieved docs</td></tr>
+    <tr><td><strong>Context Rot</strong></td><td>Quality degrades as context fills (~65% of claimed capacity)</td></tr>
+    <tr><td><strong>Logo Swap Test</strong></td><td>Replace brand with competitor. If output still works, it's too generic.</td></tr>
+    <tr><td><strong>ACCT</strong></td><td>Accuracy, Completeness, Calibration, Taste &mdash; 4 universal quality dimensions</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="win" style="margin-top: 20px;"><b>The Core Loop (memorize this)</b>
+Change prompt &rarr; Run eval suite &rarr; Scores improved, no regression? &rarr; Ship it. Scores dropped? &rarr; Revert. <strong>This loop is 80% of AI product work.</strong></div>
+
+</body>
+</html>

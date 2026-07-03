@@ -1,0 +1,13 @@
+{
+  "slug": "india-d2c-vs-local-2026-06-15",
+  "country": "IN",
+  "status": "ACTIVE",
+  "maxAds": 12,
+  "brands": [
+    { "name": "The Whole Truth Foods", "bucket": "D2C/protein",     "page_id": "108531977179455" },
+    { "name": "Plix",                  "bucket": "D2C/wellness",     "page_id": "444025482768886" },
+    { "name": "Leverage Edu",          "bucket": "local/education",  "page_id": "427912830703378" },
+    { "name": "Yocket",                "bucket": "local/education",  "page_id": "1585691268384511" },
+    { "name": "Treebo Hotels",         "bucket": "local/hospitality","page_id": "854212904671990" }
+  ]
+}

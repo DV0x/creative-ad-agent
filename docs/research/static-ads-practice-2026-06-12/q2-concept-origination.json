@@ -1,0 +1,171 @@
+{
+  "id": "6a85fdc6-265d-459a-988f-4baba6534087",
+  "model": "sonar-pro",
+  "created": 1781267836,
+  "usage": {
+    "prompt_tokens": 298,
+    "completion_tokens": 1152,
+    "total_tokens": 1450,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00089,
+      "output_tokens_cost": 0.01728,
+      "request_cost": 0.014,
+      "total_cost": 0.03217
+    }
+  },
+  "citations": [
+    "https://www.admetrics.io/en/post/creative-strategy-dtc-ecommerce-22904",
+    "https://moz.com/blog/mining-reddit-for-content-ideas",
+    "https://motionapp.com/blog/five-customer-awareness-stages-advertising",
+    "https://www.zionandzion.com/how-frameworks-aid-marketing-plans/",
+    "https://www.darkroomagency.com/observatory/best-dtc-marketing-agency-2026",
+    "https://painonsocial.com/blog/what-is-reddit-data-mining",
+    "https://www.youtube.com/watch?v=U4EGdR3PTA4",
+    "https://filecamp.com/blog/what-are-marketing-frameworks/",
+    "https://www.youtube.com/watch?v=sf8UZwQu4Ds",
+    "https://www.youtube.com/watch?v=9oKqVe6LUIY",
+    "https://b-plannow.com/en/the-schwartz-pyramid-guide-to-the-5-levels-of-customer-awareness/",
+    "https://www.salesforce.com/marketing/framework/",
+    "https://www.constanthire.com/posts/why-creative-strategy-is-the-biggest-lever-for-scaling-dtc-brands",
+    "https://valchanova.me/message-mining-guide-template/",
+    "https://www.outbrain.com/blog/the-5-stages-of-customer-awareness-and-how-to-create-content-for-each/"
+  ],
+  "search_results": [
+    {
+      "title": "Creative Strategy: The Growth Engine for Modern DTC Brands",
+      "url": "https://www.admetrics.io/en/post/creative-strategy-dtc-ecommerce-22904",
+      "date": "2024-11-15",
+      "last_updated": "2026-06-11",
+      "snippet": "Creative strategy is a structured plan that aligns your brand message with targeted performance goals across platforms. Why does creative strategy matter for ...",
+      "source": "web"
+    },
+    {
+      "title": "Mining Reddit for Content Ideas in 5 Steps - Moz",
+      "url": "https://moz.com/blog/mining-reddit-for-content-ideas",
+      "date": "2020-01-17",
+      "last_updated": "2026-03-11",
+      "snippet": "Daniel Russell takes you through five simple steps to mine Reddit for content ideas bolstered by your target audience's interest.",
+      "source": "web"
+    },
+    {
+      "title": "How to Use the 5 Customer Awareness Stages in DTC Advertising",
+      "url": "https://motionapp.com/blog/five-customer-awareness-stages-advertising",
+      "date": "2025-06-27",
+      "last_updated": "2026-06-12",
+      "snippet": "1. Unaware 2. Problem Aware 3. Solution Aware 4. Product Aware 5. Most Aware. Eugene Schwartz. Stage two: Problem aware (Ready to engage)",
+      "source": "web"
+    },
+    {
+      "title": "How frameworks aid marketing plans | Zion & Zion",
+      "url": "https://www.zionandzion.com/how-frameworks-aid-marketing-plans/",
+      "date": "2022-01-04",
+      "last_updated": "2026-06-12",
+      "snippet": "Frameworks help with developing solutions and the means to communicate those solutions effectively. Sounds simple right?",
+      "source": "web"
+    },
+    {
+      "title": "Best DTC Marketing Agency: Evaluating Partners in 2026 - Darkroom",
+      "url": "https://www.darkroomagency.com/observatory/best-dtc-marketing-agency-2026",
+      "date": "2026-06-05",
+      "last_updated": "2026-06-11",
+      "snippet": "The best ecommerce growth agencies cover paid media, creative production, retention marketing, marketplace management, CRO, and analytics within a unified team.",
+      "source": "web"
+    },
+    {
+      "title": "What Is Reddit Data Mining? A Complete Guide for 2026",
+      "url": "https://painonsocial.com/blog/what-is-reddit-data-mining",
+      "date": "2025-10-31",
+      "last_updated": "2026-06-07",
+      "snippet": "Reddit data mining involves extracting and analyzing data from Reddit's platform to uncover patterns, trends, and insights. This data includes posts, comments, ...",
+      "source": "web"
+    },
+    {
+      "title": "Eugene Schwartz: The 5 Levels of Customer Awareness - YouTube",
+      "url": "https://www.youtube.com/watch?v=U4EGdR3PTA4",
+      "date": "2021-07-14",
+      "last_updated": "2026-06-11",
+      "snippet": "Using the 5 stages of customer awareness from Eugene Schwartz and Breakthrough Advertising is how you create market awareness.",
+      "source": "web"
+    },
+    {
+      "title": "What Are Marketing Frameworks: 8 Types You Need To Know",
+      "url": "https://filecamp.com/blog/what-are-marketing-frameworks/",
+      "date": "2023-06-07",
+      "last_updated": "2026-03-08",
+      "snippet": "A marketing strategy framework is a structured approach or blueprint that helps you develop a comprehensive plan to achieve your marketing goals.",
+      "source": "web"
+    },
+    {
+      "title": "Meet the Creative Strategist Behind Multiple 8-Figure DTC Brands",
+      "url": "https://www.youtube.com/watch?v=sf8UZwQu4Ds",
+      "date": "2025-07-09",
+      "last_updated": "2026-06-11",
+      "snippet": "Schedule a Call here to build and Scale your Ecommerce Brand \u2192 https://www.ecomcapital.com/demo/schedule From Touring DJ to Scaling $20M+ ...",
+      "source": "web"
+    },
+    {
+      "title": "How I use Reddit and AI to find winning startup ideas (2025 tutorial)",
+      "url": "https://www.youtube.com/watch?v=9oKqVe6LUIY",
+      "date": "2025-07-06",
+      "last_updated": "2026-06-12",
+      "snippet": "In this video I walk you through my 5-step framework for turning Reddit threads, customer ... Customer Review Mining \u2013 Scrape Amazon, G2, and App ...",
+      "source": "web"
+    },
+    {
+      "title": "Schwartz's Pyramid of Awareness: guide to the model - B-PlanNow",
+      "url": "https://b-plannow.com/en/the-schwartz-pyramid-guide-to-the-5-levels-of-customer-awareness/",
+      "date": "2025-09-29",
+      "last_updated": "2026-05-31",
+      "snippet": "The 5 levels of awareness according to Schwartz \u00b7 1. Unaware: those who don't know they have a problem \u00b7 2. Problem Aware: those who have a need ...",
+      "source": "web"
+    },
+    {
+      "title": "What Are Marketing Frameworks? - Salesforce",
+      "url": "https://www.salesforce.com/marketing/framework/",
+      "date": "2024-08-16",
+      "last_updated": "2026-06-11",
+      "snippet": "A marketing framework is a structured approach or conceptual model that guides marketing strategy , planning, execution, and analysis, providing a roadmap for ...",
+      "source": "web"
+    },
+    {
+      "title": "Why Creative Strategy Is the Biggest Lever for Scaling DTC Brands",
+      "url": "https://www.constanthire.com/posts/why-creative-strategy-is-the-biggest-lever-for-scaling-dtc-brands",
+      "date": "2026-04-08",
+      "last_updated": "2026-06-10",
+      "snippet": "Creative strategy for DTC brands drives targeting, CAC control, and scale. See how systems, volume, research, and AI separate leaders from ...",
+      "source": "web"
+    },
+    {
+      "title": "Message Mining: Don't Write Great Copy - Steal It! - Valchanova.me",
+      "url": "https://valchanova.me/message-mining-guide-template/",
+      "date": "2022-05-20",
+      "last_updated": "2026-06-01",
+      "snippet": "Message mining helps you understand what customers care about and what words they use. It's the best way to steal your next landing page or ad copy!",
+      "source": "web"
+    },
+    {
+      "title": "The 5 Stages of Customer Awareness and How to Create Content ...",
+      "url": "https://www.outbrain.com/blog/the-5-stages-of-customer-awareness-and-how-to-create-content-for-each/",
+      "date": "2023-03-15",
+      "last_updated": "2026-06-12",
+      "snippet": "The 5 Stages of Customer Awareness and How to Create Content For Each \u00b7 Unaware \u00b7 Problem Aware \u00b7 Solution Aware \u00b7 Product Aware \u00b7 Most Aware.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Creative strategists at performance marketing agencies usually turn **customer language + competitor ads + awareness-stage mapping** into a structured set of **concepts**, then generate multiple **variations** from each concept for testing. In practice, that means mining reviews and communities for \u201cvoice of customer,\u201d studying what competitors are already running in Meta Ad Library/swipe files, then organizing findings into angles, personas, and Eugene Schwartz\u2013style awareness stages before writing ads.[1][2][3][14]\n\n- **Customer review mining / voice-of-customer mining**\n  - Valchanova describes review mining as a way to understand \u201cwhat customers care about and what words they use,\u201d and says the workflow is to identify the pain point, find reviews of existing solutions, record the language in a VOC data file, and reuse that language in landing pages or ads.[14]\n  - In the same guide, she says you can use Amazon for physical products and specialized review sites like Clutch, Yelp, Tripadvisor, and Booking.com depending on the offer type.[14]\n  - Admetrics says high-performing creative teams \u201cleverage insights from historical campaign data and customer feedback to prioritize concepts.\u201d[1]\n\n- **Reddit / community mining**\n  - Moz\u2019s Reddit-mining process is explicitly about finding \u201ctrends, patterns, and sticky ideas,\u201d then polishing and \u201cup-level[ing] the ideas\u201d into content.[2]\n  - The same Moz article recommends looking at posts from the past month, recategorizing results by upvotes, recency, and comments, and using that to surface recurring audience language and topics.[2]\n  - Outbrain similarly says that for problem-centric messaging, \u201cthe best place to start is to find out what people with the problem you solve are talking about,\u201d including forums and social groups, then create content that identifies the problem and begins to answer it.[15]\n\n- **Competitor research via Meta Ad Library and swipe-file tools**\n  - Direct practitioner descriptions of Foreplay/Atria were not present in the retrieved sources, so I could not verify named quotes about those specific tools.\n  - What the retrieved sources do support is the broader competitor-analysis workflow: Admetrics recommends developing repeatable ad frameworks such as \u201cproblem/solution, demo-driven, or testimonial ads\u201d and using prior campaign data and customer feedback to choose concepts.[1]\n  - Salesforce defines marketing frameworks as structured approaches that help with market research, audience definition, value proposition, and channel choice; that is the same kind of structure agencies use when turning competitor ads into testable angles.[12]\n  - If you want, I can do a second pass focused only on verified practitioner mentions of **Foreplay** and **Atria**.\n\n- **Eugene Schwartz customer-awareness stages**\n  - MotionApp lists the five stages as **Unaware, Problem Aware, Solution Aware, Product Aware, Most Aware** and frames them as a way to match ads to funnel stage.[3]\n  - Outbrain gives the practical creative implication: for unaware audiences, show them the problem; for problem-aware audiences, educate on the problem; for solution-aware audiences, use testimonials, success stories, and reviews; for product-aware audiences, emphasize comparisons and product walkthroughs; and for most-aware audiences, use incentives and specific offers.[15]\n  - The YouTube transcript quoted in the search results is even more direct: \u201cif they\u2019re not in the product awareness stage then don\u2019t even talk about your product.\u201d[7]\n\n- **Angle/persona matrices**\n  - The retrieved sources do not use the exact phrase \u201cangle/persona matrix,\u201d but they do describe the underlying method: map messaging territories to funnel stages, define the target audience, and tailor messages to specific customer groups.[1][12]\n  - Zion & Zion says frameworks help map \u201cwhat would help and what would hinder the customer experience,\u201d then determine awareness at each touchpoint and identify opportunities for new ideas and advantages.[4]\n  - That is the same logic agencies use when they cross customer segment, pain point, and awareness stage into a matrix of testable ad angles.\n\n- **\u201cConcepts vs variations\u201d**\n  - The clearest support in the retrieved sources is Admetrics\u2019 recommendation to \u201cdevelop frameworks\u201d and test repeatable formats, then use customer feedback and historical data to prioritize concepts.[1]\n  - The practical implication is a two-layer workflow: first create a **concept** such as \u201cproblem/solution,\u201d \u201cdemo,\u201d or \u201ctestimonial,\u201d then generate **variations** of hook, offer, visual, and CTA within that concept for testing.[1]\n  - The sources retrieved do not provide a named agency quote using the exact phrase \u201cconcepts vs variations,\u201d so I can\u2019t attribute that wording to a specific practitioner from the material provided.\n\n- **What the actual workflow looks like across agencies**\n  - Start with review mining and Reddit/community mining to extract customer objections, repeated phrases, and unmet desires.[2][14][15]\n  - Classify the findings by awareness stage so the ad speaks to the right level of problem knowledge.[3][7][15]\n  - Build a matrix of audience segment \u00d7 pain point \u00d7 proof type \u00d7 offer type, then turn the strongest combinations into ad concepts.[1][4][12]\n  - Check competitor ads for proven claims, formats, and visual structures, then create multiple variations inside each winning concept for iteration.[1][12]\n\nIf you want, I can turn this into a **field guide template** for creative strategists, with columns for **source of insight, audience language, awareness stage, angle, concept, variation, and testing hypothesis**."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

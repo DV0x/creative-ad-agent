@@ -1,0 +1,23 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "b3-scorecard-ref",
+      "refs": [
+        "assets/scorecards-redacted/card-aarti.png",
+        "assets/logo/verbis-logo-horizontal.png"
+      ],
+      "prompt": "Direct-response Meta feed ad (portrait) built AROUND a real PTE score report. TWO reference images: (1) a PTE Academic score report; (2) the Verbis Edu logo.\n\nReproduce the SCORE REPORT (reference 1) EXACTLY as-is — do NOT change, redraw, blur or move any number, and keep the black redaction boxes exactly. Shrink it a little and place it centered on a warm cream (#F9F7F3) background with a thin gold (#FBBD29) border and a soft shadow, like a real screenshot pinned to the ad.\nReproduce the VERBIS EDU LOGO (reference 2) in the TOP-LEFT corner EXACTLY as provided — identical colours, tiles, mark and text.\n\nABOVE the card: a bold headline in deep teal (#0E4852), two lines: 'She scored 65 in Reading.' then 'Still walked out with 83.' — render the numbers '65' and '83' in gold.\nAdd two neat gold arrows that stay OUTSIDE the card in the cream margin (never covering any number): one pointing toward the 'Reading 65' score circle, one pointing toward the 'Overall Score 83' badge.\n\nBELOW the card: one line of deep-teal text 'PTE doesn't reward perfect English. It rewards knowing how it's scored.' then a small strikethrough '₹2,999' and a gold rounded button with deep-teal text 'Learn the system  →  ₹589'.\n\nDesign system: warm cream background, deep teal, gold accents, clean geometric sans-serif, premium and trustworthy. All ADDED text crisp and correctly spelled. Professional ad quality."
+    },
+    {
+      "name": "b4-social-proof-ref",
+      "refs": [
+        "assets/google-badge.png",
+        "assets/logo/verbis-logo-horizontal.png"
+      ],
+      "prompt": "Direct-response Meta feed ad (portrait) — a SOCIAL-PROOF creative for a live PTE exam masterclass by Verbis Edu, designed to build trust and drive registrations. TWO reference images: (1) a Google review badge; (2) the Verbis Edu logo.\n\nReproduce the VERBIS EDU LOGO (reference 2) in the TOP-LEFT corner EXACTLY as provided.\nReproduce the GOOGLE REVIEW BADGE (reference 1) LARGE and centered in the top third, EXACTLY as provided — keep the four-colour Google 'G', the five gold stars, '4.9' and '491 Google reviews' unchanged.\n\nBackground: warm cream (#F9F7F3). Design: deep teal (#0E4852) text, gold (#FBBD29) accents, clean geometric sans-serif, generous whitespace, premium.\n\nMIDDLE: one clean white rounded review card with a soft shadow — five small gold stars at the top, the name 'Elissa P.' in bold deep teal, then the quote in dark grey: 'Preparing for my PTE exam with Verbis Edu was excellent. Parthasarathy Sir explained each section clearly, with useful strategies and practice materials.'\n\nBELOW: a bold deep-teal line, two rows: 'One 4-hour live class.' then 'Score 79+.' Then a small strikethrough '₹2,999' and a gold rounded button with deep-teal text: 'Book my seat  →  ₹589'.\n\nBOTTOM: a slim deep-teal band with gold text: 'Sat 11 July · 10 AM-2 PM IST · Online'.\n\nEvery piece of text must be crisp, correctly spelled and legible. Professional ad-agency quality."
+    }
+  ]
+}

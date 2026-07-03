@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thinking Block V3 — Wild Ideas</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0f0f;
+    color: #f5f5f5;
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    padding: 40px 60px;
+  }
+  :root {
+    --accent: #ff6b6b;
+    --accent-glow: rgba(255, 107, 107, 0.25);
+    --accent-dim: rgba(255, 107, 107, 0.5);
+    --accent-faint: rgba(255, 107, 107, 0.1);
+    --bg-raised: #171717;
+    --bg-elevated: #1f1f1f;
+    --border: #2a2a2a;
+    --text-secondary: #a3a3a3;
+    --text-muted: #555;
+    --blue: #4361ee;
+    --purple: #7c3aed;
+    --orange: #f59e0b;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 48px; }
+  .concept { margin-bottom: 72px; }
+  .concept-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+  .concept-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; max-width: 520px; line-height: 1.6; }
+  .chat-frame { max-width: 480px; background: var(--bg-raised); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+  .chat-body { padding: 20px 16px; }
+  .user-msg { background: var(--accent); color: white; padding: 8px 14px; border-radius: 12px 12px 4px 12px; font-size: 13px; display: inline-block; float: right; margin-bottom: 20px; clear: both; }
+  .agent-area { clear: both; }
+  .ts { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
+  .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .timer { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+
+  /* ═══════════════════════════════════════ */
+  /* L. COLOR PALETTE MIXING                 */
+  /* ═══════════════════════════════════════ */
+  .palette-container {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 0;
+  }
+  .palette-drops {
+    display: flex; gap: -4px;
+    position: relative;
+    width: 64px; height: 32px;
+    flex-shrink: 0;
+  }
+  .drop {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    position: absolute;
+    top: 6px;
+    filter: blur(0.5px);
+  }
+  .drop:nth-child(1) { left: 0; background: var(--blue); animation: dropPulse 2s ease-in-out infinite 0s; }
+  .drop:nth-child(2) { left: 14px; background: var(--purple); animation: dropPulse 2s ease-in-out infinite 0.3s; }
+  .drop:nth-child(3) { left: 28px; background: var(--accent); animation: dropPulse 2s ease-in-out infinite 0.6s; }
+  .drop:nth-child(4) { left: 42px; background: var(--orange); animation: dropPulse 2s ease-in-out infinite 0.9s; opacity: 0.4; }
+  .drop.done { opacity: 0.9; }
+  .drop.active { animation: dropPulse 2s ease-in-out infinite, dropGlow 1.5s ease-in-out infinite; }
+  .drop.pending { opacity: 0.2; }
+  /* mixing overlay */
+  .palette-mix {
+    position: absolute;
+    width: 50px; height: 14px;
+    bottom: 0; left: 7px;
+    border-radius: 8px;
+    background: linear-gradient(90deg, var(--blue), var(--purple), var(--accent));
+    opacity: 0.3;
+    filter: blur(4px);
+    animation: mixShift 3s ease-in-out infinite;
+  }
+  @keyframes dropPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+  }
+  @keyframes dropGlow {
+    0%, 100% { box-shadow: 0 0 6px transparent; }
+    50% { box-shadow: 0 0 12px currentColor; }
+  }
+  @keyframes mixShift {
+    0%, 100% { opacity: 0.2; transform: scaleX(1); }
+    50% { opacity: 0.4; transform: scaleX(1.1); }
+  }
+  .palette-info { flex: 1; }
+  .palette-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .palette-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+
+  /* ═══════════════════════════════════════ */
+  /* M. NEON SIGN                            */
+  /* ═══════════════════════════════════════ */
+  .neon-container { padding: 10px 0; }
+  .neon-text {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--accent);
+    text-shadow:
+      0 0 4px var(--accent-glow),
+      0 0 10px var(--accent-glow),
+      0 0 20px rgba(255, 107, 107, 0.15);
+    animation: neonFlicker 3s ease-in-out infinite;
+    letter-spacing: 0.5px;
+  }
+  .neon-off {
+    color: #333;
+    text-shadow: none;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+  .neon-row {
+    display: flex; align-items: baseline; gap: 6px;
+    flex-wrap: wrap;
+  }
+  .neon-sep { color: #333; font-size: 12px; }
+  .neon-done {
+    font-size: 15px;
+    font-weight: 600;
+    color: rgba(34, 197, 94, 0.6);
+    text-shadow: 0 0 8px rgba(34, 197, 94, 0.15);
+    letter-spacing: 0.5px;
+  }
+  @keyframes neonFlicker {
+    0%, 100% { opacity: 1; text-shadow: 0 0 4px var(--accent-glow), 0 0 10px var(--accent-glow), 0 0 20px rgba(255,107,107,0.15); }
+    5% { opacity: 0.8; text-shadow: 0 0 2px var(--accent-glow); }
+    6% { opacity: 1; text-shadow: 0 0 4px var(--accent-glow), 0 0 10px var(--accent-glow); }
+    50% { opacity: 1; text-shadow: 0 0 6px var(--accent-glow), 0 0 14px var(--accent-glow), 0 0 28px rgba(255,107,107,0.2); }
+    51% { opacity: 0.9; }
+    52% { opacity: 1; }
+  }
+  .neon-meta {
+    display: flex; gap: 8px; align-items: center; margin-top: 8px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* N. EQUALIZER BARS                       */
+  /* ═══════════════════════════════════════ */
+  .eq-container {
+    display: flex; align-items: flex-end; gap: 12px;
+    padding: 10px 0;
+  }
+  .eq-bars {
+    display: flex; align-items: flex-end; gap: 2px;
+    height: 28px;
+    flex-shrink: 0;
+  }
+  .eq-bar {
+    width: 3px;
+    border-radius: 2px;
+    background: var(--accent);
+    transition: height 0.15s ease;
+  }
+  .eq-bar:nth-child(1) { animation: eqBounce 0.8s ease-in-out infinite 0.0s; }
+  .eq-bar:nth-child(2) { animation: eqBounce 0.8s ease-in-out infinite 0.1s; }
+  .eq-bar:nth-child(3) { animation: eqBounce 0.8s ease-in-out infinite 0.2s; }
+  .eq-bar:nth-child(4) { animation: eqBounce 0.8s ease-in-out infinite 0.05s; }
+  .eq-bar:nth-child(5) { animation: eqBounce 0.8s ease-in-out infinite 0.15s; }
+  .eq-bar:nth-child(6) { animation: eqBounce 0.8s ease-in-out infinite 0.25s; }
+  .eq-bar:nth-child(7) { animation: eqBounce 0.8s ease-in-out infinite 0.08s; }
+  @keyframes eqBounce {
+    0%, 100% { height: 6px; opacity: 0.4; }
+    50% { height: 24px; opacity: 1; }
+  }
+  .eq-info { flex: 1; }
+  .eq-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .eq-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+  .eq-phases {
+    display: flex; gap: 3px; margin-top: 6px;
+  }
+  .eq-phase-dot {
+    width: 16px; height: 3px; border-radius: 2px;
+  }
+  .eq-phase-dot.done { background: var(--accent); opacity: 0.5; }
+  .eq-phase-dot.active { background: var(--accent); animation: eqDotPulse 1s ease-in-out infinite; }
+  .eq-phase-dot.pending { background: #2a2a2a; }
+  @keyframes eqDotPulse { 0%,100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+  /* ═══════════════════════════════════════ */
+  /* O. GROWING PLANT                        */
+  /* ═══════════════════════════════════════ */
+  .plant-container {
+    display: flex; align-items: center; gap: 14px;
+    padding: 10px 0;
+  }
+  .plant-pot {
+    width: 48px; height: 48px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .plant-stem {
+    position: absolute;
+    width: 2px;
+    background: #22c55e;
+    bottom: 12px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 1px;
+    animation: stemGrow 4s ease-out forwards;
+    transform-origin: bottom center;
+  }
+  @keyframes stemGrow {
+    0% { height: 0; }
+    100% { height: 24px; }
+  }
+  .plant-leaf {
+    position: absolute;
+    width: 8px; height: 6px;
+    border-radius: 0 80% 0 80%;
+    background: #22c55e;
+    opacity: 0;
+  }
+  .plant-leaf:nth-child(2) {
+    left: 50%; top: 20px;
+    transform: rotate(-30deg);
+    animation: leafGrow 0.5s ease-out 1s forwards;
+  }
+  .plant-leaf:nth-child(3) {
+    right: 50%; top: 14px;
+    transform: rotate(30deg) scaleX(-1);
+    animation: leafGrow 0.5s ease-out 2s forwards;
+  }
+  .plant-leaf:nth-child(4) {
+    left: 50%; top: 8px;
+    transform: rotate(-20deg);
+    animation: leafGrow 0.5s ease-out 3s forwards;
+  }
+  @keyframes leafGrow {
+    0% { opacity: 0; transform: scale(0.3) rotate(-30deg); }
+    100% { opacity: 0.8; transform: scale(1) rotate(-30deg); }
+  }
+  .plant-flower {
+    position: absolute;
+    top: 2px; left: 50%; transform: translateX(-50%);
+    font-size: 14px;
+    opacity: 0;
+    animation: flowerBloom 0.6s ease-out 3.5s forwards;
+  }
+  @keyframes flowerBloom {
+    0% { opacity: 0; transform: translateX(-50%) scale(0); }
+    50% { transform: translateX(-50%) scale(1.3); }
+    100% { opacity: 1; transform: translateX(-50%) scale(1); }
+  }
+  .plant-base {
+    position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    width: 20px; height: 10px;
+    background: #8B5E3C;
+    border-radius: 0 0 6px 6px;
+  }
+  .plant-info { flex: 1; }
+  .plant-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .plant-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+  .plant-stages {
+    display: flex; gap: 6px; margin-top: 6px; font-size: 11px;
+  }
+  .plant-stage { color: var(--text-muted); }
+  .plant-stage.done { color: #22c55e; }
+  .plant-stage.active { color: var(--accent); }
+
+  /* ═══════════════════════════════════════ */
+  /* P. WAVE FORM                            */
+  /* ═══════════════════════════════════════ */
+  .wave-container { padding: 10px 0; }
+  .wave-canvas {
+    height: 32px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    margin-bottom: 8px;
+  }
+  .wave-line {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 100%;
+  }
+  .wave-svg {
+    width: 200%; height: 100%;
+    animation: waveScroll 3s linear infinite;
+  }
+  @keyframes waveScroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+  .wave-meta {
+    display: flex; gap: 8px; align-items: center;
+  }
+  .wave-meta .phase { font-size: 12px; color: var(--text-secondary); }
+
+  /* ═══════════════════════════════════════ */
+  /* Q. FILM STRIP                           */
+  /* ═══════════════════════════════════════ */
+  .film-container { padding: 10px 0; }
+  .film-strip {
+    display: flex; gap: 0;
+    background: #1a1a1a;
+    border-radius: 6px;
+    overflow: hidden;
+    height: 44px;
+    position: relative;
+  }
+  .film-perf {
+    position: absolute; top: 0; bottom: 0; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    padding: 0 2px;
+    pointer-events: none;
+  }
+  .film-hole {
+    width: 4px; height: 4px;
+    background: #0f0f0f;
+    border-radius: 1px;
+    align-self: flex-start;
+    margin-top: 3px;
+  }
+  .film-hole.bottom { align-self: flex-end; margin-top: 0; margin-bottom: 3px; }
+  .film-frame {
+    flex: 1;
+    display: flex; align-items: center; justify-content: center;
+    border-right: 1px solid #2a2a2a;
+    font-size: 11px; font-weight: 500;
+    padding: 0 6px;
+    transition: all 0.4s ease;
+    position: relative;
+  }
+  .film-frame:last-child { border-right: none; }
+  .film-frame.done {
+    background: rgba(34, 197, 94, 0.06);
+    color: rgba(34, 197, 94, 0.7);
+  }
+  .film-frame.active {
+    background: var(--accent-faint);
+    color: var(--accent);
+    box-shadow: inset 0 0 20px rgba(255,107,107,0.08);
+  }
+  .film-frame.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--accent);
+    animation: filmScan 1.5s ease-in-out infinite;
+  }
+  @keyframes filmScan {
+    0%, 100% { opacity: 0.3; }
+    50% { opacity: 1; }
+  }
+  .film-frame.pending {
+    color: #333;
+  }
+  .film-meta {
+    display: flex; gap: 8px; align-items: center;
+    margin-top: 8px;
+  }
+
+  /* Twin orbit reused */
+  .orb { position: relative; display: inline-block; width: 14px; height: 14px; flex-shrink: 0; }
+  .orb .t { position: absolute; inset: 0; border-radius: 50%; border: 1px solid var(--accent-faint); }
+  .orb .dw { position: absolute; inset: 0; animation: os 1.4s linear infinite; }
+  .orb .dw:nth-child(3) { animation-delay: 0.7s; }
+  .orb .d { width: 3.5px; height: 3.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .orb .dw:nth-child(3) .d { background: var(--accent-dim); box-shadow: none; }
+  @keyframes os { from { transform: rotate(0deg) translateX(calc(50% - 1.5px)) rotate(0deg); } to { transform: rotate(360deg) translateX(calc(50% - 1.5px)) rotate(-360deg); } }
+
+</style>
+</head>
+<body>
+
+<h1>Thinking Block V3 — Wild Ideas</h1>
+<div class="subtitle">Pushing further. Weird, fun, memorable.</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- L. COLOR PALETTE MIXING                 -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">L. Color Palette Mixing</div>
+  <div class="concept-desc">Paint drops that pulse and blend together. Each drop is a phase (blue=research, purple=hooks, coral=art, orange=images). A color mixing blur pools beneath them. You're watching the creative palette come together.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="palette-container">
+          <div class="palette-drops">
+            <div class="drop done" style="background:var(--blue)"></div>
+            <div class="drop done" style="background:var(--purple)"></div>
+            <div class="drop active" style="background:var(--accent)"></div>
+            <div class="drop pending" style="background:var(--orange)"></div>
+            <div class="palette-mix"></div>
+          </div>
+          <div class="palette-info">
+            <div class="palette-phase">Creating art direction</div>
+            <div class="palette-meta">
+              <span class="verb" id="vL">Mixing...</span>
+              <span class="timer" id="tL">2:05</span>
+            </div>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- M. NEON SIGN                            -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">M. Neon Sign</div>
+  <div class="concept-desc">Phase names light up like neon signs. Completed phases glow green, active one flickers coral with a neon haze. Pending ones are off. Feels like a retro creative studio.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="neon-container">
+          <div class="neon-row">
+            <span class="neon-done">Research</span>
+            <span class="neon-sep">/</span>
+            <span class="neon-done">Hooks</span>
+            <span class="neon-sep">/</span>
+            <span class="neon-text">Art</span>
+            <span class="neon-sep">/</span>
+            <span class="neon-off">Images</span>
+          </div>
+          <div class="neon-meta">
+            <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+            <span style="font-size:12px; color:var(--text-secondary)">Creating art direction</span>
+            <span class="verb" id="vM">Illuminating...</span>
+            <span class="timer" style="margin-left:auto" id="tM">2:05</span>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- N. EQUALIZER BARS                       -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">N. Equalizer Bars</div>
+  <div class="concept-desc">Bouncing audio equalizer bars — like the agent is composing music. Creative energy visualized. The bars dance faster during intense phases (images), slower during research. Feels alive and rhythmic.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="eq-container">
+          <div class="eq-bars">
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+            <div class="eq-bar"></div>
+          </div>
+          <div class="eq-info">
+            <div class="eq-phase">Creating art direction</div>
+            <div class="eq-meta">
+              <span class="verb" id="vN">Composing...</span>
+              <span class="timer" id="tN">2:05</span>
+            </div>
+            <div class="eq-phases">
+              <div class="eq-phase-dot done"></div>
+              <div class="eq-phase-dot done"></div>
+              <div class="eq-phase-dot active"></div>
+              <div class="eq-phase-dot pending"></div>
+            </div>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- O. GROWING PLANT                        -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">O. Growing Plant</div>
+  <div class="concept-desc">A tiny plant that grows as the creative process unfolds. Stem extends, leaves unfurl, flower blooms at the end. Your creative brief is literally growing into something beautiful.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="plant-container">
+          <div class="plant-pot">
+            <div class="plant-stem"></div>
+            <div class="plant-leaf"></div>
+            <div class="plant-leaf"></div>
+            <div class="plant-leaf"></div>
+            <div class="plant-flower">🌸</div>
+            <div class="plant-base"></div>
+          </div>
+          <div class="plant-info">
+            <div class="plant-phase">Creating art direction</div>
+            <div class="plant-meta">
+              <span class="verb" id="vO">Growing...</span>
+              <span class="timer" id="tO">2:05</span>
+            </div>
+            <div class="plant-stages">
+              <span class="plant-stage done">🌱 seed</span>
+              <span class="plant-stage done">🌿 sprout</span>
+              <span class="plant-stage active">🌺 bloom</span>
+              <span class="plant-stage">🎨 harvest</span>
+            </div>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- P. WAVE FORM                            -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">P. Wave Form</div>
+  <div class="concept-desc">A continuous scrolling wave — like creative energy flowing. The wave is coral-gradient and scrolls left endlessly. Feels like a heartbeat monitor for the creative process.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="wave-container">
+          <div class="wave-canvas">
+            <div class="wave-line">
+              <svg class="wave-svg" viewBox="0 0 800 32" preserveAspectRatio="none">
+                <defs>
+                  <linearGradient id="wg" x1="0" x2="1" y1="0" y2="0">
+                    <stop offset="0%" stop-color="#4361ee" stop-opacity="0.6"/>
+                    <stop offset="50%" stop-color="#ff6b6b" stop-opacity="0.8"/>
+                    <stop offset="100%" stop-color="#4361ee" stop-opacity="0.6"/>
+                  </linearGradient>
+                </defs>
+                <path d="M0,20 C20,8 40,8 60,20 C80,32 100,32 120,20 C140,8 160,8 180,20 C200,32 220,32 240,20 C260,8 280,8 300,20 C320,32 340,32 360,20 C380,8 400,8 420,20 C440,32 460,32 480,20 C500,8 520,8 540,20 C560,32 580,32 600,20 C620,8 640,8 660,20 C680,32 700,32 720,20 C740,8 760,8 780,20 L800,20" fill="none" stroke="url(#wg)" stroke-width="2"/>
+                <path d="M0,22 C20,12 40,12 60,22 C80,32 100,32 120,22 C140,12 160,12 180,22 C200,32 220,32 240,22 C260,12 280,12 300,22 C320,32 340,32 360,22 C380,12 400,12 420,22 C440,32 460,32 480,22 C500,12 520,12 540,22 C560,32 580,32 600,22 C620,12 640,12 660,22 C680,32 700,32 720,22 C740,12 760,12 780,22 L800,32 L0,32 Z" fill="url(#wg)" opacity="0.08"/>
+              </svg>
+            </div>
+          </div>
+          <div class="wave-meta">
+            <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+            <span class="phase">Creating art direction</span>
+            <span class="verb" id="vP">Flowing...</span>
+            <span class="timer" style="margin-left:auto" id="tP">2:05</span>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ -->
+<!-- Q. FILM STRIP                           -->
+<!-- ═══════════════════════════════════════ -->
+<div class="concept">
+  <div class="concept-label">Q. Film Strip</div>
+  <div class="concept-desc">Phases as frames on a film strip — because you're making visual ads. Each frame lights up as it's active. A scanning light bar pulses on the current frame. Advertising meets cinema.</div>
+
+  <div class="chat-frame">
+    <div class="chat-body">
+      <div class="user-msg">Create ads for verbisedu.com</div>
+      <div class="agent-area">
+        <div class="film-container">
+          <div class="film-strip">
+            <div class="film-frame done">🔍 Research</div>
+            <div class="film-frame done">🎣 Hooks</div>
+            <div class="film-frame active">🎨 Art</div>
+            <div class="film-frame pending">🖼️ Images</div>
+          </div>
+          <div class="film-meta">
+            <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+            <span style="font-size:12px; color:var(--text-secondary)">Creating art direction</span>
+            <span class="verb" id="vQ">Directing...</span>
+            <span class="timer" style="margin-left:auto" id="tQ">2:05</span>
+          </div>
+        </div>
+        <div class="ts">Agent</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div style="height: 80px"></div>
+
+<script>
+  const VERBS = [
+    'Pondering', 'Cogitating', 'Noodling', 'Brewing', 'Conjuring',
+    'Scheming', 'Vibing', 'Spelunking', 'Wrangling', 'Simmering',
+    'Manifesting', 'Ruminating', 'Percolating', 'Tinkering', 'Musing',
+    'Crafting', 'Painting', 'Imagining', 'Weaving', 'Composing',
+    'Channeling', 'Transmuting', 'Hatching', 'Incubating', 'Dreaming',
+    'Mixing', 'Illuminating', 'Flowing', 'Directing', 'Growing',
+  ];
+  const verbIds = ['vL','vM','vN','vO','vP','vQ'];
+  setInterval(() => {
+    verbIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = VERBS[Math.floor(Math.random() * VERBS.length)] + '...';
+    });
+  }, 800);
+
+  const timers = { tL:125, tM:125, tN:125, tO:125, tP:125, tQ:125 };
+  setInterval(() => {
+    Object.keys(timers).forEach(id => {
+      timers[id]++;
+      const s = timers[id];
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+    });
+  }, 1000);
+</script>
+
+</body>
+</html>

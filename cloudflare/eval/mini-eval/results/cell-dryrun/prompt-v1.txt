@@ -1,0 +1,9 @@
+A static social-media advertisement image, vertical 4:5, composed as two horizontal zones.
+
+UPPER ZONE (about 55% of the height): a flat typographic field on warm off-white paper. Four oversized all-caps words in a clean modern sans-serif, set in very pale warm grey like faded poster ink, stacked and staggered to fill the zone: "EFFORTLESS." "ICONIC." "PREMIUM." "SOFT." At the bottom edge of this zone, in small dark-charcoal sentence-case text in the same typeface: "Every bag ad this year. Or just look:"
+
+LOWER ZONE (about 45%): a realistic photograph inside a daylit café — warm neutral tones, shallow depth of field, blurred background, no people in focus, no table props. A simple black metal café chair. Hanging from the chair-back by one long black shoulder strap is exactly the tote bag from the reference image: a saturated lagoon-blue canvas tote with a black top panel, long thin black shoulder straps, a front slip pocket with two vertical seams, and a small logo tab — identical to the reference in colour, proportions and details. The second strap hangs slack. The tote is the only saturated colour in the entire image, positioned slightly right of center, fully visible. Soft natural window light, matte photographic finish, not glossy, no CGI look.
+
+In the bottom-right corner of the lower zone: a small "DailyObjects" wordmark in dark charcoal sans-serif.
+
+Render all quoted text exactly as written, with no other words, letters or watermarks anywhere in the image.

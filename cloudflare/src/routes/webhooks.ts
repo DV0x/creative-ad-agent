@@ -14,6 +14,7 @@ import {
   recordWebhookEvent,
 } from '../db/subscriptions.js';
 import type { PlanTier } from '../db/subscriptions.js';
+import { capturePostHog } from '../lib/posthog.js';
 
 // ── Plan config ──────────────────────────────────────────────────
 // Maps Dodo product_id → plan tier + credit amount.
@@ -222,6 +223,20 @@ async function handleSubscriptionEvent(
       });
       await recordWebhookEvent(env.DB, webhookId, eventType, userId, planInfo.baseCreditsUsd, creditedUsd, rawBody);
       console.log(`[webhook] Subscription renewed: plan pool reset + ${creditedUsd} USD`);
+
+      // Funnel close: real money in. .renewed fires on first purchase AND every cycle —
+      // we can't distinguish them here (Dodo sends the same event), so report both as
+      // 'subscription'. distinctId = Clerk user_id, unifying with client identify().
+      await capturePostHog(env, {
+        event: 'payment_succeeded',
+        distinctId: userId,
+        properties: {
+          type: 'subscription',
+          plan: planInfo.plan,
+          interval: planInfo.interval,
+          credited_usd: creditedUsd,
+        },
+      });
       return;
     }
 
@@ -324,6 +339,18 @@ async function handlePaymentSucceeded(
   await addTopupCredits(env.DB, userId, creditedUsd);
   await recordWebhookEvent(env.DB, webhookId, 'payment.succeeded', userId, amountUsd, creditedUsd, rawBody);
   console.log(`[webhook] Top-up: $${amountUsd} → ${creditedUsd} USD into topup pool (plan=${plan})`);
+
+  // Funnel close: real money in (one-time top-up, incl. the $5 cold-traffic wedge).
+  await capturePostHog(env, {
+    event: 'payment_succeeded',
+    distinctId: userId,
+    properties: {
+      type: 'topup',
+      amount_usd: amountUsd,
+      credited_usd: creditedUsd,
+      plan,
+    },
+  });
 }
 
 // ── Refund ─────────────────────────────────────────────────────────

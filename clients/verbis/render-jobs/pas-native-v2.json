@@ -1,0 +1,12 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "pas-stuck-native-v2",
+      "refs": ["assets/logo/verbis-logo-horizontal.png"],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass. It must look like a REAL amateur phone photo of a tired student's late-night study desk — NOT a polished AI or agency design.\n\nSCENE (real candid photograph): a dim, cosy late-night study desk lit by a warm desk lamp. An open laptop in the middle showing a PTE Academic practice-test result screen with a large, clearly readable overall score '65'. Around it: a messy stack of PTE and English prep books, scattered handwritten sticky notes, a cold half-finished cup of coffee, a phone lying face-up, a highlighter. Slightly messy, lived-in, tired late-night mood. Real soft warm lamp shadows, slight camera grain, shallow depth of field. AVOID: glossy 3D render, floating objects, perfect symmetry, slick gradients, vector-clean look, studio lighting, over-saturation.\n\nTEXT (simple and casual, like a real social ad — NOT heavy beveled poster type). Make it instantly clear this is about the PTE exam:\n- at the very TOP, a small gold-outlined eyebrow tag in uppercase dark text: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- below it, a bold light headline over a subtle dark scrim: 'Weeks of PTE prep. Still stuck at 65?'\n- just below, a smaller light line: 'It's not more practice — it's the format.'\n- near the BOTTOM, a simple flat gold (#FBBD29) button with dark text: 'Crack PTE 79+ in 4 hours  →  ₹589'\n\nReproduce the provided VERBIS EDU logo (reference image) SMALL in the top-left corner, exactly as given — do not redraw or restyle it.\n\nWarm, real, authentic late-night phone-photo look. All text crisp and correctly spelled."
+    }
+  ]
+}

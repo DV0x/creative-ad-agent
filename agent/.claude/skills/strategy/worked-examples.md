@@ -76,28 +76,15 @@ The tempting move: make a HITEX-expo cell a fourth angle — it would resurrect 
 
 I didn't. Here's why: this is an *audience-discovery* test. The expo audience is not a discovery question — the calendar research already confirmed it exists. Dropping a tactical expo cell into a discovery test corrupts the read (if it wins, you've learned "expos drive demand," which you knew) and burns a slot. The expo is real money — but it is a *separate tactical burst*, not part of this experiment. The calendar's real job here is **timing**: run the discovery test through the busy late-June window, not the dead first half, or the test returns noise.
 
-## Right-sizing and visual lanes
+## Right-sizing and the mandatories
 
 Assume the budget supports N=3. (If it only supported 2, the cut would be Medical — its volume is the most fragile — leaving Celebration + Family-visit, the two most readable.)
 
-Visual lanes — all three real-photo-led, because it is a hotel and the room *is* the product; forcing three different art styles would be cosmetic, not honest. They stay distinct by room and mood: Celebration warm and intimate, Family-visit bright and reassuring, Medical calm and muted.
-
-## The Bet that resulted
-
-> **Memo:** Today every room you fill comes from people who already know you — event guests, regulars, word of mouth. You have no way to win a *stranger* searching online, and underneath that is a sharper problem: nobody knows which kind of stranger Ravila can win. You are a clean, affordable hotel in Madinaguda — not a HITEC City business hotel, and the website should stop pretending otherwise. So this first test is not about a clever message. It is a question: of the three room-seekers you could plausibly win, **which one is actually yours?** We run one honest ad at each and let real bookings answer.
->
-> **Conversion event:** a direct room booking.
-> **Blocker:** no cold-acquisition muscle, and the real cold market is unidentified — a *who* problem. → an audience-discovery test.
-> **Angles:**
-> 1. *Celebration stay* — hypothesis: the cold market is couples/families wanting an affordable celebration night. Why: the rooms are already staged for exactly this. Lane: real-photo, warm, intimate.
-> 2. *Family-visit stay* — hypothesis: the cold market is people visiting relatives in the Miyapur–Kukatpally IT belt. Why: that belt is where IT workers live; the hotel's own family blog half-senses it. Lane: real-photo, bright, reassuring.
-> 3. *Hospital stay* — hypothesis: the cold market is families of patients at the hospital across the road. Why: strongest, most non-discretionary trigger there is. Lane: real-photo, calm, muted.
-> **Honest flag:** near-zero OTA reviews + contradicted "premium" claims will cap conversion — seed reviews and drop the overclaims alongside the spend.
-> **Timing:** run June 5–28; the HITEC-area expo spike is a separate tactical play, not part of this test.
+The mandatory is the same for all three: put the real room on screen — it is a hotel, the room *is* the product, and the cell builds the actual look, not me. I don't assign each a mood; they are already distinct by *who and why* — a celebration night, a family visit, and a hospital stay are three different rooms before they are three different ads.
 
 ## What this example is meant to teach
 
-Every line of that Bet is the output of a *move*, not a template. The value was never the three angles — it was the refusals: refusing the website's self-portrait, refusing to test variants before discovering the audience, refusing to let a shiny event corrupt the experiment, refusing to stay quiet about the review gap. A blender could not have produced this. That is the whole point.
+Every line of the resulting Bet is the output of a *move*, not a template. The value was never the three angles — it was the refusals: refusing the website's self-portrait, refusing to test variants before discovering the audience, refusing to let a shiny event corrupt the experiment, refusing to stay quiet about the review gap. A blender could not have produced this. That is the whole point.
 
 ---
 
@@ -156,23 +143,11 @@ Because this is a *message* test, Gate 1's self-selection check mostly fell away
 
 Dropped: a pure cost-per-gram reframe (competes on price terms, risks cheapening the brand, overlaps #1) and a loyalty/repeat-economics message (a retention play — off-strategy for an acquisition test).
 
-## Visual lanes — within an identity, not from scratch
+## Respecting an existing identity
 
-Ravila had no real identity, so lanes were assigned close to from scratch. TWT is the opposite: a powerful, recognisable identity — playful hand-drawn doodles, bold display type, cream and maroon, anti-glossy, ingredient-forward. You do not invent lanes that fight that.
+Ravila had no real identity, so the cell would build close to from scratch. TWT is the opposite: a powerful, recognisable identity — playful hand-drawn doodles, bold display type, cream and maroon, anti-glossy, ingredient-forward. You do not invent a look that fights that.
 
-So the lanes are *treatments within TWT's existing system*, distinct by tone, not art style: the anti-adulteration message in TWT's confrontational myth-bust treatment; honest-indulgence in a warmer, appetite-forward treatment; vs-whole-foods in its cheeky doodle-comparison treatment. One identity, three tones.
-
-## The Bet that resulted
-
-> **Memo:** You aren't lying about yourself — you really are the honest, clean brand you say you are, and your customers agree. That is exactly why this is easy to get wrong: you keep marketing *trust*, and trust is no longer what's stopping the sale. Price is. People believe you and balk at the cost anyway — especially on the second purchase. This test doesn't argue you're cheap. It tests three honest ways to make the premium feel *worth it*.
->
-> **Conversion event:** a purchase. **Assumption (stated, unconfirmed):** the goal is new-customer acquisition; retention is a parallel concern to confirm.
-> **Blocker:** the buyer believes the honesty and balks at the premium — the value isn't justified in their head.
-> **Test shape:** a message test — one audience, three value-justification messages.
-> **Messages:** anti-adulteration insurance (anchor) / honest indulgence / versus whole foods.
-> **Lanes:** three treatments inside TWT's existing identity — confrontational, warm, cheeky.
-> **Honest flag:** the price number and post-hike repeat economics are not creative-addressable; this test reframes perception, it does not fix the price ladder.
-> **Timing:** running in a shoulder season (post-summer, pre-festive) — a note for the Run Plan.
+So what I hand down is a mandatory, not a treatment: *stay inside TWT's existing identity*. I don't assign each angle a tone or art style — the three are already distinct by *who and what they promise*, and the cell dresses each inside the brand's system.
 
 ## What this example teaches
 
@@ -213,16 +188,6 @@ Then the honesty fork — and here it produced not a footnote but the *whole* di
 For Ravila and TWT, the non-creative issue was a real flaw but a *flag* — a test still taught you something. Here it was not a flag; it was the entire story. A flawless ad pointed at this funnel still loses, because the stranger who clicks bounces off a destination they have no reason to trust.
 
 That is a second kind of un-runnable test — not "the budget is too small to read a result" but "**the destination leaks; no creative converts into it.**" The binder, at the time of this run, only knew the budget kind — so the honest output had no clean home in the method. That is exactly what a third example is *for*. The binder gained a move out of this run: **judge whether the brand is ready to be marketed**, and when it is not, flip The Bet's shape.
-
-## The Bet that resulted
-
-> **Memo:** Before we talk about ads — you are not ready to spend on cold acquisition. A stranger who clicks an ad lands on a funnel with no licence shown, no human names, no reviews anywhere, and rates nine months stale, and they leave. No creative fixes that. First, the readiness list: show the licence, put real brokers and faces on the site, switch on a review engine, fix the rates. Second, and just as important — your *name* is fighting you. "TheRateFinder" sells you into the most crowded, lowest-trust corner of the market, where an unknown brand cannot win. Your real, defensible lane — the one your own ads already show traction in — is commercial, construction and private/developer lending, which no competitor is advertising. The test, when you are ready, runs *there*.
->
-> **Conversion event:** a mortgage lead. **Assumption (stated, unconfirmed):** the goal is new-lead acquisition.
-> **Blocker:** legitimacy — a faceless, unproven funnel asking strangers for financial data in a trust-critical category. Mostly **not creative-addressable.**
-> **Readiness:** setting 3 — not ready. The Bet leads with the fix-list; the angle test is conditional.
-> **If overruled ("run it anyway"):** not a refusal, and not the full test — a capped, diagnostic creative-learning burst, optimised for the click rather than the lead, judged on cost-per-click, with the fastest fixes running in parallel through week one.
-> **Positioning correction:** abandon the rate-shopping lane the name promises; commit to the commercial/construction/private lane the product and the early ads already support.
 
 ## What this example teaches
 

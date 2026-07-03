@@ -87,3 +87,10 @@ agent/.claude/skills/hook-methodology/hook-bank/*.md
 !agent/.claude/skills/hook-methodology/hook-bank/.gitkeep
 # ScrapeCreators eval disk cache (credit-saving; never commit)
 cloudflare/eval/mini-eval/.cache/
+# Ad-library research step disk cache (credit-saving; never commit)
+scripts/ad-research/.cache/
+# Ad-library image analysis — downloaded creatives + generated gallery (heavy, regenerable;
+# keep manifest.json / analysis.json / VISUAL-PLAYBOOK.md, drop the rest)
+docs/research/ad-library/*/images/
+docs/research/ad-library/*/_work/
+docs/research/ad-library/*/index.html

@@ -1,0 +1,24 @@
+Create a 4:5 vertical designed advertisement poster, 1080×1350, for an Instagram feed ad.
+
+This is a LOUD TYPE-POSTER built by a graphic designer — typography IS the architecture of the image. Massive condensed display type fills the frame edge to edge, with the product scene layered into it. Think bold contemporary poster design, not minimal editorial.
+
+Background: a flat warm off-white poster field, edge to edge.
+
+The type architecture — exact words, treatments, colors decided against their surfaces: four stacked lines of MASSIVE ultra-condensed extra-bold display caps, each line running the full width of the frame edge-to-edge with tight margins, tight vertical leading, filling the upper 60% of the poster:
+Line 1: "PROTEIN." in dark charcoal.
+Line 2: "EVERY." in deep burgundy.
+Line 3: "SINGLE." in dark charcoal.
+Line 4: "DAY." in deep burgundy.
+The lines sit flush like stacked blocks — poster type as a wall.
+
+Product scene band: across the lower third of the frame, on the same off-white field, runs the row of seven identical clear glasses filled with light-cocoa-brown protein shake — simple, freshly stirred, no garnish, no dessert styling. In front of each glass leans a small white printed card with bold charcoal text, left to right: "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN". At the right end of the row the burgundy TWTF whey pouch stands at hero scale, taller than the glasses, label square to camera and fully readable — the pouch's top edge OVERLAPS in front of the bottom of the word "DAY.", layering the product over the type so the poster reads as one built object. Glasses and pouch cast soft short shadows on the off-white field.
+
+Between the type block and the glasses row, one thin full-width strip of small text: the customer quote in dark charcoal regular-weight sans-serif, in quotation marks, one line: "I can finally have protein daily without stomach issues." followed on the same strip by "— REAL AMAZON REVIEW" in tracked all-caps light grey.
+
+Bottom center: a dark charcoal rounded CTA pill with white bold text: "Try it → thewholetruthfoods.com"
+
+Light: flat, bright, even poster lighting; the only shadows are the soft drops under the glasses and pouch. Crisp, graphic, high-contrast.
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): burgundy/maroon matte stand-up pouch; white "The Whole Truth" stacked logo; pack headline "Cleanest, lightest whey protein. Ever."; white info column on the right side of the pack containing a boxed "24 g protein per scoop", "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" with a small gold circle; a small green vegetarian dot; a dark strip near the bottom of the pack reading "light cocoa · whey protein isolate + concentrate"; a white panel with thin grey diagonal stripes wrapping the pouch's lower-left gusset. The protein badge on the pack reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the warm off-white poster field, the four full-width stacked condensed display lines PROTEIN. EVERY. SINGLE. DAY. alternating dark charcoal and deep burgundy, the thin quote strip with the attribution, the row of seven cocoa shake glasses with seven MON-through-SUN day cards, the burgundy TWTF pouch at hero scale at the right end overlapping the type block, and the dark charcoal CTA pill at the bottom center.

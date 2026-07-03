@@ -1,0 +1,19 @@
+Create a 4:5 vertical designed advertisement poster, 1080×1350, for an Instagram feed ad.
+
+This is a monumental product-hero advertisement built by a designer — a real photographed product staged at dramatic scale inside a clean designed environment, with composed type. It is not a casual photograph.
+
+Scene: a bright clear sky-blue background fills the frame — deeper saturated blue at the top, fading gradually to a very pale blue near the bottom, smooth and commercial like a premium outdoor poster. The burgundy TWTF whey pouch is the hero at monumental scale: it stands tilted about 8 degrees clockwise, occupying nearly 60% of the frame height, positioned center-right with its base in the lower third of the frame, presented forward toward the viewer like a billboard object — crisp edges, a subtle cool rim light along its left edge, one soft elliptical ground shadow beneath it on the pale lower zone.
+
+Composition: upper-left quadrant carries the hook type in two stacked lines. Directly below the hook sits one review-quote line. Along the left side of the pouch, three small white callout chips are stacked vertically with thin grey pointer lines touching the pack. Bottom center: the CTA chip.
+
+Light: bright, crisp, commercial daylight quality across the whole frame; the pouch evenly lit with rich saturated burgundy; no mood, no darkness.
+
+Typography, exact words and colors decided against their surfaces:
+- Hook, white extra-bold sans-serif, two lines, upper-left against the deep blue sky: line 1 "Quit protein" line 2 "because of your stomach?"
+- One line below the hook, smaller white regular-weight sans-serif: "No bloating at all." — real Amazon review
+- Three callout chips, white rounded rectangles with dark charcoal text, stacked left of the pouch, each with a thin grey pointer line to the pack: chip 1 "no artificial sweeteners", chip 2 "no gums", chip 3 "24 g protein per scoop"
+- CTA chip at bottom center: rounded burgundy pill with white text "Try it → thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): burgundy/maroon matte stand-up pouch; white "The Whole Truth" stacked logo; pack headline "Cleanest, lightest whey protein. Ever."; white info column on the right side of the pack containing a boxed "24 g protein per scoop", "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" with a small gold circle; a small green vegetarian dot; a dark strip near the bottom of the pack reading "light cocoa · whey protein isolate + concentrate"; a white panel with thin grey diagonal stripes wrapping the pouch's lower-left gusset. The protein badge on the pack reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the sky-blue gradient background, one monumental tilted burgundy TWTF whey pouch center-right with rim light and one soft ground shadow, the two-line white hook in the upper-left, the single review-quote line with its attribution below the hook, three white callout chips with thin pointer lines stacked along the pouch's left side, and one burgundy CTA chip at the bottom center.

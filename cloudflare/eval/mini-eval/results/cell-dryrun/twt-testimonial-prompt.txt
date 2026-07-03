@@ -1,0 +1,41 @@
+Create a 4:5 social ad image — a customer TESTIMONIAL card for a protein brand.
+
+This is a testimonial: a real customer's words are the hero. The product is a small supporting element in a corner. Do NOT make this a product shot.
+
+LAYOUT (reading order, top to bottom):
+- HERO QUOTE — the largest text on the image, in quotation marks, top-center:
+  "No bloating at all."
+- SOURCE CHIP — small grey text directly under the quote:
+  "Amazon.in · Verified Purchase"
+- SUPPORTING QUOTE — smaller, below, in quotation marks:
+  "I can finally have protein daily without stomach issues."
+  with a small attribution under it: "— thewholetruthfoods.com review"
+- PRODUCT — the real protein pouch, SMALL (about a quarter of the frame),
+  anchored in the LOWER-RIGHT CORNER. Not centered. Not dominant.
+  Beside it a small spec chip: "24g protein per scoop"
+- CTA — bottom, plain, smallest weight: "Try it →"
+
+LOOK (brand: The Whole Truth — strong, coherent identity):
+- Ground: warm off-white, flat and clean (NOT a gradient)
+- Palette: deep burgundy + white + a single gold accent
+- Type: one clean modern sans-serif family, about three sizes
+- The quote text set in deep burgundy on the off-white ground
+
+PRODUCT BINDING — match the reference image exactly:
+The pouch is The Whole Truth "light cocoa" whey protein — a deep burgundy / maroon
+matte stand-up pouch, with the white stacked "The Whole Truth" wordmark, the white
+"Cleanest, lightest whey protein. Ever." line, the "24g protein per scoop" panel,
+the small green vegetarian mark, and the gold-circle "Trustified" seal.
+Keep the burgundy colorway, the wordmark, and the Trustified seal true to the reference.
+Do NOT show the red "Bestseller" corner ribbon — it is a marketplace listing overlay, not part of the ad.
+
+MAKER / TREATMENT:
+Assembled by someone who collected a real review and set it beside the pack —
+honest, flat, document-like, like real proof pinned up. NOT a glossy supplement ad.
+No AI-gloss, no studio over-lighting, no dramatic reflections.
+
+FEEL: proof someone collected, not a poster the brand designed.
+
+DO NOT: star-rating rows, ★★★★★ stars, stock smiling faces, an "as seen in" press-logo bar,
+fake app or review-card chrome, a wall of many quotes, or the product centered and large.
+The background is warm off-white, not a gradient.

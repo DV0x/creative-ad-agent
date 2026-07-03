@@ -1,0 +1,15 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "c4-valuestack-native",
+      "refs": [
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass — a clean, honest 'what you get' breakdown that looks real and simple, NOT a glossy hype-y infomercial graphic. TWO reference images: (1) the Verbis Edu logo; (2) a Google review badge.\n\nBACKGROUND (native, real): a real light wooden or cream desk surface in soft natural daylight, shot slightly from above, subtle real notepad/paper texture, a pen resting to one side, a small coffee cup at the edge — authentic flat-lay, gentle real shadows, slight imperfection. AVOID: glossy 3D render, slick gradients, floating badges, over-saturation, hype-y 'MEGA OFFER' styling.\n\nLay the following out cleanly and simply, like an honest checklist on the surface:\n- a small gold-outlined eyebrow tag, uppercase: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- a bold dark headline: 'Pay ₹589. Get ₹3,000 back.'\n- a checklist, each line with a small gold check mark:\n   'Templates for all 22 PTE task types'\n   'Week-by-week 79+ study plan'\n   'Free mock-test assessment'\n   '₹3,000 off your official PTE exam'\n   'Live Q&A with your trainer'\n- a simple line below: 'You pay ₹589 (was ₹2,999) — and walk away with ₹3,000 off your exam. You come out ahead.'\n- a flat gold (#FBBD29) button with dark text: 'Claim my seat  →  ₹589'\n- directly BELOW the button, reproduce the provided GOOGLE REVIEW BADGE (reference 2) SMALL, exactly as given — keep the four-colour Google 'G', the stars, '4.9' and '491 Google reviews'.\n\nReproduce the VERBIS EDU logo (reference 1) SMALL in the TOP-LEFT corner with a clear margin from the edges — fully visible, NOT cropped.\n\nClean, honest, real, warm daylight look — not salesy. All text crisp and correctly spelled."
+    }
+  ]
+}

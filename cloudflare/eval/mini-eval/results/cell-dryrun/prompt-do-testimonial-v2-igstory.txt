@@ -1,0 +1,26 @@
+Create a 4:5 vertical social ad for DailyObjects (a design-led Indian everyday-carry brand) built as a REAL CUSTOMER'S INSTAGRAM STORY, screenshotted. The ENTIRE frame is the phone's Instagram Story view — a candid story a happy customer posted about their new tote. Honest and native — NOT a designed poster, NOT a studio shot, NOT AI-gloss, and explicitly NOT a white review card pinned on a photo.
+
+THE ARTIFACT (this is the whole image — an Instagram Story screenshot):
+- Full-bleed: the photo fills the entire 4:5 frame, edge to edge. No white card, no border, no margins.
+- At the very TOP: the thin segmented Instagram story progress bar (a few segments, the first partly filled).
+- TOP-LEFT over the photo: a small circular profile avatar + the handle "aditya.r" in white bold, with a faint grey "3h" beside it.
+- TOP-RIGHT: a small white "..." and an "X", Instagram-style.
+- BOTTOM: the Instagram story reply bar — a rounded outline pill reading "Send message" in light grey, with a small white heart and a paper-plane DM icon to its right.
+
+THE PHOTO BEHIND (candid, phone-shot, native):
+- A quick one-handed iPhone snap: the person's own arm reaches into frame holding the DailyObjects Lagoon Basalt tote UP by its handles toward the camera — we see the bag and a bit of their forearm/hand, NOT their face. A candid "look what I got" moment.
+- Setting: a sunlit café — behind the bag, soft from phone depth of field, a window with a bright street beyond, a marble table edge and a coffee cup, blurred.
+- iPhone computational HDR look: crisp, slightly cool-neutral white balance, real smartphone depth of field, a touch of natural imperfection, slight ~2-degree tilt. NOT studio, NOT a clean catalog product shot.
+
+THE PRODUCT (bound to the reference image — keep it exact):
+The DailyObjects "Lagoon Basalt" tote — rich lagoon-blue canvas body, black webbing handles, the small black branding tag. Match the lagoon-blue colorway, the black handles, construction, stitching and proportions to the reference exactly. Reproduce the product 100% identical to the reference image — nothing added, nothing removed. Ignore any e-commerce overlays or badges.
+
+THE REVIEW (the peer's own words, as INSTAGRAM STORY TEXT — this is the proof, the hero):
+- Hand-placed Instagram story TEXT across the upper-middle, over the photo, in Instagram's classic story font (clean rounded sans, white with a subtle soft drop shadow, very slightly hand-tilted), verbatim exactly: "finally a bag as considered as the rest of my setup"
+- Just below it, smaller, a second story text line, verbatim: "obsessed."
+- An Instagram MENTION sticker tagging the brand near the bag: a small pill "@dailyobjects" in the Instagram gradient style.
+
+THE CTA (native to the maker — an Instagram LINK STICKER, not a designed button):
+- A small Instagram "link sticker": a white rounded pill with a tiny link/chain icon and the text "Shop the tote" in dark grey, placed lower-center over the photo. Native IG sticker styling — NOT a brand-designed solid button.
+
+DO NOT: a white review card pinned in the lower third (this is a story, not a card) · a star row of any kind · "Verified Purchase"/Amazon chrome · a designed brand poster or headline band · a studio/DSLR look · a seamless studio backdrop · golden/warm grading · a giant centered product packshot · any visible face (keep it the bag held up, forearm only) · a second review.

@@ -1,0 +1,381 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>creative-agent</title>
+    <link
+      href="https://api.fontshare.com/v2/css?f[]=clash-display@700,600&f[]=satoshi@400,500,700&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --cream: #fbf9f5;
+        --raised: #fdfcf9;
+        --raised2: #f6f3ec;
+        --elevated: #f3efe8;
+        --ink: #231f20;
+        --ink2: #4a4446;
+        --muted: #7a7275;
+        --border: #e1dbcd;
+        --border2: #d9d0bb;
+        --wine: #ab406c;
+        --wine-hover: #923355;
+        --wine-wash: #f2dbe5;
+        --lime: #c1ff64;
+        --lime-ink: #3a5a14;
+        --green: #16a34a;
+        --red: #dc2626;
+        --amber: #b8791f;
+        --font-body: 'Satoshi', -apple-system, BlinkMacSystemFont, sans-serif;
+        --font-display: 'Clash Display', 'Satoshi', sans-serif;
+      }
+      * { box-sizing: border-box; }
+      html, body { height: 100%; margin: 0; }
+      body {
+        background: var(--cream);
+        color: var(--ink);
+        font-family: var(--font-body);
+        font-size: 15px;
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+      #app { height: 100%; display: flex; flex-direction: column; align-items: center; }
+
+      /* ---------- welcome ---------- */
+      .welcome { margin: auto; width: 100%; max-width: 560px; padding: 32px 24px; text-align: center; }
+      .welcome h1 { font-family: var(--font-display); font-weight: 600; font-size: 40px; letter-spacing: -0.5px; margin: 0 0 8px; }
+      .welcome .dot { color: var(--wine); }
+      .welcome p { color: var(--muted); margin: 0 0 28px; font-size: 16px; }
+      .urlrow { display: flex; gap: 8px; }
+      .urlrow input {
+        flex: 1; padding: 14px 16px; font: inherit; color: var(--ink);
+        background: #fff; border: 1px solid var(--border2); border-radius: 12px; outline: none;
+      }
+      .urlrow input:focus { border-color: var(--wine); box-shadow: 0 0 0 3px var(--wine-wash); }
+      .btn {
+        font: inherit; font-weight: 600; cursor: pointer; border: none; border-radius: 12px;
+        padding: 14px 20px; background: var(--wine); color: #fff; transition: background 0.15s;
+      }
+      .btn:hover { background: var(--wine-hover); }
+      .btn:disabled { opacity: 0.5; cursor: default; }
+      .hint { margin-top: 14px; color: var(--muted); font-size: 13px; }
+
+      /* ---------- run layout ---------- */
+      .run { width: 100%; max-width: 900px; height: 100%; display: flex; flex-direction: column; padding: 0 20px; }
+      header.bar {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 16px 4px 12px; border-bottom: 1px solid var(--border);
+      }
+      .brand { font-family: var(--font-display); font-weight: 600; font-size: 20px; }
+      .brand .dot { color: var(--wine); }
+      .brand small { font-family: var(--font-body); font-weight: 400; color: var(--muted); font-size: 13px; margin-left: 8px; }
+      .meta { display: flex; align-items: center; gap: 14px; font-size: 13px; color: var(--muted); }
+      .chip { padding: 3px 10px; border-radius: 999px; font-weight: 600; font-size: 12px; text-transform: lowercase; }
+      .chip.working { background: var(--wine-wash); color: var(--wine); }
+      .chip.idle { background: #e6f6ec; color: var(--green); }
+      .chip.ended { background: var(--elevated); color: var(--muted); }
+      .chip.intake { background: var(--wine-wash); color: var(--wine); }
+
+      /* pipeline strip */
+      .pipeline { display: flex; flex-wrap: wrap; gap: 6px; padding: 12px 4px; border-bottom: 1px solid var(--border); }
+      .stage {
+        display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px;
+        font-size: 12.5px; border: 1px solid var(--border); color: var(--muted); background: var(--raised);
+      }
+      .stage.running { border-color: var(--wine); color: var(--wine); background: var(--wine-wash); font-weight: 600; }
+      .stage.done { border-color: transparent; color: var(--green); background: #e9f7ee; }
+      .stage.failed { border-color: transparent; color: var(--red); background: #fdecec; }
+      .stage .v { font-weight: 700; margin-left: 2px; }
+      .stage .v.good { color: var(--green); }
+      .stage .v.bad { color: var(--red); }
+
+      /* feed */
+      .feed { flex: 1; overflow-y: auto; padding: 20px 4px; display: flex; flex-direction: column; gap: 14px; }
+      .msg { max-width: 82%; }
+      .msg.agent { align-self: flex-start; display: flex; gap: 8px; }
+      .msg.agent .mk { color: var(--wine); flex: none; }
+      .msg.agent .tx { white-space: pre-wrap; }
+      .msg.user { align-self: flex-end; background: var(--ink); color: var(--cream); padding: 10px 14px; border-radius: 16px 16px 4px 16px; white-space: pre-wrap; }
+      .msg.note { align-self: flex-start; color: var(--muted); font-size: 13px; }
+
+      /* question card */
+      .qcard { align-self: flex-start; width: 100%; max-width: 100%; background: var(--raised); border: 1px solid var(--border2); border-radius: 16px; padding: 16px 18px; }
+      .qcard .q { font-weight: 600; margin: 0 0 4px; }
+      .qcard .qh { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 10px; }
+      .qgroup { margin-bottom: 16px; }
+      .opts { display: flex; flex-wrap: wrap; gap: 8px; }
+      .opt {
+        cursor: pointer; border: 1px solid var(--border2); background: #fff; border-radius: 10px;
+        padding: 9px 13px; font: inherit; text-align: left; transition: all 0.12s; color: var(--ink);
+      }
+      .opt:hover { border-color: var(--wine); }
+      .opt.sel { border-color: var(--wine); background: var(--wine-wash); color: var(--wine); font-weight: 600; }
+      .opt small { display: block; color: var(--muted); font-weight: 400; font-size: 12px; margin-top: 2px; }
+      .opt.sel small { color: var(--wine); }
+      .otherbox { margin-top: 8px; }
+      .otherbox input { width: 100%; padding: 9px 12px; font: inherit; border: 1px solid var(--border2); border-radius: 10px; outline: none; }
+      .otherbox input:focus { border-color: var(--wine); }
+
+      /* image card — the payoff */
+      .imgcard { align-self: stretch; background: var(--raised); border: 1px solid var(--border2); border-radius: 16px; padding: 12px; box-shadow: var(--shadow-md); }
+      .imgcard .cap { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; font-size: 13px; color: var(--muted); }
+      .imgcard .cap b { color: var(--ink); font-family: var(--font-display); }
+      .imgcard img { width: 100%; border-radius: 10px; display: block; }
+      .imgcard a { color: var(--wine); text-decoration: none; font-weight: 600; }
+
+      /* status + input */
+      .statusbar { padding: 8px 4px; color: var(--muted); font-size: 13px; min-height: 30px; display: flex; align-items: center; gap: 8px; }
+      .statusbar b { color: var(--ink); }
+      .spinner { width: 12px; height: 12px; border: 2px solid var(--wine-wash); border-top-color: var(--wine); border-radius: 50%; animation: spin 0.7s linear infinite; flex: none; }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .ready { color: var(--green); font-weight: 600; }
+      .inputbar { display: flex; gap: 8px; padding: 10px 0 18px; }
+      .inputbar input { flex: 1; padding: 12px 15px; font: inherit; background: #fff; border: 1px solid var(--border2); border-radius: 12px; outline: none; }
+      .inputbar input:focus { border-color: var(--wine); box-shadow: 0 0 0 3px var(--wine-wash); }
+      .err { color: var(--red); font-size: 13px; padding: 6px 4px; }
+      .photorow { margin-top: 12px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+      .ghost { font: inherit; cursor: pointer; background: transparent; border: 1px dashed var(--border2); color: var(--muted); border-radius: 10px; padding: 10px 14px; }
+      .ghost:hover { border-color: var(--wine); color: var(--wine); }
+      .ghost.has { border-style: solid; border-color: var(--wine); color: var(--wine); background: var(--wine-wash); }
+      .preview { max-height: 90px; border-radius: 10px; border: 1px solid var(--border); }
+      .clip { flex: none; cursor: pointer; font-size: 16px; background: transparent; border: 1px solid var(--border2); border-radius: 12px; padding: 0 12px; }
+      .clip:hover { border-color: var(--wine); }
+      .refbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 4px 0; }
+      .refchip { font-size: 12px; background: var(--wine-wash); color: var(--wine); border-radius: 999px; padding: 3px 10px; }
+      .statusline { padding: 4px 4px; color: var(--wine); font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script>
+      const app = document.getElementById('app');
+      let ws = null;
+      let state = { screen: 'welcome', view: null, images: [], question: null, startTs: 0, error: '', pendingImage: null, refs: [], status: '' };
+
+      function connect() {
+        ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
+        ws.onmessage = (ev) => {
+          let m;
+          try { m = JSON.parse(ev.data); } catch { return; }
+          if (m.type === 'view') { state.view = m.view; render(); }
+          else if (m.type === 'question') { state.question = m.questions; render(); }
+          else if (m.type === 'image') { if (!state.images.includes(m.url)) { state.images.push(m.url); render(); } }
+          else if (m.type === 'started') { state.startTs = Date.now(); state.error = ''; }
+          else if (m.type === 'ended') { if (m.error) state.error = m.error; }
+          else if (m.type === 'ref') { state.refs.push(m.name); state.status = ''; render(); }
+          else if (m.type === 'status') { state.status = m.text; render(); }
+        };
+        ws.onclose = () => { setTimeout(connect, 800); };
+      }
+      connect();
+
+      function fmtDur(ms) { const s = Math.max(0, (ms / 1000) | 0); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }
+      function send(obj) { if (ws && ws.readyState === 1) ws.send(JSON.stringify(obj)); }
+      function el(tag, cls, txt) { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; }
+      function pickFile(cb) {
+        const inp = document.createElement('input');
+        inp.type = 'file'; inp.accept = 'image/*';
+        inp.onchange = () => { const f = inp.files && inp.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => cb({ dataUrl: r.result, filename: f.name }); r.readAsDataURL(f); };
+        inp.click();
+      }
+
+      function start(url) {
+        url = (url || '').trim();
+        if (!url) return;
+        if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+        state.screen = 'run';
+        send({ type: 'start', url, image: state.pendingImage || undefined });
+        render();
+      }
+
+      // ---------- welcome ----------
+      function renderWelcome() {
+        app.innerHTML = '';
+        const w = el('div', 'welcome');
+        const h = el('h1'); h.innerHTML = 'creative<span class="dot">·</span>agent';
+        w.appendChild(h);
+        w.appendChild(el('p', null, 'Paste a brand URL. I read the site, ask a few quick questions, and build a direct-response ad — live.'));
+        const row = el('div', 'urlrow');
+        const inp = el('input'); inp.placeholder = 'https://yourbrand.com'; inp.autofocus = true;
+        const b = el('button', 'btn', 'Build my ad');
+        row.appendChild(inp); row.appendChild(b);
+        w.appendChild(row);
+        const photo = el('div', 'photorow');
+        const addBtn = el('button', state.pendingImage ? 'ghost has' : 'ghost', state.pendingImage ? ('✓ ' + state.pendingImage.filename + '  ·  change') : '＋ add a photo (optional) — a trainer, a product, a space');
+        addBtn.onclick = () => pickFile((img) => { state.pendingImage = img; render(); });
+        photo.appendChild(addBtn);
+        if (state.pendingImage) { const pv = el('img', 'preview'); pv.src = state.pendingImage.dataUrl; photo.appendChild(pv); }
+        w.appendChild(photo);
+        w.appendChild(el('div', 'hint', 'Runs the full pipeline: research → competitors → strategy → concepts → two critics → render.'));
+        if (state.error) w.appendChild(el('div', 'err', state.error));
+        app.appendChild(w);
+        b.onclick = () => start(inp.value);
+        inp.onkeydown = (e) => { if (e.key === 'Enter') start(inp.value); };
+        inp.focus();
+      }
+
+      // ---------- run ----------
+      const STAGE_MARK = { pending: '○', running: '', done: '✓', failed: '✗' };
+      function vClass(v) { return /WINNER|PASS/.test(v) ? 'good' : /REJECT|FAIL/.test(v) ? 'bad' : ''; }
+
+      function renderRun() {
+        const v = state.view;
+        app.innerHTML = '';
+        const root = el('div', 'run');
+
+        // header
+        const bar = el('header', 'bar');
+        const brand = el('div', 'brand');
+        brand.innerHTML = 'creative<span class="dot">·</span>agent' + (v ? ' <small>' + escapeHtml(v.brand) + '</small>' : '');
+        const meta = el('div', 'meta');
+        if (v) {
+          const chip = el('span', 'chip ' + v.phase, v.phase);
+          meta.appendChild(chip);
+          meta.appendChild(el('span', null, '$' + (v.costUsd || 0).toFixed(2)));
+          const timer = el('span', null, fmtDur(state.startTs ? Date.now() - state.startTs : 0));
+          timer.id = 'timer';
+          meta.appendChild(timer);
+        }
+        bar.appendChild(brand); bar.appendChild(meta);
+        root.appendChild(bar);
+
+        // pipeline strip
+        if (v) {
+          const strip = el('div', 'pipeline');
+          for (const s of v.stages) {
+            const p = el('div', 'stage ' + s.status);
+            if (s.status === 'running') p.appendChild(el('span', 'spinner'));
+            else p.appendChild(el('span', null, STAGE_MARK[s.status]));
+            p.appendChild(el('span', null, s.label));
+            if (s.verdict) { const vd = el('span', 'v ' + vClass(s.verdict), s.verdict); p.appendChild(vd); }
+            strip.appendChild(p);
+          }
+          root.appendChild(strip);
+        }
+
+        // feed
+        const feed = el('div', 'feed');
+        feed.id = 'feed';
+        if (v) for (const f of v.feed) feed.appendChild(renderFeedItem(f));
+        // images (the payoff) after the conversation
+        for (const url of state.images) feed.appendChild(renderImage(url));
+        // question picker
+        if (state.question) feed.appendChild(renderQuestion(state.question));
+        root.appendChild(feed);
+
+        // status bar
+        const sb = el('div', 'statusbar');
+        if (v && v.phase === 'idle') { sb.appendChild(el('span', 'ready', '✓ ready')); sb.appendChild(el('span', null, '— ask for a change or a new direction')); }
+        else if (v && v.phase === 'ended') { sb.appendChild(el('span', null, '■ session ended')); }
+        else if (!state.question) { sb.appendChild(el('span', 'spinner')); const b = el('b', null, 'working'); sb.appendChild(b); sb.appendChild(el('span', null, '· ' + ((v && v.activity) || 'thinking…'))); }
+        root.appendChild(sb);
+
+        if (state.error) root.appendChild(el('div', 'err', state.error));
+
+        // attached references + transient status
+        if (state.refs.length) { const rb = el('div', 'refbar'); for (const n of state.refs) rb.appendChild(el('span', 'refchip', '📎 ' + n)); root.appendChild(rb); }
+        if (state.status) root.appendChild(el('div', 'statusline', state.status));
+
+        // input
+        const ib = el('div', 'inputbar');
+        const clip = el('button', 'clip', '📎'); clip.title = 'attach a photo (trainer, product, space)';
+        clip.onclick = () => pickFile((img) => send({ type: 'upload', image: img }));
+        const inp = el('input'); inp.placeholder = v && v.phase === 'idle' ? 'ask for a change…' : 'type a note (it gets picked up)…';
+        inp.id = 'chatinput';
+        const b = el('button', 'btn', 'Send');
+        ib.appendChild(clip); ib.appendChild(inp); ib.appendChild(b);
+        root.appendChild(ib);
+        const submit = () => { const t = inp.value.trim(); if (!t) return; send({ type: 'message', text: t }); inp.value = ''; };
+        b.onclick = submit;
+        inp.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+
+        app.appendChild(root);
+        const fe = document.getElementById('feed'); if (fe) fe.scrollTop = fe.scrollHeight;
+      }
+
+      function renderFeedItem(f) {
+        if (f.kind === 'user') return el('div', 'msg user', f.text);
+        if (f.kind === 'note') return el('div', 'msg note', f.text);
+        if (f.kind === 'question') return el('div', 'msg note', 'asked: ' + (f.headers || []).join(' · '));
+        const d = el('div', 'msg agent');
+        d.appendChild(el('span', 'mk', '◆'));
+        d.appendChild(el('span', 'tx', f.text));
+        return d;
+      }
+
+      function renderImage(url) {
+        const c = el('div', 'imgcard');
+        const cap = el('div', 'cap');
+        cap.appendChild(el('b', null, 'Your ad'));
+        const a = el('a'); a.href = url; a.target = '_blank'; a.textContent = 'open full size ↗';
+        cap.appendChild(a);
+        c.appendChild(cap);
+        const img = el('img'); img.src = url; img.alt = 'rendered ad';
+        c.appendChild(img);
+        return c;
+      }
+
+      function renderQuestion(questions) {
+        const card = el('div', 'qcard');
+        const picks = questions.map(() => ({ sel: new Set(), other: '' }));
+        questions.forEach((q, qi) => {
+          const g = el('div', 'qgroup');
+          g.appendChild(el('div', 'qh', q.header + (q.multiSelect ? ' · pick any' : '')));
+          g.appendChild(el('div', 'q', q.question));
+          const opts = el('div', 'opts');
+          q.options.forEach((o) => {
+            const btn = el('button', 'opt');
+            btn.innerHTML = escapeHtml(o.label) + (o.description ? '<small>' + escapeHtml(o.description) + '</small>' : '');
+            btn.onclick = () => {
+              if (q.multiSelect) { picks[qi].sel.has(o.label) ? picks[qi].sel.delete(o.label) : picks[qi].sel.add(o.label); }
+              else { picks[qi].sel = new Set([o.label]); }
+              picks[qi].other = '';
+              [...opts.children].forEach((c) => c.classList.remove('sel'));
+              if (q.multiSelect) { [...opts.children].forEach((c) => { if (picks[qi].sel.has(c.dataset.label)) c.classList.add('sel'); }); }
+              else btn.classList.add('sel');
+              ob.value = '';
+            };
+            btn.dataset.label = o.label;
+            opts.appendChild(btn);
+          });
+          g.appendChild(opts);
+          const other = el('div', 'otherbox');
+          const ob = el('input'); ob.placeholder = 'or type your own…';
+          ob.oninput = () => { picks[qi].other = ob.value; if (ob.value) { picks[qi].sel = new Set(); [...opts.children].forEach((c) => c.classList.remove('sel')); } };
+          other.appendChild(ob);
+          g.appendChild(other);
+          card.appendChild(g);
+        });
+        const submit = el('button', 'btn', 'Send answers →');
+        submit.style.marginTop = '4px';
+        submit.onclick = () => {
+          const answers = {};
+          questions.forEach((q, qi) => {
+            const p = picks[qi];
+            let val = p.other.trim() ? p.other.trim() : [...p.sel].join(', ');
+            if (!val) val = q.options[0].label; // default to first if skipped
+            answers[q.question] = val;
+          });
+          state.question = null;
+          send({ type: 'answer', answers });
+          render();
+        };
+        card.appendChild(submit);
+        return card;
+      }
+
+      function escapeHtml(s) { return String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+
+      function render() { if (state.screen === 'welcome') renderWelcome(); else renderRun(); }
+
+      // live timer tick (updates just the timer text, no full re-render)
+      setInterval(() => {
+        const t = document.getElementById('timer');
+        if (t && state.startTs) t.textContent = fmtDur(Date.now() - state.startTs);
+      }, 500);
+
+      render();
+    </script>
+  </body>
+</html>

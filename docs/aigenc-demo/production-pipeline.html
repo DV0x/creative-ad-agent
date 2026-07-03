@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Machines — Production Pipeline (Live Today)</title>
+<style>
+  :root{
+    --cream:#FBF9F5; --ink:#1d1b1a; --soft:#5c554f; --wine:#AB406C; --lime:#C1FF64;
+    --line:#e8e1d7; --card:#fff; --pass:#2f7d5b;
+    --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(40,30,20,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--cream);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding:48px 40px 64px}
+  .wrap{max-width:1280px;margin:0 auto}
+  .eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--wine);margin-bottom:14px}
+  .eyebrow .live{display:inline-block;width:8px;height:8px;border-radius:50%;background:#2f7d5b;margin-right:7px;vertical-align:middle}
+  h1{font-size:36px;line-height:1.1;letter-spacing:-.02em;font-weight:800;margin-bottom:14px;max-width:22ch}
+  .lede{font-size:18px;color:var(--soft);max-width:66ch}
+  .lede b{color:var(--ink);font-weight:650}
+
+  /* top flow */
+  .flow{display:flex;align-items:stretch;margin-top:40px;flex-wrap:nowrap}
+  .stage{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+  .arrow{flex:0 0 22px;display:flex;align-items:center;justify-content:center;color:#c9bfb2;font-size:20px;padding-top:64px}
+  .num{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:#b3a999;margin-bottom:6px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:13px;padding:15px 14px;box-shadow:var(--shadow);height:100%}
+  .card.io{background:#211c1a;border-color:#211c1a}
+  .card.io h3,.card.io .what{color:#f5efe7}
+  .card.io .what{color:#bcae9f}
+  .card h3{font-size:14.5px;font-weight:750;letter-spacing:-.01em;margin-bottom:6px}
+  .card h3 .c{color:var(--wine)}
+  .what{font-size:12.5px;color:var(--soft)}
+
+  /* detail sections */
+  .det{margin-top:34px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:24px 26px;box-shadow:var(--shadow)}
+  .det .h{display:flex;align-items:baseline;gap:11px;margin-bottom:4px}
+  .det .h .n{font-size:12px;font-weight:800;color:#fff;background:var(--wine);width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;align-self:center}
+  .det .h h2{font-size:21px;font-weight:780;letter-spacing:-.015em}
+  .det .sub{font-size:14px;color:var(--soft);margin-bottom:18px;margin-left:35px}
+
+  .two{display:grid;grid-template-columns:1.15fr 1fr;gap:26px}
+  .blk h4{font-size:11.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--wine);margin-bottom:11px}
+  .fam{margin-bottom:15px}
+  .fam .lab{font-size:12px;color:var(--soft);margin-bottom:7px}
+  .fam .lab b{color:var(--ink)}
+  .chips{display:flex;flex-wrap:wrap;gap:7px}
+  .chip{font-size:12.5px;font-weight:600;background:#f6f1ea;border:1px solid #ece4d8;color:#3a342f;padding:5px 11px;border-radius:999px}
+  .chip.grd{background:#fdfaf4}
+
+  .anat{background:#faf6ef;border-radius:10px;padding:13px 15px;margin-bottom:13px}
+  .anat .t{font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--soft);margin-bottom:8px}
+  .anat .row{font-size:13px;color:var(--ink);margin-bottom:3px}
+  .anat .row b{color:var(--wine);font-weight:700}
+  .gates{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+  .gate{font-size:12px;font-weight:700;background:#ecf6f0;color:var(--pass);padding:4px 10px;border-radius:7px}
+
+  .route{font-size:13px;color:var(--ink);margin-bottom:7px;line-height:1.4}
+  .route b{font-weight:700}
+  .route .ar{color:#c0a08f;margin:0 6px}
+  .route span.s{color:var(--wine);font-weight:600}
+
+  .rule{margin-top:16px;background:#211c1a;color:#f5efe7;border-radius:12px;padding:16px 18px}
+  .rule .t{font-size:11.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--lime);margin-bottom:6px}
+  .rule p{font-size:13.5px;line-height:1.5;color:#e7ddd0}
+  .rule p b{color:#fff}
+
+  .meta{display:flex;flex-wrap:wrap;gap:8px 22px;margin-top:15px;font-size:12.5px;color:var(--soft)}
+  .meta b{color:var(--ink)}
+
+  .foot{margin-top:34px;border:1px dashed #d8cdbd;border-radius:14px;padding:18px 22px;background:#fdfaf4}
+  .foot p{font-size:14.5px;color:var(--soft)}
+  .foot p b{color:var(--ink)} .foot p em{font-style:normal;color:var(--wine);font-weight:650}
+  @media(max-width:1080px){.flow{flex-wrap:wrap;gap:12px}.stage{flex:1 1 30%}.arrow{display:none}.card{height:auto}.two{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow"><span class="live"></span>Creative Machines · live in production today · creativemachines.xyz</div>
+  <h1>A brand URL becomes 6 ready-to-run Meta ads.</h1>
+  <p class="lede">This is the pipeline running <b>right now</b>. Paste a URL — the agent researches the brand, writes 6 ad hooks, art-directs each one, and renders 6 finished images. Below the flow: the actual <b>hook formats</b> and <b>visual styles</b> it works from.</p>
+
+  <div class="flow">
+    <div class="stage"><div class="num">INPUT</div><div class="card io"><h3>Brand URL</h3><div class="what">+ optional product photos &amp; aspect ratio</div></div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="num">STEP 1</div><div class="card"><h3>Research</h3><div class="what">Reads the site &amp; reviews → a <b>sourced</b> brief: offer, proof, products, pain, testimonials, voice, ICP.</div></div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="num">STEP 2</div><div class="card"><h3>Hooks <span class="c">×6</span></h3><div class="what">Mines every section of the brief → writes 6 ad hooks, each traced to a proof point.</div></div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="num">STEP 3</div><div class="card"><h3>Art Direction</h3><div class="what">Picks 3–4 visual styles for the category → routes each hook → writes the image prompts.</div></div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="num">STEP 4</div><div class="card"><h3>Render <span class="c">×6</span></h3><div class="what">fal.ai (Nano Banana Pro) generates 6 images from the prompts.</div></div></div>
+    <div class="arrow">→</div>
+    <div class="stage"><div class="num">OUTPUT</div><div class="card io"><h3>6 Meta ads</h3><div class="what">On-brand, mobile-safe · 4:5 · 1:1 · 9:16</div></div></div>
+  </div>
+
+  <!-- HOOKS DETAIL -->
+  <div class="det">
+    <div class="h"><span class="n">2</span><h2>The 6 hooks — 10 formats to choose from</h2></div>
+    <div class="sub">Every hook is <b>extracted</b> from the research, never invented. Each one is matched to the format that fits the proof.</div>
+    <div class="two">
+      <div class="blk">
+        <h4>The 10 hook formats</h4>
+        <div class="fam">
+          <div class="lab"><b>Attention</b> — stop the scroll</div>
+          <div class="chips">
+            <span class="chip">Question</span><span class="chip">Surprising Stat</span><span class="chip">Pattern Interrupt</span>
+            <span class="chip">Controversial</span><span class="chip">Direct Address</span>
+          </div>
+        </div>
+        <div class="fam">
+          <div class="lab"><b>Desire</b> — drive the click</div>
+          <div class="chips">
+            <span class="chip">Social Proof</span><span class="chip">Problem → Solution</span><span class="chip">Contrast</span>
+            <span class="chip">FOMO / Urgency</span><span class="chip">Curiosity</span>
+          </div>
+        </div>
+        <div class="rule" style="margin-top:18px">
+          <div class="t">The discipline</div>
+          <p>If a hook can't point to where it came from in the research, <b>it's invention — and invention is weak.</b> The agent picks 3+ different formats per campaign so the 6 ads don't feel same-y.</p>
+        </div>
+      </div>
+      <div class="blk">
+        <h4>What each hook carries</h4>
+        <div class="anat">
+          <div class="t">One hook =</div>
+          <div class="row"><b>Format</b> — which of the 10</div>
+          <div class="row"><b>Source</b> — the exact research element it came from</div>
+          <div class="row"><b>Target</b> — which buyer it's for</div>
+          <div class="row"><b>Hook</b> — the headline (≤10 words)</div>
+          <div class="row"><b>Body + CTA</b> — one proof point, one action</div>
+          <div class="row"><b>Psychology</b> — why it stops the scroll</div>
+        </div>
+        <h4 style="margin-top:4px">Then 5 gates before it passes</h4>
+        <div class="gates">
+          <span class="gate">Traceable?</span><span class="gate">Owned?</span><span class="gate">Felt?</span>
+          <span class="gate">Clear?</span><span class="gate">Theirs?</span>
+        </div>
+        <p style="font-size:12.5px;color:var(--soft);margin-top:10px"><b>Owned?</b> = could a competitor run this by swapping the logo? If yes, it's rewritten.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ART DETAIL -->
+  <div class="det">
+    <div class="h"><span class="n">3</span><h2>The visuals — 14 styles, routed by the hook</h2></div>
+    <div class="sub">The agent reads the brand's category, picks 3–4 styles, then sends each hook to the look that fits its psychology.</div>
+    <div class="two">
+      <div class="blk">
+        <h4>The 14 art styles</h4>
+        <div class="chips" style="margin-bottom:18px">
+          <span class="chip grd">Product-on-Gradient</span><span class="chip grd">Typography-Dominant</span>
+          <span class="chip grd">Infographic / Data</span><span class="chip grd">Editorial Cutout</span>
+          <span class="chip grd">Lifestyle-Render</span><span class="chip grd">UGC / Testimonial</span>
+          <span class="chip grd">Anderson Clay Diorama</span><span class="chip grd">Soft Brutalism Clay</span>
+          <span class="chip grd">Analog Craft</span><span class="chip grd">Bold Energy</span>
+          <span class="chip grd">Clean Premium</span><span class="chip grd">Dream-Sketch</span>
+          <span class="chip grd">Service Realism</span><span class="chip grd">Split Comparison</span>
+        </div>
+        <h4>How a hook picks its look</h4>
+        <div class="route"><b>Pain / Problem</b><span class="ar">→</span><span class="s">Typography</span> or <span class="s">Infographic</span></div>
+        <div class="route"><b>Aspiration / Identity</b><span class="ar">→</span><span class="s">Lifestyle</span> or <span class="s">Editorial Cutout</span></div>
+        <div class="route"><b>Social Proof</b><span class="ar">→</span><span class="s">UGC / Testimonial</span></div>
+        <div class="route"><b>Urgency</b><span class="ar">→</span><span class="s">Typography</span> or <span class="s">Product-on-Gradient</span></div>
+        <div class="route"><b>Curiosity / Question</b><span class="ar">→</span><span class="s">Typography</span> or <span class="s">Clay Diorama</span></div>
+      </div>
+      <div class="blk">
+        <h4>The smart part — built for the ad platform</h4>
+        <div class="rule">
+          <div class="t">Entity-ID diversity</div>
+          <p>The 6 images must each differ on <b>3 of 5 visual axes</b> — colour, layout, objects, scene, text. Why? So Meta's delivery treats every ad as a <b>genuinely different creative</b> — which helps it find a winner faster instead of seeing six near-duplicates.</p>
+        </div>
+        <div class="meta">
+          <div><b>Your product, kept exact.</b> Upload a product photo and it's preserved — no redesigned packaging.</div>
+          <div><b>Mobile-safe by default.</b> No text in the Meta UI zones; legible at thumbnail size.</div>
+          <div><b>Brand anchor in every prompt.</b> A "logo-swap check" so the visual couldn't be any competitor's.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <p><b>This ships today.</b> The pipeline turns a URL into 6 on-brand ads with no human in the loop. <em>The next-gen flow (the other map) adds a strategy "Bet" up front and an independent critic that kills the generic ones before they ship.</em></p>
+  </div>
+</div>
+</body>
+</html>

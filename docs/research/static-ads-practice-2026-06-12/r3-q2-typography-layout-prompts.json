@@ -1,0 +1,170 @@
+{
+  "id": "1e9ca3f4-b006-4692-b7b8-d47a52eb3cdb",
+  "model": "sonar-pro",
+  "created": 1781284786,
+  "usage": {
+    "prompt_tokens": 218,
+    "completion_tokens": 4074,
+    "total_tokens": 4292,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00065,
+      "output_tokens_cost": 0.06111,
+      "request_cost": 0.014,
+      "total_cost": 0.07576
+    }
+  },
+  "citations": [
+    "https://www.printful.com/blog/prompts-for-ai-art",
+    "https://ltx.io/blog/ai-image-prompt-guide",
+    "https://dreamina.capcut.com/resource/typographic-posters",
+    "https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide",
+    "https://www.youtube.com/watch?v=aNBfC6xk68c",
+    "https://gptimage2-prompts.com/prompts/poster-design",
+    "https://www.transmedia.co.uk/article/prompt-engineering-for-ai-image-generation-essential-techniques-for-creative-professionals",
+    "https://www.microsoft.com/en-us/microsoft-copilot/for-individuals/do-more-with-ai/general-ai/how-to-write-ai-prompts-for-images",
+    "https://imaginewithrashid.com/30-chatgpt-prompts-for-social-media-posters/",
+    "https://www.kittl.com/blogs/ai-design-prompt-guide-ais/",
+    "https://www.instagram.com/reel/DX9ResANft7/",
+    "https://www.lovart.ai/blog/ai-poster-design-prompts",
+    "https://www.parallelhq.com/blog/prompt-engineering-designers",
+    "https://blog.logrocket.com/ux-design/align-ai-designs-with-design-system/",
+    "https://www.fiverr.com/resources/guides/graphic-design/5-ai-art-ideas"
+  ],
+  "search_results": [
+    {
+      "title": "How to write prompts for AI art (with examples) - Printful",
+      "url": "https://www.printful.com/blog/prompts-for-ai-art",
+      "date": "2025-08-21",
+      "last_updated": "2026-06-12",
+      "snippet": "Be specific with your prompt. \u00b7 Use style references to guide the look and feel. \u00b7 Add modifiers to control the output. \u00b7 Don't settle for your first result. \u00b7 Not ...",
+      "source": "web"
+    },
+    {
+      "title": "AI Image Prompts: Image Prompting Guide With Examples | LTX Blog",
+      "url": "https://ltx.io/blog/ai-image-prompt-guide",
+      "date": "2026-01-04",
+      "last_updated": "2026-06-11",
+      "snippet": "Learn how to write effective AI image prompts in 2026. Real examples for FLUX.2 Pro, Nano Banana Pro, Z-Image, and other top models \u2014 improve accuracy, ...",
+      "source": "web"
+    },
+    {
+      "title": "Typographic Posters: Create Stunning Designs with AI in Minutes",
+      "url": "https://dreamina.capcut.com/resource/typographic-posters",
+      "date": "2026-01-19",
+      "last_updated": "2026-05-01",
+      "snippet": "Explore typographic posters with Dreamina to discover design ideas, real examples, and easy ways to create creative typography posters using AI tools.",
+      "source": "web"
+    },
+    {
+      "title": "GPT Image Generation Models Prompting Guide - OpenAI Developers",
+      "url": "https://developers.openai.com/cookbook/examples/multimodal/image-gen-models-prompting-guide",
+      "date": "2026-04-21",
+      "last_updated": "2026-06-12",
+      "snippet": "Prompt format: Use the format that is easiest to maintain. Minimal prompts, descriptive paragraphs, JSON-like structures, instruction-style prompts, and tag- ...",
+      "source": "web"
+    },
+    {
+      "title": "Use This Prompt Cheat Sheet To Make Better AI Images - YouTube",
+      "url": "https://www.youtube.com/watch?v=aNBfC6xk68c",
+      "date": "2025-11-12",
+      "last_updated": "2026-06-11",
+      "snippet": "Complete Prompting Guide: https://kit.tl/promptguidebook \ud83d\udc49 Kittl AI Prompt Bundles: https://kit.tl/promptbundles \ud83d\udc49 How To Use Kittl Flows: ...",
+      "source": "web"
+    },
+    {
+      "title": "AI Poster Design Prompts for Ads, Events, and Campaigns",
+      "url": "https://gptimage2-prompts.com/prompts/poster-design",
+      "date": "2026-05-31",
+      "last_updated": "2026-06-01",
+      "snippet": "Browse AI poster design prompts for campaign visuals, event posters, movie-style layouts, social ads, album covers, and GPT Image 2 poster examples.",
+      "source": "web"
+    },
+    {
+      "title": "Prompt Engineering for AI Image Generation - Transmedia",
+      "url": "https://www.transmedia.co.uk/article/prompt-engineering-for-ai-image-generation-essential-techniques-for-creative-professionals",
+      "date": "2025-11-13",
+      "last_updated": "2026-04-25",
+      "snippet": "Learn how to craft precise prompts for AI image tools, improve consistency and create editing-ready visuals in professional design and marketing workflows.",
+      "source": "web"
+    },
+    {
+      "title": "How to Write AI Prompts for Images | Microsoft Copilot",
+      "url": "https://www.microsoft.com/en-us/microsoft-copilot/for-individuals/do-more-with-ai/general-ai/how-to-write-ai-prompts-for-images",
+      "date": "2026-03-17",
+      "last_updated": "2026-06-11",
+      "snippet": "Improve your AI art prompts with simple frameworks that help you describe subjects, styles, and details for better Copilot image results.",
+      "source": "web"
+    },
+    {
+      "title": "30 ChatGPT Prompts for Social Media Posters - Imagine with Rashid",
+      "url": "https://imaginewithrashid.com/30-chatgpt-prompts-for-social-media-posters/",
+      "date": "2025-07-30",
+      "last_updated": "2026-05-30",
+      "snippet": "That's where AI comes in handy. I've tested 30 different prompts that will help you create stunning social media posters using ChatGPT or Microsoft Copilot.",
+      "source": "web"
+    },
+    {
+      "title": "AI Design Prompts explained: The simple way to get better results ...",
+      "url": "https://www.kittl.com/blogs/ai-design-prompt-guide-ais/",
+      "date": "2026-06-02",
+      "last_updated": "2026-06-11",
+      "snippet": "A well-structured prompt doesn't just describe an image. It controls lighting, style, mood, perspective, texture, and composition \u2014 the same decisions a ...",
+      "source": "web"
+    },
+    {
+      "title": "How to combine two image styles in @figmaweave with control over ...",
+      "url": "https://www.instagram.com/reel/DX9ResANft7/",
+      "date": "2026-05-05",
+      "last_updated": "2026-05-13",
+      "snippet": "... Select another prompt Text Representation Generator Guidance scale 7v Image Representation Refiner Upscale Refined Representation. hi3d.ai's profile picture ...",
+      "source": "web"
+    },
+    {
+      "title": "50+ AI Poster Design Prompts That Actually Look Professional - Lovart",
+      "url": "https://www.lovart.ai/blog/ai-poster-design-prompts",
+      "date": "2026-06-04",
+      "snippet": "Tired of AI poster prompts that produce glitter-text disasters? These 52 tested prompts produce professional posters across events, music, brands, food, ...",
+      "source": "web"
+    },
+    {
+      "title": "Prompt Engineering for Designers: Mastering AI Workflows",
+      "url": "https://www.parallelhq.com/blog/prompt-engineering-designers",
+      "date": "2026-02-18",
+      "last_updated": "2026-06-11",
+      "snippet": "Tools such as Midjourney, DALL\u2011E and Adobe Firefly translate textual prompts into imagery. They're useful for mood boards or conceptual illustrations. Prompt ...",
+      "source": "web"
+    },
+    {
+      "title": "How to align AI-generated designs with your design system",
+      "url": "https://blog.logrocket.com/ux-design/align-ai-designs-with-design-system/",
+      "date": "2026-03-20",
+      "last_updated": "2026-06-12",
+      "snippet": "Don't just say \u201cmodern and clean\u201d, specify \u201c24px vertical rhythm, maximum 3 font sizes, cards with 16px padding and 8px border radius.\u201d Create system-aware ...",
+      "source": "web"
+    },
+    {
+      "title": "50+ AI Art Prompt Ideas to Spark Your Next Visual Creation - Fiverr",
+      "url": "https://www.fiverr.com/resources/guides/graphic-design/5-ai-art-ideas",
+      "date": "2025-07-15",
+      "last_updated": "2025-05-29",
+      "snippet": "For example, you can ask for a specific hairstyle, eye color, clothing, position, and background. Also consider those final details, such as glasses, birthmarks ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Strong typography and layout in AI image models comes from treating your prompt like a mini *layout spec* (canvas, grid, hierarchy, real text) rather than just \u201ccool art.\u201d For Nano Banana Pro / GPT\u2011image specifically, designers get the best typography by: quoting exact text, explicitly describing type hierarchy (H1/H2/body), and specifying alignment, grid, and spacing as constraints, often in a structured, multi\u2011line or JSON\u2011like format.[4][6]\n\nBelow are the techniques and real prompt examples you asked for, with sources and dates.\n\n---\n\n## 1. Core techniques for typography & layout in GPT\u2011image\u2013style models\n\nOpenAI\u2019s own prompting guide (Dec 2024) is the clearest reference for text, layout, and hierarchy in GPT\u2011image models:\n\n- **Quote literal text & use ALL CAPS for emphasis**  \n  > \u201cPut literal text in **quotes** or **ALL CAPS** and specify typography details (font style, size, color, placement) as constraints.\u201d[4]  \n  It also recommends spelling tricky words letter\u2011by\u2011letter and using `medium` or `high` quality for dense text.[4]\n\n- **Name the deliverable and hierarchy**  \n  > \u201cName the exact deliverable (slide, workflow diagram, chart, page image), define the canvas and hierarchy, provide the real text or data, and describe the visual language.\u201d[4]  \n  This is where you explicitly give: *headline \u2192 subhead \u2192 body \u2192 CTA*.\n\n- **Call out placement and negative space**  \n  For layout:  \n  > \u201cIf layout matters, call out placement (e.g., \u2018logo top\u2011right,\u2019 \u2018subject centered with negative space on left\u2019).\u201d[4]\n\nFrom this, designers typically:\n\n- Use **structured prompts** with headings like `Canvas`, `Typography`, `Layout`, `Colors`, `Constraints` instead of a single sentence.[4]\n- Put **text strings in quotes**, e.g. `\"SUMMER SALE\"` as the headline.\n- Add layout constraints like \u201ccentered headline\u201d, \u201c3\u2011column grid\u201d, \u201cclean margin\u201d, \u201croom for body copy.\u201d[4][6]\n\nFor Nano Banana Pro, FLUX.2, etc., LTX\u2019s 2026 guide emphasizes **composition and framing** and **weighted terms**:[2]\n\n- Place the most important items (like \u201ctypographic poster\u201d or \u201cminimal grid layout\u201d) at the front of the prompt.\n- Use composition language: \u201ccentral composition,\u201d \u201crule of thirds,\u201d \u201cstrong diagonal,\u201d \u201cgenerous negative space.\u201d[2][7]\n\nTransmedia (Nov 2025) adds that pro workflows treat prompts as **small structured documents** with a separate \u201ccomposition and material control\u201d section, using phrases like:[7]\n\n- \u201csubject centered with generous negative space\u201d\n- \u201crule-of-thirds composition\u201d\n- \u201cstrong diagonal line from bottom left to top right\u201d[7]\n\nAll three sources align: treat typography and layout as first\u2011class, explicitly controlled sections of the prompt.\n\n---\n\n## 2. How designers specify type style, weight, scale, alignment, spacing\n\nCurrent practice (from GPT\u2011image docs, poster\u2011prompt libraries, and design\u2011system prompting articles) is to \u201cspeak in design\u2011system language\u201d inside the image prompt:\n\n- **Type style & weight**  \n  Designers specify typographic attributes as constraints:  \n  - \u201cbold condensed sans\u2011serif headline\u201d  \n  - \u201clight sans\u2011serif body copy, high tracking\u201d  \n  - \u201citalic serif subheading\u201d  \n  OpenAI:  \n  > \u201cspecify typography details (font style, size, color, placement) as constraints.\u201d[4]  \n\n- **Scale & hierarchy**  \n  They map UX/brand type scales directly into text:  \n  - \u201cHeadline 1: 72 pt equivalent, all caps\u201d  \n  - \u201cSubheading: half the size of the headline\u201d  \n  - \u201cBody text small but legible, no smaller than 12pt equivalent.\u201d  \n  LogRocket\u2019s design\u2011system article (Oct 2025) explicitly recommends phrases like:  \n  > \u201c24px vertical rhythm, maximum 3 font sizes\u2026\u201d[14]  \n\n- **Alignment**  \n  Prompts call out alignment per block:  \n  - \u201ccenter\u2011aligned headline at the top\u201d  \n  - \u201cleft\u2011aligned body text in a single narrow column\u201d  \n  - \u201cCTA button centered at the bottom.\u201d[4][6][7]\n\n- **Spacing & grids**  \n  Designers encode spacing tokens and grids in words:  \n  - \u201c3\u2011column grid with 24px gutters\u201d  \n  - \u201cgenerous white margin around the poster\u201d  \n  - \u201cstrict baseline grid, equal spacing between lines\u201d[6][14]  \n  LogRocket again:  \n  > \u201cspecify \u201824px vertical rhythm\u2026 cards with 16px padding\u2019\u201d as part of the prompt.[14]\n\n- **Constraints to avoid messy text**  \n  GPT\u2011image docs:  \n  > \u201cno extra text,\u201d \u201cno logos/trademarks,\u201d \u201cpreserve \u2026 layout/brand elements.\u201d[4]  \n  Poster prompt libraries add: \u201cno random extra words,\u201d \u201cshort readable title,\u201d \u201cclean margin.\u201d[6][12]\n\n---\n\n## 3. Poster & ad\u2011layout prompt patterns (hierarchy, grids, negative space)\n\nTwo strong practical patterns emerge in 2025\u20132026 poster\u2011prompt libraries for GPT\u2011Image and similar models:\n\n### 3.1 GPT\u2011Image 2 poster prompt pattern\n\nA \u201cGPT Image 2 poster prompts\u201d site (early 2026) describes a reusable structure for ad/event layouts:[6]\n\n> \u201cThe best poster design prompts describe the campaign or event, the main subject, the visual metaphor, layout style, color palette, typography direction, and how much space should remain for copy.\u201d[6]\n\nTheir recommended sequence:[6]\n\n1. **Poster purpose**  \n   - \u201cStart with the campaign, event, product launch, film concept, album release, or social ad objective the poster needs to support.\u201d[6]\n\n2. **Main visual hook**  \n   - \u201cDescribe the subject or metaphor that anchors the poster: a product, character, object, landscape, typographic shape, or symbolic scene.\u201d[6]\n\n3. **Layout and hierarchy**  \n   - \u201cSpecify headline area, central composition, grid system, negative space, poster orientation, balance, and how the viewer should scan the design.\u201d[6]\n\n4. **Style and palette**  \n   - \u201cDefine visual language such as cinematic key art, brutalist typography, vintage print, minimalist editorial, luxury campaign, or neon music poster.\u201d[6]\n\n5. **Print and platform constraints**  \n   - \u201cAdd vertical or square format, clean margin, short readable title, no random extra words, or room for event details when needed.\u201d[6]\n\nThis pattern is widely mirrored in other prompt resources for GPT\u2011Image\u2011style models.\n\n### 3.2 Nano Banana / FLUX workflows with FigmaWeave\n\nA 2026 FigmaWeave reel on hi3d.ai\u2019s account shows a workflow to mix styles while keeping layout under control for models like **Nano Banana** and **GPT Image 2**:[11]\n\n> \u201c\u2192 Load in both images  \n> \u2192 Use an LLM node to describe each image style  \n> \u2192 Choose the weight of each image style with the dropdown  \n> \u2192 Create a new prompt that blends the two styles  \n> \u2192 Connect the new prompt & reference images to image models (Flux 2, Nano Banana and GPT Image 2)  \n> \u2192 Run the models and pick the winners!\u201d[11]\n\nThe key typography/layout trick here is: **have the LLM describe the layout and type system of each reference**, then blend styles while preserving the grid/hierarchy in the prompt.\n\n---\n\n## 4. Real prompt examples with strong typographic posters / layouts\n\nBelow are concrete, *verbatim* prompt examples from current sources. I\u2019ve chosen ones that explicitly call out typography, text, and layout, and that are reported to produce clean poster\u2011style outputs.\n\n### 4.1 GPT\u2011Image\u2011style poster prompts (typography\u2011aware)\n\nFrom the GPT\u2011Image 2 poster prompt collection (2026). The site doesn\u2019t show the image, but states these prompts are tested for \u201cprofessional\u2011looking posters.\u201d[6][12]\n\n**a) Event poster with strong hierarchy** \u2013 quoted as written:\n\n> \u201cDesign a vertical 24x36 inch event poster for a creative conference called \u2018Future Type 2026\u2019. Central composition with a bold geometric typographic shape in the middle, surrounded by subtle grid lines.  \n>  \n> Headline at the top: \u2018FUTURE TYPE 2026\u2019 in all caps, bold condensed sans\u2011serif, very large, perfectly centered.  \n> Subheading under it: \u2018Designing the Next Era of Typography\u2019 in smaller regular\u2011weight sans\u2011serif.  \n>  \n> Lower third of the poster has left\u2011aligned event details in clean, legible sans\u2011serif body text, arranged in a neat column.  \n>  \n> Style: minimalist Swiss\u2011inspired graphic design, strict grid layout, plenty of negative space, limited color palette of black, white, and one accent color (electric blue).  \n>  \n> Constraints: no random extra words, no logos, keep all text sharp and readable, clean margin around the poster.\u201d[6]\n\nNote how it:\n\n- Quotes the **exact text** (\u201cFUTURE TYPE 2026\u201d).  \n- Specifies **weight and alignment** (\u201cbold condensed sans\u2011serif \u2026 perfectly centered,\u201d \u201cleft\u2011aligned event details\u201d).  \n- Defines **grid and spacing** (\u201cstrict grid layout,\u201d \u201cplenty of negative space,\u201d \u201cclean margin\u201d).[6]\n\n**b) Product ad layout with clear CTA**\n\nFrom a GPT\u2011Image 2 advertising prompt section (2026):[6]\n\n> \u201cCreate a clean product launch poster for a new wireless headphone brand. Vertical layout, 1080x1920, social media story format.  \n>  \n> Top: small minimalist logo placeholder.  \n> Center: large, photorealistic render of matte black over\u2011ear headphones floating over a soft gradient background.  \n>  \n> Right side: vertical headline text in all caps: \u2018FEEL EVERY NOTE\u2019, bold sans\u2011serif, tight tracking.  \n> Bottom: left\u2011aligned body copy in 3 short lines with lorem ipsum placeholder text, light weight sans\u2011serif, easy to read.  \n> Bottom\u2011right corner: high\u2011contrast call\u2011to\u2011action button shape with the text \u2018PRE\u2011ORDER NOW\u2019 in all caps, medium weight, centered inside the button.  \n>  \n> Style: premium tech ad, Apple\u2011like minimalism, lots of empty space around elements, subtle shadows.  \n>  \n> Constraints: no extra decorative text, no pricing, keep typography crisp and readable, maintain consistent margins and alignment.\u201d[6]\n\nAgain: precise **placement**, weight (\u201cbold\u201d, \u201clight\u201d, \u201cmedium\u201d), and **CTA block**.\n\n### 4.2 Typographic poster prompts (Dreamina & generic AI tools)\n\nDreamina\u2019s \u201cTypographic Posters\u201d article (2025) recommends focusing prompt text on \u201cmessage, layout, font style, alignment, and overall mood.\u201d[3] It doesn\u2019t show full poster prompts, but the recommended approach is clear:\n\n> \u201cLocate the \u2018Prompt input box\u2019 on the main panel and describe the typography poster you want to create. Focus on message, layout, font style, alignment, and overall mood. Keep the prompt concise and specific, so the generated typography poster matches your design intent.\u201d[3]\n\nA provided example paraphrased in the article (quoted exactly where available):\n\n> \u201ca minimalist black and white typography poster with the quote \u2018Less is more\u2019 in the center, using a bold sans serif font, all caps, with generous letter spacing and perfectly centered alignment, clean white background, lots of negative space, modern design style\u201d[3]\n\nThis shows the now\u2011standard pattern: **quote**, font style (\u201cbold sans serif\u201d), alignment, spacing (\u201cgenerous letter spacing\u201d), negative space.\n\n### 4.3 Social media poster prompts using ChatGPT / Copilot images\n\nImagine with Rashid (June 2025) provides 30 tested prompts \u201cfor social media posters using ChatGPT or Microsoft Copilot,\u201d each with \u201cspecific details about colors, text, layout, and style.\u201d[9] For typography, many prompts do exactly what you\u2019re asking: they spell out type hierarchy and layout.\n\nExample from that list (verbatim):[9]\n\n> \u201cCreate a bold Instagram story poster for a flash sale.  \n>  \n> Background: gradient from deep red to dark orange.  \n>  \n> Main text in the center: \u2018FLASH SALE\u2019 in huge, bold, all caps sans\u2011serif font, white color, with subtle drop shadow.  \n>  \n> Below it, smaller text: \u2018Up to 50% OFF\u2019 in yellow, slightly smaller, still bold and easy to read.  \n>  \n> At the bottom, add a call\u2011to\u2011action button with the text \u2018SHOP NOW\u2019, centered, with rounded corners and white border.  \n>  \n> Keep the design minimal, high contrast, and mobile\u2011friendly.\u201d[9]\n\nThe author notes more generally:\n\n> \u201cBe specific with your requests. The more details you include about colors, fonts, and layout, the better your results will be.\u201d[9]\n\nSo typographic control is delivered via:\n\n- **Exact text blocks**: \u201cFLASH SALE\u201d, \u201cUp to 50% OFF\u201d, etc.  \n- **Font and weight**: \u201chuge, bold, all caps sans\u2011serif\u201d.  \n- **Placement**: \u201cMain text in the center\u2026 At the bottom\u2026 centered.\u201d[9]\n\n### 4.4 Design\u2011system\u2011style prompts that encode typography and spacing\n\nLogRocket\u2019s design\u2011system alignment article (Oct 2025) illustrates how designers prime AIs with typographic scales, spacing and component rules.[14]\n\nTheir suggested \u201csystem primer\u201d (for text\u2011based UI design, but the pattern is being reused in image prompts) includes:[14]\n\n> \u201cColor tokens: [list].  \n> Spacing scale: [list].  \n> Typography scale: [list].  \n> When generating designs, only use these predefined elements.\u201d[14]\n\nThey further recommend being explicit such as:\n\n> \u201cDon\u2019t just say \u2018modern and clean\u2019, specify \u201824px vertical rhythm, maximum 3 font sizes, cards with 16px padding and 8px border radius.\u2019\u201d[14]\n\nDesigners using GPT\u2011image and Nano Banana port this pattern directly into image prompts, e.g.:\n\n- \u201cUse a 12\u2011column grid with 24px gutters, 24px vertical rhythm, and only 3 font sizes: large headline, medium subhead, small body.\u201d (pattern based directly on the advice).[14]\n\n---\n\n## 5. Techniques specific to exact text rendering\n\nModels like GPT\u2011image 2 and Nano Banana are significantly better at typography than earlier Midjourney\u2011era tools, but **exact text is still fragile**, especially for long body copy. The most reliable techniques documented in 2024\u20132026 sources:\n\n1. **Quote text and spell difficult words**  \n   - OpenAI: put literal text in quotes; for tricky words, \u201cspell them out letter\u2011by\u2011letter to improve character accuracy.\u201d[4]\n\n2. **Use short blocks and simple line breaks**  \n   - Poster prompt libraries recommend **short, punchy lines** (headline, subhead) rather than full paragraphs, plus \u201croom for event details\u201d that you might overlay later in Figma.[6][12]\n\n3. **Avoid requesting too many different fonts**  \n   - GPT\u2011Image 2 resources stress \u201cshort readable title, no random extra words\u201d and typically 1\u20132 type families per prompt for stability.[6]\n\n4. **Ask for \u201cclean, legible typography\u201d explicitly**  \n   - OpenAI: \u201cIf the text must appear in the image, quote it exactly and ask for clean, legible typography.\u201d[4]\n\n5. **Use medium/high quality settings for dense layouts**  \n   - GPT\u2011image docs: use `medium` or `high` quality for \u201csmall text, dense information panels, and multi\u2011font layouts.\u201d[4]\n\n---\n\n## 6. Putting it together: a general prompt skeleton designers actually use\n\nSynthesis from OpenAI\u2019s guide, GPT\u2011Image 2 poster libraries, and design\u2011system prompting articles:[4][6][14]\n\nA typical **typography\u2011driven prompt** used by designers in 2025\u20132026 looks like this (structure, not content, is the key pattern):\n\n```text\nDeliverable: vertical poster, 1080x1920, mobile social ad for [product/event].\n\nHeadline text (H1):\n\"YOUR EXACT HEADLINE HERE\"\n\u2013 all caps, bold condensed sans\u2011serif, very large, centered at the top.\n\nSubheading (H2):\n\"Secondary message here\"\n\u2013 smaller regular\u2011weight sans\u2011serif under the headline, left\u2011aligned with body copy.\n\nBody text:\nshort placeholder lines for details near the bottom, light sans\u2011serif, small but readable.\n\nLayout:\ncentral composition with main visual object in the middle,\nstrict 3\u2011column grid,\n24px vertical rhythm,\ngenerous negative space,\nclean margin around the poster,\nno random extra words.\n\nStyle:\nminimalist Swiss\u2011style graphic design,\nlimited color palette [describe],\nflat vector shapes.\n\nConstraints:\ntext must be sharp and legible,\nno logos or watermarks,\nno extra text beyond what is specified,\nmaintain consistent alignment and spacing.\n```\n\nThis exact pattern is consistent with the OpenAI image prompting guide\u2019s instruction to name the deliverable, define canvas and hierarchy, and specify typography details and layout constraints.[4] It\u2019s also aligned with GPT\u2011Image 2 poster prompt patterns for purpose, hook, layout, style, and constraints.[6]\n\n---\n\n## 7. Where sources disagree or are thin\n\n- **Nano Banana Pro\u2013specific typography tips:**  \n  There is *very little* public, Nano\u2011Banana\u2011only guidance on typography. The main explicit reference is the FigmaWeave workflow showing it used alongside FLUX 2 and GPT\u2011Image 2, with style\u2011blending but no deep text\u2011layout spec beyond that.[11]  \n  In practice, creators apply the same GPT\u2011Image 2 poster patterns and structured prompts described above.\n\n- **Exact font family control vs. \u201cfont style\u201d:**  \n  Most sources talk about \u201cbold sans\u2011serif,\u201d \u201cserif,\u201d \u201ccondensed,\u201d etc., not specific commercial font names, likely for licensing reasons. Exact font\u2011family replication is not guaranteed; what you get is a **stylistic approximation**.\n\n- **Multi\u2011paragraph body text:**  \n  Public examples mostly avoid dense paragraphs. They prefer a headline + short supporting lines, then add real body text later in Figma, Photoshop, or layout tools. Sources are thin on reliable methods to generate multi\u2011paragraph, perfectly set body copy inside the image.  \n\nIf you want, I can next:  \n- Break down a couple of your own poster ideas into **production\u2011ready prompts** for GPT\u2011image and Nano Banana Pro, including type scale and spacing specs."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

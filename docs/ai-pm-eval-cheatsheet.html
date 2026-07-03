@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI PM Eval Cheat Sheet</title>
+<style>
+  :root {
+    --coral: #D4603A;
+    --coral-light: #F8EDE8;
+    --coral-dark: #B04A28;
+    --ink: #141413;
+    --ink-light: #3D3D3A;
+    --ink-muted: #8A8A85;
+    --surface: #FFFFFF;
+    --surface-alt: #F7F6F2;
+    --border: #E2E0D8;
+    --success: #2D9F5C;
+    --warning: #D4A017;
+    --danger: #D94040;
+    --blue: #3B82F6;
+    --purple: #7C3AED;
+  }
+  @page { size: letter; margin: 0.6in 0.65in; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--surface); color: var(--ink); font-size: 8.5pt; line-height: 1.45; -webkit-font-smoothing: antialiased; }
+
+  /* Title block */
+  .title-block { text-align: center; padding: 20pt 0 14pt; border-bottom: 2.5pt solid var(--ink); margin-bottom: 16pt; }
+  .title-block h1 { font-size: 22pt; font-weight: 800; letter-spacing: -0.5px; margin-bottom: 2pt; }
+  .title-block h1 em { font-style: normal; color: var(--coral); }
+  .title-block p { font-size: 9pt; color: var(--ink-muted); }
+
+  /* Two-column layout */
+  .cols { column-count: 2; column-gap: 20pt; }
+  .col-break { break-before: column; }
+
+  /* Section headers */
+  .section { margin-bottom: 14pt; break-inside: avoid; }
+  .section-header { font-size: 9.5pt; font-weight: 800; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral-dark); border-bottom: 1.5pt solid var(--coral); padding-bottom: 3pt; margin-bottom: 8pt; }
+
+  h3 { font-size: 8.5pt; font-weight: 700; color: var(--ink); margin: 10pt 0 4pt; }
+  h4 { font-size: 8pt; font-weight: 700; color: var(--ink-light); margin: 7pt 0 3pt; }
+
+  p { margin-bottom: 5pt; }
+
+  /* Numbered items */
+  .q-list { list-style: none; padding: 0; margin: 0 0 8pt; }
+  .q-list li { padding: 4pt 0 4pt 0; border-bottom: 1px solid #f0efe9; display: flex; gap: 6pt; }
+  .q-list li:last-child { border-bottom: none; }
+  .q-num { flex-shrink: 0; width: 20pt; height: 20pt; background: var(--ink); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 7.5pt; margin-top: 1pt; }
+  .q-num.coral { background: var(--coral); }
+  .q-body { flex: 1; }
+  .q-title { font-weight: 700; font-size: 8.5pt; }
+  .q-desc { color: var(--ink-light); font-size: 7.5pt; margin-top: 1pt; }
+
+  /* Boxes */
+  .box { border-radius: 5pt; padding: 8pt 10pt; margin: 6pt 0; font-size: 8pt; break-inside: avoid; }
+  .box-coral { background: var(--coral-light); border-left: 3pt solid var(--coral); }
+  .box-blue { background: #EEF2FF; border-left: 3pt solid #6366F1; }
+  .box-green { background: #ECFDF5; border-left: 3pt solid var(--success); }
+  .box-warn { background: #FFF8E6; border-left: 3pt solid var(--warning); }
+  .box-gray { background: var(--surface-alt); border-left: 3pt solid var(--ink-muted); }
+  .box-title { font-weight: 700; font-size: 7.5pt; text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 4pt; }
+  .box-coral .box-title { color: var(--coral-dark); }
+  .box-blue .box-title { color: #4338CA; }
+  .box-green .box-title { color: #166534; }
+  .box-warn .box-title { color: #92600A; }
+  .box-gray .box-title { color: var(--ink-light); }
+
+  /* Tables */
+  table { width: 100%; border-collapse: collapse; font-size: 7.5pt; margin: 5pt 0 8pt; }
+  th { background: var(--surface-alt); font-weight: 700; text-align: left; padding: 4pt 6pt; border-bottom: 1.5pt solid var(--border); font-size: 7pt; text-transform: uppercase; letter-spacing: 0.5px; color: var(--ink-muted); }
+  td { padding: 3.5pt 6pt; border-bottom: 1px solid #f0efe9; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+
+  /* Score scale inline */
+  .score-row { display: flex; gap: 4pt; align-items: center; margin: 2pt 0; font-size: 7.5pt; }
+  .score-dot { width: 14pt; height: 14pt; border-radius: 3pt; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 7pt; color: white; flex-shrink: 0; }
+  .s1 { background: var(--danger); } .s2 { background: #E87040; } .s3 { background: var(--warning); } .s4 { background: #6AB04C; } .s5 { background: var(--success); }
+
+  /* Compact list */
+  ul.compact { padding-left: 14pt; margin: 3pt 0 6pt; }
+  ul.compact li { margin-bottom: 2pt; font-size: 7.5pt; }
+
+  /* Flow */
+  .flow { display: flex; align-items: center; gap: 4pt; margin: 6pt 0; font-size: 7.5pt; flex-wrap: wrap; }
+  .flow-step { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 4pt; padding: 3pt 7pt; font-weight: 600; }
+  .flow-step.hl { background: var(--coral-light); border-color: var(--coral); color: var(--coral-dark); }
+  .flow-arr { color: var(--ink-muted); font-size: 9pt; }
+
+  /* Commandments */
+  .cmd { display: flex; gap: 5pt; margin: 3pt 0; padding: 3pt 0; border-bottom: 1px solid #f0efe9; font-size: 7.5pt; }
+  .cmd:last-child { border-bottom: none; }
+  .cmd-num { flex-shrink: 0; width: 16pt; height: 16pt; background: var(--ink); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 6.5pt; margin-top: 1pt; }
+  .cmd-text { flex: 1; }
+  .cmd-rule { font-weight: 700; }
+
+  /* ACCT grid */
+  .acct-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5pt; margin: 5pt 0 8pt; }
+  .acct-card { border: 1px solid var(--border); border-radius: 5pt; padding: 6pt 8pt; background: var(--surface); }
+  .acct-card .acct-letter { font-size: 12pt; font-weight: 800; margin-bottom: 2pt; }
+  .acct-card .acct-name { font-size: 7.5pt; font-weight: 700; margin-bottom: 2pt; }
+  .acct-card .acct-desc { font-size: 7pt; color: var(--ink-light); }
+  .acct-a .acct-letter { color: var(--coral); }
+  .acct-c1 .acct-letter { color: var(--blue); }
+  .acct-c2 .acct-letter { color: var(--purple); }
+  .acct-t .acct-letter { color: var(--success); }
+
+  /* Page break */
+  .page-break { page-break-before: always; padding-top: 12pt; }
+
+  /* Footer */
+  .footer { text-align: center; font-size: 7pt; color: var(--ink-muted); margin-top: 16pt; padding-top: 8pt; border-top: 1px solid var(--border); }
+
+  /* Hierarchy */
+  .hier { display: flex; gap: 4pt; align-items: stretch; margin: 5pt 0 8pt; }
+  .hier-item { flex: 1; border-radius: 5pt; padding: 6pt 8pt; text-align: center; font-size: 7pt; }
+  .hier-best { background: #ECFDF5; border: 1.5pt solid var(--success); }
+  .hier-mid { background: #EEF2FF; border: 1.5pt solid #6366F1; }
+  .hier-gold { background: #FFF8E6; border: 1.5pt solid var(--warning); }
+  .hier-label { font-weight: 800; font-size: 7.5pt; margin-bottom: 2pt; }
+  .hier-desc { color: var(--ink-light); }
+  .hier-arrow { display: flex; align-items: center; color: var(--ink-muted); font-size: 10pt; flex-shrink: 0; }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- ═══ PAGE 1 ═══ -->
+<div class="title-block">
+  <h1>AI PM <em>Eval Cheat Sheet</em></h1>
+  <p>Build evals from scratch for any AI product &mdash; from the AI PM Eval Masterclass v3</p>
+</div>
+
+<div class="cols">
+
+<!-- ── LEFT COLUMN ── -->
+<div class="section">
+  <div class="section-header">The 5 Questions</div>
+  <p style="font-size: 7.5pt; color: var(--ink-light); margin-bottom: 6pt;">Answer in order. Each depends on the last. Skip one and the chain breaks.</p>
+  <div class="flow">
+    <div class="flow-step hl">Q1: DO</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step">Q2: FAIL</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step hl">Q3: SUCCESS</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step">Q4: DETECT</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step hl">Q5: IMPROVE</div>
+  </div>
+  <ul class="q-list">
+    <li>
+      <div class="q-num coral">1</div>
+      <div class="q-body"><div class="q-title">What does the agent DO?</div><div class="q-desc">Break the product into discrete jobs. Map every task. Each job gets its own eval.</div></div>
+    </li>
+    <li>
+      <div class="q-num coral">2</div>
+      <div class="q-body"><div class="q-title">How can it FAIL at each job?</div><div class="q-desc">For each task, enumerate specific failure modes. Read 30-50 real traces. Open-code without categories first.</div></div>
+    </li>
+    <li>
+      <div class="q-num coral">3</div>
+      <div class="q-body"><div class="q-title">What does SUCCESS look like?</div><div class="q-desc">Define rubrics. Turn "good" into a number. Write a Good Output Document with floor &amp; ceiling.</div></div>
+    </li>
+    <li>
+      <div class="q-num coral">4</div>
+      <div class="q-body"><div class="q-title">How do I DETECT failure automatically?</div><div class="q-desc">Structural checks, LLM-as-judge, human review. Every change triggers the suite.</div></div>
+    </li>
+    <li>
+      <div class="q-num coral">5</div>
+      <div class="q-body"><div class="q-title">How do I IMPROVE the product?</div><div class="q-desc">Detect &rarr; diagnose root cause &rarr; fix &rarr; verify with evals &rarr; ship &rarr; add to regression suite.</div></div>
+    </li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-header">ACCT Framework</div>
+  <p style="font-size: 7.5pt; color: var(--ink-light); margin-bottom: 5pt;">Every quality dimension maps to one of these four. If a criterion spans multiple, split it.</p>
+  <div class="acct-grid">
+    <div class="acct-card acct-a">
+      <div class="acct-letter">A</div>
+      <div class="acct-name">Accuracy</div>
+      <div class="acct-desc">Are the facts correct? Do claims trace to sources? No hallucinations, no fabricated data.</div>
+    </div>
+    <div class="acct-card acct-c1">
+      <div class="acct-letter">C</div>
+      <div class="acct-name">Completeness</div>
+      <div class="acct-desc">Did it cover everything needed? No missing steps, no skipped requirements, no partial answers.</div>
+    </div>
+    <div class="acct-card acct-c2">
+      <div class="acct-letter">C</div>
+      <div class="acct-name">Calibration</div>
+      <div class="acct-desc">Does confidence match evidence? Hedges when uncertain, confident when supported. No overconfidence.</div>
+    </div>
+    <div class="acct-card acct-t">
+      <div class="acct-letter">T</div>
+      <div class="acct-name">Taste</div>
+      <div class="acct-desc">Tone, style, brand voice, specificity, creativity. The subjective "would I send this to a client?" dimension.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">7 Universal Failure Modes</div>
+  <p style="font-size: 7.5pt; color: var(--ink-light); margin-bottom: 5pt;">Checklist against your product. Not all apply &mdash; focus on what appears in your traces.</p>
+  <table>
+    <thead><tr><th>#</th><th>Failure Mode</th><th>What Happens</th><th>Quick Test</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><strong>Generic Trap</strong></td><td>Output is vague, applies to anyone</td><td>Swap brand name &mdash; still works?</td></tr>
+      <tr><td>2</td><td><strong>Sycophancy</strong></td><td>Agrees with everything, never pushes back</td><td>State something wrong &mdash; does it validate?</td></tr>
+      <tr><td>3</td><td><strong>Hallucination</strong></td><td>8 real facts + 2 invented, blended seamlessly</td><td>Fact-check each claim individually</td></tr>
+      <tr><td>4</td><td><strong>Format Break</strong></td><td>Good content, wrong structure</td><td>Parse output programmatically</td></tr>
+      <tr><td>5</td><td><strong>Instruction Drift</strong></td><td>Follows 8/10 instructions, silently ignores 2</td><td>Checklist each instruction independently</td></tr>
+      <tr><td>6</td><td><strong>Overconfidence</strong></td><td>States uncertain things as facts</td><td>Check language vs. source certainty</td></tr>
+      <tr><td>7</td><td><strong>Stale Info</strong></td><td>Uses outdated data as current</td><td>Check dates in cited facts</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-header">5-Point Quality Scale</div>
+  <p style="font-size: 7.5pt; color: var(--ink-light); margin-bottom: 5pt;">Define what each score means for YOUR product. 3 is the quality floor.</p>
+  <div class="score-row"><div class="score-dot s1">1</div><strong>Unusable.</strong>&nbsp;Fundamentally wrong or harmful. Would damage trust.</div>
+  <div class="score-row"><div class="score-dot s2">2</div><strong>Poor.</strong>&nbsp;Some value but errors too severe. User starts over.</div>
+  <div class="score-row"><div class="score-dot s3">3</div><strong>Acceptable.</strong>&nbsp;Quality floor. Gets the job done. Needs editing, not redoing.</div>
+  <div class="score-row"><div class="score-dot s4">4</div><strong>Good.</strong>&nbsp;Correct, complete, appropriate. Minor polish only.</div>
+  <div class="score-row"><div class="score-dot s5">5</div><strong>Exceptional.</strong>&nbsp;Quality ceiling. Insightful, synthesized. Use as-is.</div>
+</div>
+
+<!-- ── RIGHT COLUMN ── -->
+<div class="col-break"></div>
+
+<div class="section">
+  <div class="section-header">Eval Hierarchy</div>
+  <p style="font-size: 7.5pt; color: var(--ink-light); margin-bottom: 5pt;">Always prefer the simplest method that works. Move right only when needed.</p>
+  <div class="hier">
+    <div class="hier-item hier-best">
+      <div class="hier-label" style="color: #166534;">Code-Based</div>
+      <div class="hier-desc">Cheapest, fastest, most reliable. Regex, JSON parse, string checks, word count.</div>
+    </div>
+    <div class="hier-arrow">&rarr;</div>
+    <div class="hier-item hier-mid">
+      <div class="hier-label" style="color: #4338CA;">LLM-as-Judge</div>
+      <div class="hier-desc">Flexible, handles subjective quality. Costs money. Use a stronger model than generator.</div>
+    </div>
+    <div class="hier-arrow">&rarr;</div>
+    <div class="hier-item hier-gold">
+      <div class="hier-label" style="color: #92600A;">Human Review</div>
+      <div class="hier-desc">Gold standard. Expensive and slow. Use for calibration and edge cases.</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-header">First Week Playbook</div>
+  <table>
+    <thead><tr><th>Day</th><th>Activity</th><th>Deliverable</th></tr></thead>
+    <tbody>
+      <tr><td><strong>1-2</strong></td><td>Read 30 production traces. Freeform notes. No categories yet.</td><td>30 annotated traces</td></tr>
+      <tr><td><strong>3</strong></td><td>Shadow 10 user sessions. Note expected vs. actual behavior.</td><td>Gap observations</td></tr>
+      <tr><td><strong>4</strong></td><td>Interview engineering team. Map their mental model.</td><td>Blueprint alignment</td></tr>
+      <tr><td><strong>5</strong></td><td>Write State of Quality doc. Share with team.</td><td>Quality baseline</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<div class="section">
+  <div class="section-header">Error Analysis Process</div>
+  <div class="flow">
+    <div class="flow-step">50 Traces</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step hl">Open Code</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step">Axial Code</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step hl">Failure Taxonomy</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step">Quantify %</div>
+  </div>
+  <ul class="compact">
+    <li><strong>Open coding:</strong> Write freeform labels for every issue in each trace. No predefined categories.</li>
+    <li><strong>Axial coding:</strong> Feed open codes into a frontier LLM. Ask it to propose 5-6 failure categories.</li>
+    <li><strong>Quantify:</strong> What % of failures fall in each category? Focus evals on the top 3.</li>
+    <li><strong>Formalize:</strong> Turn top categories into pass/fail criteria with 3-5 example traces each.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-header">Build Your First Eval</div>
+  <ul class="compact">
+    <li><strong>1. Pick ONE job</strong> &mdash; highest user-facing impact from your task map.</li>
+    <li><strong>2. Pick ONE dimension</strong> &mdash; most common failure mode from your error analysis.</li>
+    <li><strong>3. Write 20 test cases</strong> &mdash; real inputs from production, not synthetic. Include 5 known failures.</li>
+    <li><strong>4. Define the rubric</strong> &mdash; 1-5 scale with concrete descriptions at each level for this dimension.</li>
+    <li><strong>5. Choose your grader</strong> &mdash; code check if possible, LLM judge if subjective.</li>
+    <li><strong>6. Run 3x per test case</strong> &mdash; AI is non-deterministic. Single runs lie. Take the median.</li>
+    <li><strong>7. Baseline score</strong> &mdash; this is your starting point. Every change is measured against it.</li>
+  </ul>
+</div>
+
+<div class="section">
+  <div class="section-header">The Improvement Loop</div>
+  <div class="flow">
+    <div class="flow-step">Detect failure</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step hl">Diagnose root cause</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step">Fix (prompt/model)</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step hl">Verify with evals</div>
+    <div class="flow-arr">&rarr;</div>
+    <div class="flow-step">Ship</div>
+  </div>
+  <p style="font-size: 7.5pt;">Then add the failure to your regression suite so it never comes back. +3 test cases/week = 156/year. This compounds into a quality moat.</p>
+</div>
+
+<div class="section">
+  <div class="section-header">10 Commandments</div>
+  <div class="cmd"><div class="cmd-num">1</div><div class="cmd-text"><span class="cmd-rule">Look at data first, build evals second.</span> 60-80% of time = error analysis.</div></div>
+  <div class="cmd"><div class="cmd-num">2</div><div class="cmd-text"><span class="cmd-rule">You own the rubric.</span> Engineers own infrastructure. Don't delegate "what good looks like."</div></div>
+  <div class="cmd"><div class="cmd-num">3</div><div class="cmd-text"><span class="cmd-rule">Start with 20 test cases, not 200.</span> Well-chosen real failures beat large synthetic sets.</div></div>
+  <div class="cmd"><div class="cmd-num">4</div><div class="cmd-text"><span class="cmd-rule">Prefer code checks over LLM judges.</span> Use the simplest method that works.</div></div>
+  <div class="cmd"><div class="cmd-num">5</div><div class="cmd-text"><span class="cmd-rule">Run each test case multiple times.</span> Single runs show what CAN happen. Multiple show what WILL.</div></div>
+  <div class="cmd"><div class="cmd-num">6</div><div class="cmd-text"><span class="cmd-rule">Never use the same model as generator and judge.</span> Self-enhancement bias inflates scores.</div></div>
+  <div class="cmd"><div class="cmd-num">7</div><div class="cmd-text"><span class="cmd-rule">Report distributions, not just averages.</span> Avg 4.0 with catastrophic 1s is worse than consistent 3.5.</div></div>
+  <div class="cmd"><div class="cmd-num">8</div><div class="cmd-text"><span class="cmd-rule">Check statistical significance.</span> 0.3-point gain on 15 cases might be noise.</div></div>
+  <div class="cmd"><div class="cmd-num">9</div><div class="cmd-text"><span class="cmd-rule">Add every production failure to your test suite.</span> Regression cases = "never again" insurance.</div></div>
+  <div class="cmd"><div class="cmd-num">10</div><div class="cmd-text"><span class="cmd-rule">Calibrate your judge quarterly.</span> Grade 30 outputs yourself. Compare. Kappa &lt; 0.6 = rewrite.</div></div>
+</div>
+
+<div class="box box-warn">
+  <div class="box-title">Goodhart's Warning</div>
+  "When a measure becomes a target, it ceases to be a good measure." Use multiple dimensions (ACCT). One number is easy to game. Five dimensions force real improvement.
+</div>
+
+<div class="box box-coral">
+  <div class="box-title">The #1 Trap: Premature Automation (Q4 before Q1-Q3)</div>
+  Don't buy an eval platform and write 200 test cases on day one. Without error analysis (Q2) and rubrics (Q3), you'll measure the wrong things with expensive precision. Do the cheap thinking first.
+</div>
+
+</div><!-- end cols -->
+
+<div class="footer">
+  AI PM Eval Cheat Sheet &mdash; Extracted from the AI PM Eval Masterclass v3 &mdash; The 5 Questions &bull; ACCT &bull; 7 Failure Modes &bull; 10 Commandments
+</div>
+
+</body>
+</html>

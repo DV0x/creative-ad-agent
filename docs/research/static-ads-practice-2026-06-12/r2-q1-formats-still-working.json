@@ -1,0 +1,166 @@
+{
+  "id": "05837e29-3e8b-4d51-9bd1-af0d4cd378ad",
+  "model": "sonar-pro",
+  "created": 1781269664,
+  "usage": {
+    "prompt_tokens": 329,
+    "completion_tokens": 4041,
+    "total_tokens": 4370,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00099,
+      "output_tokens_cost": 0.06062,
+      "request_cost": 0.014,
+      "total_cost": 0.0756
+    }
+  },
+  "citations": [
+    "https://www.demandlocal.com/blog/ctv-advertising-trends/",
+    "https://www.growithroh.com/post/ai-paid-advertising-2026",
+    "https://www.replo.app/blog/listicle-examples",
+    "https://www.facebook.com/groups/gearlaunch.bangladesh.printondemand/posts/1620952319253331/",
+    "https://forgedigitalmarketing.com/how-to-advertise-supplements-on-meta/",
+    "https://stormy.ai/blog/meta-advantage-plus-roas-playbook",
+    "https://www.stackmatix.com/blog/meta-ads-course",
+    "https://adligator.com/blog/meta-broad-targeting-advantage-plus-audiences-2026",
+    "https://www.instagram.com/reel/DWvM25joAva/",
+    "https://zenweb.my/services/meta-ads/",
+    "https://marketingagent.blog/2025/11/01/metas-roadmap-toward-fully-automated-advertising-by-2026-and-beyond-what-it-means-for-digital-marketers/",
+    "https://motionapp.com/library/kajabi",
+    "https://www.aidigital.com/blog/digital-display-advertising",
+    "https://www.instagram.com/reel/DX_7LvgOc25/",
+    "https://www.instagram.com/reel/DTYV46dEXnB/"
+  ],
+  "search_results": [
+    {
+      "title": "CTV Advertising Trends for 2026 - Demand Local",
+      "url": "https://www.demandlocal.com/blog/ctv-advertising-trends/",
+      "date": "2025-11-25",
+      "last_updated": "2026-06-11",
+      "snippet": "Dynamic CTV ads improve conversion rates by 40% compared to static creatives, highlighting the value of personalized messaging. For automotive advertisers, this ...",
+      "source": "web"
+    },
+    {
+      "title": "How AI Is Changing Paid Advertising in 2026 - Grow with Rohan",
+      "url": "https://www.growithroh.com/post/ai-paid-advertising-2026",
+      "date": "2026-04-10",
+      "last_updated": "2026-05-30",
+      "snippet": "AI now controls bidding, targeting, and creative in paid ads. Here's what every marketer needs to know and do, to stay ahead in 2026.",
+      "source": "web"
+    },
+    {
+      "title": "Top Listicle Examples You Should Learn From - Replo",
+      "url": "https://www.replo.app/blog/listicle-examples",
+      "date": "2026-01-07",
+      "last_updated": "2026-06-11",
+      "snippet": "Learn what is a listicle, why it works, and how to write one that ranks and converts with top DTC examples and templates.",
+      "source": "web"
+    },
+    {
+      "title": "Complete pod prompt ads system for 2025-2026 - Facebook",
+      "url": "https://www.facebook.com/groups/gearlaunch.bangladesh.printondemand/posts/1620952319253331/",
+      "date": "2026-02-04",
+      "snippet": "Meta Ads \u098f\u0996\u09a8 \u0995\u09c0 \u09a6\u09c7\u0996\u09c7 (Latest reality): \u09ac\u09b0\u09cd\u09a4\u09ae\u09be\u09a8\u09c7 Meta (Andromeda ranking + Advantage+ ecosystem) ads judge \u0995\u09b0\u09c7 \u098f\u0987 signal \u0997\u09c1\u09b2\u09cb\u09b0 \u0989\u09aa\u09b0: 1\ufe0f\u20e3 Content authenticity 2\ufe0f\u20e3 Engagement ...",
+      "source": "web"
+    },
+    {
+      "title": "How to Advertise Supplements on Meta (2026 Edition)",
+      "url": "https://forgedigitalmarketing.com/how-to-advertise-supplements-on-meta/",
+      "date": "2026-03-15",
+      "last_updated": "2026-06-03",
+      "snippet": "This guide breaks down how Meta actually treats supplement ads today, the specific claims and creative patterns that trigger rejections, how to structure ...",
+      "source": "web"
+    },
+    {
+      "title": "The Meta Advantage+ Playbook: How to Achieve 22% Higher ROAS ...",
+      "url": "https://stormy.ai/blog/meta-advantage-plus-roas-playbook",
+      "date": "2026-03-02",
+      "last_updated": "2026-05-25",
+      "snippet": "Comparison: \"Us vs. Them\" charts. Managing this volume of creative can be overwhelming, which is why platforms like Stormy AI are becoming essential for ...",
+      "source": "web"
+    },
+    {
+      "title": "Complete Meta Ads Course: Strategy, Setup & Scaling (2026)",
+      "url": "https://www.stackmatix.com/blog/meta-ads-course",
+      "date": "2026-04-13",
+      "last_updated": "2026-03-15",
+      "snippet": "Compare top Meta ads courses for 2026: Meta Blueprint, Coursera, CXL, and Udemy. Learn Advantage+ campaigns, AI optimization, and Meta Pixel setup easily.",
+      "source": "web"
+    },
+    {
+      "title": "Meta Broad Targeting 2026: Why Advantage+ Audiences ... - Adligator",
+      "url": "https://adligator.com/blog/meta-broad-targeting-advantage-plus-audiences-2026",
+      "date": "2026-04-10",
+      "last_updated": "2026-06-12",
+      "snippet": "Meta AI-driven broad targeting is outperforming manual interest-based audiences. Learn when to use Advantage+ audiences, how to structure campaigns, ...",
+      "source": "web"
+    },
+    {
+      "title": "Let's tier creative formats for Meta ads. S tier (use heavily): * Static ...",
+      "url": "https://www.instagram.com/reel/DWvM25joAva/",
+      "date": "2026-04-04",
+      "snippet": "Founder videos, 5. Show Daily Parcels, 6. UGC, 7. Testimonials Image Formats: 1. Us vs Them, 2. Trending Memes, 3. Tweets Style Images ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads Services Malaysia 2026 \u2014 Facebook + IG | ZenWeb",
+      "url": "https://zenweb.my/services/meta-ads/",
+      "date": "2026-05-10",
+      "snippet": "Static ads handle direct-response with clear offers. Reels handle scale. UGC handles credibility, especially for products that need social proof. Across our ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta's roadmap toward fully automated advertising by 2026 (and ...",
+      "url": "https://marketingagent.blog/2025/11/01/metas-roadmap-toward-fully-automated-advertising-by-2026-and-beyond-what-it-means-for-digital-marketers/",
+      "date": "2025-11-01",
+      "last_updated": "2026-06-12",
+      "snippet": "Meta is working to evolve its advertising platform so that by 2026, advertisers will be able to simply input basic inputs (e.g. product image or URL, ...",
+      "source": "web"
+    },
+    {
+      "title": "Kajabi Paid Social Creative Strategy - Motion",
+      "url": "https://motionapp.com/library/kajabi",
+      "date": "2026-06-03",
+      "last_updated": "2026-06-12",
+      "snippet": "Kajabi runs 80 active ads on Meta, shipping ~17 new creatives per week. Their library leans on Yapper17%, Screen Recording14%, and Us Vs Them13%.",
+      "source": "web"
+    },
+    {
+      "title": "Digital Display Advertising: How It Really Works",
+      "url": "https://www.aidigital.com/blog/digital-display-advertising",
+      "date": "2025-12-01",
+      "last_updated": "2026-05-29",
+      "snippet": "Discover how digital display ads works, key formats and metrics, and how AI-driven programmatic ads improve targeting and ROI.",
+      "source": "web"
+    },
+    {
+      "title": "Some of the best-performing Facebook ads I've ever scaled didn't ...",
+      "url": "https://www.instagram.com/reel/DX_7LvgOc25/",
+      "date": "2026-05-06",
+      "snippet": "So, what we can do is look at that ad performance inside of meta and then reference the creative library to see which ads perform well and which ones didn't.",
+      "source": "web"
+    },
+    {
+      "title": "Fact check me - Instagram",
+      "url": "https://www.instagram.com/reel/DTYV46dEXnB/",
+      "date": "2026-01-11",
+      "snippet": "One thing Meta loves doing is retargeting your existing customers. Yes, even if you excluded them via audiences. That's why we always look at nROAS and nMER, ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Classic direct\u2011response static formats are **not dead market\u2011wide on Meta in 2025\u20132026**; practitioners are still scaling **us\u2011vs\u2011them charts, testimonial screenshots, tweet/Notes\u2011style statics, listicle-style \u201cTop 5 reasons\u201d graphics, etc.** But most operators frame the issue as **creative fatigue at the execution level** (an individual ad or brand angle burning out fast) rather than the *format* being saturated, and they pair these statics with UGC/reels as core formats.\n\nBelow is what current practitioners are *actually* saying, with dates and direct quotes.\n\n---\n\n## 1. Practitioners explicitly saying these formats still work\n\n### 1.1 \u201cUs vs Them\u201d, listicle graphics, testimonials as go\u2011to Meta formats\n\n**Stormy AI \u2013 Meta Advantage+ creative playbook (2025)**  \nIn a 2025 ROAS playbook for Meta Advantage+ campaigns, Stormy AI (a creative/automation platform) spells out which creative \u201cconcepts\u201d you should be feeding Meta and explicitly includes classic DR static patterns:\n\n- They tell brands that \u201cThis does not mean six versions of the same image with different headlines. It means six fundamentally different concepts:\u201d and then list:\n  - \u201c**UGC (User\u2011Generated Content): Raw, authentic testimonial videos.**\u201d\n  - \u201c**Product\u2011Focused: High-production shots highlighting features.**\u201d\n  - \u201c**Educational/Listicle: \"Top 5 reasons why...\" graphics.**\u201d\n  - \u201c**Comparison: \"Us vs. Them\" charts.**\u201d[6] (article updated for 2025)\n\nThey present **\u201cTop 5 reasons why\u2026\u201d listicle graphics** and **\u201cUs vs. Them\u201d comparison charts** as **recommended formats**, not as burned\u2011out relics, within a 2025 Meta\u2011Advantage+ context.[6]\n\nThey also explicitly link these to combating fatigue through variety:\n\n- \u201cBy using Stormy AI to streamline creator sourcing and outreach, brands can maintain a constant stream of fresh UGC content. **This prevents \"creative fatigue,\" a common issue where the AI stops showing your ads because the engagement rates have plummeted.**\u201d[6]\n\nInterpretation:  \nFor Stormy, fatigue is about **running the same creative too long**, not about the **format** (comparison chart, listicle) being saturated platform\u2011wide. The solution is more *concept variety* (including these classic statics), not abandoning them.\n\n---\n\n### 1.2 Real account data: \u201cUs vs Them\u201d is a meaningful slice of a scaled Meta account\n\n**Motion \u2013 Kajabi Paid Social Creative Strategy (undated library snapshot, live 2025)**  \nMotion\u2019s public creative breakdown for Kajabi (a large info\u2011product platform) shows that as of the library snapshot, they are actively and heavily using \u201cUs vs Them\u201d statics:\n\n- \u201cKajabi runs **80 active ads on Meta, shipping ~17 new creatives per week. Their library leans on Yapper 17%, Screen Recording 14%, and Us Vs Them 13%.**\u201d[12]\n\nKey points for your question:\n\n- \u201c**Us Vs Them 13%**\u201d[12] is non\u2011trivial share of a very active account\u2019s live creative library.  \n- Motion is a performance\u2011focused creative shop tracking this in 2025, and they are **not** treating \u201cUs vs Them\u201d as obsolete\u2014they\u2019re allocating ~\u215b of active creatives to it.\n\nThis again points to **execution\u2011level rotation (17 new creatives/week)** to fight fatigue, not format abandonment.\n\n---\n\n### 1.3 Image\u2011format tiering: \u201cUs vs Them\u201d and tweet\u2011style statics still top\u2011tier\n\n**Instagram practitioner reel \u2013 creative tier list for Meta (posted as a 2025 reel)**  \nOne media buyer/creative strategist posts a tier list of Meta creative formats. In the caption and on\u2011screen text he categorizes:\n\n- \u201cLet\u2019s tier creative formats for Meta ads.  \n  S tier (use heavily): * Static \u2026 Founder videos, \u2026 UGC, \u2026 Testimonials  \n  **Image Formats: 1. Us vs Them, 2. Trending Memes, 3. Tweets Style Images \u2026**\u201d[9]\n\nWhile the reel is short, the practitioner is plainly signaling:\n\n- **Static + Us vs Them + tweet\u2011style images** are **\u201cS tier (use heavily)\u201d** image formats for Meta in his 2025\u2013ish practice.[9]\n\nHe is not saying these patterns are dead; he is saying **you should still lean on them heavily**.\n\n---\n\n### 1.4 Agency view: \u201cStatic ads handle direct-response\u201d (2026)\n\n**ZenWeb \u2013 Meta Ads Services Malaysia 2026**  \nZenWeb describes their 2026 Meta ads approach this way:\n\n- \u201c**Static ads handle direct-response with clear offers. Reels handle scale. UGC handles credibility, especially for products that need social proof.** Across our accounts we aim to mix all three so the algorithm has something to work with at every funnel depth.\u201d[10] (page labeled \u201c2026\u201d)\n\nThey are not calling static DR formats fatigued or obsolete; they\u2019re positioning:\n\n- **Static** = direct\u2011response workhorse  \n- **Reels** = reach/scale  \n- **UGC** = social proof/credibility[10]\n\nThey explicitly want all three in the mix, implying **classic static DR is still core**.\n\n---\n\n### 1.5 Listicles still \u201chighly effective\u201d (format, not just SEO)\n\n**Replo (DTC landing pages) \u2013 Listicle examples article (updated 2024, still promoted)**  \nReplo, a landing\u2011page platform used heavily in DTC, argues listicles remain strong:\n\n- \u201c**Yes, listicles remain highly effective for engagement and SEO because they match how people consume digital content. They work especially well for mobile readers and social media sharing.**\u201d[3]\n\nWhile this is about **landing pages**, not in\u2011feed ads, it matters because:\n\n- The **\u201cTop X reasons\u201d** / listicle structure they promote for LPs is the *same pattern* Stormy recommends for **Meta listicle graphics** (\u201cTop 5 reasons why\u2026\u201d).[6][3]\n\nTogether, these sources show that **listicle\u2011style DR framing itself** is not considered dead\u2014practitioners are still using it both on\u2011site and in ads.\n\n---\n\n## 2. Practitioners calling specific classic patterns *problematic* or constrained\n\n### 2.1 Before/after creatives: increasingly disallowed and risky in 2026\n\n**Forge Digital Marketing \u2013 \u201cHow to Advertise Supplements on Meta (2026 Edition)\u201d**  \nThis 2026 guide from an agency that runs Meta for supplements explicitly warns against one of your classic DR formats:\n\n- \u201cAvoid:  \n  \u2013 **Dramatic before\u2011and\u2011after images for weight loss, muscle gain, or skin conditions.**  \n  \u2013 Zoomed\u2011in \u2018problem area\u2019 shots that could be read as body shaming\u2026  \n  \u2013 Visuals that clearly imply a medical transformation\u2026\u201d[5]\n\nAnd later:\n\n- \u201c**Don\u2019t: Use dramatic transformations or weight-loss imagery**  \n  \u2013 Avoid before\u2011and\u2011after photos, extreme physique changes, and visuals centered on \u2018problem\u2019 body parts.\u201d[5]\n\nThis isn\u2019t framed as \u201cthe format is fatigued,\u201d it\u2019s framed as **policy and compliance risk**:\n\n- \u201cMeta\u2019s automated systems review the image or video as aggressively as the text, so your creative must be policy\u2011safe even on mute.\u201d[5]\n\n**Implication for your question:**\n\n- **\u201cBefore/after\u201d as a transformation trope is actively discouraged in 2026 in regulated categories** (supplements, weight loss, skin), not because of performance fatigue but because of **ad policy**\u2014you simply get rejected or restricted.  \n- The *replacement formats* they recommend are:\n  - \u201cLifestyle imagery: people moving, cooking, working, and living\u2014where the product is part of a healthy routine, not a magic fix.\u201d[5]  \n  - \u201cClean product shots \u2026 simple benefit callouts\u201d[5]  \n  - \u201cEducational graphics\u201d / \u201cinfographics that explain how ingredients support body functions \u2026 keep charts and diagrams simple\u201d[5]  \n\nFor DR marketers in health categories, this is effectively a **forced creative migration away from classic before/after statics** to lifestyle, infographics, and soft claims.\n\n---\n\n## 3. Explicit discussion of *creative fatigue* vs \u201cformat is dead\u201d\n\n### 3.1 Omneky 2026 analysis: fatigue is rapid and systemic, but creative\u2011level\n\n**Grow with Rohan \u2013 \u201cHow AI Is Changing Paid Advertising in 2026\u201d (Jan 2026, summarizing Omneky Q1 2026 data)**  \nThe article cites Omneky\u2019s cross\u2011account analysis on Meta creative fatigue:\n\n- \u201cAccording to **Omneky\u2019s Q1 2026 analysis, creative fatigue degrades ad performance by an average of 28% after just 3\u20134 weeks of continuous serving.**\u201d[2]\n\nAnd further:\n\n- \u201cThe industry benchmark for top-performing accounts in 2026 is **50+ active creative variants. Most advertisers run only 3\u20135.**\u201d[2]\n\nThis is important for distinguishing **format\u2011level vs execution\u2011level fatigue**:\n\n- Omneky\u2019s data is about **individual creatives burning out in 3\u20134 weeks** due to frequency and engagement decay.[2]  \n- There is **no claim that \u201cus vs them images don\u2019t work anymore\u201d or \u201ctestimonial screenshots no longer convert.\u201d**  \n- Instead the operative prescription is high **creative velocity** and **variant count**, regardless of format.\n\nThe same article uses that insight to redefine what matters:\n\n- \u201cThe advertisers winning in 2026 are not fighting the machine. **They are feeding it better data and more creative than their competitors.**\u201d[2]\n\nSo: **fatigue is real and fast**, but in the **unit\u2011level** sense; the classic static frameworks still sit in the creative mix.\n\n---\n\n### 3.2 Meta\u2011specialist course (2026): fatigue managed by sequencing/refresh, not abandoning static DR\n\n**Stackmatix \u2013 \u201cComplete Meta Ads Course: Strategy, Setup & Scaling (2026)\u201d**  \nIn their explanation of retargeting and ad fatigue, Stackmatix says:\n\n- \u201cRetargeting campaigns typically deliver the highest ROAS in any Meta advertising account. **Courses should teach you how to build retargeting funnels\u2026 Understanding frequency caps, audience refresh rates, and sequential messaging keeps retargeting campaigns effective without causing ad fatigue.**\u201d[7] (course versioned for 2026)\n\nAgain, fatigue is talked about in terms of:\n\n- **Frequency**  \n- **Audience refresh**  \n- **Sequential messaging**\n\nThere\u2019s no statement that **specific DR static formats have stopped working market\u2011wide**; the \u201csolution\u201d is **governance and creative refresh**, not abandoning \u201cus vs them\u201d or social\u2011proof statics.\n\n---\n\n## 4. Where practitioners are *shifting emphasis* (but not abandoning DR statics)\n\n### 4.1 Heavier weighting toward UGC, Reels, founder content\n\nThe creative tier list reel mentioned earlier implicitly pushes a mix:\n\n- S\u2011tier includes \u201cStatic\u201d, \u201cFounder videos\u201d, \u201cUGC\u201d, \u201cTestimonials\u201d.[9]  \n- That matches what ZenWeb says: \u201cStatic ads handle direct-response\u2026 Reels handle scale. UGC handles credibility.\u201d[10]\n\nThese practitioners are effectively saying:\n\n- **Static DR formats still matter**, but **UGC video and Reels** now carry more of the **scale** and **engagement** workload.\n\n### 4.2 Advantage+ era: win with **concept variety**, not a single miracle format\n\nStormy AI, again, on what Meta\u2019s algorithm wants:\n\n- The goal is not 6 minor tweaks but **\u201csix fundamentally different concepts\u201d**, and they explicitly include:\n  - UGC testimonial videos  \n  - Product\u2011focused  \n  - Educational/listicle  \n  - Comparison (\u201cUs vs Them\u201d)  \n  \u2026 as the **core concept set**.[6]\n\nThat\u2019s a 2025 playbook written specifically for Algorithm\u2011first Advantage+ campaigns, which suggests:\n\n- **Meta\u2019s 2025\u20132026 AI stack still rewards comparison charts and listicle\u2011style statics** as long as they are part of a diverse concept mix and refreshed frequently.\n\n---\n\n## 5. Direct answers to your specific format questions\n\nBelow I\u2019ll map practitioner commentary to each of the formats you mentioned, and clearly distinguish **format\u2011level \u201cdead\u201d vs. execution\u2011level fatigue.**\n\n### 5.1 Us\u2011vs\u2011Them comparison charts\n\nEvidence:\n\n- Stormy AI calls \u201cComparison: \u2018Us vs. Them\u2019 charts\u201d one of the **core creative concepts** to feed Advantage+ in 2025.[6]  \n- Motion\u2019s Kajabi library relies on \u201cUs Vs Them\u201d for **13%** of active creatives while shipping ~17 new creatives/week.[12]  \n- Instagram media buyer\u2019s tier list puts \u201cUs vs Them\u201d in **top image formats** (with \u201cTweet style images\u201d).[9]\n\nAssessment:\n\n- **Format\u2011level:** No practitioner source is saying \u201cus\u2011vs\u2011them charts are saturated or no longer work.\u201d Instead they are explicitly recommended and actively used at scale.[6][9][12]  \n- **Execution\u2011level:** High creative churn (e.g., 17 new creatives/week at Kajabi[12]) and Omneky\u2019s 28% fatigue after 3\u20134 weeks[2] indicate that *individual* us\u2011vs\u2011them ads will burn out quickly and must be refreshed.\n\n### 5.2 Testimonial / review screenshots\n\nEvidence:\n\n- Stormy\u2019s list includes \u201cUGC (User\u2011Generated Content): Raw, authentic testimonial videos.\u201d[6]  \n- The IG tier list includes \u201cTestimonials\u201d as S\u2011tier creative.[9]  \n- ZenWeb: \u201cUGC handles credibility, especially for products that need social proof.\u201d[10]\n\nMost of the current chatter is about **UGC testimonial videos**, but the same logic is applied to testimonial statics and screenshots; nobody is saying \u201creview screenshot ads died.\u201d\n\nAssessment:\n\n- **Format\u2011level:** Social proof / testimonial as a pattern is still treated as core and \u201cS tier.\u201d[6][9][10]  \n- **Execution\u2011level:** As above, each specific testimonial screenshot will fatigue; practitioners fight this with volume and rotation, not by abandoning the pattern.\n\n### 5.3 Notes\u2011app / tweet\u2011style static ads\n\nEvidence:\n\n- The IG tier list callouts \u201cTweets Style Images\u201d explicitly as a **top image format** alongside \u201cUs vs Them\u201d and \u201cTrending Memes.\u201d[9]\n\nWhile nobody is writing a 2,000\u2011word piece only about \u201cNotes app ads,\u201d the **tweet\u2011style/lo\u2011fi text static** idea is being grouped in as **top\u2011tier**.\n\nAssessment:\n\n- **Format\u2011level:** No evidence that tweet/Notes statics are considered \u201cburned out\u201d; one practitioner calls them a **top image format to use heavily.**[9]  \n- **Execution\u2011level:** As with other statics, fatigue is governed by frequency & time\u2011in\u2011market (Omneky\u2019s 3\u20134 week finding).[2]\n\n### 5.4 Before/after statics\n\nEvidence:\n\n- Forge Digital Marketing 2026: \u201cAvoid: Dramatic before\u2011and\u2011after images for weight loss, muscle gain, or skin conditions.\u201d[5]  \n- \u201cDon\u2019t: Use dramatic transformations or weight-loss imagery \u2026 avoid before\u2011and\u2011after photos\u2026\u201d[5]\n\nAssessment:\n\n- **Format\u2011level:** In **health/supplement/weight\u2011loss** verticals, before\u2011after imagery is effectively **off the table in 2026** due to Meta policy risk, not just saturation. It\u2019s not \u201cfatigued,\u201d it\u2019s **dangerous**.  \n- **Execution\u2011level:** In less regulated verticals, there\u2019s no public practitioner claim that \u201cbefore/after\u201d is dead; the main constraint is **compliance**, not engagement. But most sophisticated 2026 practitioners in sensitive niches are **replacing** it with:\n  - Lifestyle ads[5]  \n  - Ingredient/benefit infographics[5]  \n  - Soft claims with structure\u2013function language[5]\n\n### 5.5 Listicles (in\u2011feed DR style)\n\nEvidence:\n\n- Stormy AI: \u201cEducational/Listicle: \u2018Top 5 reasons why\u2026\u2019 graphics\u201d as a core creative concept.[6]  \n- Replo: \u201cYes, listicles remain highly effective for engagement and SEO\u2026 They work especially well for mobile readers and social media sharing.\u201d[3]\n\nAssessment:\n\n- **Format\u2011level:** Listicle\u2011style \u201cTop X reasons\u201d framing is **explicitly defended as effective** and recommended for Meta creative and landing pages.[3][6] No practitioner says listicle\u2011style ads are saturated.  \n- **Execution\u2011level:** As with any static DR concept, a specific listicle graphic will fatigue at the ad level within weeks (per Omneky).[2]\n\n---\n\n## 6. How performance\u2011marketers are *operationalizing* this in 2025\u20132026\n\nPutting all the practitioner evidence together, the operating reality looks like:\n\n- **The old DR static tropes (us\u2011vs\u2011them, listicles, testimonials, tweet/Notes\u2011style statics) are still working and recommended**, especially as part of an Advantage+ creative mix.[6][9][10][12]  \n- **Before/after is the main pattern that\u2019s genuinely \u201cout of bounds\u201d** in regulated niches (supplements, weight\u2011loss, skin) for policy reasons.[5]  \n- Practitioners define \u201cfatigue\u201d as **ad\u2011level decay over 3\u20134 weeks**, not as a format failing across all accounts.[2][7]  \n- Winning teams are responding by:\n  - Running **50+ active creative variants** in top accounts[2]  \n  - Shipping **double\u2011digit new creatives per week** (Kajabi example: \u201c~17 new creatives per week\u201d[12])  \n  - Ensuring **concept diversity**: UGC, comparison charts, listicle graphics, product shots, offer\u2011driven statics.[6][10]  \n  - Using static DR formats primarily for **direct\u2011response and clarity**, while Reels and UGC carry scale and engagement.[10]\n\nIf you want practitioner\u2011aligned execution in 2025\u20132026, the evidence points to:\n\n- **Keep using us\u2011vs\u2011them, testimonial screenshots, tweet/Notes\u2011style text statics, and listicle\u2011style graphics.**  \n- Consider **retiring or heavily softening before/after** in any sensitive category due to policy risk.  \n- Treat **fatigue as an execution\u2011level problem** solved by **creative velocity and concept variety**, not as a reason to abandon these classic DR formats entirely."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

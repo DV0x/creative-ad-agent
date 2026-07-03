@@ -1,0 +1,11 @@
+{
+  "_comment": "Copy to config.json and edit. slug = output folder name under docs/research/ad-library/. country = ISO market (IN, US, CA, AE, ALL). status = ACTIVE (running now) | INACTIVE | ALL. maxAds = top-N per brand by revealed-winner. Each brand: name (used in output), bucket (any label you sweep by — D2C/protein, local/education, ...), and OPTIONAL page_id. PIN page_id to avoid the wrong-brand trap; without it the script resolves by name + score and warns you to verify (read pages.md, then pin).",
+  "slug": "my-category-YYYY-MM-DD",
+  "country": "IN",
+  "status": "ACTIVE",
+  "maxAds": 12,
+  "brands": [
+    { "name": "Brand With Known Page", "bucket": "D2C/category",   "page_id": "1234567890" },
+    { "name": "Brand To Resolve",      "bucket": "local/category" }
+  ]
+}

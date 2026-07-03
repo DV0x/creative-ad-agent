@@ -1,0 +1,16 @@
+{
+  "quality": "low",
+  "size": "square_hd",
+  "outDir": "renders/_smoke",
+  "jobs": [
+    {
+      "name": "smoke-t2i",
+      "prompt": "Minimal test ad on a warm cream (#F9F7F3) background with deep teal (#0E4852) and gold (#FBBD29) accents. Large bold sans-serif text reading '4.9 stars' and smaller text '491 Google reviews'. Clean, high contrast, centered."
+    },
+    {
+      "name": "smoke-edit",
+      "prompt": "Place this PTE Academic score report on a clean warm-cream background with a thin gold border and soft shadow. Keep the score report EXACTLY as-is, do not alter any numbers or text on it. Add a small deep-teal banner strip across the very bottom with gold text reading 'Verbis Edu'.",
+      "refs": ["assets/scorecards-redacted/card-aarti.png"]
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "proofwall-results-native",
+      "refs": [
+        "assets/scorecards-redacted/card-rahul.png",
+        "assets/scorecards-redacted/card-nidhi.png",
+        "assets/scorecards-redacted/card-aarti.png",
+        "assets/logo/verbis-logo-horizontal.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass — it must look like a REAL bright phone photo, NOT a polished AI or agency design. FOUR reference images: (1),(2),(3) are three real PTE Academic score reports; (4) is the Verbis Edu logo.\n\nSCENE (real candid photograph, BRIGHT natural daylight): the THREE provided PTE score reports printed on paper and laid out overlapping like a fan on a clean light wooden desk, shot slightly from above as if someone photographed their students' results. Soft real daylight from a window, gentle natural shadows, slight phone-camera imperfection, a little shallow depth of field. Arrange them so each report's big purple 'Overall Score' badge is clearly visible — 90, 90 and 83. Reproduce each score report EXACTLY as provided — do NOT change, redraw or blur any number, keep the black redaction boxes. AVOID: glossy 3D render, floating objects, perfect symmetry, slick gradients, studio lighting, over-saturation.\n\nTEXT (simple, casual, like a real social ad — not heavy poster type):\n- at the very TOP, a small gold-outlined eyebrow tag, uppercase: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- a bold dark headline: 'Real PTE scores. One 4-hour class.'\n- a smaller line: 'Learn how PTE is actually scored — 79+.'\n- near the BOTTOM, a simple flat gold (#FBBD29) button with dark text: 'Book my seat  →  ₹589'\n\nReproduce the VERBIS EDU logo (reference 4) SMALL in the TOP-LEFT corner with a clear margin from the top and left edges — fully visible, NOT cropped, exactly as provided.\n\nWarm, real, authentic bright phone-photo look. All added text crisp and correctly spelled."
+    }
+  ]
+}

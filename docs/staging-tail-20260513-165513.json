@@ -1,0 +1,748 @@
+{
+    "wallTime": 175503,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "exception",
+    "durableObjectId": "8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [
+        {
+            "stack": "    at Sandbox2.alarm (node_modules/@cloudflare/containers/src/lib/container.ts:1165:28)",
+            "name": "Error",
+            "message": "Durable Object reset because its code was updated.",
+            "timestamp": 1778671546663
+        }
+    ],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"error\",\"msg\":\"Sandbox error\",\"component\":\"sandbox-do\",\"sandboxId\":\"8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725\",\"traceId\":\"tr_9186d020f8b24488\",\"timestamp\":\"2026-05-13T11:25:46.663Z\",\"error\":{\"message\":\"Network connection lost.\",\"stack\":\"Error: Network connection lost.\",\"name\":\"Error\"}}"
+            ],
+            "level": "error",
+            "timestamp": 1778671546663
+        }
+    ],
+    "eventTimestamp": 1778671371118,
+    "event": {
+        "scheduledTime": "2026-05-13T11:22:51.118Z"
+    }
+}
+{
+    "wallTime": 8,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671547634
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671547635
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671547637
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671547637
+        }
+    ],
+    "eventTimestamp": 1778671521372,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 1584,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "canceled",
+    "durableObjectId": "8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778671546666,
+    "event": {
+        "scheduledTime": "2026-05-13T11:22:51.159Z"
+    }
+}
+{
+    "wallTime": 9,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671572630
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671572631
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671572633
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671572633
+        }
+    ],
+    "eventTimestamp": 1778671547878,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 8,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671597645
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671597647
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671597648
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671597648
+        }
+    ],
+    "eventTimestamp": 1778671572865,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 60668,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"error\",\"msg\":\"Sandbox error\",\"component\":\"sandbox-do\",\"sandboxId\":\"8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725\",\"traceId\":\"tr_0d0a054881804483\",\"timestamp\":\"2026-05-13T11:26:48.900Z\",\"error\":{\"message\":\"Runtime signalled the container to exit due to a new version rollout: 0\",\"stack\":\"Error: Runtime signalled the container to exit due to a new version rollout: 0\",\"name\":\"Error\"}}"
+            ],
+            "level": "error",
+            "timestamp": 1778671608900
+        }
+    ],
+    "eventTimestamp": 1778671547311,
+    "event": {
+        "scheduledTime": "2026-05-13T11:25:48.250Z"
+    }
+}
+{
+    "wallTime": 38,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778671608934,
+    "event": {
+        "scheduledTime": "2026-05-13T11:26:48.900Z"
+    }
+}
+{
+    "wallTime": 102,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "canceled",
+    "durableObjectId": "8d0a68cbe8e2a5f3ded2e88780e703f4da7656dd55f69f3135a31d9acc860725",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778671608976,
+    "event": {
+        "scheduledTime": "2026-05-13T11:26:48.938Z"
+    }
+}
+{
+    "wallTime": 9,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671622617
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671622618
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671622620
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671622620
+        }
+    ],
+    "eventTimestamp": 1778671597890,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 8,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671647627
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671647628
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671647630
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671647630
+        }
+    ],
+    "eventTimestamp": 1778671622859,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 10,
+    "cpuTime": 3,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671672629
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671672630
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671672632
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671672632
+        }
+    ],
+    "eventTimestamp": 1778671647870,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 7,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671697640
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671697642
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671697643
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671697643
+        }
+    ],
+    "eventTimestamp": 1778671672867,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 9,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671758611
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671758613
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671758615
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671758615
+        }
+    ],
+    "eventTimestamp": 1778671697885,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 7,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671773634
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671773635
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671773637
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671773637
+        }
+    ],
+    "eventTimestamp": 1778671758851,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 8,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671833768
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671833770
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671833772
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671833772
+        }
+    ],
+    "eventTimestamp": 1778671773868,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 7,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "e7aaef943fc7eb65b26420adc9c6ca74cb6fb47aa842742b80af3d8722619428",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=staging"
+    ],
+    "scriptVersion": {
+        "id": "7c5aee0b-9f7d-4e79-af2b-dfd74ada99c4"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-staging",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671846637
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778669391149_531fpr"
+            ],
+            "level": "log",
+            "timestamp": 1778671846639
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8c52ce12-60ff-4653-b65e-ea096cae7624 campaign=campaign_mp3xtqhtjb3kft gen=false userId=user_38uxIJdRftKkSkstogHasnk6c2J"
+            ],
+            "level": "log",
+            "timestamp": 1778671846640
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3xtqhtjb3kft type=ping gen=false session=8c52ce12-60ff-4653-b65e-ea096cae7624"
+            ],
+            "level": "log",
+            "timestamp": 1778671846640
+        }
+    ],
+    "eventTimestamp": 1778671834052,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}

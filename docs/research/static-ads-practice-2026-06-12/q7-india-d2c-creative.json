@@ -1,0 +1,167 @@
+{
+  "id": "c06e7bd3-f77f-46d5-bd5f-bb5e6326995f",
+  "model": "sonar-pro",
+  "created": 1781267871,
+  "usage": {
+    "prompt_tokens": 300,
+    "completion_tokens": 4131,
+    "total_tokens": 4431,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.0009,
+      "output_tokens_cost": 0.06196,
+      "request_cost": 0.014,
+      "total_cost": 0.07687
+    }
+  },
+  "citations": [
+    "https://www.instagram.com/reel/DX9MduBsMzV/",
+    "https://www.instagram.com/reel/DO2WhYPEdlT/?hl=en",
+    "https://tenovia-solutions.myshopify.com/blogs/blogs/how-to-create-winning-ad-strategies-for-zepto-blinkit-instamart",
+    "https://www.instagram.com/reel/DUBAN8mEfdN/",
+    "https://www.balistro.com/top-10-digital-marketing-trends-in-india-for-2026-every-brand-must-know/",
+    "https://www.instagram.com/reel/DOs4mfIjd27/",
+    "https://www.media4growth.com/showcase/campaigns/blinkit-solves-the-quick-commerce-riddle-with-contextual-ooh-campaign-80825",
+    "https://hawky.ai/blog/best-creative-analytics-platforms-d2c-brands-india",
+    "https://www.instagram.com/reel/DQgTPofj6Q9/?hl=en",
+    "https://www.instagram.com/reel/DYHM46xxyfO/",
+    "https://metricscart.com/insights/advertising-on-quick-commerce-platforms/",
+    "https://www.instagram.com/p/DMhhMLmKy74/",
+    "https://www.instagram.com/p/DPedLpSDb8-/",
+    "https://www.instagram.com/reel/DTPSmyKCEb6/",
+    "https://www.instagram.com/p/DSwfBMSl_pV/"
+  ],
+  "search_results": [
+    {
+      "title": "Running Meta Ads\u2026 but still NOT getting results? You're ... - Instagram",
+      "url": "https://www.instagram.com/reel/DX9MduBsMzV/",
+      "date": "2026-05-05",
+      "last_updated": "2026-05-24",
+      "snippet": "BestoSEO HOW TO USE META AI TO CREATE WINNING ADS IN 2026 1. START WITH THIS: Clear offer + clear audience 2. USE META AI FOR: Ad copy variations, ...",
+      "source": "web"
+    },
+    {
+      "title": "The Hubverse on Instagram: \"The Whole Truth teams up with ...",
+      "url": "https://www.instagram.com/reel/DO2WhYPEdlT/?hl=en",
+      "date": "2025-10-15",
+      "snippet": "The Whole Truth teams up with creative agency Manja to drop a hilarious and eye-catching ad that reveals what's really behind protein supplements, making it ...",
+      "source": "web"
+    },
+    {
+      "title": "How to Create Winning Ad Strategies for Zepto, Blinkit & Instamart",
+      "url": "https://tenovia-solutions.myshopify.com/blogs/blogs/how-to-create-winning-ad-strategies-for-zepto-blinkit-instamart",
+      "date": "2025-07-22",
+      "last_updated": "2026-03-08",
+      "snippet": "The Logic Behind Quick Commerce Ad Optimization. Creative Rotation: The 72-Hour Rule. In quick commerce, creative fatigue hits faster than a Zepto delivery.",
+      "source": "web"
+    },
+    {
+      "title": "Cashfree Payments on Instagram: \"Everyone talks about D2C ...",
+      "url": "https://www.instagram.com/reel/DUBAN8mEfdN/",
+      "date": "2026-01-27",
+      "snippet": "( viral ads formats, d2c brand owners, meta ads ) ... Customer acquisition cost for Indian Rising: Customer edo cost as art Indian D2C bundrands D2C brands have ...",
+      "source": "web"
+    },
+    {
+      "title": "Top 10 Digital Marketing Trends in India for 2026 Every Brand Must ...",
+      "url": "https://www.balistro.com/top-10-digital-marketing-trends-in-india-for-2026-every-brand-must-know/",
+      "date": "2026-05-04",
+      "snippet": "D2C brands should prioritize Meta Ads, Google Shopping, email marketing, and SEO. B2B brands focus on Google Search, LinkedIn, content marketing, and email ...",
+      "source": "web"
+    },
+    {
+      "title": "THE INDIAN MARKETING SOCIETY | Protein ke peeche kya ...",
+      "url": "https://www.instagram.com/reel/DOs4mfIjd27/",
+      "date": "2025-10-15",
+      "last_updated": "2025-09-24",
+      "snippet": "... The Whole Truth just dropped a hilarious ad in collaboration with the creative agency, Manja. They literally showed what's behind protein! Credits: Brand: The ...",
+      "source": "web"
+    },
+    {
+      "title": "Blinkit Solves the quick-commerce riddle with contextual OOH ...",
+      "url": "https://www.media4growth.com/showcase/campaigns/blinkit-solves-the-quick-commerce-riddle-with-contextual-ooh-campaign-80825",
+      "date": "2025-11-17",
+      "last_updated": "2026-05-16",
+      "snippet": "Blinkit, the quick-commerce giant, launched a highly localized and interactive Out-of-Home (OOH) campaign that transformed bus shelters into engaging ...",
+      "source": "web"
+    },
+    {
+      "title": "7 Best Creative Analytics Platforms for D2C Brands in India (2026)",
+      "url": "https://hawky.ai/blog/best-creative-analytics-platforms-d2c-brands-india",
+      "date": "2025-11-26",
+      "last_updated": "2026-06-12",
+      "snippet": "Hawky, Motion, and Triple Whale are the best creative analytics platforms for Indian D2C brands in 2026. If your team is spending INR 5 lakh or more per...",
+      "source": "web"
+    },
+    {
+      "title": "\u203c\ufe0ftargeting is officially dead. [meta ads update, meta andromeda ...",
+      "url": "https://www.instagram.com/reel/DQgTPofj6Q9/?hl=en",
+      "date": "2025-11-01",
+      "last_updated": "2025-11-01",
+      "snippet": "Ek baar aapka winning creative aur winning ad ... [Meta Andromeda update India, Facebook ads targeting 2026, D2C brand Meta ads, Meta ads creative strategy India, ...",
+      "source": "web"
+    },
+    {
+      "title": "The Whole Truth Foods campaign flips the supplement ...",
+      "url": "https://www.instagram.com/reel/DYHM46xxyfO/",
+      "date": "2026-05-13",
+      "snippet": "The Whole Truth flipped supplement marketing completely with a campaign that focused less on muscle gains\u2026 and more on the ingredients brands don't talk about.",
+      "source": "web"
+    },
+    {
+      "title": "Advertising On Quick Commerce Platforms: A Complete Guide",
+      "url": "https://metricscart.com/insights/advertising-on-quick-commerce-platforms/",
+      "date": "2025-09-29",
+      "last_updated": "2026-06-08",
+      "snippet": "Quick commerce advertising refers to paid placements\u2014like sponsored listings, banners, and combo promotions\u2014on platforms such as Zepto, Blinkit, and Swiggy ...",
+      "source": "web"
+    },
+    {
+      "title": "Indian D2C brands today find themselves in the middle of a quick ...",
+      "url": "https://www.instagram.com/p/DMhhMLmKy74/",
+      "date": "2025-07-25",
+      "last_updated": "2025-09-02",
+      "snippet": "\u201cFor us, brand equity is a priority. We are not willing to compromise on packaging and overall experience \u2013 just to deliver a product in 10 minutes.",
+      "source": "web"
+    },
+    {
+      "title": "It's Meta's new AI-powered innovations that will make your ads shine ...",
+      "url": "https://www.instagram.com/p/DPedLpSDb8-/",
+      "date": "2025-10-06",
+      "last_updated": "2025-10-10",
+      "snippet": "The brands winning with Meta Ads in 2026 aren't replacing marketers with AI. ... [Meta AI ads 2026, Meta advertising future India, D2C brand AI ads, Meta ...",
+      "source": "web"
+    },
+    {
+      "title": "Wellbeing Nutrition uses humorous language to address the ...",
+      "url": "https://www.instagram.com/reel/DTPSmyKCEb6/",
+      "date": "2026-01-13",
+      "last_updated": "2026-02-11",
+      "snippet": "The Whole Truth Foods campaign flips the supplement marketing playbook by shifting the focus from \u201cmuscle gains\u201d to the hidden ingredients most brands never ...",
+      "source": "web"
+    },
+    {
+      "title": "Social Media Dissect | Blinkit nailed year-end marketing ... - Instagram",
+      "url": "https://www.instagram.com/p/DSwfBMSl_pV/",
+      "date": "2025-12-26",
+      "last_updated": "2025-12-30",
+      "snippet": "Blinkit nailed year-end marketing by showcasing what people ordered in 2025 on billboards, sparking conversations about how quick commerce is shaping consumer ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Winning Meta creative for **Indian D2C** brands in 2025\u20132026 is skewed heavily toward *short-form Reels-first video*, *hyper-clear offers*, *native-looking UGC*, and *sharp, context-driven messaging* tailored to quick-commerce or impulse behavior\u2014more \u201cthis is exactly for you, right now\u201d and less generic branding.\n\nBelow is a breakdown anchored to the brands and categories you mentioned, plus who\u2019s known to execute this well.\n\n---\n\n## 1. What \u201cwinning\u201d Meta creative looks like now (India D2C, 2025\u201326)\n\nSeveral Indian performance marketers and creators working on Meta ads in 2026 describe the pattern very consistently:\n\n- A Meta ads practitioner in India says winning campaigns start with: **\u201cClear offer + clear audience\u201d**, then use AI for \u201cAd copy variations, hook ideas, multiple creative variations.\u201d[1] Published 2026.  \n- Another India-focused ads creator summarises Meta\u2019s 2026 shift as: **\u201cEk baar aapka winning creative aur winning ad \u2026 targeting is officially dead\u201d**, implying that algorithmic delivery + strong creatives are more decisive than granular interest targeting now.[9] Reel 2026.\n\nPutting together what they and D2C case content are doing, winning Meta creative for Indian D2C in 2025\u201326 usually has:\n\n- **Format-first thinking**\n  - Majority of spend pushed into **Reels/short-form video**; static is used mostly for retargeting or catalog.[3][11]\n  - **9:16 vertical**, fast cuts, 0.8\u20131.25x speed editing, big subtitles and price overlays.\n- **Native / UGC style**\n  - Self-shot, \u201cphone camera\u201d look, founder to-camera, customer POV, or creator POV; looks like content, not an ad.\n  - Split-screen \u201cbefore / after\u201d, \u201cwhat I ordered vs what I got,\u201d POV unboxings etc.\n- **Aggressive testing & rotation**\n  - Quick-commerce case studies talk about **\u201ccreative fatigue hits faster than a Zepto delivery\u201d** and advise **\u201ccreative rotation with at least 3\u20135 variations running simultaneously\u201d** with a **72-hour** refresh mindset.[3] Tenovia article, 2025.\n- **Simple, outcome-led messaging**\n  - Copy that answers *one* question quickly: **\u201cWhy should I buy this instead of stepping out?\u201d** in quick commerce.[3]\n  - Lead with 1\u20132 concrete benefits or differentiators (sugar-free, 100% clean, 10-min delivery, combo savings).\n\n---\n\n## 2. Category breakdown: supplements & packaged food (The Whole Truth, Nutrabay, etc.)\n\n### 2.1 The Whole Truth Foods \u2013 what their \u201cwinning\u201d creative looks like\n\nThe Whole Truth\u2019s recent work shows what cuts through for health/supplement D2C in India:\n\n- A widely discussed 2025 campaign \u201cflips the supplement marketing playbook by shifting the focus from **\u2018muscle gains\u2019 to the hidden ingredients most brands don\u2019t talk about**.\u201d[10]  \n- Social media/industry accounts describe a new ad where **\u201cThe Whole Truth just dropped a hilarious ad in collaboration with the creative agency, Manja. They literally showed what\u2019s behind protein!\u201d**[6][2] 2025.  \n  - It uses **humor + reveal**: physically showing what\u2019s \u201cbehind\u201d the protein pack.\n  - Tone is irreverent, exposing industry BS, aligning with their \u201cno false claims\u201d positioning.\n\nFor performance Meta creative, this translates into:\n\n- **Hook**: pattern interrupt around *truth vs lies* in supplements: e.g., \u201cProtein ke peeche kya hai?\u201d style hooks, meme-ified.[6][10]\n- **Style**:\n  - **Humorous storytelling** packed into 20\u201330s.\n  - Big text callouts of shady ingredients vs their clean label.\n  - Heavy use of Hindi-English mix to feel conversational.\n- **Conversion drivers**:\n  - Quick ingredient showdown: other brand\u2019s label vs theirs.\n  - Price/offer: limited-time combos, trial sizes to reduce friction.\n\nA related example: Wellbeing Nutrition uses **humorous language** to address skepticism around wellness claims; a marketing breakdown notes they \u201cuses humorous language to address the wellness jargon that confuses customers,\u201d tying that to higher engagement on social.[14]\n\n### 2.2 Supplements / packaged foods \u2013 what works on Meta in India\n\nFrom these brands and broader quick-commerce/food guidance:\n\n- **Creative angles that convert**:\n  - **Ingredient transparency / label zooms** in Reels: zoom into \u201cno added sugar,\u201d \u201cno maltodextrin,\u201d etc.[10][11]\n  - **Use-case framing**: pre-workout, late-night snack, breakfast replacement; creative shows the specific moment (gym bag, office desk, exam prep).[3][11]\n  - **Problem-solution**: \u201cBloating after whey?\u201d \u2192 show clean protein alternative.\n- **Language**:\n  - Predominantly **Hinglish**: headlines in English + punchlines in Hindi or vice versa.\n  - Clear, short overlays: \u201cNo BS protein\u201d, \u201cClean AF ingredients\u201d.\n- **Offer presentation**:\n  - Quick-commerce & D2C guidance suggests **bundle-focused advertising performs exceptionally well**: \u201cComplete your weekly essentials\u201d, \u201cFamily pack offers\u201d, \u201cEverything you need for dinner tonight.\u201d[3]  \n  - Tags like **\u201chealth picks,\u201d \u201cbestsellers,\u201d \u201cfamily pack\u201d** in thumbnails on commerce platforms increase CTR.[11]\n  - Price best practices:\n    - Show *MRP vs deal* in one frame.\n    - Use **combos** (\u201cBuy 2 Get 1\u201d, \u201c\u20b9X off on pack of 3\u201d) more than pure % off; quick-commerce analytics guide says **bundle promotions encourage larger baskets** like \u201cchips, cola and dip.\u201d[11]\n\n---\n\n## 3. Quick commerce creative \u2013 Zepto, Blinkit, Instamart\n\n### 3.1 What\u2019s recommended for performance creatives\n\nA 2025 playbook for Zepto/Blinkit/Instamart from Tenovia (works with Indian D2C brands) lays out specific, performance-oriented creative rules:\n\n- **For Zepto**:\n  - \u201cZepto's young, urban audience responds to **fresh, trendy creative that doesn't feel like advertising**.\u201d[3]  \n  - **Creative Strategy**: \u201cFocus on lifestyle integration rather than product features. Show your product as part of their daily routine; the energy drink that powers their late-night study sessions, the snacks that make their Netflix binge complete.\u201d[3]  \n  - **Visuals**: \u201cUse vibrant, Instagram-worthy visuals that feel native to their social feeds.\u201d[3]\n\n- **For Blinkit**:\n  - **Messaging focus**: \u201cLead with convenience and time-saving benefits. \u2018Skip the queue,\u2019 \u2018Delivered in 10 minutes,\u2019 and \u2018Fresh from the store\u2019 resonate more than complex product descriptions.\u201d[3]  \n  - Visuals: \u201cClean, clear product shots work better than lifestyle imagery. Show the actual product, include price points, and highlight any offers or combos. Blinkit users are comparison shoppers even in their urgency.\u201d[3]\n\n- **For Instamart**:\n  - **Content approach**: \u201cBundle-focused advertising performs exceptionally well. \u2018Complete your weekly essentials,\u2019 \u2018Family pack offers,\u2019 and \u2018Everything you need for dinner tonight\u2019 messaging drives higher cart values.\u201d[3]  \n  - Visuals: \u201cUse warm, family-oriented visuals that emphasize abundance and variety.\u201d[3]  \n  - Instamart users respond strongly to **festival and seasonal campaigns**, so creatives pegged to Holi, Diwali, monsoons, etc. outperform.[3]\n\nAcross quick commerce:\n\n- \u201cStatic ads are pretty much dead in quick commerce. **Dynamic Product Ads (DPAs)** that automatically show relevant products based on user behavior, location, and time of day **consistently outperform static campaigns by 40\u201360%**.\u201d[3]  \n- Key KPI thinking: CTR, **click-to-order time (target under 2 minutes)**, **session conversion 15\u201320%**, and \u201ccreative fatigue rate (how quickly CTR drops)\u201d as an explicit metric.[3]\n\nTranslated to Meta creatives that complement these:\n\n- For Zepto/Blinkit-focused brands, your Meta Reels that work best look like:\n  - 10\u201320s snackable clips.\n  - Strong **\u201cin 10 minutes\u201d** and **\u201cdon\u2019t step out\u201d** messaging.[3]\n  - In-feed & Stories with clean pack+price overlays mimicking in-app card design.\n  - Hyper-local references (city/area, weather) to piggyback on the hyperlocal targeting approach recommended for quick commerce (e.g., ice cream during heatwaves, comfort food in monsoons).[3]\n\n### 3.2 Blinkit\u2019s OOH & social \u2013 what style resonates\n\nBlinkit\u2019s contextual OOH has become a creative benchmark and often gets repurposed in social:\n\n- In 2025 Blinkit launched a highly localized OOH where they **\u201ctransformed bus shelters into engaging puzzles, humorously reinforcing the brand\u2019s core promise of 10-minute delivery.\u201d**[7]  \n  - Visuals: minimalist, bright yellow brand color, **riddle headline** with witty payoff.\n- Social case coverage of their year-end campaign notes Blinkit **\u201cnailed year-end marketing by showcasing what people ordered in 2025 on billboards, sparking conversations about how quick commerce is shaping consumer behaviour.\u201d**[15]\n\nFor performance, those learnings map into:\n\n- **Hook formats that travel to Meta**:\n  - Riddle-style or \u201cguess the order\u201d frames in Reels cover images.\n  - \u201cHere\u2019s what your city ordered at 2AM\u201d style stats as hooks that look like content, not ads.\n- **Short copy, big fonts, contextual humor**; no heavy descriptions.\n\n---\n\n## 4. Accessories & lifestyle brands (e.g., DailyObjects-style)\n\nWhile there isn\u2019t a current case text explicitly naming DailyObjects in the search set, the pattern for accessories / aesthetic D2C in India aligns with:\n\n- **Lifestyle-integrated creatives**: same principle as Zepto\u2019s \u201cyoung, urban audience\u201d \u2013 products shown in real contexts (office desk setups, WFH, commute), \u201cInstagram-worthy visuals\u201d tuned to design-conscious shoppers.[3]\n- **Vertical video + carousels** to:\n  - Show **multiple designs/prints** quickly.\n  - Compare \u201ccheap Amazon case vs this premium case\u201d in a before/after.\n- **Language & offers**:\n  - Hinglish or crisp English; emphasise design, durability, \u201cMade in India\u201d.\n  - Bundling (phone case + sleeve + cable organizer) with visible *bundle savings*.\n\nRunning these through Meta:\n\n- Reels with **\u201cdesk setup glow-up\u201d** or \u201cbag dump\u201d POV where products appear organically.\n- Retargeting carousels showing 5\u20138 SKUs the user browsed (catalog ads), with price shown on each card and a small line like \u201cFrom \u20b9XXX\u201d.\n\n---\n\n## 5. Language, tone & price/offer presentation that convert in India\n\nBased on the practitioners and playbooks:\n\n### 5.1 Language & tone\n\n- Mixed **Hinglish** is dominant for scale:\n  - Zepto guidance: \u201cyoung, urban audience\u201d \u2192 creatives that \u201cfeel native to their social feeds\u201d\u2013\u2013in practice these are heavily Hinglish in captions and overlays.[3]\n- Humor + candour:\n  - The Whole Truth & Manja\u2019s work: \u201chilarious ad\u2026 reveals what\u2019s really behind protein supplements\u201d and literally shows what\u2019s behind the pack.[2][6]\n  - Wellbeing Nutrition: humorous take on wellness jargon.[14]\n- **Direct benefit callouts**:\n  - Quick commerce docs emphasise answering: **\u201cWhy should I buy this instead of stepping out?\u201d**[3]\n  - For health: \u201csugar-free,\u201d \u201cclean label,\u201d \u201cgut-friendly,\u201d etc. as bold in-frame text.[10][11]\n\n### 5.2 How price & offers are best shown\n\nFrom quick commerce & D2C guidance:\n\n- **Show the exact product and price** clearly:\n  - \u201cShow the actual product, include price points, and highlight any offers or combos.\u201d[3]\n  - Product listing optimisation tips emphasise **clear titles, concise but keyword-rich descriptions, and attractive product images** with key attributes like \u201csugar-free, organic, family pack, travel-friendly.\u201d[11]\n- **Bundles > single SKUs**:\n  - \u201cBundle-focused advertising performs exceptionally well\u201d and \u201cBundle promotions encourage larger baskets (e.g., chips, cola, and dip).\u201d[3][11]\n  - For Meta, this translates to:\n    - \u201cSnack night combo \u2013 save \u20b9XX\u201d overlays.\n    - \u201cMonthly pack \u2013 30 servings\u201d for supplements with a struck-through MRP and visible final price.\n- **Urgency hooks**:\n  - Time band + urgency: \u201cOrder before 11pm for tonight\u2019s dessert\u201d style lines align with time-band strategy where different products are pushed at different hours (coffee 7\u201310am, ice cream 10pm).[11]\n\n---\n\n## 6. Formats that outperform on Meta for Indian D2C in 2025\u201326\n\nFrom India-focused ad educators & quick-commerce performance playbooks:\n\n- **Short-form video (Reels / Stories)**:\n  - Practitioners emphasise building multiple creative variations and letting Meta\u2019s AI optimise; one 2026 guide says: **\u201cUse Meta AI for: Ad copy variations, hook ideas, multiple creative variations.\u201d**[1]\n  - Creative analytics tools for D2C (Hawky, Motion, Triple Whale) are recommended for brands spending **\u20b95L+ per month** to understand which specific clips & hooks are driving ROAS.[8]\n- **Dynamic Product Ads / Catalog ads**:\n  - Quick commerce article notes static ads underperform; DPAs with real-time inventory and time-sensitive offers outperform static by **40\u201360%**.[3]  \n  - For D2C websites, catalog + Advantage+ Shopping aligning to this logic are becoming default for bottom-of-funnel.\n- **Aggressive creative testing**:\n  - \u201cCreative fatigue hits faster than a Zepto delivery\u2026 banner blindness within 72 hours\u2026 implement aggressive creative rotation with at least 3\u20135 variations running simultaneously.\u201d[3]  \n  - For Meta, this means:\n    - Keep 5\u201310 Reels per core product live.\n    - Refresh at least weekly for high-spend ad sets.\n\n---\n\n## 7. Agencies & in-house teams known for strong Indian D2C performance creative\n\nFrom the sources:\n\n- **Manja Brandworks (Manja)** \u2013 creative agency working with The Whole Truth  \n  - The Indian Marketing Society credits: \u201cThe Whole Truth just dropped a hilarious ad in collaboration with the creative agency, Manja. They literally showed what's behind protein!\u201d[6] 2025.  \n  - Another marketing reel echoes: \u201cThe Whole Truth teams up with creative agency Manja to drop a hilarious and eye-catching ad that reveals what's really behind protein supplements.\u201d[2]  \n  - They are clearly leading on *high-concept but performance-usable* video assets for D2C food.\n\n- **Quick-commerce / performance consultancies** (strategy + creative)  \n  - Tenovia\u2019s 2025 guide on Zepto/Blinkit/Instamart gives very performance-specific creative rules (72-hour creative rotation, DPAs, time-band targeting, behavioral segmentation).[3]  \n  - While it\u2019s framed as strategy content, this kind of shop typically also designs ad creatives for brands wanting ROAS-focused output.\n\n- **Creative analytics + internal performance teams**  \n  - A 2026 piece on creative analytics platforms for Indian D2C brands lists **Hawky, Motion, and Triple Whale** as \u201cthe best creative analytics platforms for Indian D2C brands in 2026\u201d for teams spending **\u20b95 lakh or more per month on ads**.[8]  \n  - This indicates serious D2C players (incl. in-house teams at top brands) are now structuring creative production around data from these tools\u2014identifying \u201cwinning thumbnails, hooks, and frames\u201d to scale.\n\n- **In-house brand teams prioritizing brand + performance**  \n  - An Instagram post on \u201cIndian D2C brands today\u201d quotes a founder (context of quick commerce vs D2C brand) saying: **\u201cFor us, brand equity is a priority. We are not willing to compromise on packaging and overall experience \u2013 just to deliver a product in 10 minutes.\u201d**[12]  \n  - This attitude\u2014protect brand but run hard performance\u2014is typical of in-house teams at top D2C brands (TWT, Zepto, Nutrabay-like players) who marry strong visual identity with conversion-focused Meta creative.\n\nThere may be more agencies specifically behind DailyObjects, Nutrabay, etc., but within the retrieved sources only **Manja** is explicitly named for a flagship Indian D2C food brand\u2019s high-performing creative.[2][6] I could not find reliable, named sources in this set attributing DailyObjects\u2019 or Nutrabay\u2019s Meta creatives to specific agencies, so I am not speculating.\n\n---\n\n## 8. How to translate this into your 2025\u201326 testing roadmap\n\nGiven all of the above, for an Indian D2C brand similar to The Whole Truth / Nutrabay / quick-commerce-first packaged foods or accessories, a practical Meta roadmap would be:\n\n1. **Baseline creative system**\n   - 5\u201310 Reels per hero SKU:\n     - 2 \u00d7 UGC/creator POV.\n     - 2 \u00d7 founder/host talking head + ingredient or feature visual.\n     - 2 \u00d7 quick-commerce-specific: \u201cOrder now on Zepto/Blinkit \u2013 10 min delivery\u201d.\n   - 2\u20133 catalog templates: clean pack on color block, price and offer clearly shown.\n\n2. **Hook & concept buckets to test (India-specific)**\n   - \u201cTruth vs lies\u201d / \u201cwhat they don\u2019t tell you\u201d for supplements.[10]\n   - \u201cWhat your city ordered at 2AM\u201d or \u201clate-night cravings in [City]\u201d for quick-commerce.[15][3]\n   - \u201cDesk setup upgrade under \u20b9X\u201d or \u201cbag dump\u201d for accessories.\n\n3. **Offer & price experiments**\n   - Single SKU vs combo bundles (\u201cmonthly pack,\u201d \u201cfamily pack,\u201d \u201csnack night combo\u201d).[3][11]\n   - Straight price slash vs \u201cSave \u20b9XX\u201d vs \u201cFree shipping / free shaker / free pouch\u201d.\n\n4. **Language variants**\n   - At least 3 per asset: Hinglish-heavy, Hindi-dominant, English-dominant; check city/region ROAS splits.\n\n5. **Creative measurement**\n   - Use a creative analytics tool (Hawky/Motion/Triple Whale) if at \u20b95L+/mo spend to track **hook retention** (first 3 seconds), **thumb-stopping frames**, and tie that to ROAS.[8]\n\nIf you want, I can next:  \n- Deconstruct 3\u20135 live Reels from a specific brand (e.g., The Whole Truth or a Zepto campaign), frame-by-frame, and turn them into testable Meta ad templates tailored to your category and AOV."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+{
+  "brand": "Verbis Education",
+  "date": "2026-06-17",
+  "shape": "Cell stage — the final pipeline stage. Turns The Bet's primary angle into one finished ad (copy + rendered image) AUTONOMOUSLY (the cell agent does it, not the operator). Verbis = study-abroad SERVICE (no product reference-image), real proof base (490 Google @ 4.9, named advisor Partha). The cell matches->derives the format from the angle + proof, writes the shot spec + copy, renders (text-to-image, no product), and runs its own vision gate.",
+  "notes": "First CELL apprentice run. thebet.md = strategy output (honest-assessment positioning; audience-discovery; Angle 1 = Aspiring Student, primary). research.md = the manually-corrected version (real Google reviews injected). competitors.md = comp output. NO reference-images (service). v1 LIMITATION: cell self-critiques inline (no independent critic seat wired yet). Renders via Bash -> server/tmp-cell-render-t2i.mjs -> results/cell-dryrun/. Tests whether the cell, run as an agent, autonomously produces a brand-honest, swap-proof ad from the real Bet — the end-to-end the hand-built v1 testimonial skipped."
+}

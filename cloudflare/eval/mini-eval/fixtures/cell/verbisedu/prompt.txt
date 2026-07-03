@@ -1,0 +1,48 @@
+A direct-response lead-generation ad creative for Meta (Instagram/Facebook feed), 4:5 portrait format (1080×1350px), feed-native and scroll-stopping. The format is a peer-proof testimonial that reads like a student sharing their Google Maps research — NOT a designed brand ad, NOT a studio shot.
+
+THE IMAGE CONCEPT:
+The frame shows the Google Maps / Google Business Profile listing for Verbis Edu (a study-abroad education consultancy in Bengaluru, India) as viewed on a smartphone screen. The phone screen fills the upper approximately 68% of the frame. Below the phone screen edge is a softly blurred warm wooden desk with an open notebook — the student's real study environment.
+
+PHONE SCREEN — authentic Google Maps light-mode UI (white background, Google's rounded sans-serif typeface, standard layout):
+
+[Phone status bar, very top]: thin strip, clock at left in dark grey, battery and signal icons at right in dark grey, on white background.
+
+[Business listing card — white, with standard Google Maps padding and card hierarchy]:
+  · Title (large, bold, dark grey text): Verbis Edu
+  · Subtitle (small, regular, grey): Education consultant · Mathikere, Bengaluru
+  · Rating row: five filled amber-yellow stars (Google gold color), then bold dark grey text "4.9", then lighter grey text "490 reviews", then a small multicolor Google "G" logo at the far right of the row
+
+[Reviews section, directly below the listing card]:
+  · Section heading (dark grey, medium weight): Reviews
+  · One review entry card (white rounded rectangle with subtle drop shadow):
+    — Left: small circular avatar (grey fill, white letter "M" centered)
+    — Next to avatar: reviewer name "Mahesh Ns" in dark grey; to its right: "1 week ago" in light grey
+    — Below the name row: five small filled amber stars
+    — Below the stars: review body text in regular dark grey — "Partha has been guiding/assisting us in all the stages of this process."
+
+The phone screen looks like a real smartphone screenshot: slight luminance glow at the screen edges, true white background, correct Google Maps type hierarchy and spacing. Not a mockup, not a designed card — it reads as the authentic Google Maps UI.
+
+BACKGROUND (below the phone screen, the desk strip):
+The bottom approximately 32% of the image shows: a warm honey-toned wooden desk surface, an open spiral-bound notebook with a ballpoint pen resting diagonally on it (handwriting visible as texture but not legible), softly out of focus. Soft natural window light entering from the upper left, gentle directional shadows to the right. No laptop. No chai. No people. No faces.
+
+CTA ELEMENT (at the very bottom edge of the image, inside the desk area):
+A small deep-navy rounded pill button, horizontally centered:
+— Fill color: deep navy blue (#1a2e5a)
+— Text (white, clean sans-serif, legible): "Book free counselling →"
+
+TECHNICAL REQUIREMENTS:
+— 4:5 portrait (taller than wide)
+— Google Maps listing text must be legible, especially: "4.9", "490 reviews", and the Mahesh Ns review body
+— Overall feel: a real phone screenshot in a student's real environment, not a designed ad. Cool-neutral light quality. Slight screen luminance at the phone screen area.
+— The phone screen edge / bottom bezel is visible, marking the transition from the screen to the desk below
+
+DO NOT INCLUDE:
+— AI-gloss or studio-perfect sheen anywhere
+— Any person's face or full body (no student visible — desk and notebook only)
+— Amazon review chrome (no orange stars, no "Verified Purchase" badge, no "Amazon.in" text) — Google Maps UI only
+— Gradient blobs, abstract shapes, or brand-colored background panels
+— A laptop, a second screen, or any additional device
+— A smiling stock-photo student or model
+— Golden or warm photo grade (keep cool-neutral, screen-glow light quality)
+— Made-up visa stamps, acceptance letters, or named university logos
+— Any on-image text except the Google Maps UI elements specified above and the CTA chip

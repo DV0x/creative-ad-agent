@@ -60,12 +60,16 @@ export const compApprentice: Apprentice = {
     'Your tools:',
     '',
     `  - ${PERPLEXITY_TOOL_NAME}`,
-    '                        Perplexity Search API (raw web retrieval, no LLM',
-    '                        synthesis). Your engine for field discovery, the',
-    '                        clustering/axes read, white-space verification, and',
-    '                        the category-trend FALLBACK when the Ad Library is',
-    '                        empty. Pass an ARRAY of queries (1-8); each fires',
-    '                        concurrently. Quote from SOURCES, attribute by domain.',
+    '                        Perplexity Sonar Pro. Your engine for field',
+    '                        discovery, the clustering/axes read, white-space',
+    '                        verification, and the category-trend FALLBACK when',
+    '                        the Ad Library is empty. Pass an ARRAY of questions',
+    '                        (1-8); each fires concurrently and returns a',
+    '                        web-grounded ANSWER (keeps every fact bound to its',
+    '                        exact subject) PLUS the SOURCES it cited. Read the',
+    '                        answer for context; attribute every rival, claim,',
+    '                        and number to a named SOURCE, by domain. A claim you',
+    '                        cannot trace to a source is not a finding.',
     '',
     `  - ${SCRAPECREATORS_FIND_PAGES_TOOL}`,
     '                        Resolve rival NAMES to Meta Ad Library pages. Pass an',
@@ -103,10 +107,13 @@ export const compApprentice: Apprentice = {
 
   deliverable: 'competitors.md',
 
-  // Haiku 4.5 — the production target, matching the research apprentice. The
-  // binder content mirrors research's grounding discipline; if a failure looks
-  // model-capability-shaped rather than binder-shaped, swap to
-  // 'claude-sonnet-4-6' to isolate. Opus 4.7 is incompatible with the pinned SDK.
+  // Haiku 4.5 — production-realistic test of the REDESIGNED binder (this
+  // session: demand-checked white space + read-rivals-on-desire + playbook/
+  // wallpaper). S116 bumped comp to Sonnet after Haiku failed the OLD binder
+  // (leaked hooks, a pixel claim, an invented rival AMYRA); the redesign added
+  // load, so we re-test whether Haiku can carry the richer binder. If a failure
+  // is clearly model-capability-shaped, swap back to 'claude-sonnet-4-6' to
+  // isolate. Opus 4.7 is incompatible with the pinned SDK.
   model: 'claude-haiku-4-5-20251001',
 
   // Read/Write/WebFetch are SDK built-ins. The Perplexity + ScrapeCreators tools

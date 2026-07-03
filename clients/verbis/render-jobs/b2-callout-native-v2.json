@@ -1,0 +1,16 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "b2-callout-en-native-v2",
+      "refs": [
+        "assets/trainer/parth-clean.png",
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass — it should feel like a real candid still from a phone-recorded video of the trainer talking to the viewer, NOT a glossy studio poster. THREE reference images: (1) the trainer's face; (2) the Verbis Edu logo; (3) a Google review badge.\n\nUse the MAN in reference 1 EXACTLY — same face, beard, warm expression, navy bandhgala jacket — looking straight into the camera as if he's mid-sentence talking directly to you. Natural warm indoor lighting, a simple real room/office softly out of focus behind him, slight candid imperfection like a real video frame. Do not change his face. He occupies roughly the right half. AVOID: glossy studio polish, perfect symmetry, slick gradients, over-saturation.\n\nNAME STRIP: near the bottom, over the trainer's side, add a lower-third video-style caption bar (a semi-transparent dark rounded bar): 'Parthasarathy Bhaskara' in bold white, and directly under it in smaller light text 'Pearson-certified PTE Trainer · 2,500+ students trained'.\n\nTEXT on the LEFT side (simple, casual, like a real social ad — not heavy poster type):\n- a small gold-outlined eyebrow tag, uppercase: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- a bold dark headline: 'Retaking PTE again? It's not your English.'\n- a smaller line: 'It's the format — I'll show you exactly how it's scored.'\n- a simple flat gold (#FBBD29) button with dark text: 'Crack PTE 79+  →  ₹589'\n- directly BELOW the button, reproduce the provided GOOGLE REVIEW BADGE (reference 3) SMALL, exactly as given — keep the four-colour Google 'G', the stars, '4.9' and '491 Google reviews'.\n\nReproduce the VERBIS EDU logo (reference 2) SMALL in the TOP-LEFT corner with a clear margin from the edges — fully visible, NOT cropped, exactly as provided.\n\nWarm, real, authentic look. All text crisp and correctly spelled."
+    }
+  ]
+}

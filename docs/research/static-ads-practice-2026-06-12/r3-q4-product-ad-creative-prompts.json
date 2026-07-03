@@ -1,0 +1,170 @@
+{
+  "id": "272c12df-c357-401e-90aa-283e46c998a3",
+  "model": "sonar-pro",
+  "created": 1781284744,
+  "usage": {
+    "prompt_tokens": 223,
+    "completion_tokens": 1314,
+    "total_tokens": 1537,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00067,
+      "output_tokens_cost": 0.01971,
+      "request_cost": 0.014,
+      "total_cost": 0.03438
+    }
+  },
+  "citations": [
+    "https://www.ud.hk/en/blogs/insight/article/2026-06-03-midjourney-nano-banana-workflow",
+    "https://www.blendnow.com/blog/top-10-tools-for-product-photography",
+    "https://srefhunt.com/midjourney-vs-nano-banana/",
+    "https://bria.ai/product-shots",
+    "https://www.youtube.com/watch?v=tmwkWnRZkUg",
+    "https://www.smartphotoeditors.com/blog/how-global-brands-use-image-editing-to-win-customers/",
+    "https://www.instagram.com/p/DWPYLUKEi3O/",
+    "https://www.element61.be/en/resource/how-ai-image-generation-can-support-marketing-and-branding-strategies",
+    "https://www.instagram.com/reel/DOVNJp0jQCL/?hl=en",
+    "https://runware.ai/collections/best-image-editing",
+    "https://www.digitalapplied.com/blog/gemini-3-pro-image-marketing-guide",
+    "https://www.instagram.com/reel/DYT-8_ITs8N/",
+    "https://yingtu.ai/en/blog/nano-banana-pro-vs-midjourney-v7",
+    "https://claid.ai/blog/article/ai-product-photo-tools",
+    "https://blog.laozhang.ai/en/posts/nano-banana-pro-vs-midjourney-v8"
+  ],
+  "search_results": [
+    {
+      "title": "Midjourney + Nano Banana Pro: The Two-Tool AI Image Workflow",
+      "url": "https://www.ud.hk/en/blogs/insight/article/2026-06-03-midjourney-nano-banana-workflow",
+      "date": "2026-06-04",
+      "last_updated": "2026-06-07",
+      "snippet": "Midjourney owns the look; Nano Banana Pro fixes text and identity. Get the exact two-tool AI image workflow plus a copy-paste prompt sequence you can run ...",
+      "source": "web"
+    },
+    {
+      "title": "Top 10 AI Product Photography Tools for Sellers 2026 - Blend",
+      "url": "https://www.blendnow.com/blog/top-10-tools-for-product-photography",
+      "date": "2025-11-29",
+      "last_updated": "2026-06-09",
+      "snippet": "An AI editing engine that handles fine-grain corrections such as label restoration, small-text cleaning, and packaging fidelity\u2014areas where many AIs stumble.",
+      "source": "web"
+    },
+    {
+      "title": "Midjourney vs Nano Banana: Which AI Image Generator Is Better for ...",
+      "url": "https://srefhunt.com/midjourney-vs-nano-banana/",
+      "date": "2025-11-26",
+      "last_updated": "2026-06-05",
+      "snippet": "Both deliver stunning results \u2014 but they're built for very different workflows. This guide breaks down Midjourney vs Nano Banana with a clear, practical ...",
+      "source": "web"
+    },
+    {
+      "title": "AI Product Photography & Product Shots | Bria",
+      "url": "https://bria.ai/product-shots",
+      "date": "2026-01-07",
+      "last_updated": "2026-06-11",
+      "snippet": "Automatically generate region-specific product images, packaging, and backgrounds while preserving brand consistency worldwide.",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana vs Midjourney The AI Image Test You Need to See",
+      "url": "https://www.youtube.com/watch?v=tmwkWnRZkUg",
+      "date": "2025-09-05",
+      "last_updated": "2026-03-16",
+      "snippet": "Comments ; Nano Banana Pro VS ChatGPT VS Midjourney VS Flux - Best AI Image Model. Skill Leap AI \u00b7 17K views ; Flux 2 Pro vs Nano Banana Pro vs Midjourney \u2013 The ...",
+      "source": "web"
+    },
+    {
+      "title": "How Global Brands are Using Image Editing to Win Customers",
+      "url": "https://www.smartphotoeditors.com/blog/how-global-brands-use-image-editing-to-win-customers/",
+      "date": "2025-10-06",
+      "last_updated": "2026-06-10",
+      "snippet": "Image editing improves eCommerce performance by maximizing product visual fidelity, standardizing catalog presentation, and ensuring outputs meet omnichannel UX ...",
+      "source": "web"
+    },
+    {
+      "title": "Tested Midjourney v8 against Nano Banana Pro, including style ...",
+      "url": "https://www.instagram.com/p/DWPYLUKEi3O/",
+      "date": "2026-03-23",
+      "snippet": "Nano Banana Pro seems the stronger generator overall, primarily due to how well it handles references and lets you use up to 14 images. Verdict: Midjourney v8 ...",
+      "source": "web"
+    },
+    {
+      "title": "How AI image generation can support marketing and branding ...",
+      "url": "https://www.element61.be/en/resource/how-ai-image-generation-can-support-marketing-and-branding-strategies",
+      "date": "2025-10-29",
+      "last_updated": "2026-06-11",
+      "snippet": "Together, these examples highlight how AI can support both tactical branding needs (logos, packaging design, fidelity refinements) and strategic marketing goals ...",
+      "source": "web"
+    },
+    {
+      "title": "when anyone can create high-end AI slop, they get commoditized ...",
+      "url": "https://www.instagram.com/reel/DOVNJp0jQCL/?hl=en",
+      "date": "2025-09-07",
+      "last_updated": "2026-05-26",
+      "snippet": "Nano Banana Pro? Breakthrough model, first AI image tool that renders text accurately. Best for carousels and infographics. Midjourney V7? Still the king of ...",
+      "source": "web"
+    },
+    {
+      "title": "Best Image Editing AI Models - Runware",
+      "url": "https://runware.ai/collections/best-image-editing",
+      "date": "2025-12-11",
+      "last_updated": "2026-06-11",
+      "snippet": "It preserves the main subject with high fidelity. Ideal for automated product visuals, creative workflows, and bulk content pipelines.",
+      "source": "web"
+    },
+    {
+      "title": "Gemini 3 Pro Image: AI Visual Marketing Complete Guide",
+      "url": "https://www.digitalapplied.com/blog/gemini-3-pro-image-marketing-guide",
+      "date": "2025-12-14",
+      "last_updated": "2026-06-12",
+      "snippet": "Unlike consumer-focused models optimized for creative exploration, Nano Banana Pro targets production workflows where output quality, consistency, and ...",
+      "source": "web"
+    },
+    {
+      "title": "I made a full spec ad using AI, here's exactly how I did it ... - Instagram",
+      "url": "https://www.instagram.com/reel/DYT-8_ITs8N/",
+      "date": "2026-05-14",
+      "last_updated": "2026-05-30",
+      "snippet": "it lets you edit an image while keeping specific subjects or objects intact. ... 1 PRODUCT IMAGE to a cinematic AI ad workflow STEP 01 Analyze the product ...",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana Pro vs Midjourney v7: The Definitive 2025 ... - YingTu",
+      "url": "https://yingtu.ai/en/blog/nano-banana-pro-vs-midjourney-v7",
+      "date": "2025-12-30",
+      "last_updated": "2026-06-12",
+      "snippet": "Compare Nano Banana Pro and Midjourney v7 with real benchmark data: 94% vs 10% text accuracy, 4K native vs 1024px, $0.05 vs $30/month.",
+      "source": "web"
+    },
+    {
+      "title": "AI product photography: the best tools for ecommerce in 2026",
+      "url": "https://claid.ai/blog/article/ai-product-photo-tools",
+      "date": "2026-01-27",
+      "last_updated": "2026-06-10",
+      "snippet": "Full AI image editing suite High fidelity to the original product and real control over consistency Strong APIs for automating image generation and editing ...",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana Pro vs Midjourney v8: The Complete 2026 ...",
+      "url": "https://blog.laozhang.ai/en/posts/nano-banana-pro-vs-midjourney-v8",
+      "date": "2026-03-17",
+      "last_updated": "2026-06-11",
+      "snippet": "A monthly workflow of 500 exploration images on Midjourney Relax mode plus 50 production images on Nano Banana Pro would cost approximately $32.50 \u2014 less than ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "For **product ads and static ad creatives**, the most reliable workflow in the sources is to **create the art direction in Midjourney, then use Nano Banana Pro or GPT-image for image-editing/compositing** so the product stays faithful while text, badges, and layout elements are added in the editor stage.[1][8][14]\n\n- **Midjourney first, no text yet**: one practitioner workflow says to prompt Midjourney for \u201cthe mood, palette, and composition you want,\u201d and to \u201cignore text and fine detail entirely at this point,\u201d because the goal is only a base image that \u201cfeels right.\u201d[1]\n- **Then edit in Nano Banana Pro**: the same workflow says to upload the Midjourney image and instruct Nano Banana Pro to \u201cadd this headline, swap this background, keep this face, place this product on the shelf,\u201d because it \u201cedits the existing pixels rather than starting over.\u201d[1]\n- **Keep the product image as the anchor**: Bria\u2019s product-shot workflow emphasizes using a reference image or text-guided product placement while \u201cpreserving product integrity,\u201d \u201ctrue color, texture, and shape,\u201d and the product\u2019s \u201creal look, texture, and brand integrity.\u201d[4]\n- **Use GPT-image for editing and logo placement**: one marketing workflow based on OpenAI Playground says GPT-image-1 supports \u201cediting, logo placement, and combining multiple images,\u201d and the same article describes taking a lifestyle image and adding a logo directly onto packaging with \u201ca single adjustment.\u201d[8]\n\nA named practitioner workflow for a static ad with text is explicitly described like this:[1]\n- **Step 1, in Midjourney (aesthetics only, no text):** \u201cEditorial portrait of a confident Hong Kong woman in her early 30s, smart-casual blazer, sitting in a bright modern co-working space, warm natural window light, shallow depth of field, professional advertising photography, 4:5 vertical composition\u201d\n- **Step 2, in Nano Banana Pro (attach the Midjourney image):** \u201cUsing the attached image as the exact reference for the woman's face and outfit, keep her identity identical. Place a clean headline in the upper third that reads \u2018Work smarter, not harder\u2019 in bold white sans-serif text. Keep the lighting and background unchanged. Output a crisp, legible, print-ready result.\u201d[1]\n\nFor **product packaging fidelity**, the sources converge on a few rules:[2][4][14]\n- **Start from a real product photo or a high-fidelity reference**, not a pure text-to-image guess, when packaging accuracy matters.[4][14]\n- **Preserve identity on the edit pass** by telling the model to keep the product unchanged while altering background, scene, or layout.[1][4]\n- **Use product-specific editors for small labels and packaging edges** because they are designed for \u201clabel restoration,\u201d \u201csmall-text cleaning,\u201d and \u201cpackaging fidelity.\u201d[2][14]\n- **Restyle the scene, not the package**: Bria says its image-based workflow adapts the environment \u201cwhile preserving the original product\u2019s look,\u201d and the product \u201ccontinues to look authentic and consistent.\u201d[4]\n\nReal prompt language from the sources that is directly relevant to ad creatives:\n\n- Midjourney base-image prompt: \u201cEditorial portrait of a confident Hong Kong woman in her early 30s, smart-casual blazer, sitting in a bright modern co-working space, warm natural window light, shallow depth of field, professional advertising photography, 4:5 vertical composition.\u201d[1]\n- Nano Banana Pro edit prompt: \u201cUsing the attached image as the exact reference for the woman's face and outfit, keep her identity identical. Place a clean headline in the upper third that reads \u2018Work smarter, not harder\u2019 in bold white sans-serif text. Keep the lighting and background unchanged. Output a crisp, legible, print-ready result.\u201d[1]\n- Product-visual prompt from a branding test case: \u201cCreate an image of someone doing laundry with laundry strips. The strips are from the brand Zyra (vivid orange, blue, and purple abstract design). The woman is looking happy.\u201d[8]\n- Product-photo workflow language: \u201cGenerate lifestyle product shots that preserve the original product\u2019s look while adapting to new environments described through text prompts.\u201d[4]\n- Reference-image workflow language: \u201cGenerate lifestyle product shots that stay true to the original product while adapting to new environments, guided by a reference image.\u201d[4]\n\nWhat the sources say about **when to use which model**:\n\n| Model | Best fit for this task | Source-based reason |\n|---|---|---|\n| **Midjourney v7** | Concepting the ad look, mood, and composition | Strong at stylized scenes but weak on precise text/editing; one source says it is for the \u201cmood, palette, and composition\u201d stage.[1][3] |\n| **Nano Banana Pro** | Final ad layout, text placement, reference-image edits, identity/product consistency | Described as strong for accurate text, identity consistency, and pixel-level edits rather than regeneration.[1][3][5] |\n| **GPT-image** | Marketing edits, logo placement, combining multiple images | One marketing workflow says it supports \u201cediting, logo placement, and combining multiple images.\u201d[8] |\n\nTwo practical prompt patterns show up across the sources:\n\n- **Separate generation from editing**: use a long, art-directed prompt in Midjourney; use a shorter, direct edit instruction in Nano Banana Pro.[1]\n- **Name what must not change**: \u201cexact reference,\u201d \u201ckeep her identity identical,\u201d \u201cKeep the lighting and background unchanged,\u201d and \u201cpreserving product integrity\u201d are the kinds of constraints the sources recommend.[1][4]\n\nI could not find a source in the retrieved results that gives a full, explicitly branded **product-ad template prompt** with **headline + badge + CTA button + real product photo** all in one example for Nano Banana Pro, GPT-image, or Midjourney v7. The closest matches are the Midjourney-to-Nano-Banana Pro ad workflow for a headline overlay[1], the GPT-image branding/editing workflow for logo placement on packaging[8], and the product-shot workflows focused on preserving packaging fidelity while changing the scene[4]."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

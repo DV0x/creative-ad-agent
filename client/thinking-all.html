@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>All Thinking Concepts — Pick Your Favorite</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f0f0f; color: #f5f5f5; font-family: 'DM Sans', sans-serif; padding: 32px; }
+  :root {
+    --accent: #ff6b6b; --accent-glow: rgba(255,107,107,0.25); --accent-dim: rgba(255,107,107,0.5);
+    --accent-faint: rgba(255,107,107,0.1);
+    --bg-raised: #171717; --bg-elevated: #1f1f1f; --border: #2a2a2a;
+    --text-secondary: #a3a3a3; --text-muted: #555;
+    --blue: #4361ee; --purple: #7c3aed; --orange: #f59e0b; --green: #22c55e;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 6px; color: var(--text-secondary); }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 32px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+  }
+  .card {
+    background: var(--bg-raised);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    position: relative;
+  }
+  .card:hover { border-color: #3a3a3a; transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+  .card.selected { border-color: var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+  .card.selected::after {
+    content: ''; position: absolute; top: 10px; right: 10px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--accent); color: white; font-size: 12px;
+    display: flex; align-items: center; justify-content: center;
+    content: '\2713';
+    line-height: 20px; text-align: center;
+  }
+  .card-label {
+    padding: 10px 14px 0;
+    font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted); font-weight: 600;
+  }
+  .card-body { padding: 12px 14px 14px; }
+  .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .timer { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .ts { font-size: 10px; color: #333; margin-top: 6px; }
+
+  /* Shared spinner */
+  .orb { position: relative; display: inline-block; width: 14px; height: 14px; flex-shrink: 0; }
+  .orb .t { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255,107,107,0.1); }
+  .orb .dw { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; animation: os 1.4s linear infinite; }
+  .orb .dw:nth-child(3) { animation-delay: 0.7s; }
+  .orb .d { width: 3.5px; height: 3.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .orb .dw:nth-child(3) .d { background: var(--accent-dim); box-shadow: none; }
+  @keyframes os { from { transform: rotate(0deg) translateX(40%) rotate(0deg); } to { transform: rotate(360deg) translateX(40%) rotate(-360deg); } }
+
+  .meta-row { display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .phase-text { font-size: 12px; color: var(--text-secondary); }
+
+  /* ── A: Single Line ── */
+  .sl { display: flex; align-items: center; gap: 8px; }
+  .sl .st { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .sl .sep { color: var(--text-muted); font-size: 10px; }
+
+  /* ── B: Pills ── */
+  .pills { display: flex; gap: 5px; flex-wrap: wrap; }
+  .pill { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 16px; font-size: 10px; font-weight: 500; }
+  .pill.done { background: rgba(34,197,94,0.08); color: rgba(34,197,94,0.7); border: 1px solid rgba(34,197,94,0.15); }
+  .pill.active { background: var(--accent-faint); color: var(--accent); border: 1px solid rgba(255,107,107,0.25); }
+  .pill.pending { color: var(--text-muted); border: 1px solid var(--border); }
+
+  /* ── C: Glow Bubble ── */
+  .glow-bubble { background: var(--bg-elevated); border-radius: 10px; padding: 12px; border: 1px solid transparent; animation: borderGlow 2.5s ease-in-out infinite; }
+  @keyframes borderGlow { 0%,100% { border-color: rgba(255,107,107,0.2); box-shadow: 0 0 8px rgba(255,107,107,0.05); } 50% { border-color: rgba(255,107,107,0.45); box-shadow: 0 0 20px rgba(255,107,107,0.12); } }
+  .glow-bubble .txt { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+  .glow-bubble .cursor { display: inline-block; width: 2px; height: 12px; background: var(--accent); margin-left: 1px; vertical-align: text-bottom; animation: blink 1s step-end infinite; }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0; } }
+
+  /* ── D: Breadcrumbs ── */
+  .bc-msg { font-size: 11px; color: var(--text-muted); padding: 2px 0; }
+  .bc-msg .hl { color: var(--accent); }
+  .bc-active { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); }
+  .bc-bar { width: 100px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; margin-top: 4px; }
+  .bc-bar .fill { height: 100%; width: 50%; background: var(--accent); border-radius: 2px; }
+
+  /* ── E: Dot Trail ── */
+  .dt { display: flex; align-items: center; gap: 6px; }
+  .dt-dot { width: 6px; height: 6px; border-radius: 50%; }
+  .dt-dot.done { background: var(--accent); opacity: 0.5; }
+  .dt-dot.recent { opacity: 0.8; }
+  .dt-dot.pending { background: var(--border); }
+
+  /* ── F: Emoji Story ── */
+  .emoji-row { display: flex; align-items: center; gap: 3px; }
+  .es { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 15px; transition: all 0.3s; }
+  .es.done { background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.15); }
+  .es.active { background: var(--accent-faint); border: 1px solid rgba(255,107,107,0.3); transform: scale(1.1); box-shadow: 0 0 12px rgba(255,107,107,0.1); }
+  .es.pending { background: var(--bg-elevated); border: 1px solid var(--border); opacity: 0.4; }
+  .es-arrow { color: var(--text-muted); font-size: 9px; }
+  .es-arrow.lit { color: rgba(34,197,94,0.5); }
+
+  /* ── G: Ticker ── */
+  .tk-history { font-size: 10px; color: var(--text-muted); padding: 2px 0; }
+  .tk-line { display: flex; align-items: center; gap: 8px; }
+  .tk-text { font-size: 12px; color: var(--text-secondary); border-right: 2px solid var(--accent); animation: blink 0.8s step-end infinite; padding-right: 2px; }
+
+  /* ── H: Paint Fill ── */
+  .paint-bar { height: 4px; border-radius: 3px; background: var(--bg-elevated); overflow: hidden; position: relative; }
+  .paint-fill { height: 100%; border-radius: 3px; background: linear-gradient(90deg, #4361ee, #7c8cf5, var(--accent), #ff8f8f, #ffb366); background-size: 200% 100%; animation: paintShift 3s ease-in-out infinite; position: relative; }
+  .paint-fill::after { content:''; position: absolute; right: 0; top: -2px; bottom: -2px; width: 10px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent-glow); }
+  @keyframes paintShift { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .paint-labels { display: flex; justify-content: space-between; margin-top: 6px; }
+  .paint-labels span { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .paint-labels .done { color: var(--text-muted); }
+  .paint-labels .active { color: var(--accent); font-weight: 600; }
+  .paint-labels .pending { color: #333; }
+
+  /* ── I: Constellation ── */
+  .const { position: relative; width: 180px; height: 50px; }
+  .star { position: absolute; border-radius: 50%; }
+  .star.done { width: 7px; height: 7px; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .star.active { width: 7px; height: 7px; background: var(--accent); box-shadow: 0 0 12px var(--accent-glow); animation: starPulse 1.5s ease-in-out infinite; }
+  .star.pending { width: 5px; height: 5px; background: #333; }
+  @keyframes starPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.5); } }
+  .star-line { position: absolute; height: 1px; }
+  .star-line.done { background: var(--accent-dim); opacity: 0.3; }
+  .star-line.active { background: var(--accent-dim); opacity: 0.2; }
+
+  /* ── J: Sparkle ── */
+  .sparkle-area { position: relative; padding: 4px 0; }
+  .sparkle-particles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+  .sp { position: absolute; font-size: 9px; opacity: 0; animation: spFloat 2.5s ease-in-out infinite; color: var(--accent); }
+  @keyframes spFloat { 0% { opacity:0; transform: translateY(0) scale(0.5); } 20% { opacity:0.7; transform: translateY(-6px) scale(1); } 80% { opacity:0.2; transform: translateY(-16px) scale(0.6); } 100% { opacity:0; transform: translateY(-22px) scale(0.3); } }
+  .sparkle-icon { font-size: 15px; animation: sparkleWiggle 2s ease-in-out infinite; filter: drop-shadow(0 0 3px var(--accent-glow)); }
+  @keyframes sparkleWiggle { 0%,100% { transform: rotate(0) scale(1); } 25% { transform: rotate(12deg) scale(1.15); } 75% { transform: rotate(-8deg) scale(1.08); } }
+
+  /* ── K: Morphing Blob ── */
+  .blob { width: 30px; height: 30px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--blue)); animation: blobMorph 4s ease-in-out infinite, blobSpin 6s linear infinite; box-shadow: 0 0 16px var(--accent-glow); flex-shrink: 0; }
+  @keyframes blobMorph { 0%,100% { border-radius: 60% 40% 30% 70%/60% 30% 70% 40%; } 25% { border-radius: 30% 60% 70% 40%/50% 60% 30% 60%; } 50% { border-radius: 50% 60% 30% 40%/40% 50% 60% 50%; } 75% { border-radius: 40% 30% 60% 50%/60% 40% 50% 70%; } }
+  @keyframes blobSpin { to { transform: rotate(360deg); } }
+  .blob-dots { display: flex; gap: 3px; margin-top: 4px; }
+  .bd { width: 5px; height: 5px; border-radius: 50%; }
+  .bd.done { background: var(--accent); opacity: 0.5; }
+  .bd.active { background: var(--accent); animation: starPulse 1.5s ease-in-out infinite; }
+  .bd.pending { background: #2a2a2a; }
+
+  /* ── L: Color Palette ── */
+  .drops { position: relative; width: 56px; height: 28px; flex-shrink: 0; }
+  .drop { width: 16px; height: 16px; border-radius: 50%; position: absolute; top: 6px; filter: blur(0.5px); }
+  .drop:nth-child(1) { left: 0; background: var(--blue); animation: dPulse 2s ease-in-out infinite; }
+  .drop:nth-child(2) { left: 12px; background: var(--purple); animation: dPulse 2s ease-in-out infinite 0.3s; }
+  .drop:nth-child(3) { left: 24px; background: var(--accent); animation: dPulse 2s ease-in-out infinite 0.6s; }
+  .drop:nth-child(4) { left: 36px; background: var(--orange); animation: dPulse 2s ease-in-out infinite 0.9s; opacity: 0.3; }
+  @keyframes dPulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.15); } }
+
+  /* ── M: Neon ── */
+  .neon-row { display: flex; gap: 5px; align-items: baseline; flex-wrap: wrap; }
+  .neon-done { font-size: 13px; font-weight: 600; color: rgba(34,197,94,0.6); text-shadow: 0 0 6px rgba(34,197,94,0.15); }
+  .neon-active { font-size: 13px; font-weight: 600; color: var(--accent); text-shadow: 0 0 4px var(--accent-glow), 0 0 10px var(--accent-glow); animation: neonFlicker 3s ease-in-out infinite; }
+  .neon-off { font-size: 13px; font-weight: 600; color: #333; }
+  .neon-sep { color: #333; font-size: 11px; }
+  @keyframes neonFlicker { 0%,100% { opacity:1; } 5% { opacity:0.8; } 6% { opacity:1; } 50% { text-shadow: 0 0 6px var(--accent-glow), 0 0 14px var(--accent-glow); } 51% { opacity:0.9; } 52% { opacity:1; } }
+
+  /* ── N: Equalizer ── */
+  .eq-bars { display: flex; align-items: flex-end; gap: 2px; height: 24px; flex-shrink: 0; }
+  .eq-bar { width: 3px; border-radius: 2px; background: var(--accent); }
+  .eq-bar:nth-child(1) { animation: eqB 0.8s ease-in-out infinite 0s; }
+  .eq-bar:nth-child(2) { animation: eqB 0.8s ease-in-out infinite 0.1s; }
+  .eq-bar:nth-child(3) { animation: eqB 0.8s ease-in-out infinite 0.2s; }
+  .eq-bar:nth-child(4) { animation: eqB 0.8s ease-in-out infinite 0.05s; }
+  .eq-bar:nth-child(5) { animation: eqB 0.8s ease-in-out infinite 0.15s; }
+  .eq-bar:nth-child(6) { animation: eqB 0.8s ease-in-out infinite 0.25s; }
+  .eq-bar:nth-child(7) { animation: eqB 0.8s ease-in-out infinite 0.08s; }
+  @keyframes eqB { 0%,100% { height: 5px; opacity: 0.4; } 50% { height: 20px; opacity: 1; } }
+
+  /* ── O: Plant ── */
+  .plant { width: 40px; height: 40px; position: relative; flex-shrink: 0; }
+  .plant-stem { position: absolute; width: 2px; background: #22c55e; bottom: 10px; left: 50%; transform: translateX(-50%); border-radius: 1px; animation: stemG 4s ease-out forwards; }
+  @keyframes stemG { 0% { height: 0; } 100% { height: 20px; } }
+  .plant-base { position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%); width: 16px; height: 8px; background: #5c3a1e; border-radius: 0 0 5px 5px; }
+  .plant-flower { position: absolute; top: 4px; left: 50%; transform: translateX(-50%); font-size: 12px; opacity: 0; animation: bloom 0.6s ease-out 3s forwards; }
+  @keyframes bloom { 0% { opacity:0; transform: translateX(-50%) scale(0); } 100% { opacity:1; transform: translateX(-50%) scale(1); } }
+
+  /* ── P: Wave ── */
+  .wave-band { height: 28px; border-radius: 8px; overflow: hidden; position: relative; }
+  .wave-svg { width: 200%; height: 100%; animation: waveScroll 3s linear infinite; }
+  @keyframes waveScroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+  /* ── Q: Film Strip ── */
+  .film { display: flex; gap: 0; background: #1a1a1a; border-radius: 5px; overflow: hidden; height: 36px; }
+  .ff { flex: 1; display: flex; align-items: center; justify-content: center; border-right: 1px solid #2a2a2a; font-size: 10px; font-weight: 500; }
+  .ff:last-child { border-right: none; }
+  .ff.done { background: rgba(34,197,94,0.06); color: rgba(34,197,94,0.7); }
+  .ff.active { background: var(--accent-faint); color: var(--accent); position: relative; }
+  .ff.active::after { content:''; position: absolute; bottom: 0; left: 0; right: 0; height: 2px; background: var(--accent); animation: filmScan 1.5s ease-in-out infinite; }
+  @keyframes filmScan { 0%,100% { opacity:0.3; } 50% { opacity:1; } }
+  .ff.pending { color: #333; }
+
+  /* ── R: Lava Lamp ── */
+  .lava { width: 24px; height: 40px; background: linear-gradient(180deg, #1a1020, #150d1e); border-radius: 8px; position: relative; overflow: hidden; flex-shrink: 0; border: 1px solid #2a2030; }
+  .lb { position: absolute; border-radius: 50%; filter: blur(1.5px); }
+  .lb:nth-child(1) { width: 12px; height: 12px; background: var(--accent); bottom: 3px; left: 3px; animation: lavaR 3s ease-in-out infinite; }
+  .lb:nth-child(2) { width: 8px; height: 10px; background: var(--purple); bottom: 6px; right: 2px; animation: lavaR 4s ease-in-out infinite 1s; }
+  .lb:nth-child(3) { width: 7px; height: 7px; background: var(--orange); bottom: 2px; left: 8px; animation: lavaR 3.5s ease-in-out infinite 0.5s; opacity: 0.7; }
+  @keyframes lavaR { 0%,100% { transform: translateY(0) scale(1); } 50% { transform: translateY(-20px) scale(1.1); border-radius: 45% 55% 50% 50%; } }
+
+  /* ── S: Aurora ── */
+  .aurora { height: 36px; border-radius: 8px; position: relative; overflow: hidden; }
+  .al { position: absolute; inset: 0; filter: blur(8px); }
+  .al:nth-child(1) { background: linear-gradient(90deg, transparent, rgba(67,97,238,0.3), rgba(124,58,237,0.4), rgba(255,107,107,0.35), rgba(124,58,237,0.3), transparent); animation: aShift 6s ease-in-out infinite; }
+  .al:nth-child(2) { background: linear-gradient(90deg, transparent, rgba(255,107,107,0.2), rgba(245,158,11,0.3), rgba(255,107,107,0.25), transparent); animation: aShift 8s ease-in-out infinite reverse; filter: blur(12px); top: 6px; }
+  .al:nth-child(3) { background: linear-gradient(90deg, transparent, rgba(34,197,94,0.15), rgba(67,97,238,0.2), rgba(255,107,107,0.15), transparent); animation: aShift 5s ease-in-out infinite; animation-delay: -2s; filter: blur(6px); }
+  @keyframes aShift { 0%,100% { transform: translateX(-10%) scaleY(1); opacity:0.6; } 33% { transform: translateX(5%) scaleY(1.3); opacity:1; } 66% { transform: translateX(-5%) scaleY(0.8); opacity:0.8; } }
+  .aurora-dots { display: flex; gap: 3px; }
+  .ad { width: 5px; height: 5px; border-radius: 50%; }
+  .ad.done { background: var(--green); opacity: 0.5; }
+  .ad.active { background: var(--accent); box-shadow: 0 0 4px var(--accent-glow); }
+  .ad.pending { background: #2a2a2a; }
+
+  /* ── T: Ink Drop ── */
+  .ink { width: 38px; height: 38px; border-radius: 50%; background: #111; position: relative; overflow: hidden; flex-shrink: 0; border: 1px solid #222; }
+  .id { position: absolute; border-radius: 50%; filter: blur(2.5px); top: 50%; left: 50%; }
+  .id:nth-child(1) { width: 16px; height: 16px; background: var(--accent); animation: idSpread 4s ease-out infinite; }
+  .id:nth-child(2) { width: 12px; height: 12px; background: var(--purple); animation: idSpread 4s ease-out infinite 1.3s; }
+  .id:nth-child(3) { width: 10px; height: 10px; background: var(--blue); animation: idSpread 4s ease-out infinite 2.6s; }
+  @keyframes idSpread { 0% { transform: translate(-50%,-50%) scale(0.2); opacity:0.9; } 50% { transform: translate(-50%,-50%) scale(1.8); opacity:0.3; } 100% { transform: translate(-50%,-50%) scale(0.2); opacity:0; } }
+
+  /* ── U: Campfire ── */
+  .fire { width: 36px; height: 40px; position: relative; flex-shrink: 0; }
+  .fl { position: absolute; bottom: 10px; border-radius: 50% 50% 50% 50%/60% 60% 40% 40%; filter: blur(0.8px); }
+  .fl:nth-child(1) { width: 14px; height: 18px; left: 11px; background: linear-gradient(0deg, #ff6b6b, #ff8f3f, #ffd93d); animation: flF 0.8s ease-in-out infinite alternate; }
+  .fl:nth-child(2) { width: 8px; height: 13px; left: 7px; background: linear-gradient(0deg, #ff6b6b, #ff6b3f); animation: flF 0.6s ease-in-out infinite alternate-reverse; opacity: 0.7; }
+  .fl:nth-child(3) { width: 8px; height: 11px; left: 19px; background: linear-gradient(0deg, #ff8f3f, #ffd93d); animation: flF 0.7s ease-in-out infinite alternate; opacity: 0.6; }
+  @keyframes flF { 0% { transform: scaleX(1) scaleY(1); } 100% { transform: scaleX(0.85) scaleY(1.15) translateY(-2px); } }
+  .fire-logs { position: absolute; bottom: 3px; left: 5px; width: 24px; height: 5px; background: #5c3a1e; border-radius: 3px; }
+  .emb { position: absolute; width: 2px; height: 2px; border-radius: 50%; background: #ffd93d; }
+  .emb:nth-child(4) { left: 12px; bottom: 28px; animation: embF 2s ease-out infinite; }
+  .emb:nth-child(5) { left: 20px; bottom: 26px; animation: embF 2.5s ease-out infinite 0.5s; }
+  @keyframes embF { 0% { opacity:1; transform: translateY(0); } 100% { opacity:0; transform: translateY(-16px) translateX(4px); } }
+
+  /* ── V: Breathing Orb ── */
+  .breath-orb { width: 36px; height: 36px; border-radius: 50%; position: relative; flex-shrink: 0; }
+  .breath-orb .ring { position: absolute; inset: 0; border-radius: 50%; border: 2px solid transparent; background: conic-gradient(from 0deg, var(--accent), var(--purple), var(--blue), var(--accent)) border-box; -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: orbSpin 3s linear infinite; }
+  .breath-orb .glow { position: absolute; inset: 4px; border-radius: 50%; background: radial-gradient(circle, rgba(255,107,107,0.3) 0%, transparent 70%); animation: orbBr 2s ease-in-out infinite; }
+  .breath-orb .core { position: absolute; inset: 9px; border-radius: 50%; background: radial-gradient(circle at 40% 40%, var(--accent), var(--purple)); animation: orbBr 2s ease-in-out infinite; }
+  @keyframes orbSpin { to { transform: rotate(360deg); } }
+  @keyframes orbBr { 0%,100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
+
+  /* ── W: Gradient Mesh ── */
+  .mesh { height: 42px; border-radius: 10px; position: relative; overflow: hidden; background: #111; }
+  .mb { position: absolute; border-radius: 50%; filter: blur(18px); }
+  .mb:nth-child(1) { width: 70px; height: 70px; background: var(--accent); top: -18px; left: 10%; animation: mFloat 5s ease-in-out infinite; opacity: 0.45; }
+  .mb:nth-child(2) { width: 50px; height: 50px; background: var(--purple); top: -8px; left: 40%; animation: mFloat 7s ease-in-out infinite reverse; opacity: 0.35; }
+  .mb:nth-child(3) { width: 60px; height: 60px; background: var(--blue); top: -12px; right: 10%; animation: mFloat 6s ease-in-out infinite; animation-delay: -2s; opacity: 0.3; }
+  @keyframes mFloat { 0%,100% { transform: translate(0,0) scale(1); } 25% { transform: translate(15px,6px) scale(1.1); } 50% { transform: translate(-8px,-4px) scale(0.9); } 75% { transform: translate(10px,-6px) scale(1.05); } }
+  .mesh-overlay { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; gap: 6px; background: rgba(15,15,15,0.3); }
+  .mesh-overlay .phase { font-size: 11px; color: #fff; font-weight: 500; }
+
+  .row-flex { display: flex; align-items: center; gap: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Pick Your Favorite</h1>
+<div class="subtitle">Click any card to select. All 23 concepts, animated live. Scroll through and tap what speaks to you.</div>
+
+<div class="grid">
+
+  <!-- A: Single Line -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">A. Single Line</div>
+    <div class="card-body">
+      <div class="sl"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="st" id="slA">Researching brand</span><span class="sep">&middot;</span><span class="verb vb">Noodling...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Minimal. One morphing line. No box.</div>
+    </div>
+  </div>
+
+  <!-- B: Pills -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">B. Horizontal Pills</div>
+    <div class="card-body">
+      <div class="pills"><div class="pill done">&#10003; Research</div><div class="pill done">&#10003; Hooks</div><div class="pill active"><div class="orb" style="width:10px;height:10px"><div class="t"></div><div class="dw"><div class="d" style="width:2.5px;height:2.5px"></div></div><div class="dw"><div class="d" style="width:2.5px;height:2.5px"></div></div></div> Art</div><div class="pill pending">Images</div></div>
+      <div class="meta-row"><span class="verb vb">Crafting...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Phase chips. Compact, scannable.</div>
+    </div>
+  </div>
+
+  <!-- C: Glow Bubble -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">C. Ambient Border Glow</div>
+    <div class="card-body">
+      <div class="glow-bubble"><div class="txt">Found strong educational positioning for Verbisedu. The brand targets college students<span class="cursor"></span></div><div class="meta-row" style="margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,0.04)"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span style="font-size:11px;color:var(--text-muted)">Researching</span><span class="verb vb">Percolating...</span><span class="timer tm" style="margin-left:auto">0:38</span></div></div>
+      <div class="ts">Breathing glow + streaming text + cursor.</div>
+    </div>
+  </div>
+
+  <!-- D: Breadcrumbs -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">D. Conversational Breadcrumbs</div>
+    <div class="card-body">
+      <div class="bc-msg">&#10003; Researched brand — <span class="hl">educational, college audience</span></div>
+      <div class="bc-msg">&#10003; Wrote 6 hooks — stat, story, fomo, curiosity, callout, contrast</div>
+      <div class="bc-active"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div> Generating images <span style="color:var(--text-muted)">3/6</span> <span class="verb vb">Painting...</span></div>
+      <div class="bc-bar"><div class="fill"></div></div>
+      <div class="ts">Natural updates. Like Slack messages.</div>
+    </div>
+  </div>
+
+  <!-- E: Dot Trail -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">E. Dot Trail</div>
+    <div class="card-body">
+      <div class="dt"><div class="dt-dot done"></div><div class="dt-dot done recent"></div><div class="dt-dot done recent"></div><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><div class="dt-dot pending"></div><span class="phase-text" style="margin-left:4px">Generating images</span><span class="verb vb">Simmering...</span><span class="timer tm" style="margin-left:auto">3:22</span></div>
+      <div class="ts">Minimal dots. Things happened.</div>
+    </div>
+  </div>
+
+  <!-- F: Emoji Story -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">F. Emoji Story</div>
+    <div class="card-body">
+      <div class="emoji-row"><div class="es done">🔍</div><span class="es-arrow lit">→</span><div class="es done">🎣</div><span class="es-arrow lit">→</span><div class="es active">🎨</div><span class="es-arrow">→</span><div class="es pending">🖼️</div></div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Conjuring...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Playful. Instant readability.</div>
+    </div>
+  </div>
+
+  <!-- G: Ticker -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">G. Typewriter Ticker</div>
+    <div class="card-body">
+      <div class="tk-history">🔍 Found educational platform targeting students</div>
+      <div class="tk-history">🎣 Wrote 6 hooks — stat, story, fomo, curiosity...</div>
+      <div class="tk-line"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><div class="tk-text">🎨 Creating bold typography art direction</div></div>
+      <div class="ts">Watch the agent think in real-time.</div>
+    </div>
+  </div>
+
+  <!-- H: Paint Fill -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">H. Paint Fill</div>
+    <div class="card-body">
+      <div class="paint-bar"><div class="paint-fill" style="width:62%"></div></div>
+      <div class="paint-labels"><span class="done">Research</span><span class="done">Hooks</span><span class="active">Art</span><span class="pending">Images</span></div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Painting...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Gradient paint spreading across a canvas.</div>
+    </div>
+  </div>
+
+  <!-- I: Constellation -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">I. Constellation</div>
+    <div class="card-body">
+      <div class="const">
+        <div class="star-line done" style="left:7px;top:10px;width:44px;transform:rotate(18deg)"></div><div class="star-line done" style="left:52px;top:15px;width:48px;transform:rotate(-13deg)"></div><div class="star-line active" style="left:102px;top:7px;width:48px;transform:rotate(22deg)"></div>
+        <div class="star done" style="left:3px;top:7px"></div><div class="star done" style="left:48px;top:18px"></div><div class="star active" style="left:98px;top:3px"></div><div class="star pending" style="left:148px;top:24px"></div>
+      </div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Dreaming...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Stars connecting. Charting a journey.</div>
+    </div>
+  </div>
+
+  <!-- J: Sparkle -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">J. Sparkle Trail</div>
+    <div class="card-body">
+      <div class="sparkle-area">
+        <div class="sparkle-particles"><span class="sp" style="left:10%;animation-delay:0s">✦</span><span class="sp" style="left:30%;animation-delay:0.5s">✧</span><span class="sp" style="left:50%;animation-delay:1s">✦</span><span class="sp" style="left:70%;animation-delay:1.5s">✧</span><span class="sp" style="left:85%;animation-delay:0.3s">✦</span></div>
+        <div class="row-flex"><span class="sparkle-icon">✨</span><span class="phase-text">Creating art direction</span><span class="verb vb">Conjuring...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      </div>
+      <div class="ts">Magic wand with floating sparkles.</div>
+    </div>
+  </div>
+
+  <!-- K: Blob -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">K. Morphing Blob</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="blob"></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Manifesting...</span><span class="timer tm">2:05</span></div><div class="blob-dots"><div class="bd done"></div><div class="bd done"></div><div class="bd active"></div><div class="bd pending"></div></div></div></div>
+      <div class="ts">Living gradient. Mesmerizing.</div>
+    </div>
+  </div>
+
+  <!-- L: Color Palette -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">L. Color Palette Mixing</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="drops"><div class="drop"></div><div class="drop"></div><div class="drop"></div><div class="drop"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Mixing...</span><span class="timer tm">2:05</span></div></div></div>
+      <div class="ts">Paint drops pulsing and blending.</div>
+    </div>
+  </div>
+
+  <!-- M: Neon -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">M. Neon Sign</div>
+    <div class="card-body">
+      <div class="neon-row"><span class="neon-done">Research</span><span class="neon-sep">/</span><span class="neon-done">Hooks</span><span class="neon-sep">/</span><span class="neon-active">Art</span><span class="neon-sep">/</span><span class="neon-off">Images</span></div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Illuminating...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Retro creative studio. Neon flicker.</div>
+    </div>
+  </div>
+
+  <!-- N: Equalizer -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">N. Equalizer Bars</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="eq-bars"><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div><div class="eq-bar"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Composing...</span><span class="timer tm">2:05</span></div></div></div>
+      <div class="ts">Audio visualizer. Rhythmic energy.</div>
+    </div>
+  </div>
+
+  <!-- O: Plant -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">O. Growing Plant</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="plant"><div class="plant-stem"></div><div class="plant-flower">🌸</div><div class="plant-base"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Growing...</span><span class="timer tm">2:05</span></div><div style="font-size:10px;color:var(--text-muted);margin-top:2px">🌱 seed &nbsp; 🌿 sprout &nbsp; <span style="color:var(--accent)">🌺 bloom</span> &nbsp; 🎨 harvest</div></div></div>
+      <div class="ts">Your creative brief is literally growing.</div>
+    </div>
+  </div>
+
+  <!-- P: Wave -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">P. Wave Form</div>
+    <div class="card-body">
+      <div class="wave-band"><svg class="wave-svg" viewBox="0 0 800 28" preserveAspectRatio="none"><defs><linearGradient id="wg" x1="0" x2="1"><stop offset="0%" stop-color="#4361ee" stop-opacity="0.6"/><stop offset="50%" stop-color="#ff6b6b" stop-opacity="0.8"/><stop offset="100%" stop-color="#4361ee" stop-opacity="0.6"/></linearGradient></defs><path d="M0,16 C20,6 40,6 60,16 C80,26 100,26 120,16 C140,6 160,6 180,16 C200,26 220,26 240,16 C260,6 280,6 300,16 C320,26 340,26 360,16 C380,6 400,6 420,16 C440,26 460,26 480,16 C500,6 520,6 540,16 C560,26 580,26 600,16 C620,6 640,6 660,16 C680,26 700,26 720,16 C740,6 760,6 780,16" fill="none" stroke="url(#wg)" stroke-width="2"/></svg></div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Flowing...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Creative energy heartbeat.</div>
+    </div>
+  </div>
+
+  <!-- Q: Film Strip -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">Q. Film Strip</div>
+    <div class="card-body">
+      <div class="film"><div class="ff done">🔍 Research</div><div class="ff done">🎣 Hooks</div><div class="ff active">🎨 Art</div><div class="ff pending">🖼️ Images</div></div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Directing...</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Advertising meets cinema.</div>
+    </div>
+  </div>
+
+  <!-- R: Lava Lamp -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">R. Lava Lamp</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="lava"><div class="lb"></div><div class="lb"></div><div class="lb"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Bubbling...</span><span class="timer tm">2:05</span></div></div></div>
+      <div class="ts">Retro. Hypnotic. Creative director's desk.</div>
+    </div>
+  </div>
+
+  <!-- S: Aurora -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">S. Aurora / Northern Lights</div>
+    <div class="card-body">
+      <div class="aurora"><div class="al"></div><div class="al"></div><div class="al"></div></div>
+      <div class="meta-row"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase-text">Creating art direction</span><span class="verb vb">Shimmering...</span><span class="timer tm" style="margin-left:auto">2:05</span><div class="aurora-dots"><div class="ad done"></div><div class="ad done"></div><div class="ad active"></div><div class="ad pending"></div></div></div>
+      <div class="ts">Atmospheric. Magical. Stunning.</div>
+    </div>
+  </div>
+
+  <!-- T: Ink Drop -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">T. Ink Drop</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="ink"><div class="id"></div><div class="id"></div><div class="id"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Bleeding...</span><span class="timer tm">2:05</span></div></div></div>
+      <div class="ts">Watercolors bleeding on paper. Raw.</div>
+    </div>
+  </div>
+
+  <!-- U: Campfire -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">U. Campfire</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="fire"><div class="fl"></div><div class="fl"></div><div class="fl"></div><div class="emb"></div><div class="emb"></div><div class="fire-logs"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Stoking...</span><span class="timer tm">2:05</span></div></div></div>
+      <div class="ts">Ideas catching fire. Warm and primal.</div>
+    </div>
+  </div>
+
+  <!-- V: Breathing Orb -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">V. Breathing Orb</div>
+    <div class="card-body">
+      <div class="row-flex"><div class="breath-orb"><div class="ring"></div><div class="glow"></div><div class="core"></div></div><div><div class="phase-text" style="font-weight:500">Creating art direction</div><div style="display:flex;gap:6px;align-items:center;margin-top:2px"><span class="verb vb">Channeling...</span><span class="timer tm">2:05</span></div></div></div>
+      <div class="ts">Siri-like. Premium AI entity.</div>
+    </div>
+  </div>
+
+  <!-- W: Gradient Mesh -->
+  <div class="card" onclick="toggle(this)">
+    <div class="card-label">W. Gradient Mesh</div>
+    <div class="card-body">
+      <div class="mesh"><div class="mb"></div><div class="mb"></div><div class="mb"></div><div class="mesh-overlay"><div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div><span class="phase">Creating art direction</span><span class="verb vb">Manifesting...</span></div></div>
+      <div class="meta-row"><span style="font-size:10px;color:var(--text-muted)">Phase 3 of 4</span><span class="timer tm" style="margin-left:auto">2:05</span></div>
+      <div class="ts">Staring into a creative portal.</div>
+    </div>
+  </div>
+
+</div>
+
+<div id="selection" style="position:fixed;bottom:0;left:0;right:0;background:var(--bg-raised);border-top:1px solid var(--border);padding:12px 32px;display:none;align-items:center;gap:12px;z-index:10">
+  <span style="font-size:13px;color:var(--text-secondary)">Selected: <strong id="selList" style="color:var(--accent)"></strong></span>
+  <button onclick="clearAll()" style="margin-left:auto;background:none;border:1px solid var(--border);color:var(--text-secondary);padding:6px 14px;border-radius:8px;font-size:12px;cursor:pointer">Clear</button>
+</div>
+
+<script>
+  const VERBS = ['Pondering','Cogitating','Noodling','Brewing','Conjuring','Scheming','Vibing','Spelunking','Wrangling','Simmering','Manifesting','Ruminating','Percolating','Tinkering','Musing','Crafting','Painting','Imagining','Weaving','Composing','Channeling','Transmuting','Hatching','Incubating','Dreaming','Bubbling','Shimmering','Stoking','Glowing','Swirling','Mixing','Flowing'];
+  setInterval(() => {
+    document.querySelectorAll('.vb').forEach(el => {
+      el.textContent = VERBS[Math.floor(Math.random() * VERBS.length)] + '...';
+    });
+  }, 800);
+
+  let t = 125;
+  setInterval(() => {
+    t++;
+    const str = `${Math.floor(t/60)}:${(t%60).toString().padStart(2,'0')}`;
+    document.querySelectorAll('.tm').forEach(el => el.textContent = str);
+  }, 1000);
+
+  // Single line phase cycling
+  const phases = ['Researching brand','Writing 6 ad hooks','Creating art direction','Generating images (3/6)'];
+  let pi = 0;
+  setInterval(() => {
+    pi = (pi+1) % phases.length;
+    const el = document.getElementById('slA');
+    if (el) { el.style.transition='opacity 0.3s'; el.style.opacity='0'; setTimeout(()=>{el.textContent=phases[pi];el.style.opacity='1'},300); }
+  }, 3000);
+
+  function toggle(card) {
+    card.classList.toggle('selected');
+    updateSelection();
+  }
+  function clearAll() {
+    document.querySelectorAll('.card.selected').forEach(c => c.classList.remove('selected'));
+    updateSelection();
+  }
+  function updateSelection() {
+    const sel = [...document.querySelectorAll('.card.selected')].map(c => c.querySelector('.card-label').textContent);
+    const bar = document.getElementById('selection');
+    const list = document.getElementById('selList');
+    if (sel.length) { bar.style.display = 'flex'; list.textContent = sel.join(', '); }
+    else { bar.style.display = 'none'; }
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,25 @@
+Create a 4:5 vertical designed advertisement poster, 1080×1350, for an Instagram feed ad.
+
+This is a bold typographic poster built by a graphic designer — type-dominant, print-poster finish, almost entirely typography on a flat designed background. It is not a photograph.
+
+Background: a flat, smooth, warm off-white poster field fills the entire frame edge to edge. No texture, no gradient, no scene.
+
+Composition, top to bottom:
+- Top band: a small eyebrow label, centered, in small tracked all-caps dark charcoal sans-serif: "PULLED FROM REAL CUSTOMER REVIEWS"
+- Hero type zone (upper half): one customer quote set very large in dark charcoal high-contrast serif, wrapping across four left-aligned lines, with hand-drawn burgundy marker underline strokes beneath the words "protein daily" and "stomach":
+"I can finally
+have protein daily
+without
+stomach issues."
+- Below the hero quote, two shorter quotes on one row, set smaller in dark charcoal serif italic, separated by a centered dot: "No bloating at all."  ·  "Easy on the stomach."
+- Beneath them one small attribution line in tracked all-caps light-weight sans-serif, dark grey: "INDEPENDENT AMAZON REVIEWS"
+- Lower-right quadrant: the burgundy TWTF whey pouch stands upright at hero scale, occupying roughly 38% of the poster width, base near the bottom edge, casting one soft realistic drop shadow onto the off-white field. The pouch is a real photographed product placed into the designed poster.
+- Bottom-left, vertically aligned with the pouch's middle: a rounded burgundy CTA chip with white text: "Try it → thewholetruthfoods.com"
+
+Light: flat, bright, even poster lighting across the whole field; the only shadow in the frame is the soft drop shadow under the pouch. Commercial, clean, confident.
+
+Typography colors, decided against their surfaces: all quote type dark charcoal on the warm off-white field; underline strokes burgundy; eyebrow and attribution lines dark charcoal/dark grey on the same off-white; CTA chip white text on burgundy.
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): burgundy/maroon matte stand-up pouch; white "The Whole Truth" stacked logo; pack headline "Cleanest, lightest whey protein. Ever."; white info column on the right side of the pack containing a boxed "24 g protein per scoop", "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" with a small gold circle; a small green vegetarian dot; a dark strip near the bottom of the pack reading "light cocoa · whey protein isolate + concentrate"; a white panel with thin grey diagonal stripes wrapping the pouch's lower-left gusset. The protein badge on the pack reads 24 g, exactly as in the reference.
+
+The frame contains exactly: warm off-white poster background, the eyebrow label "PULLED FROM REAL CUSTOMER REVIEWS", the four-line hero quote in large dark charcoal serif with burgundy hand-drawn underlines, the row with the two shorter italic quotes separated by a dot, the attribution line "INDEPENDENT AMAZON REVIEWS", one standing burgundy TWTF whey pouch at hero scale in the lower-right with a soft drop shadow, and one burgundy CTA chip with white text in the lower-left.

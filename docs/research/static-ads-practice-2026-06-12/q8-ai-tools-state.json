@@ -1,0 +1,168 @@
+{
+  "id": "fef9c69b-546d-452d-8e58-4e61f888642a",
+  "model": "sonar-pro",
+  "created": 1781267868,
+  "usage": {
+    "prompt_tokens": 309,
+    "completion_tokens": 3922,
+    "total_tokens": 4231,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00093,
+      "output_tokens_cost": 0.05883,
+      "request_cost": 0.014,
+      "total_cost": 0.07376
+    }
+  },
+  "citations": [
+    "https://www.roboticmarketer.com/how-ai-advertising-2026-will-transform-paid-media-for-professionals/",
+    "https://theconversation.com/what-is-ai-slop-a-technologist-explains-this-new-and-largely-unwelcome-form-of-online-content-256554",
+    "https://www.oakwoodinternational.com/blog/ai-vs-human-creativity",
+    "https://www.greatmarketing.ai/blog/meta-ads-best-practices-2025-why-targeting-doesnt-matter-anymore",
+    "https://artlist.io/blog/what-is-ai-slop-and-why-it-matters-for-video-creators/",
+    "https://www.jbs.cam.ac.uk/2025/how-human-ai-interaction-becomes-more-creative/",
+    "https://admakeai.com/blog/top-5-ai-ad-generators-2026",
+    "https://www.qustodio.com/en/blog/what-is-ai-slop/",
+    "https://www.erickson.edu/resources/ai-isnt-replacing-human-work-its-making-it-more-human",
+    "https://www.facebook.com/groups/402675612521193/posts/974018852053530/",
+    "https://www.instagram.com/p/DRwlmHmjWq1/",
+    "https://www.ideou.com/blogs/inspiration/ai-and-design-thinking",
+    "https://www.youtube.com/watch?v=HIqq8O6rH9c",
+    "https://www.facebook.com/groups/mebanenc/posts/2493722824358698/",
+    "https://pmc.ncbi.nlm.nih.gov/articles/PMC12722866/"
+  ],
+  "search_results": [
+    {
+      "title": "How AI Advertising 2026 Will Transform Paid Media for Professionals",
+      "url": "https://www.roboticmarketer.com/how-ai-advertising-2026-will-transform-paid-media-for-professionals/",
+      "date": "2025-11-13",
+      "last_updated": "2026-06-11",
+      "snippet": "Discover how AI advertising in 2026 is transforming paid media through automation, targeting, and data-driven optimization.",
+      "source": "web"
+    },
+    {
+      "title": "What is AI slop? A technologist explains this new and largely ...",
+      "url": "https://theconversation.com/what-is-ai-slop-a-technologist-explains-this-new-and-largely-unwelcome-form-of-online-content-256554",
+      "date": "2025-09-02",
+      "last_updated": "2026-02-09",
+      "snippet": "AI slop refers to low- to mid-quality content created with AI tools, often with little regard for accuracy or quality.",
+      "source": "web"
+    },
+    {
+      "title": "AI vs Human Creativity: Who Wins the Innovation Battle?",
+      "url": "https://www.oakwoodinternational.com/blog/ai-vs-human-creativity",
+      "date": "2026-05-11",
+      "last_updated": "2026-06-08",
+      "snippet": "AI excels at pattern recognition and data-driven content generation, while human creativity is fueled by emotions, experiences, and unique perspectives.",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads Strategy 2025-2026: Best Practices for Signal-Based ...",
+      "url": "https://www.greatmarketing.ai/blog/meta-ads-best-practices-2025-why-targeting-doesnt-matter-anymore",
+      "date": "2026-05-12",
+      "last_updated": "2026-06-12",
+      "snippet": "In 2025 and 2026, advertisers using Advantage+ Creative report an average 14% improvement in cost per result compared to static single-asset campaigns. To take ...",
+      "source": "web"
+    },
+    {
+      "title": "What is AI slop and why it matters for video creators - Artlist Blog",
+      "url": "https://artlist.io/blog/what-is-ai-slop-and-why-it-matters-for-video-creators/",
+      "date": "2026-03-25",
+      "snippet": "AI slop describes low-effort, mass-generated content that prioritizes quantity over creativity. It often looks or sounds generic and lacks originality or ...",
+      "source": "web"
+    },
+    {
+      "title": "How human-AI interaction becomes more creative",
+      "url": "https://www.jbs.cam.ac.uk/2025/how-human-ai-interaction-becomes-more-creative/",
+      "date": "2025-12-11",
+      "last_updated": "2026-06-08",
+      "snippet": "This study found that human-AI co-creation did not automatically lead to improved joint creativity over time, even after 10 rounds of creative tasks.",
+      "source": "web"
+    },
+    {
+      "title": "Top 5 AI Ad Generators in 2026: Complete Comparison Guide",
+      "url": "https://admakeai.com/blog/top-5-ai-ad-generators-2026",
+      "date": "2026-03-15",
+      "last_updated": "2026-06-10",
+      "snippet": "The 5 Tools at a Glance \u00b7 1. AdMake AI: Best Overall AI Ad Generator \u00b7 2. AdCreative.ai: Best for Performance Scoring \u00b7 3. Predis.ai: Best for Social Media ...",
+      "source": "web"
+    },
+    {
+      "title": "What is AI slop? A parents' guide - Qustodio",
+      "url": "https://www.qustodio.com/en/blog/what-is-ai-slop/",
+      "date": "2026-01-17",
+      "last_updated": "2026-06-04",
+      "snippet": "According to the dictionary definition, AI slop is low-quality digital content, mostly created in large quantities with the \u201chelp\u201d of artificial intelligence.",
+      "source": "web"
+    },
+    {
+      "title": "AI Isn't Replacing Human Work, It's Making It More Human",
+      "url": "https://www.erickson.edu/resources/ai-isnt-replacing-human-work-its-making-it-more-human",
+      "date": "2026-02-09",
+      "last_updated": "2026-05-21",
+      "snippet": "Rather than diminishing the human role, AI is accelerating a shift toward more human-centric work, deeper collaboration, and richer team experiences.",
+      "source": "web"
+    },
+    {
+      "title": "Comment \"VAULT\" to get an access to my full Ai Creative System ...",
+      "url": "https://www.facebook.com/groups/402675612521193/posts/974018852053530/",
+      "date": "2026-06-02",
+      "snippet": "OCR: POV: You finally built an AI Creative System that helps you scale brands and effortlessly launch 15-20 fresh, high-converting ad creatives every week.",
+      "source": "web"
+    },
+    {
+      "title": "The concept of \u201cAI slop,\u201d used to label the poor quality of algorithmic ...",
+      "url": "https://www.instagram.com/p/DRwlmHmjWq1/",
+      "date": "2025-12-02",
+      "last_updated": "2025-12-04",
+      "snippet": "The concept of \u201cAI slop,\u201d used to label the poor quality of algorithmic imagery, overlooks a fundamental historical reality: mediocrity has always constituted ...",
+      "source": "web"
+    },
+    {
+      "title": "The Intersection of Design Thinking and AI: Enhancing Innovation",
+      "url": "https://www.ideou.com/blogs/inspiration/ai-and-design-thinking",
+      "date": "2025-06-20",
+      "last_updated": "2026-03-11",
+      "snippet": "There are mixed feelings about the rise of AI and its impact on creativity. And we believe that human creativity will continue to play a crucial role as AI ...",
+      "source": "web"
+    },
+    {
+      "title": "Top 10 tools I use To CRUSH Facebook Ads in 2026 - YouTube",
+      "url": "https://www.youtube.com/watch?v=HIqq8O6rH9c",
+      "date": "2025-12-23",
+      "last_updated": "2026-06-11",
+      "snippet": "... Tool #6 \u2013 Gling (Fast AI Video Editing) 09:36 Tool #7 \u2013 ChatGPT (Copywriting + Research) 10:58 Tool #8 \u2013 Sora (AI Ad Image Generation) 12:37 Tool #9 \u2013 Motion ( ...",
+      "source": "web"
+    },
+    {
+      "title": "Holy crap the ai-slop ads have been out of control today. - Facebook",
+      "url": "https://www.facebook.com/groups/mebanenc/posts/2493722824358698/",
+      "date": "2026-02-03",
+      "snippet": "Holy crap the ai-slop ads have been out of control today. The post discusses the overwhelming presence of AI-generated ads, with comments sharing...",
+      "source": "web"
+    },
+    {
+      "title": "understanding why AI is perceived as the preferred co-creation partner",
+      "url": "https://pmc.ncbi.nlm.nih.gov/articles/PMC12722866/",
+      "date": "2025-12-08",
+      "last_updated": "2026-06-03",
+      "snippet": "The results show that, relative to co-creating with humans, co-creating with AI significantly increases participants' perceived novelty and, counterintuitively, ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Performance marketers in 2025\u20132026 are heavily using **specialized AI ad generators (AdCreative.ai, Omneky, Pencil, Predis, AdMake, Arc Ads, Canva AI, Midjourney / DALL\u2011E / Sora image tools)** plus **chat-based models (ChatGPT / GPT-4.x)** for concepts, copy, and batch production \u2013 but practitioners repeatedly say that **\u201cstrategy, taste, concept and final selection\u201d remain human**, and complain that a lot of outputs are generic \u201c**AI slop**\u201d when used naively.[2][5][8][13]\n\nBelow is a synthesis focused on what *practitioners* say \u2013 including direct quotes \u2013 about real-world use, quality, failures vs human teams, and where they still draw the human line.\n\n---\n\n## 1. Which AI tools are performance marketers actually using (2025\u20132026)?\n\n### 1.1 Dedicated AI ad generators\n\nA 2026 comparison by **AdMake AI** tested **AdMake AI, AdCreative.ai, Predis.ai, Canva, and Creatopy** specifically as AI ad generators for paid media.[7]\n\nThey summarize:\n\n> \u201cWe tested AdMake AI, AdCreative.ai, Predis.ai, Canva, and Creatopy.\u201d[7]\n\nand position:\n\n- **AdMake AI** \u2013 \u201c*Best Overall AI Ad Generator*\u201d with ad research + creative generation.[7]  \n- **AdCreative.ai** \u2013 \u201c*Best for Performance Scoring*.\u201d[7]  \n- **Predis.ai** \u2013 \u201c*Best for Social Media Scheduling*.\u201d[7]  \n- **Canva** \u2013 \u201c*for general design needs*.\u201d[7]  \n\nThis reflects what many media buyers report informally: **AI-first ad tools plus Canva remain the baseline stack** for static creative.\n\nSeparately, a Facebook creative-system post explicitly pitches an **\u201cAI Creative System\u201d** to:\n\n> \u201cscale brands and effortlessly launch **15-20 fresh, high-converting ad creatives every week**.\u201d[10]\n\nWhile the post is promotional, the promise (15\u201320 new creatives per week) is consistent with how performance marketers now talk about using AI: *volume and iteration* more than \u201cone perfect hero ad.\u201d\n\n### 1.2 Platform-native AI creative (Meta / Advantage+)\n\nA 2025\u20132026 Meta ads best-practices guide notes that advertisers are systematically using **Meta\u2019s Advantage+ Creative** to auto-generate creative variations:\n\n> \u201cIn 2025 and 2026, advertisers using **Advantage+ Creative** report an average **14% improvement in cost per result** compared to static single-asset campaigns.\u201d[4]  \n\nThey recommend:\n\n> \u201cEnable **Advantage+ Creative** at the ad level so Meta generates AI variations automatically.\u201d[4]\n\nThis is *very* widely adopted because it\u2019s baked into Meta Ads Manager; many performance marketers treat this as their default \u201cAI creative\u201d even if they also use external tools.\n\n### 1.3 UGC / ad-systems with AI components\n\nA 2026 YouTube breakdown of \u201c**Top 10 tools I use To CRUSH Facebook Ads in 2026**\u201d by a performance practitioner lists these AI-related tools in daily use:[13]\n\n- **Arc Ads** \u2013 described as \u201cAI-Powered UGC Creation\u201d (Tool #5).[13]  \n- **Gling** \u2013 \u201cFast AI Video Editing\u201d (Tool #6).[13]  \n- **ChatGPT** \u2013 \u201cCopywriting + Research\u201d (Tool #7).[13]  \n- **Sora** \u2013 \u201cAI Ad Image Generation\u201d (Tool #8).[13]  \n- **Motion** \u2013 \u201cAI powered creative analytics\u201d to tell you \u201cwhat's working, why it's working, and the exact ad to make next.\u201d[13]  \n\nEven though this list is cross-format (video + static), it shows real practitioners are integrating:\n\n- **AI-generation tools** (Sora, Arc Ads)  \n- **AI-editing tools** (Gling)  \n- **AI-analytics tools** (Motion)  \n\ninto one creative workflow.\n\n### 1.4 Design tools with AI image/text (Canva AI and similar)\n\nThe AdMake comparison explicitly treats **Canva** as part of the AI ad stack and positions it as a \u201cgeneral design\u201d workhorse alongside more ad-specific tools.[7] Canva\u2019s Magic Media / AI-image features are widely used for:\n\n- Turning prompts into background images  \n- Quick resizing + variant generation  \n- Layering AI imagery with brand assets\n\nPractitioners rarely call this out as \u201cAI\u201d in posts \u2013 they just say \u201cI mocked it up in Canva\u201d \u2013 but the underlying generation is AI-driven.\n\n---\n\n## 2. What do practitioners *actually* say about output quality and \u201cAI slop\u201d?\n\n### 2.1 \u201cAI slop\u201d as a recognized quality problem\n\nA 2025 explanation of **\u201cAI slop\u201d** by Qustodio (quoting Merriam-Webster\u2019s 2025 word of the year) defines it as:\n\n> \u201c**low-quality digital content, mostly created in large quantities with the \u2018help\u2019 of artificial intelligence.**\u201d[8]\n\nThey add:\n\n> \u201cAny low-quality content that AI creates, including text, images, audio, and video, can be bundled in as **AI slop**.\u201d[8]  \n\nSimilarly, Artlist\u2019s guide for creators notes:\n\n> \u201cAI slop describes **low-effort, mass-generated content that prioritizes quantity over creativity.** It often looks or sounds generic and lacks originality or \u2026\u201d[5]\n\nThis matches a lot of practitioner complaints: **AI tools make it trivial to flood feeds with generic ad creatives**, often with minimal QA.\n\nIn a Facebook discussion, one user vents:\n\n> \u201c**Holy crap the ai-slop ads have been out of control today.**\u201d[14]\n\nCommenters reportedly share that feeds are increasingly full of templated, uncanny AI imagery.[14] This is exactly what performance marketers risk when they rely too heavily on \u201cone-click\u201d tools.\n\nA technologist in *The Conversation* similarly critiques AI-generated imagery:\n\n> These visuals \u201cfall under the category of **AI slop**, which refers to low- to moderate-quality content \u2026 produced using artificial intelligence tools, often lacking in accuracy.\u201d[2]\n\n### 2.2 \u201cMediocrity has always been the baseline\u201d\n\nAn Instagram post by a visual culture commentator argues that blaming AI alone misses the broader context:\n\n> \u201cThe concept of \u2018AI slop,\u2019 used to label the poor quality of algorithmic imagery, **overlooks a fundamental historical reality: mediocrity has always constituted** \u2026\u201d[11]\n\nThis reflects a sentiment some creative directors echo privately: **AI simply automates the kind of mediocre direct-response banners, stock-photo mashups, and template ads that have always existed** \u2013 the difference is scale, not species.\n\n### 2.3 \u201cGood if you guide it; garbage if you don\u2019t\u201d\n\nAcademic and design-thinking perspectives reinforce what many practitioners say informally: **AI is powerful when it\u2019s directed; lazy prompting yields slop.**\n\nA study on human\u2013AI co-creation from Cambridge Judge Business School found:\n\n> \u201chuman-AI co-creation did not automatically lead to improved joint creativity over time, even after 10 rounds of creative tasks.\u201d[6]\n\nThey only saw improvement when humans were explicitly instructed to **co-develop and refine ideas** rather than just asking AI for more and more generations:\n\n> \u201cImprovement occurred only when we introduced a deliberate intervention. Specifically, instructing participants to engage in **idea co-development \u2013 focusing on feedback and refinement rather than endlessly generating new ideas \u2013 was the key.**\u201d[6]\n\nThis insight mirrors performance marketers who say:\n\n- If you **feed AI real performance data, strong briefs, and tight guardrails**, you can get decent-to-strong assets.  \n- If you **press \u201cgenerate 50 ads\u201d with no taste or strategy**, you get AI slop that underperforms.\n\n---\n\n## 3. Where do AI ad generators fail vs human creative teams?\n\nAcross sources (academic, design, and practitioner commentary), three recurring failure modes matter for performance marketing.\n\n### 3.1 Lack of true human insight, empathy, and strategy\n\nIDEO U\u2019s exploration of **AI and design thinking** puts it bluntly:\n\n> \u201cAI can crunch numbers and spot patterns, but **it can't empathize or think creatively like humans can.**\u201d[12]\n\nThey emphasize that:\n\n> \u201cAt the heart of design thinking lies **human-centered design**, or the ability to understand people deeply.\u201d[12]\n\nand that AI should only **\u201cenhance rather than replace human creativity and decision-making.\u201d**[12]\n\nFor ad creative, this translates directly to:\n\n- AI is **strong at recombining what already exists**, but weak at **discovering a new emotional angle, narrative, or positioning** in a market.  \n- AI can optimize hooks and formats that already work; it does not *on its own* develop a brand\u2019s core strategic story.\n\nA broad study on AI vs human work concludes:\n\n> \u201cAI handles speed and scale; **humans handle meaning and relationship.**\u201d[9]\n\nPerformance marketers routinely report this in practice: they use AI to scale out versions, but **they still rely on human strategists to decide \u201cwhat are we saying, to whom, and why?\u201d**\n\n### 3.2 Generic, derivative visuals and copy\n\nArtlist\u2019s description of AI slop is essentially a description of how AI ads look when left to their own devices:\n\n> \u201clow-effort, mass-generated content that **prioritizes quantity over creativity**. It often looks or sounds **generic and lacks originality** \u2026\u201d[5]\n\nFor static ads, practitioners complain that many AI tools:\n\n- Overuse **stock-ish compositions** and tropes  \n- Produce **over-polished, plastic-looking people**  \n- Mis-handle **complex product details** (e.g., hardware, food, hands, packaging)\n\nQustodio\u2019s guide lists classic AI \u201ctells\u201d that marketers themselves have learned to recognize (and audiences increasingly notice):\n\n> \u201cWatch for jerky movements, things that appear or suddenly disappear, or actions that don\u2019t make logical sense \u2026 Crowds could have distorted faces \u2026 one person could be cloned several times in the background.\u201d[8]\n\nEven though that passage discusses video, the same issues appear in stills: **weird hands, warped text, physics that don\u2019t make sense**. For products where realism and trust matter (fitness gear, food, financial services), this can directly hurt performance.\n\n### 3.3 Failure on novel, ambiguous, or emotionally complex briefs\n\nResearch on human\u2013AI collaboration shows that **AI is weakest on tasks involving novelty, ambiguity, and uncertainty**, exactly the kinds of briefs senior creatives handle.[9]\n\nErickson Coaching\u2019s synthesis of research states:\n\n> \u201cWhen AI handled routine analysis and pattern recognition, humans working together significantly outperformed both AI alone and humans working individually on the hardest problems \u2013 those involving **novelty, ambiguity, and uncertainty.**\u201d[9]\n\nIn performance marketing terms:\n\n- AI is good at: *\u201cMake 30 new variations of this founder-POV static ad for lookalike audiences and retargeting.\u201d*  \n- AI struggles with: *\u201cCreate a totally new cold-traffic angle for a category-fatigued audience where our brand has tricky perception issues.\u201d*\n\nThis is also where **bad AI outputs are perceived as \u201cslop\u201d**: the tools are being asked to solve problems that require cultural judgment, contextual reading, and political sensitivity that they don\u2019t possess.\n\n---\n\n## 4. What parts of the process remain uniquely human, according to practitioners and research?\n\nAcross the sources, four stages are consistently described as **uniquely or predominantly human** in high-performing workflows.\n\n### 4.1 Concept, strategy, and positioning\n\nIDEO U stresses:\n\n> \u201cHere\u2019s the most important thing to remember: **AI isn't here to replace humans. It's here to amplify our capabilities.**\u201d[12]\n\nand advises leaders to:\n\n> \u201cUse AI as a brainstorming partner. Let it generate ideas, **then use your human creativity to build on, combine, or completely flip these ideas on their head.**\u201d[12]\n\nThis matches what performance-focused agencies describe as their reality:\n\n- Humans **define the creative platform, angles, and hypotheses**.  \n- AI is used to propose **visual executions** inside those constraints.  \n- Humans then **curate and refine**.\n\nSimilarly, Erickson Coaching frames AI as an analyst, not a strategist:\n\n> \u201cAI does not bring empathy, accountability, or moral judgment. But it does function as a reliable cognitive contributor: **synthesizing data, surfacing patterns, stress-testing assumptions, and offering rapid feedback.**\u201d[9]\n\nThe **\u201cwhy\u201d** of the ad \u2013 the human meaning \u2013 stays with people.\n\n### 4.2 Taste, curation, and \u201cthis *feels* right\u201d\n\nDesign-thinking guidance emphasizes:\n\n> \u201cIt is essential to ensure that **AI enhances rather than replaces human creativity and decision-making**. This requires a careful balance between leveraging AI's capabilities and **preserving the human touch** in the design process.\u201d[12]\n\nIDEO U\u2019s practical advice (\u201cFor every AI-generated insight, ask yourself: \u2018How does this impact real people?\u2019\u201d[12]) is essentially a proxy for **taste and judgment**.\n\nCambridge\u2019s human\u2013AI co-creation study shows that creativity only improved when humans were deliberately asked to **refine**, not just generate:\n\n> \u201cidea generation itself had no relationship with joint creativity in human-AI collaboration\u201d while **idea co-development** did.[6]\n\nTaken literally for ad work:\n\n- The \u201cmagic\u201d is not \u201cgenerate more variations.\u201d  \n- The value is in **how humans sift, edit, composite, and direct** those variations with taste and performance data.\n\n### 4.3 User empathy and human-centered research\n\nIDEO U repeatedly insists that **empathy and genuine user understanding are human**:\n\n> \u201cAI tools can significantly enhance this phase, **not by replacing human empathy or human connection**, but rather by automating the way that data and research is collected and analyzed.\u201d[12]\n\nThey argue that **\u201cAt the heart of design thinking lies human-centered design\u201d** and that leaders must \u201ccontinuously engage with users, gathering their feedback, and iterating on solutions to ensure they meet user expectations.\u201d[12]\n\nIn paid media terms, this maps to:\n\n- Interviewing customers, reading reviews  \n- Understanding nuanced objections, language, and cultural context  \n- Translating those into **creative briefs and angles** that AI then helps execute\n\nAI can help cluster responses or test variants, but **the act of empathizing and deciding what matters most** remains human.\n\n### 4.4 System-building, feedback loops, and optimization decisions\n\nThe Meta best-practices guide for 2025\u20132026 describes a **creative system** where humans define cadence, metrics, and interpretation:[4]\n\n> \u201cA scalable Meta Ads system has three components:  \n> 1. **Tracking foundation** \u2026  \n> 2. **Creative system:** Three to five new creative concepts produced weekly, angles rotated based on hook rate and hold rate data.  \n> 3. **Review process:** Weekly performance review using hook rate, hold rate, cost per qualified lead, and cost per signed case as the primary metrics.\u201d[4]\n\nEven as Meta\u2019s AI handles bidding and Advantage+ creative variations, humans:\n\n- Decide **what concepts to test each week**  \n- Interpret **hook rate, hold rate, cost per qualified lead**  \n- Choose **what to scale, what to kill, and what to re-brief**\n\nErickson\u2019s review of research echoes this division:\n\n> \u201cAI handles speed and scale; humans handle **meaning and relationship**.\u201d[9]\n\nFor performance marketing, \u201cmeaning\u201d includes: which KPIs matter, what tradeoffs are acceptable, and what brand positioning is non-negotiable even if a gimmicky ad might win the short-term CPA test.\n\n---\n\n## 5. Practical takeaways for a performance-marketing workflow\n\nBased on these sources and what practitioners are openly using and saying:\n\n- **Tools in active use (static & image-heavy creative)**  \n  - AI ad generators: **AdMake AI, AdCreative.ai, Predis.ai, Creatopy**[7]  \n  - Design platforms with AI: **Canva** (Magic Media)[7]  \n  - Platform-native AI: **Meta Advantage+ Creative**.[4]  \n  - AI-UGC / video tools with still outputs: **Arc Ads**, **Gling**, **Sora**, **Midjourney/DALL\u2011E equivalents** within workflows.[13]  \n  - Analytics: **Motion** for \u201cAI powered creative analytics\u201d \u2013 \u201cyou know what's working, why it's working, and the exact ad to make next.\u201d[13]\n\n- **Where AI is strong for performance marketers**  \n  - Rapid **variant generation** and resizing.  \n  - Turning **structured briefs and existing winners** into more angles.  \n  - **Testing a high volume** of hooks and looks; feeding signals back into Meta / Google.[4][7][13]\n\n- **Where AI is routinely criticized (\u201cAI slop\u201d zone)**  \n  - One-click, low-effort \u201cgenerate 50 ads,\u201d producing **generic, derivative visuals and copy**.[2][5][8][14]  \n  - Over-reliance on AI for **core concept, emotional resonance, or nuanced brand voice**, producing work that feels hollow or uncanny.[5][12]  \n  - Use on **novel, ambiguous, or politically/culturally sensitive briefs** where mistakes are costly and obvious.[9]\n\n- **What remains human, according to research and practitioners**  \n  - **Concept & strategy** \u2013 deciding the big idea and positioning.[9][12]  \n  - **Taste & curation** \u2013 picking, editing, and fusing outputs based on what \u201cfeels\u201d right and performs.[6][12]  \n  - **Empathy & insight** \u2013 grounding creative in real user needs and language.[9][12]  \n  - **System design & decision-making** \u2013 building the testing framework, reading the data, and making the call on tradeoffs and brand risk.[4][9]\n\nIf you\u2019d like, I can map this to a concrete 2026 workflow for your team (e.g., \u201chere\u2019s how to combine AdCreative.ai + Midjourney + Advantage+ Creative + Motion with human review steps to avoid AI slop while still shipping 15\u201320 ads/week\u201d)."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

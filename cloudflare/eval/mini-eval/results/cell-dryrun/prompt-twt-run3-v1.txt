@@ -1,0 +1,17 @@
+Create a 4:5 vertical photograph, 1080×1350, for an Instagram feed ad.
+
+This image is a casual phone photo taken at home by the product's owner, who is behind the camera holding a recent mid-range phone, documenting their protein shelf.
+
+Scene: three identical burgundy stand-up pouches of The Whole Truth "light cocoa" whey protein sit in a loose row, left to right, on a plain wooden shelf with normal wear, against an ordinary slightly-warm white painted home wall. The left pouch is the most used-up: its top is rolled down and folded over, the body collapsed to about half height, deep creases across its face, slumping slightly. The middle pouch is also spent: top folded down, body sagging, crumpled. The right pouch is brand new: standing fully upright at full height, front face square to the camera, label crisp and legible. The gaps between the three pouches are slightly uneven — placed by hand. The two spent pouches slump; the new one stands straight: months of use made visible as posture.
+
+Camera: positioned slightly above the pouches, angled down about 30 degrees, close enough that the new pouch's label text is readable. The pouches occupy the lower two-thirds of the frame; the upper third is plain wall.
+
+Light: real afternoon window light coming from above and slightly to one side — one direction only, soft falloff, true soft shadows behind and beside the pouches on the shelf and wall. Phone-camera rendering: natural white balance, mild grain in the shadow areas, honest slightly imperfect highlights.
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): burgundy/maroon matte stand-up pouch; white "The Whole Truth" stacked logo; pack headline "Cleanest, lightest whey protein. Ever."; white info column on the right side of the pack containing a boxed "24 g protein per scoop", "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" with a small gold circle; a small green vegetarian dot; a dark strip near the bottom of the pack reading "light cocoa · whey protein isolate + concentrate"; a white panel with thin grey diagonal stripes wrapping the pouch's lower-left gusset. The protein badge on the pack reads 24 g, exactly as in the reference. All three pouches are this exact product: the two spent ones show the same burgundy-and-white design on their folded, creased bodies.
+
+On-image text, exactly as written, placed in the upper plain-wall area as simple clean white sans-serif overlay text on the photo, two lines, the way a person captions their own photo before posting — plain text set directly on the image:
+Line 1: "On my 3rd tub."
+Line 2: "My stomach's never complained once."
+
+The frame contains exactly: the painted home wall, the wooden shelf, the three pouches, and the two lines of overlay text. The setting is a domestic home interior; the owner is behind the camera.

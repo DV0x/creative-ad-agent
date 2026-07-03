@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useStore } from '@/store'
 import { useRequireAuth } from '@/contexts/AuthContext'
+import { track } from '@/lib/analytics'
 
 type Bill = 'mo' | 'yr'
 type PlanId = 'starter' | 'pro'
@@ -62,6 +63,9 @@ export function Pricing() {
       return
     }
     const interval = bill === 'mo' ? 'monthly' : 'yearly'
+    // Signed-out cold traffic: this redirect IS the checkout intent (it bypasses the
+    // in-app modal, which tracks its own checkout_started). Track here so we don't miss it.
+    track('checkout_started', { type: 'subscription', plan: planId, interval, surface: 'landing', signed_out: true })
     try {
       sessionStorage.setItem('creative-agent:pendingCheckout', JSON.stringify({ plan: planId, interval }))
     } catch { /* private mode etc — URL fallback still works */ }
@@ -78,6 +82,7 @@ export function Pricing() {
       openTopupModal(WEDGE_USD)
       return
     }
+    track('checkout_started', { type: 'topup', amount: WEDGE_USD, surface: 'landing_wedge', signed_out: true })
     try {
       sessionStorage.setItem('creative-agent:pendingCheckout', JSON.stringify({ wedge: true, amount: WEDGE_USD }))
     } catch { /* URL fallback */ }

@@ -1,0 +1,265 @@
+{
+    "wallTime": 14,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "7d65050154cc14a7cdf392411b4efead2b08e73db1de316af5f5c778734dcf82",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "1fea8e70-80e1-4189-a630-f1443733af0d"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][do][fetch] userId=user_3DcijxjNZKYwj4ZTQFyC3AZWN9C path=/ws upgrade=websocket"
+            ],
+            "level": "log",
+            "timestamp": 1778603915495
+        },
+        {
+            "message": [
+                "[T2][do][ws.accepted] wsCount=1"
+            ],
+            "level": "log",
+            "timestamp": 1778603915500
+        }
+    ],
+    "eventTimestamp": 1778603915494,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/ws?token=REDACTED.REDACTED.REDACTED",
+            "method": "GET",
+            "headers": {
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "cache-control": "no-cache",
+                "cf-connecting-ip": "175.101.96.179",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9faadac5aaa17f6b",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "connection": "Upgrade",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "origin": "https://creativemachines.xyz",
+                "pragma": "no-cache",
+                "sec-websocket-key": "REDACTED",
+                "sec-websocket-version": "13",
+                "upgrade": "websocket",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.179",
+                "x-user-id": "user_3DcijxjNZKYwj4ZTQFyC3AZWN9C"
+            },
+            "cf": {
+                "clientTcpRtt": 29,
+                "requestHeaderNames": {},
+                "httpProtocol": "HTTP/1.1",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "continent": "AS",
+                "asn": 17754,
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "verifiedBotCategory": "",
+                "country": "IN",
+                "isEUCountry": false,
+                "region": "Andhra Pradesh",
+                "tlsClientCiphersSha1": "nMpRlZ4lTrA1qr3kRPIX9Rui0AY=",
+                "tlsClientAuth": {
+                    "certIssuerDNLegacy": "",
+                    "certIssuerSKI": "",
+                    "certSubjectDNRFC2253": "",
+                    "certSubjectDNLegacy": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certSKI": "",
+                    "certSerial": "",
+                    "certIssuerDN": "",
+                    "certVerified": "NONE",
+                    "certNotAfter": "",
+                    "certSubjectDN": "",
+                    "certPresented": "0",
+                    "certRevoked": "0",
+                    "certIssuerSerial": "",
+                    "certIssuerDNRFC2253": "",
+                    "certFingerprintSHA1": ""
+                },
+                "tlsClientRandom": "auTffvTHcRQ5QGf068H4eDZIfbr0Zab7NmaT3gJbUyk=",
+                "tlsExportedAuthenticator": {
+                    "clientFinished": "38a91653f0ca20393f1536979af672b3520fff893d0daf21ca9cb08c54853a74",
+                    "clientHandshake": "b14b8c4ac96ac6276a6dca1d650edca783446efdf3e8e750e18765d51060dd0a",
+                    "serverHandshake": "65ce81304d0b002f8234458fe2827ff649dd74ed9b3b1cc15aa82d731913270e",
+                    "serverFinished": "8c5e26dd89e5f9686a19f732aa460bd4a82ddc7ef363c1a9f6605747d50bc544"
+                },
+                "tlsClientHelloLength": "1718",
+                "colo": "MAA",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestPriority": "",
+                "postalCode": "522414",
+                "city": "Narasaraopet",
+                "tlsVersion": "TLSv1.3",
+                "regionCode": "AP",
+                "asOrganization": "Excell Media Pvt Ltd",
+                "tlsClientExtensionsSha1Le": "0LIx3/wjdDa+sg3x8Cm7sj9nKz8=",
+                "tlsClientExtensionsSha1": "oscKo+nwn3MwiDfJu/D3k1NYG8s=",
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        }
+    }
+}
+{
+    "wallTime": 102,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "canceled",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "1fea8e70-80e1-4189-a630-f1443733af0d"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][ws_upgrade] method=GET"
+            ],
+            "level": "log",
+            "timestamp": 1778603915406
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3DcijxjNZKYwj4ZTQFyC3AZWN9C, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778603915480
+        },
+        {
+            "message": [
+                "[trace][worker][ws_auth] userId=user_3DcijxjNZKYwj4ZTQFyC3AZWN9C tokenPresent=true"
+            ],
+            "level": "log",
+            "timestamp": 1778603915480
+        },
+        {
+            "message": [
+                "[trace][worker][ws_forward] userId=user_3DcijxjNZKYwj4ZTQFyC3AZWN9C"
+            ],
+            "level": "log",
+            "timestamp": 1778603915480
+        }
+    ],
+    "eventTimestamp": 1778603915307,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/ws?token=REDACTED.REDACTED.REDACTED",
+            "method": "GET",
+            "headers": {
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "cache-control": "no-cache",
+                "cf-connecting-ip": "175.101.96.179",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9faadac5aaa17f6b",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "connection": "Upgrade",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "origin": "https://creativemachines.xyz",
+                "pragma": "no-cache",
+                "sec-websocket-key": "REDACTED",
+                "sec-websocket-version": "13",
+                "upgrade": "websocket",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.179"
+            },
+            "cf": {
+                "clientTcpRtt": 29,
+                "requestHeaderNames": {},
+                "httpProtocol": "HTTP/1.1",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "continent": "AS",
+                "asn": 17754,
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "verifiedBotCategory": "",
+                "country": "IN",
+                "isEUCountry": false,
+                "region": "Andhra Pradesh",
+                "tlsClientCiphersSha1": "nMpRlZ4lTrA1qr3kRPIX9Rui0AY=",
+                "tlsClientAuth": {
+                    "certIssuerDNLegacy": "",
+                    "certIssuerSKI": "",
+                    "certSubjectDNRFC2253": "",
+                    "certSubjectDNLegacy": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certSKI": "",
+                    "certSerial": "",
+                    "certIssuerDN": "",
+                    "certVerified": "NONE",
+                    "certNotAfter": "",
+                    "certSubjectDN": "",
+                    "certPresented": "0",
+                    "certRevoked": "0",
+                    "certIssuerSerial": "",
+                    "certIssuerDNRFC2253": "",
+                    "certFingerprintSHA1": ""
+                },
+                "tlsClientRandom": "auTffvTHcRQ5QGf068H4eDZIfbr0Zab7NmaT3gJbUyk=",
+                "tlsExportedAuthenticator": {
+                    "clientFinished": "38a91653f0ca20393f1536979af672b3520fff893d0daf21ca9cb08c54853a74",
+                    "clientHandshake": "b14b8c4ac96ac6276a6dca1d650edca783446efdf3e8e750e18765d51060dd0a",
+                    "serverHandshake": "65ce81304d0b002f8234458fe2827ff649dd74ed9b3b1cc15aa82d731913270e",
+                    "serverFinished": "8c5e26dd89e5f9686a19f732aa460bd4a82ddc7ef363c1a9f6605747d50bc544"
+                },
+                "tlsClientHelloLength": "1718",
+                "colo": "MAA",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestPriority": "",
+                "postalCode": "522414",
+                "city": "Narasaraopet",
+                "tlsVersion": "TLSv1.3",
+                "regionCode": "AP",
+                "asOrganization": "Excell Media Pvt Ltd",
+                "tlsClientExtensionsSha1Le": "0LIx3/wjdDa+sg3x8Cm7sj9nKz8=",
+                "tlsClientExtensionsSha1": "oscKo+nwn3MwiDfJu/D3k1NYG8s=",
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        }
+    }
+}

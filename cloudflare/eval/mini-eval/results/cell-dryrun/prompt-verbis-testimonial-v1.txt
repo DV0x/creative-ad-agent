@@ -1,0 +1,28 @@
+Create a 4:5 vertical social ad for Verbis Edu (a study-abroad education consultancy in Bengaluru, India) — a lead-gen ad whose goal is a free counselling booking. It is a real student's phone photo of their study-abroad-prep desk, with ONE real Google review pinned on it as a screenshot card. Honest and native — NOT a designed poster, NOT a studio shot, NOT AI-gloss.
+
+WHO SHOT IT + THE CAMERA (specific):
+- A 23-year-old Indian student in Bengaluru snapped this on their iPhone (recent model, main 1x camera).
+- iPhone computational HDR look: crisp, slightly cool-neutral white balance, natural smartphone depth of field. Handheld, looking DOWN at the desk at about a 30-degree angle, slight ~2-degree tilt. Portrait 4:5 crop.
+
+THE LIGHT (specific):
+- Late morning. Soft, directional daylight from a window at the LEFT of frame, gentle real shadows to the right. NOT golden hour, NOT warm-graded, NOT dim or grey.
+
+THE SCENE (study-abroad prep — candid, no people in frame):
+- A warm honey-toned wooden desk.
+- An open laptop, angled, showing a generic university/admissions web page — soft and out of focus, NO readable named institution.
+- A dark maroon Indian passport with a boarding-pass stub tucked into it, resting on a spiral notebook with real handwriting and a pen.
+- A glass cup of chai and a small stack of printed pages. A real, slightly-imperfect student desk — not styled.
+- Do NOT invent a visa stamp, a named university acceptance letter, or any fabricated official document.
+
+THE GOOGLE REVIEW CARD (one real Google review pinned as a screenshot — specific):
+- A white rounded-rectangle card (~16px corner radius) with a soft realistic drop shadow, sitting on the photo across the LOWER THIRD, slightly overlapping the desk — clearly a separate screenshot element dropped on the picture.
+- Google review chrome (this must read as GOOGLE, not Amazon): a small circular profile avatar (a flat colored circle with the initial "B"), the reviewer name "G. Bhavana" in dark grey, a faint grey "5 months ago" beside it.
+- A row of 5 filled stars in GOOGLE gold/amber (#FBBC04) — NOT Amazon orange.
+- The small multicolor Google "G" logo in the top-right corner of the card.
+- Review text (verbatim, exactly this): "From IELTS coaching to university selection and visa approval, I received excellent guidance at every stage."
+- Short and real. ONE review only — no body beyond that line, no made-up claims, no "helpful" count, NO second review.
+
+THE CTA (specific):
+- A small deep-blue rounded pill in the bottom-right corner, white text "Book free counselling ->" in a clean sans-serif. Clearly the brand's add-on.
+
+DO NOT: a top caption or headline on the photo · Amazon chrome or Amazon-orange stars or "Verified Purchase" · any product packshot (this is a service, there is no product) · a fabricated visa stamp or named acceptance letter · a person's face / a stock smiling student · a DSLR/studio look · a seamless studio backdrop · golden / warm grading · a designed poster look · a second review.

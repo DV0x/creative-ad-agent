@@ -1,5 +1,8 @@
 # Creative Agent
 
+## How To Talk To Me
+Always explain in plain, everyday language — like talking to a smart friend who isn't technical. Short sentences, concrete examples, one idea at a time. Never answer like a technical documentation writer; no jargon-dense design-speak. If a fancy term is unavoidable, say it once and immediately explain it in normal words.
+
 ## Project Overview
 AI-powered ad campaign generator. Users provide a brand URL, the agent researches the brand, creates 6 ad hooks (stat, story, fomo, curiosity, callout, contrast), generates art direction, and produces 6 images via fal.ai. Users can also create new campaigns from existing ones — research is copied, skipping the research phase, and fresh hooks/images are generated from a new brief.
 

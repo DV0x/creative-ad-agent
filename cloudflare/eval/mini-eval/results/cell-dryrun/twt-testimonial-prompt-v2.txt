@@ -1,0 +1,49 @@
+Create a 4:5 social ad image — a customer TESTIMONIAL card for a protein brand.
+
+This is a testimonial: a real customer's words are the hero. The product is a small supporting element in a corner. Do NOT make this a product shot.
+
+LAYOUT (left-aligned editorial column — NOT centered, NOT symmetric):
+- An oversized burgundy opening quotation mark anchors the top-left.
+- HERO QUOTE — the largest text on the image, left-aligned, just right of / below the big quote mark.
+  Set it in MIXED WEIGHT for emphasis: "No bloating" in heavy bold, "at all." in a lighter weight.
+  Full text, with the period as a hard stop:
+  "No bloating at all."
+- SOURCE CHIP — small uppercase tracked text directly under the quote:
+  "AMAZON.IN · VERIFIED PURCHASE"
+- SUPPORTING QUOTE — smaller, left-aligned below, same sans family:
+  "I can finally have protein daily without stomach issues."
+  with a small attribution under it: "— thewholetruthfoods.com review"
+- PRODUCT — the real protein pouch, SMALL (about a quarter of the frame),
+  anchored in the LOWER-RIGHT CORNER. Not centered. Not dominant.
+  Beside it a small spec chip: "24g protein per scoop"
+- CTA — bottom-left, plain, confident, smallest weight: "Try it →"
+
+LOOK — derived from The Whole Truth's real visual DNA (a confident, blunt, transparent brand — "#nothingtohide"):
+- Type: a BOLD, confident grotesque / geometric sans-serif. NOT a serif. NOT a thin elegant font.
+  The brand's signature move is mixing weights inside one line (the pack reads "Cleanest, lightest" light,
+  then "whey protein. Ever." heavy). Carry that: heavy + light in the same sentence, periods used as punches.
+- Ground: The Whole Truth's own soft blush / mauve photographic background — warm, premium, matte.
+  NOT sterile white. NOT a gradient.
+- Palette: deep burgundy type on the blush ground; white space generous; a single gold hairline accent
+  only where it signals premium (never decorative).
+- Attitude: the brand argues, plainly and confidently. The proof is STATED flat and sure, not whispered elegantly.
+
+PRODUCT BINDING — match the reference image exactly:
+The pouch is The Whole Truth "light cocoa" whey protein — a deep burgundy / maroon
+matte stand-up pouch, with the white stacked "The Whole Truth" wordmark, the white
+"Cleanest, lightest whey protein. Ever." line, the "24g protein per scoop" panel,
+the small green vegetarian mark, and the gold-circle "Trustified" seal.
+Keep the burgundy colorway, the wordmark, and the Trustified seal true to the reference.
+Lit with soft directional light on the blush ground — the brand's own premium product-photography look.
+Do NOT show the red "Bestseller" corner ribbon — it is a marketplace listing overlay, not part of the ad.
+
+MAKER / TREATMENT:
+Assembled by someone who collected a real review and set it beside the pack —
+honest and confident, like real proof laid out by the brand itself. Editorial, not decorative.
+No AI-gloss, no studio over-lighting, no dramatic reflections.
+
+FEEL: The Whole Truth stating a customer's proof, blunt and premium — not a generic elegant testimonial card.
+
+DO NOT: a serif font · a centered symmetric layout · a floating product-on-white e-commerce shot ·
+star-rating rows · ★★★★★ stars · stock smiling faces · an "as seen in" press-logo bar ·
+fake app or review-card chrome · a wall of many quotes · the product centered and large · a gradient background.

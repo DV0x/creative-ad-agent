@@ -1,0 +1,19 @@
+Create a 4:5 vertical designed advertisement poster, 1080×1350, for an Instagram feed ad.
+
+This is a bright, art-directed commercial advertisement — a staged product scene with composed type, built by a designer. Confident, abundant, energetic retail mood. Not a casual photo, not a moody editorial.
+
+Scene: a clean, warm-white modern Indian kitchen counter in bright morning light. Lined up across the counter in one straight row: seven identical clear glasses, each filled with the same light-cocoa-brown protein shake — matte, simple, freshly stirred with a small natural swirl on top. No whipped cream, no chocolate garnish, no dessert styling — a plain honest shake, seven times. In front of each glass leans a small printed white card with one short word in dark charcoal type, left to right: "MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN". At the right end of the row stands the burgundy TWTF whey protein pouch at hero scale — noticeably taller than the glasses, label square to the camera, crisp and fully readable — closing the line like the answer to it.
+
+Composition: the row of seven glasses spans the full width of the frame's middle band, evenly spaced, all in sharp focus; the pouch anchors the right edge of the row at hero scale. The background above the counter is a plain warm-white wall, brightly lit, carrying the type. The counter front fills the bottom strip below the row.
+
+Light: bright, crisp morning daylight flooding from the upper left, clean white balance, sparkling highlights on the glasses, rich saturated burgundy on the pouch, soft short shadows under glasses and pouch. Cheerful, abundant, commercial — no moodiness anywhere.
+
+Typography, exact words and colors decided against their surfaces:
+- Hook, large dark charcoal extra-bold sans-serif, centered on the warm-white wall area at the top, on one line: "Every. Single. Day."
+- Directly beneath it, one smaller line in regular-weight dark grey sans-serif, in quotation marks: "I can finally have protein daily without stomach issues."
+- Beneath that, a small tracked all-caps light-weight dark grey line: "— REAL AMAZON REVIEW"
+- Bottom center, overlapping the counter front: a rounded burgundy CTA pill chip with white text: "Try it → thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): burgundy/maroon matte stand-up pouch; white "The Whole Truth" stacked logo; pack headline "Cleanest, lightest whey protein. Ever."; white info column on the right side of the pack containing a boxed "24 g protein per scoop", "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" with a small gold circle; a small green vegetarian dot; a dark strip near the bottom of the pack reading "light cocoa · whey protein isolate + concentrate"; a white panel with thin grey diagonal stripes wrapping the pouch's lower-left gusset. The protein badge on the pack reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the warm-white kitchen counter, seven identical glasses of light-cocoa shake in one evenly spaced row, seven small white day cards reading MON through SUN leaning one in front of each glass, the burgundy TWTF pouch standing at hero scale at the right end of the row, the bright warm-white wall behind carrying the three lines of type, and one burgundy CTA chip at the bottom center.

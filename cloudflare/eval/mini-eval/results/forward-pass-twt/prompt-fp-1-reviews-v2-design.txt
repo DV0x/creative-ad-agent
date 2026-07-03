@@ -1,0 +1,29 @@
+Create a 4:5 vertical designed advertisement graphic, 1080×1350, for an Instagram feed ad.
+
+This is a flat, print-grade ad layout built by a senior brand designer working in a Swiss-grid editorial discipline — strict grid, generous negative space, restrained premium finish. It is a designed graphic with one photographic product image placed into it; not a photograph of a scene. It should look like the work of a premium brand's in-house design team, never like a template.
+
+Design system:
+- Palette: exactly three colors. Warm cream ground (soft warm off-white, matte paper tone). Deep plum as the voice color (matching the dark badge color on the product pack). Muted gold used ONLY as a tiny accent on the source chips. All color is flat — no gradients anywhere, no glows, no color washes.
+- Typography: one type family only — a confident modern grotesk sans-serif. The hero quote is bold with tight tracking and tight line height. Supporting quotes regular weight. Chip and footer text small, medium weight, slightly letterspaced. Maximum three text sizes in the whole layout.
+- Finish: print-flat. Surfaces read like matte paper, not screens. Each card carries one soft, low, barely-there shadow — no glossy drop shadows, no bevels, no glow.
+- Spacing: a strict left-aligned column grid with even, generous gutters; wide clean margins around the whole canvas; the layout breathes like a premium editorial page, never crammed.
+
+Reading order — the eye must travel in this exact order: hero quote first, the two smaller quotes second, the product pouch third, the bottom bar last.
+
+Layout:
+
+Top-left: small kicker in deep plum, bold, letterspaced uppercase: "WHAT BUYERS KEEP SAYING"
+
+Left two-thirds: a single stacked column of three white rounded-corner review cards on the cream ground, even vertical gaps:
+- Card 1 — the hero, about three times the visual weight of each smaller card: the quote "No bloating at all." set very large, bold, tight tracking, dark charcoal. Below the quote inside the card, a small rounded chip in muted gold with deep plum text: "Amazon review"
+- Card 2 — much smaller: "I can finally have protein daily without stomach issues." in regular weight, dark charcoal. Small muted-gold chip with deep plum text: "thewholetruthfoods.com review"
+- Card 3 — same size as card 2: "Easy on the stomach." in regular weight, dark charcoal. Small muted-gold chip with deep plum text: "Amazon review"
+No star icons anywhere. No rating numbers anywhere.
+
+Right third: the product pouch, large, standing upright on the cream ground as if photographed in soft, even studio light, front face square to camera, one true soft shadow grounding it. Beside the pouch a small white rounded chip with dark charcoal text: "24g protein per scoop"
+
+Bottom: a full-width deep plum bar in flat color, with cream text centered in the same grotesk sans: "Shop now → thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): a bright raspberry-magenta stand-up pouch, wide and squat — nearly as wide as it is tall — matte finish, gusseted base. In the upper-left area of the pack face, the white stacked brand wordmark on three lines, exactly in this order: a small lowercase "the" on the first line, then "Whole" in bold on the second line, then "Truth" in bold on the third line — together reading "The Whole Truth". Never reorder these three words. In the upper right, a dark plum rounded badge reading "24 g protein per scoop" in white; beneath it, small white text lines printed directly on the magenta surface — "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" beside a small gold dot. Across the center-left in large white type: "Cleanest, lightest whey protein. Ever." with a small paragraph of fine white text below it. A small green vegetarian mark. Near the bottom, a dark rounded band reading "light cocoa · whey protein isolate + concentrate". A bold white panel with fine grey diagonal stripes wraps the pouch's left edge. There is no red corner ribbon and no large gold seal anywhere — those are website graphics, not part of the pack. The protein badge reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the cream ground, the kicker, the three review cards with their source chips, the pouch with its shadow and one spec chip, and the bottom plum bar. All text exactly as written above — no extra words, no decorative elements, no gradients, no glow, no texture overlays, nothing else.

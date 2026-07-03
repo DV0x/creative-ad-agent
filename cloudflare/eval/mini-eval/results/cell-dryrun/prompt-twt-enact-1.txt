@@ -1,0 +1,18 @@
+Create a 4:5 vertical designed advertisement poster, 1080×1350, for an Instagram feed ad.
+
+This is a designed commercial advertisement built around one staged photograph — bright, warm, art-directed, with composed type. Not a casual snapshot.
+
+Scene: a bright, warm Indian living room in daylight. A woman around 30, Indian, wearing a relaxed sage-green cotton t-shirt and soft grey lounge pants, lies comfortably on her back along a fabric sofa in warm oatmeal color, her head resting on the armrest cushion, eyes closed, with a calm, content half-smile — completely at ease, not unwell. The burgundy TWTF whey protein pouch lies flat on her stomach, label facing the camera and fully readable, exactly the way a hot-water bag rests on a stomach — and both her hands rest gently on top of the pouch, holding it in place like a small comfort object. Behind the sofa: a warm cream wall with soft daylight from a window to the left, one potted plant blurred at the frame's right edge.
+
+Composition: the sofa runs horizontally across the lower two-thirds of the frame, the woman lying left-to-right with her head at the left. The pouch on her stomach sits just right of frame center, the clear focal point, label crisp and legible. The upper third of the frame is calm cream wall and carries the type.
+
+Light: bright, warm, soft window daylight from the left, gentle falloff, soft natural shadows; cheerful and commercial, no moodiness, skin tones warm and healthy.
+
+Typography, exact words and colors decided against their surfaces:
+- Hook, upper third against the cream wall, in large dark charcoal extra-bold sans-serif, centered, in quotation marks: "Easy on the stomach."
+- One small line directly beneath the hook in tracked all-caps light-weight dark grey sans-serif: "— REAL AMAZON REVIEW"
+- Bottom center: a rounded burgundy CTA pill chip with white text: "Try it → thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): burgundy/maroon matte stand-up pouch; white "The Whole Truth" stacked logo; pack headline "Cleanest, lightest whey protein. Ever."; white info column on the right side of the pack containing a boxed "24 g protein per scoop", "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" with a small gold circle; a small green vegetarian dot; a dark strip near the bottom of the pack reading "light cocoa · whey protein isolate + concentrate"; a white panel with thin grey diagonal stripes wrapping the pouch's lower-left gusset. The protein badge on the pack reads 24 g, exactly as in the reference. The pouch lying on her stomach is this exact product, undistorted, label toward camera.
+
+The frame contains exactly: the oatmeal sofa, the woman lying on it with eyes closed and a content half-smile, the burgundy TWTF pouch resting flat on her stomach with her hands gently on it, the cream wall behind with soft window light, one blurred potted plant at the right edge, the quoted hook line in dark charcoal on the wall area, the small attribution line beneath it, and one burgundy CTA chip at the bottom center.

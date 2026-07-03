@@ -1,0 +1,1190 @@
+{
+  "slug": "india-d2c-vs-local-2026-06-15",
+  "country": "IN",
+  "status": "ACTIVE",
+  "pulled": "2026-06-15",
+  "brands": [
+    {
+      "brand": "The Whole Truth Foods",
+      "bucket": "D2C/protein",
+      "page_id": "108531977179455",
+      "page_name": "The Whole Truth Foods",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "1728972688528211",
+          "mediaFormat": "DCO",
+          "daysRunning": 7,
+          "launched": "2026-06-08",
+          "variants": 6,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "INSTAGRAM"
+          ],
+          "title": "Introducing Mocha Millet",
+          "body": "Real coffee. Now with serious crunch 100% clean . 12g protein . Tasty as hell",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "900803866382360",
+          "mediaFormat": "CAROUSEL",
+          "daysRunning": 6,
+          "launched": "2026-06-08",
+          "variants": 5,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "INSTAGRAM"
+          ],
+          "title": "Buy 12g Healthy Protein Bar Online | The Whole Truth Foods",
+          "body": "",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1205394071640951",
+          "mediaFormat": "DCO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "INSTAGRAM"
+          ],
+          "title": "Introducing Hazelnut Millet Cocoa",
+          "body": "Introducing Hazelnut Millet Cocoa 100% clean . 12g protein . Tasty as hell",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "942614505406366",
+          "mediaFormat": "DCO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "INSTAGRAM"
+          ],
+          "title": "Introducing Hazelnut Millet Cocoa",
+          "body": "Introducing Hazelnut Millet Cocoa 100% clean . 12g protein . Tasty as hell",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1477898873653723",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 3,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Kabhi socha why some protein powders feel light while others leave you bloated? 🤔 Watch this reel to understand why.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/655915709_2208293756243125_9077838486538658292_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=JN7Wl6G4BswQ7kNvwGknpw0&_nc_oc=AdqqPy9beh-_jRg-usS1vTcOoiSS6QmcbzIv_4WXgVHTFiTiOT-rWU_Tn80vsCyMHqc&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=fTy5OEoWXKHl0fHLauFh_Q&_nc_ss=7e289&oh=00_Af8f3bRlodSuntmRJVa25huzCXR9R_DCgzXWfwtwPqb6Yw&oe=6A361033"
+        },
+        {
+          "archiveId": "1804458043862001",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 3,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "How to choose the right whey",
+          "body": "Confused about which whey protein to buy? Start here. Step 1 - Check the ingredients before anything else. Protein powder should be protein, not a chemical cocktail. If the label has artificial sweeteners like Ace K or Sucralose or vague terms like \"natural flavours\" - those aren't as harmless as they sound. Find something cleaner. Step 2 - Concentrate or isolate? Both come from the same source. Concentrate is creamier, a bit heavier. Isolate is filtered further - lighter, lower in lactose, easier to digest. If you're lactose intolerant, isolate is the better call. If you want the best of both, a 70:30 blend of isolate and concentrate is a solid middle ground like our Light Cocoa Protein Powder. That's your whey sorted.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/714486377_973073538862888_7533659084085266170_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=y2tSH_aJNegQ7kNvwGmjt_w&_nc_oc=Adqtkp_raCbZDYI5WRRhssTQiTG_QUJIKPhf1V6RIlE0RP4nkW6r2apYELuBV0p_Or8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=fTy5OEoWXKHl0fHLauFh_Q&_nc_ss=7e289&oh=00_Af8MFwdtcOTmb64dPXNf9QDDC5nIuBciID-sMLMx5P4vDA&oe=6A360EB9"
+        },
+        {
+          "archiveId": "1536146961502176",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 3,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "I’m not here for protein debates. Pure whey vs real-food add-ons, both can work. What are you choosing today?",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/653082909_945548734581984_6485827341717897672_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=smCJJ62gRZsQ7kNvwG-WGQ1&_nc_oc=Adr6T3Of-fN8leJuue3_Qe35n8ZUfXi98jaSIzvqVV0nsI_kQ7j7oHs9WXyXudkQMGg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=fTy5OEoWXKHl0fHLauFh_Q&_nc_ss=7e289&oh=00_Af_NFREX5d3ctYf28oSl-XqXXxoJB9wqYT9ZjkR8PnovZQ&oe=6A35EF5C"
+        },
+        {
+          "archiveId": "1026872623335025",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 3,
+          "launched": "2026-06-12",
+          "variants": 3,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Protein ke peeche itne saare chemicals? You don’t need them! Protein powders are only for ‘men trying to build bulky muscles’. They’re ‘steroids’. They’re not for me. Why do all these protein myths continue to exist? They exist because most protein powders are a black box. An unnecessary concoction of harmful chemicals. And then every week a new report finds amino spiking or heavy metals, further solidifying our fears. This needs to change. You parents, your spouse, and you - everyone needs more protein. But it won’t happen until we take the protein conversation away from gyms and into our living rooms. And it definitely won’t happen if protein powders remain a black box. Hence, this film. The lyrics acknowledge the problem. The iconic song (and the beautiful men dancing to it) hopefully brings down barriers to having the conversation. And our 100% clean protein powders (we hope with all our heart) enable the change. Share this. And tell us how you, or a loved one, finally got started on your protein journey. And biiig love to our partners in kuk: @manjabrandworks @mr.nicecat @footloosefilms",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/657239326_1247753924008190_9051068847274939229_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Y6f4is-zLB0Q7kNvwHHRSJ9&_nc_oc=AdrlbGKyRsU7FEC4O7PVSh0-_Qq3ba01Vf4mG4TG7C3ZhXrLSCLLN56bfg3kJNVwqhw&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=fTy5OEoWXKHl0fHLauFh_Q&_nc_ss=7e289&oh=00_Af8c0yePFVyZeZuADXyNvzB8_eWmq5IA8Lp9Ba7i00h3DA&oe=6A35EE88"
+        },
+        {
+          "archiveId": "1547142877202081",
+          "mediaFormat": "DCO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "INSTAGRAM"
+          ],
+          "title": "Introducing Hazelnut Millet Cocoa",
+          "body": "Introducing Hazelnut Millet Cocoa 100% clean . 12g protein . Tasty as hell",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2820349191649237",
+          "mediaFormat": "DCO",
+          "daysRunning": 4,
+          "launched": "2026-06-11",
+          "variants": 2,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Introducing our NEW Hazelnut Millet Cocoa Protein Bar 🌰",
+          "body": "Meet our NEW Hazelnut Millet Cocoa Bar, made with: 🌰 Real hazelnuts & cashews 🌾 Crunchy ragi millet 🍫 Real cocoa 🔋 12g protein Perfect for when you want something indulgent that's actually made of food, not \"hazelnut flavour\" and a prayer.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2659576991090446",
+          "mediaFormat": "DCO",
+          "daysRunning": 81,
+          "launched": "2026-03-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "THREADS"
+          ],
+          "title": "Whey Protein Isolate Comes Clean",
+          "body": "If your isolate feels heavy, sweet or artificial… that’s the fillers talking. This one? Pure protein. Nothing else. Just 3 clean ingredients → 30g protein → light-as-water consistency. No sugar. No junk. No weird aftertaste. Just the cleanest isolate we could make. BUY NOW! Use code LIGHTEST to get Extra 10% OFF 🚚 All India FREE Shipping",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "3363666040467801",
+          "mediaFormat": "DCO",
+          "daysRunning": 80,
+          "launched": "2026-03-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Order now / ORDER_NOW",
+          "linkDomain": "thewholetruthfoods.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "THREADS"
+          ],
+          "title": "Pista Badaam Whey Protein. Comes clean.",
+          "body": "The cleanest, lightest 24g protein made with real pista badaam flakes in every scoop! Tastes yummm, just like thandai 🥰 ✔ No Added Flavours ✔ No Artificial Sweeteners ✔ No Adulterants ✔ No Preservatives ✔ No Thickeners ✔ No Amino-spiking ORDER NOW! 🚚 All India FREE Shipping",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Plix",
+      "bucket": "D2C/wellness",
+      "page_id": "444025482768886",
+      "page_name": "Plix",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "847022681515805",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 174,
+          "launched": "2025-12-22",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Aise Wife Ho To Kya Hi chiye ❤️😍 Tag someone @uniquecoupleav_ 😍🥰💕 #couple #trendingreels #trendingaudio #viralvideos #newvideo couplesgoals caringpartner wife respect love lovebird caring caringhusband",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/605518476_808579698886846_3386073068600181121_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=uq0FRww3BEwQ7kNvwGw4-nz&_nc_oc=AdoW8YiCi5WOtEqu94Fo0Kso85n5wmLPYrDQTGnE_69tjNvc82lF5NjlwVni4TtQPMg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af8MIFXqWTmy_edSe0aHTKBFrqhMZWlsOEU-uEGHDsD62A&oe=6A3614A0"
+        },
+        {
+          "archiveId": "1486584055697850",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 309,
+          "launched": "2025-08-09",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Like i said once in a while my skin takes a toll and this de pigmentation duo from @myplixlife is something i always reach out to! Plix, de pigmentation serum, skin goals, skincare, skincare routine, skincare products, acne probe skin, acne positivity, skin goal, clear skin, explore page, fyp #plix #skincare #skincareroutine #skincareproducts #skincareaddict #skincarejunkie #acne #acnetreatment #acnepositivity #acneproblems #acneproneskin #pigmentation #explorepage✨ #fyp",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/487433943_1329401664942879_4116969295130224920_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=UKGu3Krc6uYQ7kNvwHkUhih&_nc_oc=AdpiVptccBZtfO5hfuPLZrVXWoV3p4nGK0UAo4XhsDUAeirtLsaKhTHibId9FcL-Zfc&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af9HMNA_srlmxbxANkSp-AhnAlQEVgqvJ5KE5767HqweTQ&oe=6A3605D3"
+        },
+        {
+          "archiveId": "558107770453385",
+          "mediaFormat": "DCO",
+          "daysRunning": 543,
+          "launched": "2024-12-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlifequiz.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "Get Curated Products Only For You!",
+          "body": "Plix Weight Loss Quiz Is Live🤩 ✅ Up to 50% Or More ✅Customized Diet Plans ✅Weight Management Consultation ✅Workout Videos ✅Start Seeing Results From The First Use",
+          "linkDescription": "Click On Sign Up To Get A Free Consultation!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "599731732970441",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 487,
+          "launched": "2025-02-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlifequiz.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "",
+          "body": "Agr aapko bhi aisi koi problem h to aap ise jarur try kare ❤️ @myplixlife",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/477380217_2357174634639620_7004334086066576526_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=1bjCVMJ_g6oQ7kNvwHo1nsY&_nc_oc=AdrxO09CMjyFA3vbYWES6eU0XvIflUUiyZeoBoJTV3Y-GbrC8Dd9WrI8VL0t7S98RAA&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af83UXbWPHXcJ5chqlQBT5Ri8gdx_pz9OuWxnAHrcWrwbw&oe=6A35F8B8"
+        },
+        {
+          "archiveId": "4438080453081270",
+          "mediaFormat": "DCO",
+          "daysRunning": 432,
+          "launched": "2025-04-09",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlifequiz.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "Get Curated Products Only For You!",
+          "body": "Plix Weight Loss Quiz Is Live🤩 ✅ Up to 50% Or More ✅Customized Diet Plans ✅Weight Management Consultation ✅Workout Videos ✅Start Seeing Results From The First Use",
+          "linkDescription": "Click On Sign Up To Get A Free Consultation!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2339054133223109",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 201,
+          "launched": "2025-11-25",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Plix Skin Glow Glutathione",
+          "body": "Visible results in just 12 weeks! Start your journey now with Plix Glowy Skin Glutathione. ✅ Hyaluronic Acid, Glutathione, Vitamin E, Aloe Vera & Vitamin C ✅ Clinically Backed To Reduce Melasma Production ✅ Youthful & Glowing Skin ✅ Boosts Skin Elasticity ✅ Reduces Dark Spots, Fine Lines & Wrinkles",
+          "linkDescription": "Delicious Drinkable Skincare",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/565128868_681209151707463_2126470795126999639_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=veC1hAsQdGEQ7kNvwFLKDXE&_nc_oc=AdqT32D2q_xE9BvcjgACDeuVFq5bluD1lqU15qJDMTutKLMVV-94Omlp2CwyWCRh6Vs&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af-1AdDkaKdPg6ZS8KJ120ijykpI58TebPl-mIv0SCKlhg&oe=6A35FD92"
+        },
+        {
+          "archiveId": "1530227284793744",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 193,
+          "launched": "2025-12-03",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Comment for link🖇⬇ In love with this The Guava Glow Cleanser ,toner , The Vitamin C Serum & moisturiser from @myplixlife duo‼️🤝 I am using this guava range since 3 months now After every wash I can feel my skin getting getting better ✨ Plix cleanser contains vit b 12 and vitamin c Jiska first use se hi milta h instant glow. Then plix guava glow toner is 2 in 1 toner skin ko hydrated krta h pores tighten up rkhta h and its has guava roses fat water toh maintain skin ph level. Then comes my all time favourite plix 10% vitamin c 5kda hyaluronic acid serum jiske apki skin even toner ho jygi.Last comes plix guava glow moisturiser with spf 20 vitamin c and hyaluronic acid which gives your brighter skin.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/495512999_1673342183388342_3946424601267210136_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=pY6CHunO1JYQ7kNvwEyxkYx&_nc_oc=AdqnLP4OtiT5mggtjZgHjZoFSMO_96OJrM9ebiRHEKBmHDnTok4_nth7lW8CR9s6q5M&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af9wIuRkknJVQgn7svYB7QsETkOHOBf7lWi-hvOsL_vCkA&oe=6A362243"
+        },
+        {
+          "archiveId": "853491430421650",
+          "mediaFormat": "DCO",
+          "daysRunning": 193,
+          "launched": "2025-12-03",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Get Any Five Bestsellers at Rs.1400",
+          "body": "What’s in your Plix box? 👀 Choose any 5 products at just ₹1400 and design your own wellness journey!",
+          "linkDescription": "Build Your Own Box at Rs.1400 Only!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1620421655649364",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 193,
+          "launched": "2025-12-03",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Link in bio Grab your 5 favorites from @myplixlife at Rs.1400/- Here are my top 5 picks from Plix’s byob!!! Guava glow serum helps to even tone your skin Jamun acne spot correcter helps to reduce active acne , prevent future breakouts Plix’s Pomegranate Peeling Potion helps to Brightening and Even Skin Tone Rosemary hair regrowth serum helps to reduce hair fall boost hair growth Peaches and lemon detan scrub help to remove your body tan You won’t get a better deal than this, Hurry up & grab now!",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/482250572_1171437487808351_8754921641900074913_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=q3E8f2xgds0Q7kNvwGfvGed&_nc_oc=AdryIA9gXp51ig879w1YKW14OdzsC-EW_xjZYiH-79O844grHQt4bnxhsYztZl-NwvU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af-xOK7oEX7o18LeWGJ-l7UP9-ppIRjA2GHxXVoTqPzrxQ&oe=6A35FDB9"
+        },
+        {
+          "archiveId": "880866154298002",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 193,
+          "launched": "2025-12-03",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "MY DM’s are flooded with customers asking for an offer on Plix products! Here it is: Get any 4 Plix products at just Rs 1200 (PS: almost 70% off) This is one for our Plix Fam as you all deserve the best quality skincare & wellness at the correct price. Take Care, Have Fun. Lots of love, Akash Zaveri",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/432744506_763356249224292_2954829105653422177_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WExDaI9ngm0Q7kNvwFOg7v6&_nc_oc=Adpd6jpvF1lRUXlJwxH96N7Q687byodRKTYLE3YqNRsYkcFOHCs3gxPqPw9kQhRidTY&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af9MSKTg1_oROzSPvEPR4-KnuF_SesQOfwWtdY2_S8v_2w&oe=6A360411"
+        },
+        {
+          "archiveId": "1370472431756938",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 180,
+          "launched": "2025-12-16",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Loving my new body🌷🤌🏻♥️ . . Plix ACV, Apple Cider Vinegar, Waist Reduction, Reduce Body Fat, Fizzy Drink, Reduce Cravings, Promotes Metabolism, Prevents Overeating . #Plix #plixacv #applecidervinegar #plixlife #trendingreels #explore #reelitfeelit #explorepage #healthybody #healthyeating #weightloss #fatloss #bellyfatcuttter",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/597859017_1490003962106920_4730322433045582548_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=KhFijEj3JMYQ7kNvwHRXwMg&_nc_oc=Adq0PdJt-QsaaDvZKau989Bt_HzzGOZ3Zg_CiWqjuQhDlPrmONXZA1wr3iliSW1p3FY&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af_0K7_NeicZcFLNj-my-nNNy_AJHdEU3sXZfSedl0Ol5Q&oe=6A35FD45"
+        },
+        {
+          "archiveId": "1510654586715185",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 173,
+          "launched": "2025-12-23",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "plixlife.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Type \"Link\" to get Purchase links of all products direct in ur inbox or Share this reel with me to get direct links in ur inbox. @myplixlife",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/601397139_1207518887478098_5163713953705703784_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=vRUsMv0IvAMQ7kNvwHRLikm&_nc_oc=AdovP6wilAmZCQ3M2UFMiE592UCho3eyZyiIM5fQjrLKs8aqg2eOFgeTD_VJdQJJ-1M&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=18w1QHvOr_4PB0N8M3_usQ&_nc_ss=7e289&oh=00_Af-CIMROpo3x4G4eF8uF8KONfnHePpnEFBbXd40Y2qj9GA&oe=6A361F9A"
+        }
+      ]
+    },
+    {
+      "brand": "Leverage Edu",
+      "bucket": "local/education",
+      "page_id": "427912830703378",
+      "page_name": "Leverage Edu",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "1024967536663448",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 19,
+          "launched": "2026-05-27",
+          "variants": 2,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Sep 2026 Intake – Italy Open Now",
+          "body": "🇮🇹 Your dream of studying in Italy is now possible at ₹0* 😍 Get scholarships covering tuition + living expenses 💸 🎓 150+ QS-ranked universities 💰 Up to ₹15L scholarship* 💼 Earn while you study 👉 Book your FREE counselling today!",
+          "linkDescription": "Italy offers low-cost public universities & legal work rights.",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/707478003_1714744286349280_6462320392180901943_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=eF1-YmkvfgsQ7kNvwGFkQtR&_nc_oc=Adq9bXgOOgLnbEBXCG9bZkl09WSJuMd1xcptghbGiVlgWauW0xN8UYxfU5pCeDNY0Js&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af9N_xqv-OeBKBMhWYbwNUcRKx_bbL4vWCbXRixpIs-6-Q&oe=6A361EEC"
+        },
+        {
+          "archiveId": "2179612919507349",
+          "mediaFormat": "DCO",
+          "daysRunning": 50,
+          "launched": "2026-04-25",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Start Early. Get Top Universities",
+          "body": "🌟 Thousands of Indian families have sent their children to top universities in the US 🇺🇸, UK 🇬🇧, Canada 🇨🇦 & more. 🔑 Their secret? Starting early — with the right guidance. 🏆 Ivy100 by Leverage Edu has helped students get into Oxford, MIT, Toronto & beyond. 🎓 Your child could be next. 👇",
+          "linkDescription": "Start early. Build strong profiles. Get top university admits.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "978462624784895",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 33,
+          "launched": "2026-05-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Find your city, your rent",
+          "body": "🇬🇧 Cheapest UK cities for students 🏠 Leeds £500 / Birmingham £520 / Manchester £550 🏠 Edinburgh £600 / London £900+ 🎓 25,000+ verified properties in 50+ countries 💰 We match your budget to the right city 🚀 Apply now with Leverage Edu",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/698446162_958928646739287_8922314757178647526_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=YhS32VqHAmYQ7kNvwH6fcGa&_nc_oc=AdpPxE3CoRuAE0D6vF1UGExYT4AkOgtfZgYPCLAELFoxlkcI9pJebjD9h0IRW8x3waM&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af_K2nv69ImtXzf12och3jEFxZGYeA6zU6QEBSWIA_kWRA&oe=6A3609C2"
+        },
+        {
+          "archiveId": "1299966481506736",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 33,
+          "launched": "2026-05-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "From small town to global dream",
+          "body": "🎓 The first girl from her small town to study in the UK 🇬🇧 Sanvi made the impossible possible ✅ Costs, visa, accommodation, all sorted 💰 Loans & scholarship guidance 🚀 Apply now for Sep 2026 intake",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/699829812_1517105316869101_8399085760722990009_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=VPx_KUXBsFEQ7kNvwFnPm4V&_nc_oc=Adr2S2Bdy0wauuMoHQPxwKDa_plx-1jLvbPn8_3i62GHhzcY8vM6TZyeYpLOZ2Y0yoQ&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af_IyNdQZV1417AltJfbTz7PnUQk43xJPv04NbhZ_HrWIg&oe=6A3615BF"
+        },
+        {
+          "archiveId": "994525403325637",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 33,
+          "launched": "2026-05-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Live the UK you've dreamed of",
+          "body": "⚽ Love football? Study in the football capital 🇬🇧 Watch your club live from £20 student tickets 🎓 Top UK universities for global careers 🛂 2 Years Graduate (PSW) Visa* 🚀 Apply now for Sep 2026 intake",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/696358697_1879388202725888_320870642332751627_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=YZOl_7xM-zwQ7kNvwEjXLry&_nc_oc=AdoLJ1WPIwo3NParlvsmcAtbCzXBHM2dn98Ssi8MPGHlcXC3aSW5paqTKSmzWgAxuGM&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af8HPuYmr8NsScMUnTceTBKngffk52u0WqashWdFbydpRQ&oe=6A35FA37"
+        },
+        {
+          "archiveId": "1686682715680400",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 33,
+          "launched": "2026-05-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "World class degree, half the cost",
+          "body": "🎓 Study a 1 year MSc in the UK 💰 Tuition under £20,000* ✅ Full degree under ₹26 Lakhs with scholarship* 🛂 2 Years Graduate (PSW) Visa* 🚀 Book your free call today",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/699158587_948887964629947_658508412632694510_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=2Nm3xw9oX68Q7kNvwFgawuJ&_nc_oc=Adqr19NRVWw2GT5AkWy6kWDE3PrUuMOKGbwaRChvJQvReukOfQCc631On6zftjOxAmY&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af_VHf-nXaV8ZIka9A7FlNpm_s4tISoyCTcf4BqQ75t2vQ&oe=6A360516"
+        },
+        {
+          "archiveId": "970225442381690",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 32,
+          "launched": "2026-05-14",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Find your real matches",
+          "body": "🎓 Got 6.8 CGPA? 47 UK programs are waiting 🇬🇧 Apply to Liverpool, Birmingham, Exeter & more ⚡ Vasu AI evaluates 200+ data points instantly ✅ See your real university matches 🚀 Sign up with Leverage Edu",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/698583707_773075375771111_6257888240243273145_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=rtR7GrHVfwkQ7kNvwG6rPn1&_nc_oc=Adpgv0It3tA_g15VhcCu8v-HB71cmanDOCEqDAW3v31vEee6aYwfchzyLFsPkVTSo0Y&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af-Y2tUPDWzQfPVA88R0mNH5Z7PXLU5KUeH9IWT2jTliWQ&oe=6A360092"
+        },
+        {
+          "archiveId": "967344795897994",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 30,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Even chacha wants the number",
+          "body": "🇬🇧 Even chacha wants the Leverage Edu number 🎓 Perfect Masters courses + scholarships 💰 Smart financing for your UK dream 🛂 2 Years Graduate (PSW) Visa* 🚀 Book your free call today",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/698912480_3507446472763742_8004383934584604345_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=VDGPRQdYkKkQ7kNvwE513Om&_nc_oc=Adq0iGC3LuuxKvzTYFvA92cgX_46Krg5ucJu_qkvuz8wcUh4se4xam2FmRe6EX-L4Xc&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af-xD6LjyCvU05psEHPA7z2aPbBeneLpIwQh8ZtimaCZQg&oe=6A361131"
+        },
+        {
+          "archiveId": "996188212757871",
+          "mediaFormat": "DCO",
+          "daysRunning": 28,
+          "launched": "2026-05-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Early Bird Scholarship!",
+          "body": "Don’t wait for your future—build it NOW! Enroll in flexible online UG programs (BCA, BBA, B.Com, BA) with UGC-recognized universities.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1442488657632578",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 24,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Your Ivy League dream isn't far. It's one conversation away.",
+          "body": "Ivy League graduates are building the future at Apple, Google, Microsoft, and beyond. If you've ever dreamed of joining them, it's time to take the first step. Talk to IVY100 by Leverage Edu and let's make your dream your destination.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/704731984_1009268895392037_7528398185649643752_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=_UYCrP_LIXMQ7kNvwFjPptX&_nc_oc=AdpwwfAOkxaVLB-TPbVqkXxw1n7_se4sRcivCQ1eMpajC2aIrKZtyXLbXBbK5pMAwGg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af9TEIDs0WZeK22GweIiAky_cWN6rFxRSkYdfeXAxDGNnA&oe=6A360B91"
+        },
+        {
+          "archiveId": "4403644806519937",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 23,
+          "launched": "2026-05-23",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "A Russell Group Master's Degree Awaits",
+          "body": "🎓 Study at the University of Birmingham 💰 Scholarships up to GBP 12,500 available 🏛️ Top 100 globally ranked institution 🇬🇧 1-year Master's in the UK",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/704802042_1056251096803923_1500851250411324508_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ofuEX3klNoYQ7kNvwEMDGQT&_nc_oc=AdrVMxQCzTAVJaDXv86XsTkNCJk-21PxCaEoAS88ZuYroEiVBcS5itEYokWjwc6dBf0&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af-oPUQW936DpO-HT1ay2nENHVLy3Fsb6JD9jFYdtTJVag&oe=6A35F091"
+        },
+        {
+          "archiveId": "1326312389481671",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 23,
+          "launched": "2026-05-23",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Study at the UK's best-in-class universities",
+          "body": "🏛️ Russell Group - where India's brightest go 🌍 Global opportunities with a world-class degree 🛂 Up to 18 months Graduate (PSW) Visa* 💼 Alumni networks across industries",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/706318186_1320696290175889_6553573428886386255_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=0R_YkjaV9LgQ7kNvwHwxV5Z&_nc_oc=Adq1CUT-JhHSGRqxMwczoCDQURd9cA3qTJJZGCseprmQf3Jd2BUIGtKmsKCDxFTOX9k&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=tF6PNLU7Gky6MIx64XjTAA&_nc_ss=7e289&oh=00_Af9Wawhlj4_5EsKJdYqViaJ57OsAqc7IW9ojyaLeg2T9Pw&oe=6A35EF60"
+        }
+      ]
+    },
+    {
+      "brand": "Yocket",
+      "bucket": "local/education",
+      "page_id": "1585691268384511",
+      "page_name": "Yocket",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "1449269119772957",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 47,
+          "launched": "2026-04-29",
+          "variants": 2,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "Study in Germany for FREE! 🇩🇪 Top public universities charge ₹0 tuition fees. Ready to fly? Get expert guidance on Yocket and apply before deadlines close - your dream awaits!",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/686973736_2821337908216494_5571127941514625950_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=3szHGw-TnR0Q7kNvwF6KJcK&_nc_oc=AdrTV7ut3TKeMvvT726-beCc4cOhYXVAj6k71pCn-NffHMTfQwg24LntCgpBvduLh30&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af_G33SpHUYPsk5E48hHmNtkDwzMYU2l5ye7qVtzIGjhnQ&oe=6A360F64"
+        },
+        {
+          "archiveId": "2375865049603059",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 28,
+          "launched": "2026-05-18",
+          "variants": 2,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🌍 Dream of studying abroad? Make it happen with top International universities! 🌟 Book your FREE Profile Consultation today and learn how to create a compelling application. 🎓 Get tailored advice on scholarships, admissions chances, and test requirements.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/698938880_1624976741918643_6425607914030984968_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=500NJE4rlj0Q7kNvwEeGxgj&_nc_oc=AdrRb-dp3rhKi8-gsbbzCIv6l_xtHQDl9TkYaz0idr6kWw0AE3PPWswobgBy-a7rJQg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af-oC7ZrMOiobWhKdARNTUtoS57mIWMpnZd_LfMRWorphQ&oe=6A3604F0"
+        },
+        {
+          "archiveId": "1515719616605671",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 26,
+          "launched": "2026-05-20",
+          "variants": 2,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🌍 Dream of studying abroad? Make it happen with top International universities! 🌟 Book your FREE Profile Consultation today and learn how to create a compelling application. 🎓 Get tailored advice on scholarships, admissions chances, and test requirements.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/700476984_1327228729291669_992595340425265695_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=CxbGTsKPji4Q7kNvwGHlHxl&_nc_oc=AdqCKXckSDXTmou0qcqZeF332UuH_und3DBm3yandskLq3Ye2p14flLXtUEfcNnjjw8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af_1D9Qj49s8j5wxoBGNctPmKXcffWTytxqODkUY3ulAlw&oe=6A35F509"
+        },
+        {
+          "archiveId": "1580751263152569",
+          "mediaFormat": "DCO",
+          "daysRunning": 137,
+          "launched": "2026-01-29",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "We owe you an apology. Because we just helped a student with 75%, 6.5 IELTS, NO GRE, and zero “perfect profile” points get into TWO Ivy League universities… with scholarships. If this is what we’re doing for average scorers, we’re scared of what happens next. Check your US eligibility (for free) before we “accidentally” get you into an Ivy too.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "995541276972815",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 122,
+          "launched": "2026-02-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🎓 Apply for Top MBA Programs – No GMAT Required! Many leading global B-Schools are offering GMAT waivers for the 2025 intake. ⏰ Round 2 deadlines closing soon — don’t miss out! Fill the form to get a list of MBA universities accepting applications without GMAT.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/630248800_2326964651064903_6552712098635389499_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=N6jsBMB7Ph8Q7kNvwGN9xMM&_nc_oc=AdprovsHKKDiCg_vW-TOZ14GznlcAAF51MX4Fh9IuzkbvTavc-qeeazC17YzXKpEMBw&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af-cYfVGQxvUmidbTCsNAjTwV72igZiiLI-Biz1_ssqKAw&oe=6A361E23"
+        },
+        {
+          "archiveId": "2301356473688434",
+          "mediaFormat": "DCO",
+          "daysRunning": 109,
+          "launched": "2026-02-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "Study in Germany for ₹0 tuition fees! 🇩🇪 Top public universities offer free education. Apply now with expert help and avoid last-minute rush! Save big, achieve your dreams",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "897383003077422",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 108,
+          "launched": "2026-02-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "Think PhD at Harvard, Stanford, or Oxford is impossible? What if we told you full funding is available for the right profiles? 🎓 Tuition covered 💰 Monthly stipend 📚 World-class research exposure Find out if you’re eligible. 👉 Book your FREE call now",
+          "linkDescription": "Want to Study Abroad? Get expert advice on from our consultants on finding colleges, courses, exams, admissions, visas, and application process for free.",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/643842721_1242176037885618_5659830819117964537_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=1ZPJA2cmQUUQ7kNvwFUNCrX&_nc_oc=AdrKTJjMdksCuIb-tDJ1WDudXKjqdpgz1fo-l1RYAvgGtSuU3SVDYqAuZjmu_7nQYU8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af8QTBpGyEW_UnhLdyv_2ST5CKIBl6kU3SoCQQ_1WtlxLQ&oe=6A35F18E"
+        },
+        {
+          "archiveId": "1636546707338206",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 107,
+          "launched": "2026-02-28",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "Think PhD at Harvard, Stanford, or Oxford is impossible? What if we told you full funding is available for the right profiles? 🎓 Tuition covered 💰 Monthly stipend 📚 World-class research exposure Find out if you’re eligible. 👉 Book your FREE call now",
+          "linkDescription": "Want to Study Abroad? Get expert advice on from our consultants on finding colleges, courses, exams, admissions, visas, and application process for free.",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/642814656_1519218566587628_4933012057645824779_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=rzQ6u2IY5z0Q7kNvwE8wWpA&_nc_oc=AdrBLxGicurLQHwepblDU9UAn_fJRLIafU4G60IZJSU_s73PRcQfFyuuX2fqprKX_Ow&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af_G-4qcbo_vvqKBMqVgQ3DX13h_EW2lrYmik-Shf-Ao_g&oe=6A361FD8"
+        },
+        {
+          "archiveId": "1861759391141095",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 107,
+          "launched": "2026-02-28",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🌍 Dream of studying abroad? Make it happen with top International universities! 🌟 Book your FREE Profile Consultation today and learn how to create a compelling application. 🎓 Get tailored advice on scholarships, admissions chances, and test requirements.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/641701865_1624284038759062_7891506893394366990_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ekse0dBs2HAQ7kNvwFYFz6T&_nc_oc=AdpX6FNRdswB9PHnTTWs3yXvYH0LR6N-fd1Onatxw9Gtv5RgglH_DsrCUg6iAl934uI&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af-qALWTPHA-gIx3QmNkId_uf0vFGwwT8Xfc8IdffUHqsw&oe=6A360AE8"
+        },
+        {
+          "archiveId": "1631178118123097",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 107,
+          "launched": "2026-02-28",
+          "variants": 1,
+          "active": true,
+          "cta": "Apply now / APPLY_NOW",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🌍 Dream of studying abroad? Make it happen with top International universities! 🌟 Book your FREE Profile Consultation today and learn how to create a compelling application. 🎓 Get tailored advice on scholarships, admissions chances, and test requirements.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/641269203_1742857626675134_2740984549748912517_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WWLBPrlUufQQ7kNvwFD3iZT&_nc_oc=Adpw8Vqn7t4MhOXQqdltwDORDtboc5jMMG1WiBCsjlUjIZxrOwB95NlxA0SOo1N0HMA&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af_6BDhI9gs4qm4iLFFaJhY43H1HUla52axBC4he10KehA&oe=6A361E52"
+        },
+        {
+          "archiveId": "678172842021374",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 105,
+          "launched": "2026-03-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🌍 Dream of studying MBA abroad? Make it happen with top International universities! 🌟 Book your FREE Profile Consultation today and learn how to create a compelling application. 🎓 Get tailored advice on scholarships, admissions chances, and test requirements.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/645514445_955272644343802_472007829661044131_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=KVfczORs83kQ7kNvwEmfxw_&_nc_oc=Ado0MR2GEyv_h4zGW1tR03lt6155ST7KdQSIV7EUIm7uYqyvHSP9J6gzw52t79ttjkM&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=nWlcCT-Ia26W16tIBc23tg&_nc_ss=7e289&oh=00_Af9q8bD77Yycs5eDELkMKvVcOvv9Oi4cQA3IYySkbt010g&oe=6A35FB0E"
+        },
+        {
+          "archiveId": "1656005215556653",
+          "mediaFormat": "DCO",
+          "daysRunning": 105,
+          "launched": "2026-03-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "consultation.yocket.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "📅 Book a FREE 1:1 Consultation today!",
+          "body": "🌍 Dream of studying MBA abroad? Make it happen with top International universities! 🌟 Book your FREE Profile Consultation today and learn how to create a compelling application. 🎓 Get tailored advice on scholarships, admissions chances, and test requirements.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Treebo Hotels",
+      "bucket": "local/hospitality",
+      "page_id": "854212904671990",
+      "page_name": "Treebo Hotels",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "2467634110323025",
+          "mediaFormat": "DCO",
+          "daysRunning": 61,
+          "launched": "2026-04-15",
+          "variants": 19,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "App‑Only: 67% OFF + Swiggy One",
+          "body": "Why stop at hotel savings? Get flat 67% OFF your first Treebo stay on the app AND a 3‑month Swiggy One pass with perks on Zee5, Cult.fit, Paytm Flights, Ajio & more. Code FIRSTSTAY.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "864967862735004",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 199,
+          "launched": "2025-11-28",
+          "variants": 4,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "850+ Hotels 🏨 in 120+ Locations 📍",
+          "body": "Cozy stays at Treebo Club Hotels ❄️ | Free Breakfast 🍽️ | 850+ Hotels in 120+ Cities 🗺️ | Book Now!",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/588240919_823252217280685_7426552785750912669_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=nz6b-509bc4Q7kNvwG-67Hu&_nc_oc=AdobJ1PtGNYxq4GeEqD2af1DTIvahkPyEO1fh5kbvfcgpPUUogxGwqMC9al2RJpUFA0&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af_PiEuzb3Ez3q029cmqa4cBPAz3XyEIlIvu1NSEKxLz7Q&oe=6A36167D"
+        },
+        {
+          "archiveId": "1663460001296566",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 198,
+          "launched": "2025-11-28",
+          "variants": 4,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "850+ Hotels 🏨 in 120+ Locations 📍",
+          "body": "850+ Hotels in 120+ Cities 🌍 | Free Breakfast 🍳 | Best Price Guarantee 💯 | Book Now!✅Free Wi-Fi",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/588340032_1938411523407156_5421947460173775_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=y3tJnR4uoBwQ7kNvwEbgw6l&_nc_oc=AdokDodklh44cKcNnqp5f95h5w0y0p4Np0uIsJjLJvfwQFvpgFqxZX_itKmYvSN-U-U&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af9GKF5m_osmTwfDj7vDLKXUmEKEpzBkaGpYNuiRaiIeZQ&oe=6A3611FD"
+        },
+        {
+          "archiveId": "1300429548277430",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 24,
+          "launched": "2026-05-22",
+          "variants": 2,
+          "active": true,
+          "cta": "Sign up / SIGN_UP",
+          "linkDomain": "fb.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Partner with Treebo to Grow Revenue",
+          "body": "Empty rooms don’t earn. Partner with Treebo Hospitality Ventures and turn low occupancy into steady revenue with our proven hotel management support, distribution reach, and guest delight team.",
+          "linkDescription": "Increase occupancy, reduce friction, and earn more from every room.",
+          "firstImageUrl": "https://scontent-sjc6-1.xx.fbcdn.net/v/t39.35426-6/706199554_1693015435259242_1004885520168138005_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WRkVjecwcIEQ7kNvwHggRU8&_nc_oc=AdolTVG3aRutRaX6C2yUu2HUqJ2-yqlUSh5JMarswJzzfRWmOd4WxRyKQ0bvP5rUPak&_nc_zt=14&_nc_ht=scontent-sjc6-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af8zvj59m2J-jhieU7Esc1Y1-TXzUWEJcVQbWqqto2yomA&oe=6A361818"
+        },
+        {
+          "archiveId": "1345016590868573",
+          "mediaFormat": "DCO",
+          "daysRunning": 19,
+          "launched": "2026-05-27",
+          "variants": 2,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Get 67% Off Your First Booking!",
+          "body": "New to Treebo? Start with 67% off and receive free Wi-Fi, delicious breakfast, and premium toiletries. Book now and make your first stay memorable!",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1533046511521360",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 5,
+          "launched": "2026-06-09",
+          "variants": 2,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "App‑Only: 67% OFF + Swiggy One",
+          "body": "Why stop at hotel savings? Get flat 67% OFF your first Treebo stay on the app AND a 3‑month Swiggy One pass with perks on Zee5, Cult.fit, Paytm Flights, Ajio & more. Code FIRSTSTAY.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/719506652_27172129832442958_3218476143380547149_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Xos_YTedC_gQ7kNvwFWsqjh&_nc_oc=AdoZQC4p4HkgnlD6nnx_DfBf5D-33M8o2iX2q3J3ALC4I62oBkPXCCIU4iYLiHMl8g8&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af_YGu4hCZMLAmVtqrXPPcq3DnKlZshlbIiQIAUgoW0zWQ&oe=6A35EF7B"
+        },
+        {
+          "archiveId": "2016212642485662",
+          "mediaFormat": "DCO",
+          "daysRunning": 216,
+          "launched": "2025-11-11",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "itunes.apple.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "Save Big with 67% Off + Rewards!",
+          "body": "Book now and enjoy a flat 67% off + earn up to 8% cashback in Treebo Club Points on every booking! 🌴",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1298251985319439",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 216,
+          "launched": "2025-11-11",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "itunes.apple.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Book Now & Save Big",
+          "body": "Experience comfort and convenience without breaking the bank. Whether it's a spontaneous getaway or a planned vacation, we've got you covered. ✨ Why Treebo? ✨ 🛏️ Impeccable comfort and quality 🏙️ Prime locations in top destinations 🍽️ Delicious complimentary breakfast 💰 Unbeatable prices start at ₹1199",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/500229451_1416209579798748_853167857994387243_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=j-CnASidR8oQ7kNvwGPbPcy&_nc_oc=AdqFi-1odyNNEF9UEoamj5UHiQCfjn8SjenpxUYu15Y1iTxhvLHa5IVa2zXR3B4xHdU&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af_5wJE7vQBqnn1kALqgj1Aw6m2qRvEGqS2HIkNWnHWwGQ&oe=6A361554"
+        },
+        {
+          "archiveId": "2228546980971107",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 216,
+          "launched": "2025-11-11",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "itunes.apple.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Exclusive Hotel Deals",
+          "body": "Enjoy top-notch amenities and save big on your stay with Trebeo Club Hotels. Book now",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc6-1.xx.fbcdn.net/v/t39.35426-6/501197041_556995740802747_12830500891892127_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=CjVqL_QEkpcQ7kNvwHaKqLe&_nc_oc=AdoJlvjNfpRWMbthsbff1E6yqlaPA6bzEJlDxuf1BGr1ol80S6PbzqRp3JLxIIgR6XY&_nc_zt=14&_nc_ht=scontent-sjc6-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af-GdofB5Q7XUsL4xfAQgBZdl6GO3BbWl_vDdcYn-60EIw&oe=6A36082F"
+        },
+        {
+          "archiveId": "1343865997059404",
+          "mediaFormat": "DCO",
+          "daysRunning": 215,
+          "launched": "2025-11-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "itunes.apple.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Limited Time Offer",
+          "body": "Experience the comfort and convenience of Treebo Hotels without breaking the bank. With savings of up to 20%, now is the perfect time to book your stay",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1498754494742056",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 215,
+          "launched": "2025-11-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "itunes.apple.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Unforgettable Vacations Start with Treebo",
+          "body": "Enjoy top-notch amenities and save big on your stay with Trebeo Hotels. Book now",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/500073192_1953990688468171_7842687233036042044_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=iZMALGAAlDsQ7kNvwFDZ56G&_nc_oc=Adr2pF7cr_CwXRTd7o6JP4oGVdpfjUI_2L33paK1AEIU9JIJgsVbd93Kq8I8fwlLxGU&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af8pkRo0DVuJkyg8gtYAiymTH5JBkKDu40-J6eBx4yYhKQ&oe=6A361D38"
+        },
+        {
+          "archiveId": "1351982029959571",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 215,
+          "launched": "2025-11-11",
+          "variants": 1,
+          "active": true,
+          "cta": "Book now / BOOK_TRAVEL",
+          "linkDomain": "itunes.apple.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK"
+          ],
+          "title": "Get Ready for Your Trip with Treebo",
+          "body": "The ultimate hotel experience at unbeatable prices. Book today and save Big!",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-sjc3-1.xx.fbcdn.net/v/t39.35426-6/499953837_8003432829780774_4718278340337889168_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=4pAEQenJGvYQ7kNvwHm6Mh2&_nc_oc=AdpsomikzMY60nORQshlc2AD6CkmNKQ6DnD1ZfU900KpRhAZ7a6zVZUVAT5PURucSUg&_nc_zt=14&_nc_ht=scontent-sjc3-1.xx&_nc_gid=ee1NTTG4-kCSifJmzFfRJw&_nc_ss=7e289&oh=00_Af8LIK0AoBOG-A_GK8r3BT7yLNBlBXBDpFDHGC_2be_JKA&oe=6A361827"
+        }
+      ]
+    }
+  ]
+}

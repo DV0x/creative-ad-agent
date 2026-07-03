@@ -1,0 +1,6 @@
+{
+  "brand": "Verbis Education",
+  "date": "2026-06-17",
+  "shape": "Comp stage for the Verbis lead-gen pipeline. Reads the produced research.md (study-abroad consultancy; free-counselling lead) and mines the live study-abroad-consultancy ad field via ScrapeCreators (Meta Ad Library) to demand-check the white space against the buyer JTBD. Competitors to expect in the field: IDP, Leverage Edu, Edwise, KC Overseas, upGrad Study Abroad, Yocket, regional players.",
+  "notes": "Real pipeline run, comp stage. Input research.md is the as-produced research (carries the Sonar/Google-Maps blind-spot bug = falsely 'no brand reviews'; comp doesn't depend on the brand's own reviews so this is fine for comp). The real Google reviews (490 @ 4.9) get injected before the STRATEGY stage, not here. ScrapeCreators credits were ~6 as of S131 — comp may be credit-limited; if the ad-library pull degrades, that's a credits issue, not a binder issue."
+}

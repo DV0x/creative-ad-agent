@@ -14,12 +14,17 @@ grading judgment, not polish.
 
 ## Critical criteria — any one failing fails the whole Bet
 
-### `diagnosis` — there is a real, falsifiable diagnosis
-The Bet names **one** blocker — a specific, falsifiable claim about why a
-genuinely-qualified person could meet this brand and not convert. Not a list of
-five things; not a vague "needs more awareness."
-- **PASS:** a single sharp blocker is named and could be defended to a skeptic.
-- **FAIL:** no blocker, multiple unranked blockers, or a generic non-claim.
+### `diagnosis` — a real, falsifiable, two-sided diagnosis
+The Bet diagnoses **both halves**: the **winnable want** it's betting on (the
+buyer desire it will amplify — weighted, not one review; demand real, not
+to-be-manufactured) AND the **single blocker** in its way (a specific,
+falsifiable reason a qualified, *wanting* person could still not convert). Not a
+list of five things; not a vague "needs more awareness"; and not a blocker with
+no want beside it (that is what produces spec sheets).
+- **PASS:** a winnable want and a single sharp blocker are both named, each
+  defensible to a skeptic.
+- **FAIL:** no blocker; multiple unranked blockers; a generic non-claim; or a
+  blocker-only diagnosis with no winnable want identified.
 
 ### `triangulation` — the brand's self-portrait was not inherited
 The diagnosis reflects what the brand *is*, not what its website *claims*. The
@@ -30,14 +35,20 @@ a true-but-not-the-blocker strength, or a brand at war with itself).
   gap between claim and reality is named.
 - **FAIL:** the Bet simply restates the website's positioning as fact.
 
-### `honesty-fork` — non-creative ceilings are named, not buried
+### `honesty-fork` — non-creative ceilings named, and promises backed by proof
 The Bet distinguishes creative-addressable blockers from non-creative ones
 (price, offer, a leaking funnel, missing trust proof). Any non-creative ceiling
-the research reveals is flagged plainly as a precondition.
-- **PASS:** non-creative issues present in the research are named honestly; if
-  the research shows none, PASS by default.
-- **FAIL:** a non-creative ceiling visible in the research is ignored or hidden,
-  or the Bet is a yes-man pretending creative fixes everything.
+the research reveals is flagged plainly as a precondition. And every angle's
+**promise stands on claimable proof** from research's verified strengths: a
+promise the research can't back is reframed onto provable ground or flagged as
+an honesty-ceiling precondition (the founder must supply the proof first) —
+never handed to the cell to "find a way to say it."
+- **PASS:** non-creative issues present in the research are named honestly (or
+  PASS by default if none); angle promises rest on claimable proof, with any
+  unbacked promise reframed or flagged.
+- **FAIL:** a non-creative ceiling visible in the research is ignored or hidden;
+  the Bet is a yes-man pretending creative fixes everything; or an angle
+  promises what the research cannot back, with no proof and no flag.
 
 ### `no-fabrication` — nothing invented
 Every specific number, competitor, customer segment and fact in The Bet traces
@@ -57,13 +68,30 @@ a message test.
 - **PASS:** shape stated, justified, and correct for this brand.
 - **FAIL:** shape unstated, or the wrong shape for the brand's real unknown.
 
-### `angles` — the angles are a portfolio, not a leaderboard
-Each angle carries a hypothesis, a *why* anchored in named research evidence,
-and a visual lane. The set is genuinely distinct (not one hypothesis reworded),
-genuinely uncertain (each teaches something win or lose), and adable.
-- **PASS:** all angles are complete and the set is distinct + hedged.
-- **FAIL:** duplicate angles, missing why/lane, an angle anchored in nothing,
-  or an angle that cannot become a compelling ad.
+### `angles` — each angle is a complete creative brief, and the set is a portfolio
+Each angle is a tight brief carrying four things: **the buyer** (who it's for,
+at what awareness stage, and the **desire it amplifies** — the pull, from
+research's hero-product JTBD); **the promise** (the one specific thing the ad
+commits to giving that buyer — their want turned into a claim; *what to say*,
+not the words); **the proof (only this)** (the sourced strengths the cell may
+stand on — research's verified truths and nothing beyond them); and **the
+mandatories** (the honesty and identity guardrails the cell must hold — showcase
+the real product, respect a strong existing identity, any "don't claim / don't
+imply" line that keeps the promise honest). The set is genuinely distinct (not
+one promise reworded), genuinely uncertain (each teaches something win or lose),
+and adable. Distinctness must live in the *room* — the who × promise — not in
+art-direction.
+- **PASS:** every angle carries all four — buyer+awareness+desire, promise,
+  proof (only sourced strengths), mandatories; the set is distinct at the
+  concept/room level + hedged.
+- **FAIL:** an angle that is **blocker-only** (clears a doubt but names no desire
+  to amplify); a missing buyer or awareness stage; a missing or vague promise;
+  **proof the cell is told to claim that the research never verified**; duplicate
+  angles, an angle anchored in nothing, an angle that cannot become a compelling
+  ad — **or an angle that crosses into the cell's craft** (dictating medium,
+  palette, props, type, layout, *or the copy's voice* instead of handing over the
+  room). Specifying treatment or wording is the cell's job, not the strategist's,
+  and counts against this criterion.
 
 ### `right-size` — N is reasoned against the budget
 The number of angles is justified — run against the founder's budget, or, if
@@ -81,11 +109,11 @@ readiness fix-list and demote the angle test to conditional.
 
 ### `memo` — the memo speaks to the founder
 The memo at the top of The Bet does its job: a non-marketer founder could read
-it once and come away knowing the real situation, the blocker, and what is
-being tested and why. It is in plain language, and it is no longer than it
-needs to be to carry those things.
+it once and come away knowing the real situation, the **want** being bet on, the
+**blocker** in its way, and what is being tested and why. It is in plain
+language, and it is no longer than it needs to be to carry those things.
 - **PASS:** a founder could read it and act on it — plain-spoken, and it
-  carries the situation + blocker + test + why without padding.
+  carries the situation + want + blocker + test + why without padding.
 - **FAIL:** it needs a marketer to translate it, it is missing one of those
   elements, or it is genuinely bloated and a founder would skim rather than
   absorb it. Judge this as a quality call — do NOT count sentences or apply a

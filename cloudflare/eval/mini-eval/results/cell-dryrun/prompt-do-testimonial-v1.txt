@@ -1,0 +1,32 @@
+Create a 4:5 vertical social ad for DailyObjects (a design-led Indian everyday-carry / tech-accessories brand): a real customer's phone photo of their workspace, with one real "Verified Buyer" website review pinned on it as a screenshot card. Honest and native — NOT a designed poster, NOT a studio shot, NOT AI-gloss.
+
+WHO SHOT IT + THE CAMERA (specific):
+- A 30-year-old design-conscious urban professional in a calm Bangalore home-office snapped this on their iPhone (recent model, main 1x / 24mm rear camera).
+- The look is iPhone computational HDR: crisp, slightly cool-neutral white balance, high detail, natural smartphone depth of field — not a DSLR, not studio.
+- Handheld, looking DOWN at the table at about a 30-degree angle, with a slight ~2-degree natural tilt. Portrait 4:5 crop.
+
+THE LIGHT (specific):
+- Late morning. Soft, directional daylight from a large window at the LEFT of frame. Gentle real shadows fall to the right. NOT golden hour, NOT warm-graded, NOT dim or grey.
+
+THE SCENE (specific):
+- Surface: a pale honey-toned solid-wood desk, lightly grained.
+- Background, thrown soft by phone depth of field: a calm minimal workspace — the bright window at left, a glimpse of a white wall and a small potted plant, slightly blurred.
+- Center / lower-left of frame: the DailyObjects Lagoon Basalt tote standing upright, slightly slouched the way a real canvas bag sits, its black webbing handles falling naturally to one side.
+- Just right of the tote: the corner of a closed slim silver laptop, a flat-white coffee in a pale stoneware cup, and a folded pair of wired earphones — a real "this person's deliberate setup," uncontrived and a little asymmetric.
+
+THE PRODUCT (bound to the reference image — keep it exact):
+The DailyObjects "Lagoon Basalt" tote — rich lagoon-blue canvas body, black webbing handles, the small black branding tag/label. Match the lagoon-blue colorway, the black handles, the construction, stitching and proportions to the reference exactly. Reproduce the product 100% identical to the reference image — nothing added, nothing removed. Ignore any e-commerce overlays or badges.
+
+THE REVIEW CARD (one website "Verified Buyer" review pinned as a screenshot — specific):
+- A horizontal white rounded-rectangle card (~16px corner radius) with a soft realistic drop shadow, sitting on top of the photo across the LOWER THIRD, slightly overlapping the desk — clearly a separate screenshot element dropped on the picture.
+- The brand's own clean modern sans-serif (Roboto-style) throughout — NOT Amazon's font.
+- A row of 5 filled stars in dark charcoal / near-black (NOT Amazon orange), with a small teal-green "✓ Verified Buyer" pill beside them (teal #20a87e, the brand's accent color).
+- Bold near-black review text (verbatim, exactly this): "Finally a bag as considered as the rest of my setup."
+- A small grey line below: "Verified Buyer · dailyobjects.com".
+- A small grey circle avatar with "Aditya R." in dark grey beside it.
+- Short and real. ONE review only — no body text, no made-up claims, no "helpful" count, NO second review.
+
+THE CTA (specific):
+- A small teal-green rounded pill (the brand accent #20a87e) in the bottom-right corner, white text "Shop the tote ->" in a clean sans-serif. Clearly the brand's add-on.
+
+DO NOT: a top caption or headline on the photo · an overhead flat-lay "everyday carry" arrangement of scattered objects (keys/phone/wallet laid out) · a second review · a review from Amazon or any other platform · invented extra review text · Amazon-orange stars · a DSLR/studio look · a seamless studio backdrop · golden / warm grading · a dim grey wash · a designed poster look · the bag as a giant centered hero packshot.

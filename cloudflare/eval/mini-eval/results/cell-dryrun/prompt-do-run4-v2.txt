@@ -1,0 +1,21 @@
+Reference image attached: daily-classic-case-sage.png — the left unit (exterior back face) is the product source of truth; match it exactly.
+
+A vertical 4:5 photograph, shot from inside a dark tech-keynote auditorium, camera low and centered at audience level. A giant keynote LED screen fills the upper 80% of the frame, its edges and physical presence visible against the surrounding flat near-black (#0a0a0a) auditorium darkness — the exposure favors the bright screen, so the room falls away to true black with real shadow falloff, like an event photograph.
+
+On the screen, one slide in flagship-product-reveal grammar: centered on a near-black field, a single phone case stands enormous — about two-thirds of the screen's height — rotated a few degrees off square so a single soft top spotlight rakes across its surface and the relief catches the light. The case is the DailyObjects Daily Classic in Sage, matched exactly to the attached reference image's left unit: muted matte sage green with soft form shading and no gloss; a vertical pill-shaped camera cutout with an inner lip at the upper-left, the case empty so the cutout reads through to the slide's dark background; the lower two-thirds of the face covered in a uniform square-packed grid of raised circular dots in the same sage tone, four columns wide and five rows tall, legible only by their relief shadows — magnified in size but identical in count and arrangement to the reference; in the bottom row of dots, one position is a small dark circular badge with a light "DO" mark, kept at the same scale as the other dots — the only marking anywhere on the case. Any visible side buttons are the same low-contrast sage. This is a photographed product blown up to slide scale, not a 3D render.
+
+On the slide, centered horizontally below the case in its lower third, in thin light white grotesque type (Roboto Light style), spanning about 60% of the screen's width and crisply legible, the exact words:
+
+"The keynote your case never got."
+
+In the top-left corner of the screen, small, in the same thin white grotesque, the exact word:
+
+"DailyObjects"
+
+These two strings are the only text in the entire image; the type is clean, unmarked, with no underlines or decorations.
+
+Below the screen, the bottom 15–20% of the frame is the dark stage floor: a horizontal band carrying a faint, controlled reflection of the screen's glow and the case. At the stage lip in the bottom-left third stands a single presenter in full featureless silhouette, about 6% of frame height, caught mid-moment looking up at the giant slide. No audience, no podium, no cables, no other objects. The composition lands the eye on the case first, the headline second, the silhouette third.
+
+CORRECTIONS to the previous render — fix ONLY these two, change nothing else:
+1. The headline "The keynote your case never got." must be fully legible, every letter visible. Place it higher on the slide, clearly above the screen's bottom edge, and keep the presenter silhouette entirely clear of it: the silhouette stands at the stage lip in the bottom-left third of the frame, small — about 6% of frame height — overlapping no text at all.
+2. The case's pill-shaped camera cutout is an empty through-hole showing only the slide's dark background through it — no lens, no ring, no phone inside the case.

@@ -1,85 +1,113 @@
 /**
- * Perplexity MCP wrapper — exposes Perplexity's **Search API** (raw web
- * retrieval, no LLM in the loop) as a single BATCHED tool the research
- * apprentice calls from inside its query() loop.
+ * Perplexity MCP wrapper — exposes Perplexity's **Sonar Pro chat API**
+ * (web-grounded SYNTHESIS + structured sources) as a single BATCHED tool the
+ * research/comp apprentices call from inside their query() loop.
  *
- * ── Why Search API, not Agent API ──────────────────────────────────────────
- * S111 (this session) — we moved off the Agent API. The Agent API ran an
- * internal multi-step search-and-synthesise loop per call (20–40s wall-time,
- * ~$0.03–$0.06 per call, output capped at 4000 synthesis tokens). The
- * apprentice's binder then told it to **ignore the synthesis ANSWER** and
- * quote only from SOURCES. We were paying for synthesis we threw away.
+ * ── Why Sonar (answer API), not the raw Search API ─────────────────────────
+ * S116 (this change) — we moved BACK to a synthesis API, reversing the S111
+ * switch to the raw Search API. The reason is a real fabrication we caught
+ * on the DailyObjects gold-standard run:
  *
- * Search API is the right shape: one search per query, no agent loop, no
- * LLM, raw `{title, url, snippet, date}` results — exactly the SOURCES
- * blob the apprentice quotes from. Each call is 1–2 seconds. Per-request
- * pricing, not per-token. The grounding discipline (no marketing copy, no
- * fabrication, near-miss disclosure) now lives **only** in the apprentice's
- * binder — which is where it always should have been.
+ *   The Search API returns context-free SNIPPETS — a fragment where a number
+ *   ("₹200 crore"), the brand ("DailyObjects"), and the true subject (the
+ *   founder's *family shoe business*, or the *parent company* peopic-retail)
+ *   all sit jammed together with the subject already stripped out. A small
+ *   model reading that fragment re-binds the number to the nearest plausible
+ *   subject — "bags = 40% of revenue", "revenue ₹200 cr" — both FALSE
+ *   (the real 40% was tier-3/4 demand; the ₹200 cr was a sibling business).
+ *   The number "looks right", wears a citation, and is wrong. A snippet's
+ *   subject is the first thing it loses.
+ *
+ *   Sonar reads the FULL pages and synthesises WITH context intact, so the
+ *   sentence that binds a number to its subject travels with the fact. On the
+ *   same question Sonar answered "₹111 Cr FY25, ₹220–230 Cr FY26 projected"
+ *   with a citation and NO shoe-business conflation. Context-rich synthesis
+ *   is what prevents subject mis-binding — raw snippets cause it.
+ *
+ * S111's original objection — "we paid for synthesis we threw away because
+ * the binder said ignore the ANSWER and quote only SOURCES" — is resolved by
+ * the binder change that ships with this: the ANSWER is now USED (it carries
+ * the subject-binding context), and SOURCES are used to ATTRIBUTE. We no
+ * longer throw the synthesis away; it is the point.
+ *
+ * Each query returns BOTH: the grounded ANSWER (context preserved) and the
+ * structured `search_results` (title/url/date/snippet — same shape the old
+ * Search API returned, so the SOURCES block is unchanged). The apprentice
+ * reads the answer for context and attributes load-bearing facts to a named
+ * source.
+ *
+ * ── Retrieval-layer discipline (the SYSTEM prompt) ─────────────────────────
+ * We now have a system message Perplexity reads (the Search API had no LLM to
+ * instruct). It enforces the subject-binding rule at the retrieval layer —
+ * preserve the exact entity/period/region of every number, never re-attach a
+ * figure to a different entity than the source does, distinguish the brand
+ * from parent/sibling/same-name companies. This is a guard in addition to
+ * (not instead of) the apprentice's binder discipline.
  *
  * ── Why per-query HTTP, not native multi-query batching ────────────────────
- * The Search API accepts an array of queries (up to 5) on a single request,
- * and the docs say "multi-query requests group results per query in
- * submission order." Empirically (S111) that does NOT hold: a request with
- * N=3 queries and max_results=8 returned 8 results *total*, not 24. The
- * grouping the docs promise is not exposed in the response. So we cannot
- * reliably map results back to the originating query when batching natively.
- *
- * The fix: fire ONE HTTP request per query, all concurrent via
- * Promise.allSettled. We lose the per-request cost discount of native
- * batching, but per-request prices on Search API are small and correctness
- * matters more. Per-query duration is ~1-2s; with N concurrent requests,
- * wall-time still collapses to the slowest single request.
+ * The chat API is one-question-per-request by design. We fire ONE request per
+ * query, all concurrent via Promise.allSettled. Wall-time collapses to the
+ * slowest single request.
  *
  * ── Why the tool surface stays batched (no singular variant) ───────────────
- * Sonnet 4.6 does NOT batch independent tool_use blocks in a single turn
- * even when explicitly instructed to (S110). We move parallelism out of the
+ * Sonnet 4.6 does NOT batch independent tool_use blocks in a single turn even
+ * when explicitly instructed to (S110). We move parallelism out of the
  * model's tool-selection layer and into the wrapper: ONE tool that takes an
- * array of queries (max 8) and fires them concurrently. Sonnet emits one
+ * array of questions (max 8) and fires them concurrently. The model emits one
  * tool_use block per turn (which it does reliably); we get N parallel HTTP
  * requests per block.
  *
- * Lives in eval/mini-eval/mcp/ today. Moves to cloudflare/src/lib/mcp/ at
- * the Phase-1 Step-2b orchestrator rewrite. The MCP-server object itself is
- * portable — no harness-specific concerns embedded.
- *
  * ── Design decisions ───────────────────────────────────────────────────────
- *  - Endpoint: POST https://api.perplexity.ai/search, ONE query per request.
- *  - Apprentice-facing cap: 8 queries per call. Wrapper fires N concurrent
- *    HTTP requests with Promise.allSettled.
- *  - Per-query filters (recency, domain allow/block, max_results) — applied
- *    per-request, no grouping needed.
- *  - No `instructions` parameter — Search API has no LLM to instruct. The
- *    discipline now lives only in the apprentice's binder.
- *  - Result format: `[N] QUERY: ... SOURCES: ...` per query — same shape as
- *    before minus the dead ANSWER section.
+ *  - Endpoint: POST https://api.perplexity.ai/chat/completions, ONE question
+ *    per request (validated live S116; /chat/completions and /v1/sonar both
+ *    return 200 with identical body — we use the canonical OpenAI-compatible
+ *    path).
+ *  - Model: `sonar-pro` (multi-step Pro Search, more citations, deeper
+ *    synthesis). `web_search_options.search_context_size: 'high'` — maximum
+ *    grounding, which is the whole point of the switch. This costs more than
+ *    raw Search (~$0.01–0.05/query vs ~$0.005); research/comp runs are
+ *    infrequent, and provenance is the product.
+ *  - Apprentice-facing cap: 8 questions per call; wrapper fires N concurrent
+ *    requests with Promise.allSettled.
+ *  - Per-query filters (recency, domain allow/block) map to Sonar's
+ *    search_recency_filter / search_domain_filter.
+ *  - Result format: `[N] QUERY → ANSWER + SOURCES` per query. SOURCES use the
+ *    same `{title,url,date,last_updated,snippet}` shape as the old Search API.
  *
  * ── Reading list before modifying ──────────────────────────────────────────
- *  - perplexity_prompt_guide.md AND perplexity_sonar_API.txt (repo root)
+ *  - perplexity_sonar_API.txt (repo root) + live docs:
+ *    https://docs.perplexity.ai/api-reference/sonar-post.md
  *  - agent/.claude/skills/research/SKILL.md — "How to wield the search tool"
- *  - docs/SESSION_110_*.md — the wall-time + parallelism failure that
- *    motivated batched-only
- *  - docs/SESSION_111_*.md — the Agent-API-to-Search-API switch, and the
- *    discovery that native multi-query batching doesn't expose per-query
- *    grouping in the response (this file)
- *  - cloudflare/eval/mini-eval/run-mini-eval.ts — how MCP servers wire into
- *    the harness's query() call
+ *  - agent/.claude/skills/comp/SKILL.md — "How to wield the tools"
+ *  - docs/SESSION_116_*.md — this switch and the DailyObjects fabrication that
+ *    motivated it; docs/SESSION_111_*.md — the (now reversed) Search-API move
+ *  - cloudflare/eval/mini-eval/run-mini-eval.ts — how MCP servers wire in
  */
 
 import { tool, createSdkMcpServer } from '@anthropic-ai/claude-agent-sdk';
 import { z } from 'zod';
 
-const PERPLEXITY_SEARCH_ENDPOINT = 'https://api.perplexity.ai/search';
+const PERPLEXITY_CHAT_ENDPOINT = 'https://api.perplexity.ai/chat/completions';
+const SONAR_MODEL = 'sonar-pro';
+const SEARCH_CONTEXT_SIZE = 'high'; // maximum grounding — the reason for the switch
 const MAX_QUERIES_PER_BATCH = 8; // apprentice-facing cap
 
+// The retrieval-layer guard. Perplexity reads this on every query. It attacks
+// the subject-mis-binding failure (S116) at the source, before the apprentice
+// ever sees a fact. This does NOT replace the apprentice's binder discipline.
+const SYSTEM_PROMPT = [
+  'You are a web-research retrieval assistant working for a performance-marketing analyst.',
+  'Answer the question using only current web sources you actually retrieve. Follow these rules without exception:',
+  '',
+  '1. SUBJECT-BINDING: Preserve the exact subject of every fact and number — which entity, which time period, which region a figure describes. NEVER attach a number to a different entity than the source does. If a figure belongs to a parent/holding company, a sibling business, the founder personally, or the whole category, say so explicitly; do not present it as the target brand\'s own figure.',
+  '2. ENTITY DISAMBIGUATION: Distinguish the target brand from same-name brands and from any parent/holding/sibling company. If the name is ambiguous or the brand has a parent, flag it in your answer.',
+  '3. ATTRIBUTION: Attribute every fact to its source and include the publication date as shown.',
+  '4. VERBATIM VOICE: Quote real customer/review language as it actually appears; do not smooth or paraphrase it.',
+  '5. UNCERTAINTY: If sources disagree, or a figure is dated or uncertain, say so plainly rather than silently picking one.',
+  '6. NO GAP-FILLING: If you cannot find a fact, say you could not find it. Never estimate, infer, or fabricate a number to fill a silence.',
+].join('\n');
+
 // ── Diagnostics state ──────────────────────────────────────────────────────
-// Module-scoped counter + init time so the harness can see call ordering,
-// relative timing, and per-call duration. Module-scoped (not per-fixture) is
-// intentional: mini-eval runs fixtures sequentially. Used to diagnose:
-//  - per-call parallelism is real (start lines for concurrent queries share a
-//    `t=` value; `parallelism=Nx` summary confirms)
-//  - which queries are slow (`dur=Ns`)
-//  - cost / over-probing patterns when reading runs end-to-end.
 const TOOL_INIT_MS = Date.now();
 let callCounter = 0;
 const tRel = (ms: number) => ((ms - TOOL_INIT_MS) / 1000).toFixed(1);
@@ -92,12 +120,16 @@ interface SearchResultItem {
   snippet: string;
   date: string | null;
   last_updated: string | null;
+  source?: string;
 }
 
-interface SearchApiResponse {
-  results: SearchResultItem[];
+interface ChatApiResponse {
   id?: string;
-  server_time?: string | null;
+  model?: string;
+  choices?: Array<{ message?: { role?: string; content?: string } }>;
+  citations?: string[];
+  search_results?: SearchResultItem[];
+  usage?: { cost?: { total_cost?: number } };
 }
 
 interface PerQueryArgs {
@@ -105,14 +137,16 @@ interface PerQueryArgs {
   recency?: 'hour' | 'day' | 'week' | 'month' | 'year';
   domains_allowed?: string[];
   domains_blocked?: string[];
-  max_results?: number;
 }
 
 type SingleQueryResult =
   | {
       status: 'ok';
       question: string;
+      answer: string;
       sources: SearchResultItem[];
+      citations: string[];
+      costUsd: number;
       durationMs: number;
     }
   | {
@@ -122,18 +156,19 @@ type SingleQueryResult =
       durationMs: number;
     };
 
-// ── One HTTP call — sends ONE query to /search, parses, returns result ────
+// ── One HTTP call — sends ONE question to /chat/completions ────────────────
 
 async function runSingleQuery(
   args: PerQueryArgs,
   apiKey: string,
 ): Promise<SingleQueryResult> {
-  // Build request body. Search API accepts `query` as string or array;
-  // we always send a single string here. Per-request filters apply to
-  // the one query.
   const body: Record<string, unknown> = {
-    query: args.question,
-    max_results: args.max_results ?? 10,
+    model: SONAR_MODEL,
+    messages: [
+      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'user', content: args.question },
+    ],
+    web_search_options: { search_context_size: SEARCH_CONTEXT_SIZE },
   };
   if (args.recency) body.search_recency_filter = args.recency;
 
@@ -141,17 +176,13 @@ async function runSingleQuery(
   const blockList = args.domains_blocked ?? [];
   if (allowList.length > 0 || blockList.length > 0) {
     // Perplexity's blocklist convention: prepend "-" to a domain to exclude.
-    // Allowlist and blocklist live in the same array.
     body.search_domain_filter = [
       ...allowList,
       ...blockList.map(d => `-${d}`),
     ];
   }
 
-  // ── Diagnostics: start log ──────────────────────────────────────────
-  // Logged BEFORE the fetch so overlapping start lines from concurrent
-  // calls are unambiguous evidence of parallel execution (and lack of
-  // overlap is equally unambiguous evidence of sequential execution).
+  // ── Diagnostics: start log (before fetch so concurrent starts are visible) ─
   const callNum = ++callCounter;
   const tStart = Date.now();
   const qOneLine = args.question.replace(/\s+/g, ' ').trim();
@@ -164,23 +195,21 @@ async function runSingleQuery(
       .filter(Boolean)
       .join(' ') || 'none';
   process.stderr.write(
-    `[perplexity_search] #${callNum} start t=${tRel(tStart)}s max_results=${
-      args.max_results ?? 10
-    } filters=${filterDesc} q="${qOneLine}"\n`
+    `[perplexity_sonar] #${callNum} start t=${tRel(tStart)}s model=${SONAR_MODEL} ctx=${SEARCH_CONTEXT_SIZE} filters=${filterDesc} q="${qOneLine}"\n`
   );
 
   const logEnd = (tag: string, extra: string = '') => {
     const tEnd = Date.now();
     const durSec = ((tEnd - tStart) / 1000).toFixed(1);
     process.stderr.write(
-      `[perplexity_search] #${callNum} end   t=${tRel(tEnd)}s dur=${durSec}s ${tag}${extra ? ' ' + extra : ''}\n`
+      `[perplexity_sonar] #${callNum} end   t=${tRel(tEnd)}s dur=${durSec}s ${tag}${extra ? ' ' + extra : ''}\n`
     );
   };
 
   // ── The call ────────────────────────────────────────────────────────
   let response: Response;
   try {
-    response = await fetch(PERPLEXITY_SEARCH_ENDPOINT, {
+    response = await fetch(PERPLEXITY_CHAT_ENDPOINT, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${apiKey}`,
@@ -209,9 +238,9 @@ async function runSingleQuery(
     };
   }
 
-  let parsed: SearchApiResponse;
+  let parsed: ChatApiResponse;
   try {
-    parsed = (await response.json()) as SearchApiResponse;
+    parsed = (await response.json()) as ChatApiResponse;
   } catch (err) {
     logEnd('error=parse');
     return {
@@ -222,13 +251,19 @@ async function runSingleQuery(
     };
   }
 
-  const sources = parsed.results ?? [];
-  logEnd('ok', `sources=${sources.length}`);
+  const answer = parsed.choices?.[0]?.message?.content ?? '';
+  const sources = parsed.search_results ?? [];
+  const citations = parsed.citations ?? [];
+  const costUsd = parsed.usage?.cost?.total_cost ?? 0;
+  logEnd('ok', `sources=${sources.length} cost=$${costUsd.toFixed(4)}`);
 
   return {
     status: 'ok',
     question: args.question,
+    answer,
     sources,
+    citations,
+    costUsd,
     durationMs: Date.now() - tStart,
   };
 }
@@ -240,7 +275,7 @@ const queryItemSchema = z.object({
     .string()
     .min(1)
     .describe(
-      'The search query. Specific phrasing improves retrieval; vague phrasings produce vague results. Embed locale cues (country, region, language) in the question prose. Search API returns raw web results — apprentice does its own synthesis from snippets.'
+      'The research question, in prose. Sonar returns a web-grounded ANSWER (synthesis that preserves the subject of each fact) plus the SOURCES it used. Ask it to QUOTE and ATTRIBUTE, not merely "find". Embed locale cues (country, region, language) in the question prose. Cap volume in the prose ("quote up to 10 reviews").'
     ),
   recency: z
     .enum(['hour', 'day', 'week', 'month', 'year'])
@@ -260,28 +295,18 @@ const queryItemSchema = z.object({
     .describe(
       'Blocklist of domains to exclude. Use to filter out brand-authored or promotional surfaces when probing for third-party signal.'
     ),
-  max_results: z
-    .number()
-    .int()
-    .min(1)
-    .max(20)
-    .optional()
-    .describe(
-      'Max search results per query, default 10, range 1-20. Lower (3-5) for tight fact probes; higher (15-20) for buyer-voice or category probes where breadth matters.'
-    ),
 });
 
 const perplexityResearchBatch = tool(
   'perplexity_research_batch',
-  // Reinforces the binder's "How to wield the search tool" section.
-  'Search the web for MULTIPLE queries IN PARALLEL via Perplexity\'s Search API (raw web retrieval, no LLM synthesis). Pass an ARRAY of queries (1-8 items) — each fires as a concurrent HTTP request and the tool returns when all complete. ALWAYS use this tool for grounded research, even for a single question (pass a 1-item array). The discipline: each turn, list every probe you need next, call this tool ONCE with the full list, read all results, then decide on follow-ups for the next turn. Each query returns raw search results — title, URL, snippet, date — that you quote directly with attribution by domain. There is NO synthesis layer; the apprentice does its own synthesis in research.md.',
+  'Research the web for MULTIPLE questions IN PARALLEL via Perplexity\'s Sonar Pro chat API (web-grounded synthesis WITH sources). Pass an ARRAY of questions (1-8 items) — each fires as a concurrent request and the tool returns when all complete. ALWAYS use this tool for grounded research, even for a single question (pass a 1-item array). Each question returns a web-grounded ANSWER (a synthesis that keeps the subject of every fact intact — which entity/period/region a number describes) PLUS the SOURCES it cited (title, URL, date, snippet). Read the ANSWER for context; ATTRIBUTE every load-bearing fact to a named SOURCE. A figure whose subject you cannot confirm in a source is a gap, not a fact. The discipline: each turn, list every probe you need, call this tool ONCE with the full list, read all results, then decide follow-ups for the next turn.',
   {
     queries: z
       .array(queryItemSchema)
       .min(1)
       .max(MAX_QUERIES_PER_BATCH)
       .describe(
-        'Array of search queries to run in parallel. Min 1, max 8. Each query carries its own filters; queries do NOT share state. Order in the result matches order in the input array.'
+        'Array of research questions to run in parallel. Min 1, max 8. Each carries its own filters; queries do NOT share state. Order in the result matches order in the input array.'
       ),
   },
   async (args) => {
@@ -298,10 +323,6 @@ const perplexityResearchBatch = tool(
       };
     }
 
-    // Fire all queries as concurrent HTTP requests. runSingleQuery handles
-    // its own errors and returns a SingleQueryResult, so allSettled
-    // rejections should never happen in practice; we handle them
-    // defensively.
     const batchStart = Date.now();
     const settled = await Promise.allSettled(
       args.queries.map(q => runSingleQuery(q, apiKey)),
@@ -318,27 +339,22 @@ const perplexityResearchBatch = tool(
       };
     });
 
-    // ── Batch summary — the parallelism diagnostic ─────────────────────
-    // parallelism = sum(per-query duration) / wall-clock.
-    //   1.0  = strictly sequential
-    //   N    = perfect parallelism for N queries
-    // With N concurrent HTTP requests, expect parallelism ≈ N (each
-    // request shares the wall window). Below N indicates serialisation
-    // somewhere in the stack.
+    // ── Batch summary — parallelism + cost diagnostic ──────────────────
     const sumDurMs = results.reduce((sum, r) => sum + r.durationMs, 0);
+    const totalCost = results.reduce(
+      (sum, r) => sum + (r.status === 'ok' ? r.costUsd : 0),
+      0,
+    );
     const wallSec = (wallMs / 1000).toFixed(1);
     const sumDurSec = (sumDurMs / 1000).toFixed(1);
     const parallelism = wallMs > 0 ? (sumDurMs / wallMs).toFixed(1) : '0.0';
     const okCount = results.filter(r => r.status === 'ok').length;
     const errCount = results.length - okCount;
     process.stderr.write(
-      `[perplexity_research_batch] queries=${args.queries.length} ok=${okCount} err=${errCount} wall=${wallSec}s sum_dur=${sumDurSec}s parallelism=${parallelism}x\n`
+      `[perplexity_research_batch] queries=${args.queries.length} ok=${okCount} err=${errCount} wall=${wallSec}s sum_dur=${sumDurSec}s parallelism=${parallelism}x cost=$${totalCost.toFixed(4)}\n`
     );
 
-    // ── Format result text — numbered blocks per query ─────────────────
-    // Same shape as the Agent API version MINUS the ANSWER section. Each
-    // block clearly delimits which sources belong to which probe; source
-    // numbering resets within each block.
+    // ── Format result text — ANSWER + SOURCES per query ────────────────
     const blocks = results.map((r, i) => {
       const idx = i + 1;
       const qLine = r.question.replace(/\s+/g, ' ').trim();
@@ -347,6 +363,7 @@ const perplexityResearchBatch = tool(
         return `[${idx}] QUERY: ${qLine}\n    ERROR: ${r.errorText}`;
       }
 
+      const answerText = r.answer.trim() || '(no answer returned)';
       const sourcesSection =
         r.sources.length === 0
           ? '      (no sources returned)'
@@ -363,7 +380,12 @@ const perplexityResearchBatch = tool(
 
       return [
         `[${idx}] QUERY: ${qLine}`,
-        `    SOURCES (quote from here, with attribution by domain):`,
+        `    ANSWER (web-grounded synthesis — keeps each fact's subject intact; verify load-bearing numbers against SOURCES):`,
+        answerText
+          .split('\n')
+          .map(line => `      ${line}`)
+          .join('\n'),
+        `    SOURCES (attribute facts to these, by domain):`,
         sourcesSection,
       ].join('\n');
     });
@@ -388,7 +410,7 @@ const perplexityResearchBatch = tool(
  */
 export const perplexityMcpServer = createSdkMcpServer({
   name: 'perplexity',
-  version: '0.3.1',
+  version: '0.4.0',
   tools: [perplexityResearchBatch],
 });
 

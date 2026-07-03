@@ -1,0 +1,163 @@
+{
+  "id": "45230a31-d588-417f-b43b-b4f9c378264c",
+  "model": "sonar-pro",
+  "created": 1781269658,
+  "usage": {
+    "prompt_tokens": 324,
+    "completion_tokens": 3246,
+    "total_tokens": 3570,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00097,
+      "output_tokens_cost": 0.04869,
+      "request_cost": 0.014,
+      "total_cost": 0.06366
+    }
+  },
+  "citations": [
+    "https://improvado.io/blog/ppc-trends",
+    "https://www.instagram.com/reel/DPUA7jmEXEd/",
+    "https://www.instagram.com/p/DYNU4_IklZC/?img_index=2",
+    "https://sqmagazine.co.uk/facebook-ad-statistics/",
+    "https://www.fluency.inc/blog/2026-trends-and-performance-benchmarks-google-ads-meta-ads",
+    "https://www.facebook.com/groups/UKEntrepreneursandStartups/posts/2103079200424878/",
+    "https://www.tiktok.com/@jason_swet/video/7626443197354429710",
+    "https://www.youtube.com/watch?v=cF21xF7uZmU&vl=en-US",
+    "https://vovia.com/blog/why-meta-ads-feel-different-and-how-to-thrive-in-2026/",
+    "https://www.instagram.com/p/DYBW5CejLhK/",
+    "https://www.instagram.com/reel/DNAufW4C-yc/",
+    "https://funnel.io/blog/instagram-ads-best-practices-high-conversion",
+    "https://thecreativestable.com/2026/01/12/social-media-and-advertising/",
+    "https://news.ycombinator.com/item?id=46751542",
+    "https://www.tiktok.com/@rpn/video/7568949951934237983"
+  ],
+  "search_results": [
+    {
+      "title": "6 PPC Trends Reshaping Performance Marketing in 2026 - Improvado",
+      "url": "https://improvado.io/blog/ppc-trends",
+      "date": "2026-05-22",
+      "last_updated": "2026-06-09",
+      "snippet": "Discover 6 critical PPC trends for 2026\u2014AI automation limits, privacy-first targeting, first-party data, and when smart bidding fails.",
+      "source": "web"
+    },
+    {
+      "title": "Meta AI will feed targeted ads directly into your algorithm - Instagram",
+      "url": "https://www.instagram.com/reel/DPUA7jmEXEd/",
+      "date": "2025-10-02",
+      "snippet": "Meta just quietly changed everything. Claude AI is now connected live to your Facebook, Instagram, Google Ads, TikTok & Shopify data.",
+      "source": "web"
+    },
+    {
+      "title": "Swipe for the full prompt\u27a1 Created entirely with AI using a ...",
+      "url": "https://www.instagram.com/p/DYNU4_IklZC/?img_index=2",
+      "snippet": "Created entirely with AI using a surreal cinematic prompt. Reality bending itself for content again. The internet remains deeply unserious. #AIArt #AIImages # ...",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ad Statistics 2026: Powerful Ad Insights - SQ Magazine",
+      "url": "https://sqmagazine.co.uk/facebook-ad-statistics/",
+      "date": "2026-03-25",
+      "last_updated": "2026-03-25",
+      "snippet": "Discover key Facebook ad statistics, including ROI, CPC trends, audience reach, engagement rates, and ad performance insights!",
+      "source": "web"
+    },
+    {
+      "title": "2026 Trends and Performance Benchmarks for Google Ads and ...",
+      "url": "https://www.fluency.inc/blog/2026-trends-and-performance-benchmarks-google-ads-meta-ads",
+      "date": "2026-02-11",
+      "last_updated": "2026-06-07",
+      "snippet": "The ROI of automation: 97% growth in Meta Ads conversions for Fluency advertisers. This technical pivot is yielding clear performance for Fluency advertisers.",
+      "source": "web"
+    },
+    {
+      "title": "Followed your advice 3 weeks ago but still stuck - Facebook",
+      "url": "https://www.facebook.com/groups/UKEntrepreneursandStartups/posts/2103079200424878/",
+      "date": "2026-05-11",
+      "snippet": "The ad platforms' own dashboards (Google Ads, Meta Ads Manager) are free but biased toward more spend, and don't talk to each other across platforms. My app ...",
+      "source": "web"
+    },
+    {
+      "title": "Apple HomePod Ad: Beautifully Illogical Reality Bending",
+      "url": "https://www.tiktok.com/@jason_swet/video/7626443197354429710",
+      "date": "2026-04-13",
+      "snippet": "Apple's HomePod commercial, titled 'Welcome Home,' is a captivating four-minute ad that exemplifies a unique style of reality-bending advertising.",
+      "source": "web"
+    },
+    {
+      "title": "How to Create Professional Video Ads for Your Products with AI in 5 ...",
+      "url": "https://www.youtube.com/watch?v=cF21xF7uZmU&vl=en-US",
+      "date": "2025-09-11",
+      "last_updated": "2026-06-12",
+      "snippet": "Higgsfield.ai Tutorial: How to Make Video Ads using AI for Your Products. \u25bb Sign up to Shopify https://utm.io/ui7Yh \u25bb Explore Shopify Community ...",
+      "source": "web"
+    },
+    {
+      "title": "Why Meta Ads Feel Different \u2014 And How to Thrive in 2026 - Vovia",
+      "url": "https://vovia.com/blog/why-meta-ads-feel-different-and-how-to-thrive-in-2026/",
+      "date": "2025-12-04",
+      "last_updated": "2026-03-08",
+      "snippet": "Streamlined Campaign Structure: The traditional method, comprising 10-15 ad sets with particular interests, is no longer efficient and is now counterproductive.",
+      "source": "web"
+    },
+    {
+      "title": "View all - Instagram",
+      "url": "https://www.instagram.com/p/DYBW5CejLhK/",
+      "date": "2026-05-06",
+      "snippet": "META REMOVES END-TO-END ENCRYPTION FROM INSTAGRAM TODAY META WILL NOW BE ABLE TO SEE THE CONTENTS OF ALL MESSAGES BETWEEN USERS ON INSTAGRAM WITHOUT ENCRYPTION, ...",
+      "source": "web"
+    },
+    {
+      "title": "This isn't CGI. It's outdoor media. And it's one of the coolest ...",
+      "url": "https://www.instagram.com/reel/DNAufW4C-yc/",
+      "date": "2025-08-16",
+      "snippet": "We combine CGI, AI and mixed reality to build visual worlds brands can launch inside. Consistent. Premium. On-brand. Because the brands people remember ...",
+      "source": "web"
+    },
+    {
+      "title": "14 Best Practices to Grow Your Instagram Audience - Funnel.io",
+      "url": "https://funnel.io/blog/instagram-ads-best-practices-high-conversion",
+      "date": "2026-05-05",
+      "last_updated": "2026-06-09",
+      "snippet": "14 Instagram ad best practices to improve your ROAS \u00b7 1. Get Meta Verified \u00b7 2. Build a structured creative testing framework \u00b7 3. Set up measurement ...",
+      "source": "web"
+    },
+    {
+      "title": "The Essential Guide to Social Media and Advertising in 2026",
+      "url": "https://thecreativestable.com/2026/01/12/social-media-and-advertising/",
+      "date": "2026-01-12",
+      "last_updated": "2026-06-07",
+      "snippet": "Innovative Ad Formats in 2026. Ad formats have evolved to match the preferences of today's digital consumers. Video continues to lead, with short-form clips, ...",
+      "source": "web"
+    },
+    {
+      "title": "Google's long term strategy with Android is baffling to me. Apple has ...",
+      "url": "https://news.ycombinator.com/item?id=46751542",
+      "date": "2026-01-25",
+      "last_updated": "2026-01-25",
+      "snippet": "By the way ads designed to mislead, which the top ads for either search obviously are, are what both Google and Apple promised time and again never to do.",
+      "source": "web"
+    },
+    {
+      "title": "Verv: Elevate Your Product Ads with AI Creativity",
+      "url": "https://www.tiktok.com/@rpn/video/7568949951934237983",
+      "date": "2025-11-14",
+      "snippet": "Verv (@verv.fm ) is an AI ad and product visual creation tool that generates highly curated, editorial-grade photos & videos. Most AI ads look the same.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "There is very little 2025\u20132026 *published* practitioner data that cleanly labels \u201cthis new static format started winning in 2025,\u201d but there are scattered, concrete reports and examples across agency content, creator accounts, and tools. Where I can\u2019t find evidence, I\u2019ll say so instead of guessing.\n\nBelow I\u2019ll go format-by-format and note where I found **explicit practitioner language** calling a static style a winner on Meta, with quotes and dates where available.\n\n---\n\n## 1. \u201cFake\u2011UI\u201d statics (chat screenshots, search bars, app UIs)\n\n**Finding:** I could not find 2025\u20132026 case studies or agency posts that *explicitly* say \u201cWhatsApp/iMessage/Reddit/ChatGPT screenshot statics are our top\u2011performing Meta ads\u201d with concrete numbers. There are lots of examples of this *style* in the wild, but not tied to Meta performance write\u2011ups in 2025\u20132026.\n\nWhat I did find:\n\n- Several 2025\u20132026 PPC/Meta creative guides talk about **\u201cnative looking\u201d** or **\u201cplatform\u2011like\u201d** visuals as a general winning concept, but they discuss it at the level of \u201cmake ads feel like organic posts,\u201d not at the level of \u201cfake DM/Reddit thread screenshots,\u201d and usually focus on *video* UGC rather than static images.[9][12]  \n- A 2026 Meta\u2011focused agency post from Vovia (published \u201c2026\u201d) says Reels and UGC/native video outperform statics:  \n  - \u201cReels consistently outperform static images.\u201d[9]  \n  - \u201cYour ad should look and feel like high\u2011quality organic content.\u201d[9]  \n  This is directionally supportive of fake\u2011UI statics (since they mimic organic UI), but Vovia does **not** mention chat screenshots, Reddit threads, or search bars specifically.\n\nGiven your constraints (no fabrication, no gap\u2011filling):\n\n- I **cannot** point to a 2025\u20132026 practitioner quote that says something like \u201ciMessage\u2011style statics cut our CPA by 30% on Meta in 2025.\u201d\n- The strongest *documented* 2025\u20132026 trend is toward **native, organic\u2011looking creative and UGC\u2011style video**, not a named sub\u2011genre of fake\u2011UI statics.[9][12]\n\nSo for now, consider **fake\u2011UI statics**:  \n- Widely seen as a *tactic* in ad swipes, but **not** something I can back with 2025\u20132026 Meta\u2011specific performance quotes.\n\n---\n\n## 2. AI\u2011generated surreal / \u201cbending\u2011reality\u201d visuals\n\n**Finding:** There is solid 2025\u20132026 practitioner chatter and tool marketing around **AI\u2011generated, surreal, \u201creality\u2011bending\u201d visuals** for ads, but it is mostly framed as \u201cscroll\u2011stopping\u201d creative and not tightly broken out into \u201cstatic vs video\u201d or \u201cMeta vs other channels.\u201d\n\n### Evidence of the style emerging and being used in ads\n\n- In April 2026, an Instagram creator post (captioned \u201cCreated entirely with AI using a surreal cinematic prompt. Reality bending itself for content again. The internet remains deeply unserious.\u201d) explicitly shows **surreal, reality\u2011bending AI images** positioned as content/ad creative.[3]  \n  That\u2019s direct practitioner language that this kind of AI \u201creality bending\u201d imagery is being created and shared in 2026.\n\n- A 2026 TikTok by @rpn for the AI tool **Verv** (positioned for product ads) pitches:  \n  - \u201cVerv (@verv.fm) is an AI ad and product visual creation tool that generates highly curated, editorial\u2011grade photos & videos. **Most AI ads look the same**.\u201d[15]  \n  The positioning here is that AI\u2011generated visuals are mainstream enough that \u201cmost AI ads look the same,\u201d and tools are differentiating by making **more curated, editorial\u2011grade** outputs.\n\n- Another 2026 AI\u2011creative TikTok (Higgsfield/Flux) positions AI imagery as a way to create cinematic, \u201cscroll stopping\u201d visuals for ads and e\u2011commerce:  \n  - The host says that with Flux/Higgsfield you \u201cget a refined cinematic professional image that's more vibrant and visually striking and ready to be transformed into a video\u2026 a scroll stopping visual that converts.\u201d[8]  \n  Again, not explicitly labeled \u201csurreal,\u201d but the selling point is visually intense, AI\u2011assisted imagery used directly as ad creative.\n\n### Are practitioners calling these **winners** on Meta specifically?\n\n- None of these sources give Meta\u2011specific performance deltas (e.g., ROAS uplift of surreal AI statics vs normal product photos).\n- Evidence is more **qualitative**: language like \u201cscroll stopping visual that converts\u201d for AI\u2011generated cinematic imagery used in paid ads.[8]  \n- The Apple \u201cWelcome Home\u201d / HomePod \u201creality bending\u201d spot is referenced in a 2025 TikTok as a canonical example of **bending reality** creative, but that\u2019s TV/brand video, not a static Meta ad.[7]\n\nSo:\n\n- **Yes, 2025\u20132026 practitioners are clearly producing and advocating AI\u2011generated, visually surreal or \u201creality bending\u201d images and videos for ads.**[3][8][15]  \n- **No, I couldn\u2019t find a 2025\u20132026 Meta practitioner saying \u201cour best\u2011performing static on Meta is this surreal AI still and here are the numbers.\u201d**\n\n---\n\n## 3. Editorial / magazine\u2011style statics\n\nHere the evidence is stronger, though still mostly tool\u2011driven rather than case\u2011study\u2011driven.\n\n- The 2025\u20132026 positioning of the AI tool **Verv** (TikTok by @rpn) is explicitly:  \n  - \u201cVerv (@verv.fm) is an AI ad and product visual creation tool that generates **highly curated, editorial\u2011grade photos & videos**.\u201d[15]  \n  The phrase \u201ceditorial\u2011grade\u201d here is **verbatim practitioner language** describing the aesthetic. The context is product ads and \u201celevating\u201d product visuals vs generic AI outputs.[15]  \n  That implies that **editorial, magazine\u2011style** imagery is a sought\u2011after look for ad creative in 2025\u20132026.\n\n- A 2026 social advertising guide from The Creative Stable (published \u201c2026\u201101\u201112\u201d) describes how:  \n  - \u201cAd formats have evolved to match the preferences of today\u2019s digital consumers. Video continues to lead, with short\u2011form clips, **shoppable videos, and in\u2011feed carousels** driving the highest engagement rates.\u201d[13]  \n  - They highlight **\u201cbranded content [that] blends seamlessly with organic posts, making ads feel less intrusive and more engaging.\u201d**[13]  \n  While they don\u2019t explicitly say \u201cmagazine layout statics,\u201d the emphasis on **branded content that looks like high\u2011quality editorial** plus tools like Verv marketing \u201ceditorial\u2011grade\u201d visuals strongly suggests this aesthetic is a trend.\n\nDo we have explicit performance claims?\n\n- I did not find a Meta case study saying \u201cour editorial\u2011style static beat traditional product shots by X% in 2025.\u201d\n- Current evidence is **practitioner positioning of their tools and aesthetic preferences**, not hard Meta performance numbers.\n\nGiven your constraints, I can say:\n\n- **Yes**, 2025\u20132026 practitioners and tools are explicitly pushing **\u201ceditorial\u2011grade\u201d static imagery** for product ads.[15]  \n- **No** explicit Meta performance numbers tied to that look surfaced in the 2025\u20132026 public web content I checked.\n\n---\n\n## 4. Long\u2011text \u201cfounder letter\u201d statics\n\n- I could not find 2025\u20132026 Meta practitioners or agencies publicly praising **long\u2011text \u201cfounder letter\u201d statics** as a new winning format with concrete metrics.\n- Most 2025\u20132026 advice emphasizes **short, thumb\u2011stopping hooks**, particularly in video/Reels, rather than long static text blocks:  \n  - Funnel.io\u2019s 2024\u20132025 Instagram ads best\u2011practice guide (used through 2025) tells advertisers to focus on strong **hooks** in the first 1\u20133 seconds and on \u201cpattern interrupt,\u201d \u201cbold claim,\u201d \u201cquestion\u201d or \u201cbefore/after\u201d visuals.[12]  \n  - They emphasize **\u201cshowing, not telling\u201d** and recommend visual, not text\u2011dense, communication.[12]\n\nGiven that:\n\n- I **couldn\u2019t** find evidence that long\u2011form founder\u2011letter static images are a widely reported Meta winner in 2025\u20132026.\n- What *is* being stressed is concise hooks and visual storytelling, which cuts against long\u2011text image ads.[12]\n\n---\n\n## 5. Meme formats\n\nThis is the one area where the general creative trend and practitioner language align most strongly with your hypothesis, but hard 2025\u20132026 Meta\u2011specific performance data is still thin.\n\nWhat we can say from 2025\u20132026 sources:\n\n- Contemporary Meta/Instagram creative advice stresses **\u201cpattern interrupt\u201d** and **trend\u2011surfing**, which is exactly where meme statics sit:  \n  - Funnel.io\u2019s Instagram ad best\u2011practices piece (live and referenced in 2025) says you should:  \n    - Use **\u201cPattern interrupt: Something visually unexpected that breaks the feed\u2019s rhythm.\u201d**[12]  \n    - \u201cFind trends and make them your own,\u201d suggesting you watch the Reels tab and Explore page to see \u201cwhich formats, audio clips and editing styles are getting traction right now.\u201d[12]  \n  That is high\u2011level advice to use **trending formats and visuals**, which for many performance advertisers in 2025\u20132026 means memes and memetic layouts \u2014 but Funnel.io does not name \u201cmemes\u201d explicitly.\n\n- Vovia\u2019s 2026 article emphasizes **native, creator\u2011like content** and says \u201cReels consistently outperform static images.\u201d[9]  \n  For statics, the implication is that anything that looks like organic, shareable content (memes, carousels, UGC screenshots) is more aligned with user behavior, but again, they don\u2019t explicitly call out memes as a category.[9]\n\nWhat\u2019s missing:\n\n- I couldn\u2019t locate 2025\u20132026 Meta practitioners publicly saying \u201cmeme statics tripled our ROAS\u201d with dated quotes and numbers.\n- Memes are clearly encouraged under the umbrella of \u201cpattern interrupt\u201d and \u201ctrend\u2011based creative,\u201d but they\u2019re not broken out in the public case\u2011study content I have access to.[12]\n\nSo under your rules:\n\n- I can confirm **best\u2011practice language that strongly supports meme\u2011like formats** as pattern interrupts and trend\u2011based content.[12]  \n- I **cannot** cite a 2025\u20132026 Meta practitioner quote directly labeling \u201cmeme statics\u201d as a top\u2011performing format with quantified results.\n\n---\n\n## 6. Broader context: Meta in 2025\u20132026 is pushing away from static formats\n\nThis context matters when interpreting why there are few static\u2011specific success stories.\n\n- Fluency\u2019s 2026 trends/benchmark report for Google Ads and Meta (published 2026) reports that:  \n  - \u201cthe number of advertisers using Meta\u2019s Single Image ads fell by over 8%, and those using static Carousel Ads fell by 7% from 2024 to 2025.\u201d[5]  \n  - At the same time, \u201c39% of surveyed advertisers now use Meta Collection Ads\u2026 up nearly 15% year\u2011over\u2011year.\u201d[5]  \n\n- Vovia\u2019s 2026 piece says outright:  \n  - \u201cReels consistently outperform static images.\u201d[9]  \n  - They urge advertisers to \u201cInvest heavily in User\u2011Generated Content (UGC) and native\u2011style, short\u2011form videos.\u201d[9]\n\nGiven this:\n\n- 2025\u20132026 Meta discussion is largely focused on **video/Reels, UGC, and feed\u2011driven formats** (Collections), not on inventing new static layouts.[5][9]  \n- Where static imagery is discussed, it\u2019s mostly in the context of **AI\u2011assisted production** (faster, more cinematic/product\u2011focused images) rather than entirely new conceptual static formats.[8][15]\n\nThis likely explains why you\u2019re seeing lots of innovation in static *style* (fake\u2011UI, memes, editorial AI) in the wild but very little **formal write\u2011up**: the big public conversation is around *video*.\n\n---\n\n## Direct answer to your verification/refutation list\n\nBased strictly on 2025\u20132026 web evidence I could find:\n\n- **Fake\u2011UI statics (chat screenshots, Reddit, Google search, ChatGPT UI)**  \n  - I **could not locate** 2025\u20132026 Meta practitioners publicly calling these out as winners with evidence.  \n  - General Meta guidance supports \u201cnative, organic\u2011looking content,\u201d but doesn\u2019t name these specific UI mimic tactics.[9][12]\n\n- **AI\u2011generated surreal / bending\u2011reality visuals**  \n  - There are 2025\u20132026 practitioners openly creating and praising **surreal, cinematic AI images** for ad and content use.[3][8][15]  \n  - Language used: \u201cCreated entirely with AI using a surreal cinematic prompt. Reality bending itself for content again.\u201d[3] and \u201chighly curated, editorial\u2011grade photos & videos\u2026 most AI ads look the same.\u201d[15]  \n  - These are positioned as **scroll\u2011stopping visuals that convert** for ads, but without Meta\u2011specific numeric performance.[8]\n\n- **Editorial/magazine\u2011style statics**  \n  - Tools like Verv are literally marketing **\u201ceditorial\u2011grade photos & videos\u201d** for product ads in 2026.[15]  \n  - Broader social\u2011ads commentary stresses branded content that \u201cblends seamlessly with organic posts,\u201d consistent with magazine/editorial aesthetics.[13]  \n  - No quantified Meta performance provided, but the aesthetic is clearly being pushed in 2025\u20132026.\n\n- **Long\u2011text \u201cfounder letter\u201d statics**  \n  - I could not find 2025\u20132026 Meta practitioners praising this as a winning format.  \n  - On the contrary, leading guidance focuses on short hooks, pattern interrupts, and visual storytelling over text\u2011dense layouts.[12]\n\n- **Meme formats**  \n  - 2025\u20132026 best practices explicitly urge \u201cpattern interrupt\u201d and \u201cfind trends and make them your own,\u201d which are essentially describing meme\u2011ish creative behavior.[12]  \n  - No public 2025\u20132026 Meta case study explicitly says \u201cmeme statics are top performers,\u201d so I can\u2019t claim that with evidence.\n\n---\n\nIf you want, next step I can:\n\n- Narrow in on **specific agencies or indie media buyers** (e.g., DTC\u2011focused shops) and try to find *newsletter or X/Twitter threads* from 2025\u20132026 where they share creative breakdowns and winners. Those are more likely to explicitly say \u201cthis meme static/chat UI static crushed for us,\u201d but they\u2019re harder to surface with generic web search and may require going creator\u2011by\u2011creator."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

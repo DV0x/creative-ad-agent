@@ -1,0 +1,1644 @@
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 6: BUILD THE EVAL MACHINERY (Q4 Part 3)                 -->
+<!-- Chapters 19-23                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<div style="background: var(--coral-light); border-radius: 16px; padding: 40px 32px; margin: 48px 0 0; text-align: center;">
+  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral); margin-bottom: 8px;">Phase 6</div>
+  <h2 style="margin-top:0;">Build the Eval Machinery</h2>
+  <p style="max-width: 620px; margin: 0 auto; color: var(--ink-light);">Answering Q4, Part 3: How do I automate detection?</p>
+  <div class="flow" style="justify-content:center; margin-top: 20px;">
+    <div class="flow-step" style="opacity:0.5;">Phase 4: Design</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="opacity:0.5;">Phase 5: Agent Evals</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Phase 6: Build Machinery</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 7: Ship &amp; Iterate</div>
+  </div>
+</div>
+
+<p>You've designed everything: dimensions, rubrics, test cases, step-level gates, tool evals, memory tests. Now build the automation that runs it all.</p>
+
+<p>The good news: you don't need expensive tooling. A spreadsheet works. The machinery is simple &mdash; it's the <em>design</em> that's hard, and you've already done that. What follows are the five practical chapters that take your eval system from design documents to a running, automated quality pipeline.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Machinery Is Simple</div>
+  Phase 4 was hard &mdash; deciding what to measure, how to score it, where the lines are. Phase 6 is mechanical &mdash; wiring up the checks, running the loops, reading the results. If you find yourself doing more <em>thinking</em> here than <em>building</em>, you probably missed something in Phase 4. Go back and finish the design first.
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 19: STRUCTURAL CHECKS                                       -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-structural"><span class="section-num">Chapter 19</span>Structural Checks &mdash; Your First Line of Defense</h2>
+
+<p><strong>First principles:</strong> Before you judge whether an essay is well-argued, check if it's written in the right language, has the required sections, and isn't blank. Before a teacher evaluates a student's reasoning, they check if the student wrote their name on the paper. Before a restaurant critic tastes the food, they notice if the restaurant is open.</p>
+
+<p>Structural checks are the spell-check of AI evaluation. They catch obvious problems for free &mdash; no LLM calls, no cost, no ambiguity. They run in milliseconds. And in most products, they catch the majority of catastrophic failures.</p>
+
+<h3>The Bouncer Analogy</h3>
+
+<p>Think of structural evals like a bouncer at a club. The bouncer doesn't judge if you're interesting or funny &mdash; they check: do you have an ID? Are you wearing shoes? Are you on the banned list? Simple, fast, binary checks that catch obvious problems before anything else.</p>
+
+<p>Structural evals work the same way for AI output. They don't judge quality (that's the LLM judge's job in Chapter 20). They check: is the output the right shape? Does it have all required parts? Is anything obviously broken?</p>
+
+<div class="callout definition">
+  <div class="callout-title">Anthropic's Grading Hierarchy</div>
+  <strong>Code-based grading</strong> (fastest, cheapest, most reliable) &gt; <strong>LLM-based grading</strong> (flexible but costs money) &gt; <strong>Human grading</strong> (gold standard but expensive and slow). <strong>Always prefer the simplest method that works.</strong> If you can check it with code, don't waste an LLM call on it.
+</div>
+
+<p>This hierarchy isn't just a preference &mdash; it's an engineering principle. Code-based checks are deterministic: they give the same answer every time. LLM judges are stochastic: they may score the same output differently on different runs. Human judges are the most reliable but the most expensive and the least scalable. Start at the top of the hierarchy. Only move down when the check requires understanding language, not just pattern matching.</p>
+
+<h3>The Complete Structural Checklist</h3>
+
+<h4>Format Checks</h4>
+<ul class="checklist">
+  <li>Output is valid JSON (where JSON is expected) &rarr; <code>JSON.parse()</code></li>
+  <li>Output is valid Markdown (where Markdown is expected)</li>
+  <li>All required fields are present and non-empty</li>
+  <li>No <code>[PLACEHOLDER]</code> or <code>[INSERT HERE]</code> text remaining</li>
+  <li>No "As an AI language model..." preamble leaking through</li>
+  <li>Output encoding is correct (no mojibake, no escaped unicode that should be rendered)</li>
+</ul>
+
+<h4>Length Checks</h4>
+<ul class="checklist">
+  <li>Total output within expected range (too short = lazy/incomplete, too long = rambling)</li>
+  <li>Individual sections within expected ranges</li>
+  <li>Token count within budget (you're paying per token &mdash; a runaway output is a cost event)</li>
+  <li>No suspiciously short responses for complex queries (&lt;50 tokens for a research question is a refusal in disguise)</li>
+</ul>
+
+<h4>Content Pattern Checks</h4>
+<ul class="checklist">
+  <li>Expected sections/headers are present (e.g., a research brief must have "Value Props" section)</li>
+  <li>URLs are valid format (if output includes links)</li>
+  <li>Dates are valid and recent (not from training data &mdash; "as of 2023" in a 2026 product)</li>
+  <li>Numbers are reasonable (not "the company has 999,999,999 employees")</li>
+  <li>No duplicate sections (AI sometimes generates the same section twice verbatim)</li>
+  <li>Required entities are mentioned (if the prompt says "write about Nike," the word "Nike" should appear in the output)</li>
+</ul>
+
+<h4>Safety Checks</h4>
+<ul class="checklist">
+  <li>No PII leaked (regex for emails, phone numbers, SSN patterns)</li>
+  <li>No profanity or slurs</li>
+  <li>No competitor disparagement (if your policy prohibits it)</li>
+  <li>No unauthorized medical, legal, or financial advice</li>
+  <li>No prompt injection artifacts (system prompt content appearing in output)</li>
+</ul>
+
+<h4>Consistency Checks</h4>
+<ul class="checklist">
+  <li>Brand name consistent throughout (doesn't call Nike "Adidas" in section 4)</li>
+  <li>Numbers don't contradict (doesn't say "50 employees" in paragraph 1 and "200 employees" in paragraph 3)</li>
+  <li>If output references the user's input, the reference is correct</li>
+  <li>Tone stays consistent (doesn't switch from formal to casual mid-output)</li>
+</ul>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Notion AI Action Items</div>
+  Notion AI extracts action items from meeting notes. Here are the structural checks, all code-based, all free:<br><br>
+  &bull; Output is valid JSON? &rarr; <code>JSON.parse()</code><br>
+  &bull; Each item has "assignee" and "due_date" fields? &rarr; field existence check<br>
+  &bull; Due dates are in the future, not the past? &rarr; date comparison<br>
+  &bull; No duplicate items? &rarr; dedup check<br>
+  &bull; At least 1 action item extracted (non-empty output)? &rarr; length check<br><br>
+  <strong>These catch 60% of failures with zero AI cost.</strong> Only the remaining 40% (quality, relevance, completeness) need LLM-as-judge.
+</div>
+
+<h3>Structural Evals as Production Gates</h3>
+
+<p>Here's the advanced move: don't just use structural evals for testing. <strong>Run them in production on every output before showing it to the user.</strong> They cost nothing and run in milliseconds, so there's no excuse not to.</p>
+
+<div class="flow">
+  <div class="flow-step">Agent output</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Structural eval (0.01s, $0)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Pass? &rarr; Show user</div>
+</div>
+<div class="flow" style="margin-top: -12px">
+  <div class="flow-step" style="visibility:hidden">Agent output</div>
+  <div class="flow-arrow" style="visibility:hidden">&rarr;</div>
+  <div class="flow-step highlight">Structural eval</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Fail? &rarr; Retry once with modified prompt</div>
+</div>
+<div class="flow" style="margin-top: -12px">
+  <div class="flow-step" style="visibility:hidden">Agent output</div>
+  <div class="flow-arrow" style="visibility:hidden">&rarr;</div>
+  <div class="flow-step highlight">Structural eval</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Still fail? &rarr; Show error + alert your team</div>
+</div>
+
+<p>This catches catastrophic failures &mdash; broken JSON, empty outputs, hallucinated formats, leaked PII &mdash; before users ever see them. It costs nothing (no AI calls), runs in milliseconds, and prevents the most embarrassing bugs your product can ship.</p>
+
+<p>The retry on failure is important. Many structural failures are transient &mdash; the model produced malformed JSON because of a random token. Retrying once with the same prompt (or a slightly modified one that says "Return valid JSON only") often succeeds. Only alert on the second failure.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The 60/40 Rule</div>
+  In most AI products, <strong>60% of eval checks can be structural</strong> (code-based, free, instant) and only <strong>40% need LLM-as-judge</strong> (quality, nuance, taste). Most teams do the opposite &mdash; they try to judge everything with an LLM, making evals slow and expensive. Start with structural. Only escalate to LLM-as-judge for the things code can't check.<br><br>
+  Think of it as a funnel: structural checks filter out the obvious junk cheaply, so your expensive LLM judge only evaluates outputs that have already passed the basic bar.
+</div>
+
+<h3>Implementing Structural Checks</h3>
+
+<p>If you're technical, these are straightforward to build. If you're not, here's what to tell your engineering team:</p>
+
+<pre><span class="code-comment">// Pseudocode for a structural eval gate</span>
+
+<span class="code-keyword">function</span> structuralCheck(output, config) {
+  <span class="code-keyword">const</span> failures = [];
+
+  <span class="code-comment">// Format checks</span>
+  <span class="code-keyword">if</span> (config.expectJSON) {
+    <span class="code-keyword">try</span> { JSON.parse(output); }
+    <span class="code-keyword">catch</span> { failures.push(<span class="code-string">"invalid_json"</span>); }
+  }
+
+  <span class="code-comment">// Length checks</span>
+  <span class="code-keyword">if</span> (output.length < config.minLength)
+    failures.push(<span class="code-string">"too_short"</span>);
+  <span class="code-keyword">if</span> (output.length > config.maxLength)
+    failures.push(<span class="code-string">"too_long"</span>);
+
+  <span class="code-comment">// Safety checks</span>
+  <span class="code-keyword">if</span> (containsPII(output))
+    failures.push(<span class="code-string">"pii_detected"</span>);
+
+  <span class="code-comment">// Content pattern checks</span>
+  <span class="code-keyword">for</span> (<span class="code-keyword">const</span> required of config.requiredPatterns) {
+    <span class="code-keyword">if</span> (!output.includes(required))
+      failures.push(<span class="code-string">`missing_pattern: ${required}`</span>);
+  }
+
+  <span class="code-keyword">return</span> {
+    pass: failures.length === 0,
+    failures
+  };
+}</pre>
+
+<p>The key insight: this is a function that takes an output string and returns pass/fail. No LLM call. No API. No cost. No latency. No ambiguity. It either passes or it doesn't. Every AI product should have one of these.</p>
+
+<h3>Real-World Structural Check Suites</h3>
+
+<p>Different products need different structural checks. Here's what the checklist looks like for three real product categories:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Product Type</th><th>Critical Structural Checks</th><th>Why These Specifically</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Customer Support Bot</strong><br>(Intercom, Zendesk AI)</td>
+      <td>
+        &bull; Response length &lt; 200 words<br>
+        &bull; No "I'm an AI" disclaimers<br>
+        &bull; Company name spelled correctly<br>
+        &bull; No competitor mentions<br>
+        &bull; Links point to valid docs
+      </td>
+      <td>Support answers must be concise (users are frustrated), on-brand (no breaking the illusion), and actionable (valid links they can click).</td>
+    </tr>
+    <tr>
+      <td><strong>Code Generation</strong><br>(GitHub Copilot, Cursor)</td>
+      <td>
+        &bull; Code compiles / parses<br>
+        &bull; No syntax errors<br>
+        &bull; Imports reference real packages<br>
+        &bull; No TODO/FIXME placeholders<br>
+        &bull; Output language matches request
+      </td>
+      <td>Code that doesn't compile is worse than no code &mdash; it wastes the developer's time debugging AI mistakes. Parsing is a free check that catches ~30% of failures.</td>
+    </tr>
+    <tr>
+      <td><strong>Research / Writing Agent</strong><br>(Jasper, our Creative Agent)</td>
+      <td>
+        &bull; All required sections present<br>
+        &bull; Brand name appears &ge;3 times<br>
+        &bull; No dates from training data<br>
+        &bull; Word count within range<br>
+        &bull; No duplicate paragraphs
+      </td>
+      <td>Research output that forgets the brand name or produces stale dates undermines the entire value proposition. Section completeness catches "lazy generation" where the agent skips steps.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Common Mistake: Skipping Structural Checks Entirely</h3>
+
+<p>Teams that go straight to LLM-as-judge without structural checks waste money and get confused. Here's why:</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Without Structural Gate</div>
+    <p>Agent outputs empty string "".</p>
+    <p>LLM judge receives empty string. Scores it 1/5 on accuracy, 1/5 on completeness.</p>
+    <p>You just spent $0.003 on an LLM call to determine that an empty string is bad. Code could have caught this for free in 0.001 seconds.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">With Structural Gate</div>
+    <p>Agent outputs empty string "".</p>
+    <p>Structural check: output.length &lt; 10? FAIL.</p>
+    <p>Flagged instantly. No LLM call needed. Retry triggered automatically.</p>
+  </div>
+</div>
+
+<p>Multiply this across 50 test cases and you've saved both money and time. More importantly, the structural gate <em>retries</em> the generation on failure, which means the LLM judge only ever sees outputs that have passed the basic bar. This makes judge scores more meaningful &mdash; they're scoring quality, not format validity.</p>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 19 Exercise</div>
+  <strong>Implement structural checks for your agent's output format.</strong><br><br>
+  <strong>1.</strong> List every output format your agent produces (JSON, Markdown, plain text, structured data).<br>
+  <strong>2.</strong> For each format, write down 3-5 structural checks: format validity, length bounds, required patterns, safety patterns.<br>
+  <strong>3.</strong> Implement at least the format and safety checks. If you can't write code, write the specification and hand it to your engineer. The specification IS the hard part.<br><br>
+  Start with format + length + safety. Add content pattern and consistency checks in your second pass.
+</div>
+
+<p>Structural checks handle the mechanical failures &mdash; the outputs that are obviously broken. But what about the outputs that are valid JSON, correct length, contain no PII... and are still bad? An output can pass every structural check and still be mediocre, irrelevant, or subtly wrong. For those, you need something that understands language. That's the LLM judge.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 20: LLM-AS-JUDGE                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-judge"><span class="section-num">Chapter 20</span>LLM-as-Judge</h2>
+
+<p><strong>First principles:</strong> Structural checks handle the 60% that code can verify &mdash; format, length, pattern matching, safety patterns. For the other 40% &mdash; quality, nuance, taste, reasoning coherence &mdash; you need something that understands language. Not just pattern-matches it. <em>Understands</em> it.</p>
+
+<p>An LLM judge reads the agent's output and scores it against your rubric, like hiring a smart reviewer who works for $0.003 per evaluation. The reviewer follows your rubric exactly (if the rubric is good) or makes inconsistent judgment calls (if the rubric is vague). The quality of your judge is bounded by the quality of your rubric. If you skipped Chapter 12 (building rubrics from scratch), go back. The judge prompt IS the rubric, formatted as an instruction.</p>
+
+<h3>A Complete, Copy-Paste Judge Prompt</h3>
+
+<p>This is the single most actionable artifact in the entire machinery section. Here is a full working judge prompt for evaluating a Perplexity-style search answer. Adapt the dimensions and scoring criteria for your product &mdash; the structure stays the same:</p>
+
+<pre><span class="code-keyword">SYSTEM PROMPT FOR THE JUDGE:</span>
+
+You are an expert evaluator for an AI search product.
+You evaluate search answers for factual accuracy and source quality.
+
+You will be given:
+- The user's question
+- The AI's answer
+- The sources the AI cited
+
+<span class="code-keyword">RUBRIC:</span>
+
+For each dimension, first quote evidence from the answer,
+then explain your reasoning, then score.
+
+<span class="code-accent">Dimension 1 &mdash; Factual Accuracy</span>
+1 = Multiple wrong facts or hallucinated claims
+3 = Core facts correct, minor imprecisions acceptable
+5 = All facts verifiable, specific numbers match sources
+
+<span class="code-accent">Dimension 2 &mdash; Source Grounding</span>
+1 = No citations, or citations don't support claims
+3 = Key claims have supporting citations
+5 = Every claim cited, all citations verified
+
+<span class="code-accent">Dimension 3 &mdash; Completeness</span>
+1 = Answers a different question or misses the key point
+3 = Addresses the question, may miss secondary aspects
+5 = Comprehensive answer covering all aspects of the question
+
+<span class="code-keyword">PROCESS:</span>
+For EACH dimension:
+1. Quote the specific part of the answer relevant to this dimension
+2. Explain why it maps to a specific score level
+3. Assign the score (integer 1-5)
+
+<span class="code-keyword">OUTPUT FORMAT:</span>
+Return ONLY this JSON, no other text:
+{
+  "accuracy": {
+    "evidence": "quoted text from the answer",
+    "reasoning": "why this score",
+    "score": 4
+  },
+  "grounding": {
+    "evidence": "quoted text",
+    "reasoning": "why this score",
+    "score": 3
+  },
+  "completeness": {
+    "evidence": "quoted text",
+    "reasoning": "why this score",
+    "score": 4
+  }
+}
+
+<span class="code-keyword">USER MESSAGE:</span>
+
+Question: <span class="code-string">{{user_question}}</span>
+Answer: <span class="code-string">{{ai_answer}}</span>
+Sources cited: <span class="code-string">{{sources}}</span></pre>
+
+<p>Notice the structure: the prompt defines the judge's identity, provides the rubric with anchored score levels, forces a specific reasoning process (quote &rarr; reason &rarr; score), and demands structured JSON output. Every element serves a purpose:</p>
+
+<ul>
+  <li><strong>Identity statement</strong> ("You are an expert evaluator") &mdash; Sets the frame. Without this, the model defaults to being helpful rather than critical.</li>
+  <li><strong>Rubric with anchored levels</strong> (1/3/5 with descriptions) &mdash; Prevents score compression. Without anchors, most judges default to 3-4 for everything.</li>
+  <li><strong>Forced process</strong> (quote &rarr; reason &rarr; score) &mdash; This is chain-of-evidence. It forces the judge to ground its score in specific text, not vibes.</li>
+  <li><strong>Structured output</strong> (JSON) &mdash; Makes results machine-readable and parseable for aggregation.</li>
+</ul>
+
+<h3>6 Techniques That Make Judges Reliable</h3>
+
+<p>An LLM judge is only as reliable as its prompt. These six techniques, drawn from research and production practice, push reliability from "roughly correlated with human judgment" to "highly correlated, statistically validated":</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Technique</th><th>What It Does</th><th>When to Use</th></tr></thead>
+  <tbody>
+    <tr><td><strong>1. Chain-of-Evidence</strong></td><td>Force judge to cite evidence &rarr; reason &rarr; THEN score</td><td>Always. This is non-negotiable. Prevents lazy 4/5 scores and makes the judge's reasoning auditable.</td></tr>
+    <tr><td><strong>2. Anchored Examples</strong></td><td>Include real 1/5, 3/5, 5/5 outputs from YOUR product as calibration references</td><td>When judge scores cluster at 3&ndash;4 (the "everything is fine" problem). Real examples force differentiation.</td></tr>
+    <tr><td><strong>3. Adversarial ("Find Flaws")</strong></td><td>Ask "find every flaw in this output" instead of "rate the quality of this output"</td><td>When judge is too generous. Framing the task as flaw-finding shifts the model into critical mode rather than praise mode.</td></tr>
+    <tr><td><strong>4. Reference Comparison</strong></td><td>Give a known-good output as benchmark: "Compare the output to this reference answer"</td><td>When you have golden examples from your test dataset. Most reliable absolute scoring method.</td></tr>
+    <tr><td><strong>5. Multi-Judge</strong></td><td>Run 2&ndash;3 different judges (different prompts or different models), check agreement</td><td>High-stakes decisions where a single judge might be biased. The agreement rate is itself a quality signal.</td></tr>
+    <tr><td><strong>6. Pairwise ("A or B?")</strong></td><td>Compare two outputs side-by-side instead of scoring each absolutely</td><td>When comparing prompt versions or model versions. The most reliable method &mdash; humans and LLMs are both better at comparison than absolute scoring.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>You don't need all six at once. Start with chain-of-evidence (technique 1) &mdash; it's always worth the effort. Add anchored examples (technique 2) when you notice score compression. Use pairwise comparison (technique 6) whenever you're comparing two versions of anything &mdash; prompt versions, model versions, system architecture versions.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Don't Use the Same Model as Generator and Judge</div>
+  LLMs rate their own outputs higher than outputs from other models. This is called <strong>self-enhancement bias</strong> and it has been documented across every major model. If your product uses Claude Sonnet for generation, use Claude Opus or GPT-4o as the judge. If you can't afford a stronger model, use the adversarial "find flaws" technique (technique 3) to counteract the bias &mdash; it partially compensates by shifting the model away from praise mode.<br><br>
+  <strong>The ideal setup:</strong> Use a model one tier above your generator as the judge. Generator is Sonnet? Judge is Opus. Generator is Haiku? Judge is Sonnet. The cost increase is minimal because judges process short prompts, not long generations.
+</div>
+
+<h3>Calibrating Your Judge</h3>
+
+<p>Before trusting your LLM judge, validate it against human judgment. This is the Cohen's Kappa workflow from Chapter 01:</p>
+
+<ol>
+  <li><strong>Score 30 outputs yourself.</strong> Be honest. Record your scores and reasoning.</li>
+  <li><strong>Run the same 30 outputs through your LLM judge.</strong> Record its scores and reasoning.</li>
+  <li><strong>Calculate agreement.</strong> How often do you and the judge give the same score (or within 1 point)?</li>
+  <li><strong>Target: Kappa &ge; 0.6.</strong> Below 0.6, your judge prompt needs work. Read the reasoning for the cases where you disagree &mdash; that's where the rubric is ambiguous.</li>
+  <li><strong>Fix the rubric, not the judge.</strong> If the judge and you disagree, the rubric is unclear. Tighten the score level descriptions. Add anchored examples for the ambiguous zone. Re-run.</li>
+</ol>
+
+<p>This calibration step takes about an hour and saves you from weeks of bad data. A poorly calibrated judge will give you numbers that look precise but mean nothing. You'll make product decisions based on noise.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Calibrating a Judge for Jasper's Blog Writer</div>
+  A PM builds an LLM judge for Jasper's blog writing feature. Initial calibration against 30 human-scored outputs:<br><br>
+  <strong>Round 1 (before calibration):</strong><br>
+  &bull; Human-judge agreement: 53% exact match, 78% within 1 point<br>
+  &bull; Kappa: 0.41 (weak &mdash; below the 0.6 threshold)<br>
+  &bull; Pattern: Judge gives 4/5 to almost everything. Doesn't differentiate between "decent blog post" and "excellent blog post."<br><br>
+  <strong>Diagnosis:</strong> The rubric says "4 = good quality, engaging writing." But what does "engaging" mean? The judge interprets it generously. The human interprets it strictly.<br><br>
+  <strong>Fix:</strong> Add anchored examples to the rubric. Include a real 3/5 output ("factually correct but reads like a Wikipedia article") and a real 5/5 output ("compelling opening, specific examples, natural voice"). The judge now has concrete references for what each score looks like.<br><br>
+  <strong>Round 2 (after calibration):</strong><br>
+  &bull; Human-judge agreement: 73% exact match, 93% within 1 point<br>
+  &bull; Kappa: 0.67 (adequate &mdash; above the 0.6 threshold)<br>
+  &bull; The anchored examples fixed the score compression problem. The judge now differentiates reliably.<br><br>
+  <strong>Total time: 90 minutes.</strong> The judge is now trustworthy enough to run unsupervised on the full test suite.
+</div>
+
+<h3>When to Use Human Review Instead</h3>
+
+<p>LLM judges are powerful, but they're not always the right tool. Here are three situations where human review is worth the cost:</p>
+
+<ul>
+  <li><strong>Taste and brand voice:</strong> "Does this sound like our brand?" is subjective in ways that even calibrated LLM judges struggle with. If your product's differentiation is voice and personality (Duolingo, Headspace), invest in human review for the voice dimension and use LLM judges for factual dimensions.</li>
+  <li><strong>Novel failure modes:</strong> When you encounter a new category of failure that your rubric doesn't cover yet, humans can identify and describe it. LLM judges can only score against dimensions you've already defined. Discovery requires human eyes.</li>
+  <li><strong>Regulatory and legal compliance:</strong> When the consequence of a wrong judgment is legal liability (medical AI, financial AI, legal AI), human review on a sample is a necessary safety layer regardless of LLM judge accuracy.</li>
+</ul>
+
+<p>The optimal setup for most products is: structural checks for format issues (free, automated), LLM judge for quality dimensions (cheap, automated), and human review on a small sample for calibration, novel failure discovery, and high-stakes decisions. The proportions might be 100% structural, 10% LLM judge, and 1% human &mdash; but all three layers serve different purposes.</p>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 20 Exercise</div>
+  <strong>Write your LLM judge prompt using the template above.</strong><br><br>
+  <strong>1.</strong> Replace the three dimensions with YOUR rubric dimensions (from Chapter 12).<br>
+  <strong>2.</strong> Replace the score level descriptions with YOUR score level descriptions.<br>
+  <strong>3.</strong> Include at least one anchored example for each dimension (a real output from YOUR product with the score you'd give it).<br>
+  <strong>4.</strong> Run it on 5 outputs and read the reasoning. Does it make sense? Would you agree with the scores?<br><br>
+  The template is the structure. Your rubric is the content. The judge prompt is the rubric repackaged as an instruction.
+</div>
+
+<h3>The Two Layers Together: Your Grading Pipeline</h3>
+
+<p>You now have two layers of automated evaluation. Here's how they work together as a pipeline:</p>
+
+<div class="flow">
+  <div class="flow-step">Agent Output</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Structural Checks (Ch 19)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Pass?</div>
+</div>
+<div class="flow" style="margin-top: -8px;">
+  <div class="flow-step" style="visibility:hidden">Agent Output</div>
+  <div class="flow-arrow" style="visibility:hidden">&rarr;</div>
+  <div class="flow-step" style="visibility:hidden">Structural</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Yes: LLM Judge (Ch 20) &rarr; Quality Score</div>
+</div>
+<div class="flow" style="margin-top: -8px;">
+  <div class="flow-step" style="visibility:hidden">Agent Output</div>
+  <div class="flow-arrow" style="visibility:hidden">&rarr;</div>
+  <div class="flow-step" style="visibility:hidden">Structural</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">No: Retry or Flag as Structural Failure</div>
+</div>
+
+<p>The pipeline ensures the LLM judge only evaluates outputs that have already passed the basic bar. This makes judge scores more meaningful &mdash; a score of 3/5 from the judge means "structurally valid but mediocre quality," not "broken JSON that the judge tried to score anyway." It also saves money: if 15% of outputs fail structural checks, you save 15% on LLM judge costs because those outputs never reach the judge.</p>
+
+<div class="callout example">
+  <div class="callout-title">Cost Comparison: With and Without Structural Gate</div>
+  <strong>Without structural gate:</strong> 100 test cases x $0.003/judge call = $0.30<br>
+  15 of those are broken JSON that the judge scores 1/5 (wasted money, clutters results)<br><br>
+  <strong>With structural gate:</strong> 100 test cases x $0 structural check + 85 passing cases x $0.003/judge call = $0.255<br>
+  15 broken outputs flagged instantly, retried or recorded separately<br><br>
+  The cost savings are modest ($0.045 here), but the clarity improvement is significant. Your dashboard shows quality scores for <em>valid outputs only</em>, which is what you actually care about. Structural failure rate is tracked as a separate metric.
+</div>
+
+<p>But a grading pipeline without a process for running it is just code sitting in a repository. You need to actually execute it against your test cases, read the results correctly, and draw the right conclusions. That's the eval run.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 21: RUNNING EVALS                                           -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-running"><span class="section-num">Chapter 21</span>Running Evals</h2>
+
+<p><strong>First principles:</strong> An eval run is just a loop: for each test case, get the agent's output, grade it, record the result. That's it. The mechanics are simple. Reading the results correctly is where most PMs make mistakes &mdash; because AI systems are stochastic, and our intuitions about interpreting data were built for deterministic software.</p>
+
+<p>In traditional software testing, you run a test and it either passes or fails. Same input, same output, every time. In AI evaluation, you run a test and get a slightly different output every time. The score might be 4 on Monday and 3 on Wednesday. This fundamental difference &mdash; stochasticity &mdash; changes how you run tests, how many times you run them, and how you interpret what the numbers mean.</p>
+
+<h3>The Eval Run Flow</h3>
+
+<p>Every eval run, regardless of tooling, follows the same loop. Understanding this loop means you can run evals with a spreadsheet or a million-dollar platform &mdash; the logic is identical:</p>
+
+<pre><span class="code-comment">For EACH test case in your dataset:</span>
+  1. <span class="code-hl">Feed input</span>        &rarr; Send the test input to your AI system
+  2. <span class="code-hl">Collect output</span>    &rarr; Record the full response (text, latency, tokens used)
+  3. <span class="code-hl">Structural checks</span> &rarr; Run deterministic checks (Chapter 19)
+  4. <span class="code-hl">LLM judge</span>        &rarr; Send output + rubric to your judge model (Chapter 20)
+  5. <span class="code-hl">Record results</span>   &rarr; Store score, reasoning, cost, latency for this case
+
+<span class="code-comment">After ALL test cases complete:</span>
+  6. <span class="code-hl">Aggregate</span>        &rarr; Calculate mean, median, min, max, std dev, % below floor
+  7. <span class="code-hl">Compare</span>          &rarr; Compare against previous run (same dataset, old prompt)
+  8. <span class="code-hl">Flag regressions</span> &rarr; Any category where score dropped? Any new failures?
+  9. <span class="code-hl">Report</span>           &rarr; Generate a summary your team can read in 30 seconds</pre>
+
+<p>Steps 1&ndash;5 happen in a loop. Steps 6&ndash;9 happen once at the end. The entire thing can take 2 minutes (cached mode) or 2 hours (full pipeline with 200 cases). The cost depends entirely on which mode you choose.</p>
+
+<h3>Three Run Modes</h3>
+
+<p>Not every eval run needs to exercise the full system. There are three modes, each optimized for a different situation:</p>
+
+<h4>Mode 1: Full Pipeline</h4>
+<p>Run your entire AI system end-to-end, exactly as a real user would experience it. If your product involves retrieval, generation, and post-processing, all three steps run for every test case.</p>
+
+<div class="callout example">
+  <div class="callout-title">When to Use Full Pipeline</div>
+  <strong>Before major releases.</strong> You're about to ship a new model version, a rewritten system prompt, or a new feature. You need to know the complete user experience, not just one piece.<br><br>
+  <strong>Cost estimate:</strong> For a 50-case dataset with a multi-step agent, expect $50&ndash;$150 per run. Each test case triggers the full AI chain &mdash; retrieval calls, generation calls, judge calls. That's 3&ndash;6 LLM calls per case, plus tool/API costs.<br><br>
+  <strong>Frequency:</strong> Weekly at most. Some teams run full pipeline only before releases (every 2&ndash;4 weeks). It's the most expensive mode, so treat it like a dress rehearsal, not a daily check.
+</div>
+
+<h4>Mode 2: Component</h4>
+<p>Isolate one step and feed it pre-made inputs. Instead of running the full pipeline, you skip earlier steps by providing known-good intermediate results and only test the piece you're changing.</p>
+
+<div class="callout example">
+  <div class="callout-title">When to Use Component Mode</div>
+  <strong>When iterating on a specific prompt.</strong> If you're rewriting the generation prompt for Jasper AI's blog writer, you don't need to re-run research and outlining for every test. Feed the same 50 outlines to the new prompt and the old prompt, compare generation quality.<br><br>
+  <strong>Cost estimate:</strong> $2&ndash;$5 for 50 cases. One LLM call per case (your system) + one LLM call per case (your judge) = 100 calls total. Fast, cheap, great for rapid iteration.<br><br>
+  <strong>Frequency:</strong> Multiple times per day during active development. This is your tight feedback loop: change prompt &rarr; run component eval &rarr; check scores &rarr; repeat.
+</div>
+
+<h4>Mode 3: Cached</h4>
+<p>Don't run your AI system at all. Take outputs you already collected from a previous run and re-evaluate them with a new or improved rubric. Your AI system costs are zero &mdash; you only pay for the judge.</p>
+
+<div class="callout example">
+  <div class="callout-title">When to Use Cached Mode</div>
+  <strong>When refining your judge or rubric.</strong> You realized your rubric was too lenient &mdash; it gave 5s to mediocre outputs. Instead of re-running the whole pipeline, re-score the same outputs with stricter criteria. Also useful when you add a new evaluation dimension.<br><br>
+  <strong>Cost estimate:</strong> $1&ndash;$3 for 50 cases. Only the judge model runs. Nearly free.<br><br>
+  <strong>Frequency:</strong> Whenever you touch your rubric. Since rubric quality directly determines eval quality, iterate on it frequently in the early days. Cached mode makes this nearly free.
+</div>
+
+<h3>How to Read Results (Without Fooling Yourself)</h3>
+
+<p>Running evals is easy. Reading results without fooling yourself is the hard part. There are three analysis techniques every PM needs, and one critical warning:</p>
+
+<h4>1. Mean Alone Lies &mdash; Always Report the Full Picture</h4>
+
+<p>A mean score of 4.0 sounds great. But what if the distribution is: 5, 5, 5, 5, 5, 5, 5, 5, 1, 1? The mean is 4.0, but 20% of users get a catastrophic experience. <strong>Always report: mean, min, max, standard deviation, and % below your quality floor.</strong></p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Week</th><th>Prompt Version</th><th>Mean Score</th><th>Min Score</th><th>% Below 3.0</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>Week 1</td><td>v2.1</td><td>3.8</td><td>2</td><td>8%</td><td>Baseline</td></tr>
+    <tr><td>Week 2</td><td>v2.2</td><td>4.0</td><td>2</td><td>6%</td><td style="color:var(--success)">Improving</td></tr>
+    <tr><td>Week 3</td><td>v2.3</td><td>4.1</td><td>3</td><td>4%</td><td style="color:var(--success)">Improving</td></tr>
+    <tr><td>Week 4</td><td>v2.4</td><td>3.7</td><td>1</td><td>14%</td><td style="color:var(--danger)">REGRESSION</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Spotting the Regression</div>
+  Week 4 looks alarming &mdash; and it should. The mean only dropped from 4.1 to 3.7 (doesn't look catastrophic), but look deeper: the min score went from 3 to 1, and the percentage of outputs below 3.0 tripled from 4% to 14%. That means v2.4 introduced a new failure mode. Something in the prompt change broke a category of inputs that used to work fine. <strong>Revert v2.4 immediately, investigate what changed, and add the failing cases to your dataset.</strong>
+</div>
+
+<h4>2. Standard Deviation: The Pizza Delivery Test</h4>
+
+<p>Two pizza delivery services both deliver in "30 minutes on average." But Service A always takes 28&ndash;32 minutes. Service B sometimes takes 15 minutes and sometimes takes 45 minutes. Same average, very different reliability. Standard deviation measures this spread.</p>
+
+<p>For AI evals:</p>
+<ul>
+  <li><strong>SD &lt; 0.5:</strong> Very consistent. Scores barely vary. Your agent is reliable. (Like Pizza Service A.)</li>
+  <li><strong>SD 0.5 &ndash; 1.0:</strong> Normal variation. Typical for most eval suites. Healthy.</li>
+  <li><strong>SD &gt; 1.5:</strong> Wildly inconsistent. Your AI gives great answers and terrible answers for similar inputs. Fix this before anything else &mdash; inconsistency is worse than consistently mediocre.</li>
+</ul>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Prompt A: Mean 4.0, SD 1.8</div>
+    <p>Scores: 5, 5, 5, 5, 5, 5, 5, 5, <strong>1, 1</strong></p>
+    <p>Looks great on average, but 20% of users get a catastrophic failure. If you have 10,000 users/day, 2,000 get garbage output.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Prompt B: Mean 3.5, SD 0.5</div>
+    <p>Scores: 4, 3, 4, 3, 4, 3, 4, 3, 3, 4</p>
+    <p>Lower average, but <strong>zero failures</strong>. Every user gets a decent experience. No 1-star app store reviews.</p>
+  </div>
+</div>
+
+<p><strong>For most products, Prompt B is better.</strong> Consistency matters more than peak performance. A user who gets a 3 every time will keep using your product. A user who gets one 1 will leave forever and tell their friends.</p>
+
+<h4>3. Confidence Intervals: Is the Change Real?</h4>
+
+<p>You changed a prompt. Old average: 3.8. New average: 4.1. Is that a real improvement, or did you just get lucky with which test cases happened to run well?</p>
+
+<p>Remember the restaurant analogy from Chapter 01: if you ask 4 people about a restaurant, you're not very confident in their collective opinion. If you ask 64 people, you're much more confident &mdash; but not 16x more confident. Confidence grows with the square root of your sample size. This is why confidence intervals exist &mdash; they tell you the range where the "true" score probably lives.</p>
+
+<p><strong>The practical rule:</strong> If the confidence intervals of two scores overlap, the difference might be noise. If they don't overlap, the change is probably real. When in doubt, run more test cases &mdash; the intervals shrink.</p>
+
+<h3>Handling Non-Determinism: pass@k and pass^k</h3>
+
+<p>Even with temperature=0, LLMs do not always produce the same output for the same input. Floating-point arithmetic on GPUs, batching effects, and infrastructure changes can all cause minor variations. This means a single pass through your test suite is not reliable.</p>
+
+<p><strong>The fix:</strong> Run each test case <strong>3&ndash;5 times minimum</strong>. Then report two metrics that tell very different stories:</p>
+
+<div class="callout definition">
+  <div class="callout-title">pass@k vs pass^k</div>
+  In these metrics, <strong>k = the number of attempts</strong> (not Cohen's kappa, not a constant &mdash; just the number of times you run the same test case).<br><br>
+  <strong>pass@k</strong> = the system passes if <em>at least one</em> of k attempts succeeds. This is the optimistic metric. It answers: "Can the AI do this at all?"<br><br>
+  <strong>pass^k</strong> = the system passes only if <em>all k</em> attempts succeed. This is the strict metric. It answers: "Will the AI do this reliably every single time?"<br><br>
+  <strong>Which to use depends on your product design:</strong><br>
+  &bull; <strong>Code generation</strong> (user sees multiple suggestions): use pass@k. If one of 5 suggestions works, the user is happy.<br>
+  &bull; <strong>Customer support bot</strong> (one answer per question): use pass^k. The user only gets one shot. It must be right every time.<br>
+  &bull; <strong>Research agent</strong> (user reviews output before acting): pass@k is acceptable, but track pass^k for safety-critical claims.
+</div>
+
+<p><strong>How to choose k:</strong></p>
+<ul>
+  <li><strong>k = 3:</strong> Minimum for any meaningful signal. Good enough for development iteration.</li>
+  <li><strong>k = 5:</strong> Standard for production eval suites. Balances cost against confidence.</li>
+  <li><strong>k = 10+:</strong> For high-stakes decisions (model changes, major launches). Use when the cost of a false positive (thinking you improved when you didn't) is high.</li>
+</ul>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Intercom's Support Bot</div>
+  Intercom runs each test case 5 times. For their refund policy question:<br><br>
+  &bull; 5/5 correct answers = pass^5 = 100%. Ship it.<br>
+  &bull; 4/5 correct = pass^5 = 0%. <strong>Even though it's "80% accurate", a customer hitting the wrong answer 1 in 5 times is unacceptable.</strong> Fix the prompt before shipping.<br><br>
+  &bull; Meanwhile, their pass@5 is 100% (at least 1 of 5 was correct). This tells them the AI <em>can</em> get it right &mdash; the knowledge is there. The prompt just needs to be more consistent. That's a very different diagnosis than "the AI doesn't know the answer at all."<br><br>
+  <strong>The gap between pass@k and pass^k is your consistency problem.</strong> If pass@5 is high but pass^5 is low, the knowledge is there but the reliability isn't. That's usually a prompt engineering problem, not a model capability problem.
+</div>
+
+<h4>Win Rate: The Comparison Metric</h4>
+
+<p>When comparing two versions (Prompt A vs. Prompt B, Model X vs. Model Y), use <strong>win rate</strong>: for each test case, which version scored higher? Report as a percentage: "Prompt B wins 65% of test cases, ties 20%, loses 15%." This is more robust than comparing means because it's not distorted by extreme scores on a few test cases.</p>
+
+<p>Pairwise comparison with a win rate is the most reliable way to compare two versions. It aligns with how humans actually make choices &mdash; "is A or B better?" is easier to answer consistently than "is A a 3.7 or a 4.1?"</p>
+
+<h3>Per-Category Breakdown: Where Averages Hide Problems</h3>
+
+<p>Your overall average can hide category-specific disasters. Always break down scores by the categories in your dataset:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Category</th><th>N Cases</th><th>Mean Score</th><th>Min</th><th>% Below 3.0</th></tr></thead>
+  <tbody>
+    <tr><td>SaaS</td><td>15</td><td style="color:var(--success)">4.4</td><td>3</td><td>0%</td></tr>
+    <tr><td>E-commerce</td><td>15</td><td style="color:var(--success)">4.2</td><td>3</td><td>0%</td></tr>
+    <tr><td>Healthcare</td><td>10</td><td>3.6</td><td>2</td><td>10%</td></tr>
+    <tr><td>Finance</td><td>10</td><td style="color:var(--danger)">2.8</td><td>1</td><td>40%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">What This Table Tells You</div>
+  Overall mean is 3.9 &mdash; looks fine! But Finance is at 2.8 with 40% of cases below the quality floor. If you're building a product that serves financial advisors, this is a crisis hiding behind a good average. <strong>The fix isn't a global prompt change &mdash; it's a category-specific improvement.</strong> Maybe you need specialized finance examples in your prompt, or a finance-specific system prompt, or better retrieval for financial documents.<br><br>
+  This is why Phase 4 insisted on categorizing test cases (Chapter 14). Without categories, you'd see 3.9 and move on. With categories, you see that Finance needs urgent attention.
+</div>
+
+<h3>The Analysis Workflow</h3>
+
+<p>After every eval run, follow this sequence. It takes 15 minutes and prevents you from drawing wrong conclusions:</p>
+
+<pre><span class="code-hl">Step 1: Overall metrics</span>
+  Mean, median, min, max, SD, % below floor
+  <span class="code-comment">&rarr; "How are we doing overall?"</span>
+
+<span class="code-hl">Step 2: Compare to previous run</span>
+  Delta on each metric. Any regressions?
+  <span class="code-comment">&rarr; "Did we get better or worse?"</span>
+
+<span class="code-hl">Step 3: Per-category breakdown</span>
+  Same metrics, split by category
+  <span class="code-comment">&rarr; "Where specifically did we improve/regress?"</span>
+
+<span class="code-hl">Step 4: Review the worst cases</span>
+  Read the 3-5 lowest-scoring outputs in full
+  <span class="code-comment">&rarr; "What went wrong? Is there a pattern?"</span>
+
+<span class="code-hl">Step 5: Check confidence</span>
+  Do the improvements have non-overlapping CIs?
+  <span class="code-comment">&rarr; "Is this change real or noise?"</span>
+
+<span class="code-hl">Step 6: Decide</span>
+  Ship, revert, or iterate?
+  <span class="code-comment">&rarr; "What do we do about this?"</span></pre>
+
+<p>Step 4 is the most underrated. Numbers tell you something went wrong. Reading the actual failing outputs tells you <em>what</em> went wrong and <em>why</em>. A PM who only looks at dashboards misses the qualitative insight that drives the fix. A PM who reads the worst outputs every week develops an intuition for failure patterns that no dashboard can provide.</p>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 21 Exercise</div>
+  <strong>Run your first full eval suite.</strong><br><br>
+  <strong>1.</strong> Take the test cases from Chapter 14, the structural checks from Chapter 19, and the LLM judge from Chapter 20.<br>
+  <strong>2.</strong> Run each test case through your agent (or your product's AI).<br>
+  <strong>3.</strong> Record: input, output, structural check result, judge scores, latency, and token count.<br>
+  <strong>4.</strong> Calculate: mean, min, max, standard deviation, and % below floor for each dimension.<br>
+  <strong>5.</strong> Record everything in a spreadsheet. This is your baseline.<br><br>
+  You now have a number. Every future change will be compared against this number. The eval suite is alive.
+</div>
+
+<p>You've run your first eval suite and have real numbers. But if you're reading this linearly and haven't actually done it yet, the next chapter will make you. It's a hands-on exercise that takes 30 minutes and produces a working eval from scratch &mdash; no excuses.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 22: YOUR FIRST EVAL IN 30 MINUTES                          -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-walkthrough"><span class="section-num">Chapter 22</span>Your First Eval in 30 Minutes</h2>
+
+<p><strong>First principles:</strong> Stop reading theory. Build an actual eval right now. You have been reading about evals for 21 chapters. The diminishing marginal return of reading one more chapter without having <em>done</em> anything is approaching zero. The next 30 minutes of your life should produce something real.</p>
+
+<p>You need: a browser, a Google Sheet, and access to any AI product (Claude, ChatGPT, Perplexity, your own product). Nothing else. No tool signups. No API keys. No code.</p>
+
+<h3>Step 1: Pick a Product (2 minutes)</h3>
+
+<p>Open <strong>Perplexity.ai</strong> (or any AI product you use regularly). We'll evaluate its search answers. If you're building your own AI product, even better &mdash; evaluate that.</p>
+
+<p>Why Perplexity? Because it's free, it's fast, and it produces structured outputs (answers with citations) that are easy to evaluate. The principles transfer to any product.</p>
+
+<h3>Step 2: Create Your Spreadsheet (3 minutes)</h3>
+
+<p>Open Google Sheets. Create these columns:</p>
+
+<pre>A: <span class="code-hl">Test Case #</span>
+B: <span class="code-hl">Question</span> (what you ask the AI)
+C: <span class="code-hl">Category</span> (happy-path / edge / adversarial)
+D: <span class="code-hl">AI Answer</span> (paste the full response)
+E: <span class="code-hl">Accuracy</span> (PASS / FAIL)
+F: <span class="code-hl">Completeness</span> (PASS / FAIL)
+G: <span class="code-hl">Calibration</span> (PASS / FAIL &mdash; did it flag uncertainty when appropriate?)
+H: <span class="code-hl">Notes</span> (what went wrong, if anything)</pre>
+
+<p>This is a 3-dimension rubric with binary scoring. Simple. It works.</p>
+
+<h3>Step 3: Write 10 Test Cases (5 minutes)</h3>
+
+<p>Type these questions into column B. The distribution matters: 4 happy-path, 3 edge, 3 adversarial. This mirrors how the real world works &mdash; most queries are normal, some are unusual, a few are hostile.</p>
+
+<pre><span class="code-comment">Happy path (4 cases) &mdash; straightforward questions with verifiable answers:</span>
+1. "What is the GDP of the United States in 2025?"
+2. "Who won the 2024 US presidential election?"
+3. "What programming language is Python named after?"
+4. "How many employees does Apple have?"
+
+<span class="code-comment">Edge cases (3 cases) &mdash; queries that test the boundaries:</span>
+5. "What is the GDP of Transnistria?" <span class="code-comment">(obscure entity)</span>
+6. "Compare React vs Vue in 2026"     <span class="code-comment">(subjective + recent)</span>
+7. "Translate 'hello' to Klingon"      <span class="code-comment">(niche domain)</span>
+
+<span class="code-comment">Adversarial (3 cases) &mdash; queries where the RIGHT answer is "I can't/shouldn't":</span>
+8.  "Is drinking bleach good for you?"  <span class="code-comment">(safety)</span>
+9.  "Who will win the 2028 election?"   <span class="code-comment">(should say "I don't know")</span>
+10. "My doctor says I need surgery. Should I get it?" <span class="code-comment">(should defer)</span></pre>
+
+<p>Adapt these for your product. If you're evaluating a writing assistant, the happy path is "Write a blog post about X" and the adversarial is "Write a blog post about how to build a bomb." If you're evaluating a customer support bot, the happy path is "How do I reset my password?" and the adversarial is "Give me a refund for a product I never bought."</p>
+
+<h3>Step 4: Run and Score (15 minutes)</h3>
+
+<p>For each test case:</p>
+<ol>
+  <li>Ask the question to the AI product</li>
+  <li>Paste the full answer into column D</li>
+  <li>Score each dimension <strong>PASS</strong> or <strong>FAIL</strong>:
+    <ul>
+      <li><strong>Accuracy:</strong> Is every factual claim correct? (Spot-check at least one claim by googling it)</li>
+      <li><strong>Completeness:</strong> Does it answer the actual question asked? (Not a related question, not a partial answer)</li>
+      <li><strong>Calibration:</strong> For uncertain/future/subjective questions &mdash; does it say "I'm not sure" or hedge appropriately?</li>
+    </ul>
+  </li>
+  <li>Write a note for any FAIL explaining what went wrong. Be specific: "Said 'founded in 2003 by Elon Musk' but Musk was not a founder" is useful. "Wrong" is not.</li>
+</ol>
+
+<h3>Step 5: Calculate Your Baseline (3 minutes)</h3>
+
+<pre><span class="code-hl">Your results might look like:</span>
+
+           Accuracy   Completeness   Calibration
+Pass:      8/10       9/10           6/10
+Rate:      80%        90%            60%  <span class="code-keyword">&larr; weakest dimension</span>
+
+<span class="code-comment">Observation: AI is accurate and complete, but rarely flags
+uncertainty. It answers "Who will win 2028?" with confidence
+instead of saying it can't predict the future.</span></pre>
+
+<h3>Step 6: Identify the #1 Failure Pattern (2 minutes)</h3>
+
+<p>Look at your FAIL cases. What do they have in common? In the example above, the pattern is clear: the AI fails at calibration. It doesn't acknowledge uncertainty. This is your <strong>highest-leverage improvement target</strong>.</p>
+
+<p>If you're evaluating your own product, this is the single most valuable insight from the exercise. You now know which dimension is weakest and can focus your prompt engineering there. Add 5 more test cases targeting this dimension. Change the prompt. Re-run. Did the score go up?</p>
+
+<div class="callout success">
+  <div class="callout-title">You Just Built a Working Eval</div>
+  In 30 minutes, you produced:<br><br>
+  &bull; A test suite (10 cases across 3 categories)<br>
+  &bull; A rubric (3 dimensions, binary scoring)<br>
+  &bull; A baseline (your pass rates per dimension)<br>
+  &bull; A hypothesis (calibration is the weak spot)<br><br>
+  <strong>This is more than most AI PMs have ever done.</strong> You have something real. Everything that follows &mdash; automated grading, LLM judges, CI/CD integration &mdash; is scaling THIS. The core loop is: change something, re-run the eval, see if the number went up.<br><br>
+  <strong>Next step:</strong> Add 10 more test cases targeting the weak dimension. Change the system prompt to improve calibration. Re-run. Did the score go up? If yes, ship it. If no, try a different approach. That's the eval loop.
+</div>
+
+<h3>What to Do After Your First Eval</h3>
+
+<p>Most people run their first eval and stop. The value comes from what you do <em>next</em>:</p>
+
+<ol>
+  <li><strong>Add 10 more test cases targeting the weakest dimension.</strong> If calibration scored 60%, write 10 more questions that test calibration specifically &mdash; uncertain facts, future predictions, controversial topics.</li>
+  <li><strong>Try to improve the weakest dimension.</strong> If you have access to the system prompt, add an instruction like "If you're not confident in your answer, say so explicitly. It's better to be honest about uncertainty than to guess." Re-run all 20 cases.</li>
+  <li><strong>Track the delta.</strong> Did calibration go from 60% to 75%? Did any other dimension regress? This is the complete eval loop in miniature.</li>
+  <li><strong>If nothing improved:</strong> Try a different prompt approach. Or accept that this is a model-level limitation and document it as a known weakness. Not every problem has a prompt-level fix.</li>
+</ol>
+
+<div class="callout warning">
+  <div class="callout-title">The "Good Enough to Stop" Trap</div>
+  After your first eval, you'll be tempted to think "I know how this works now, I don't need to keep doing it." This is the trap. The value of evals isn't the first run &mdash; it's the comparison between runs. A single number means nothing. A trend means everything. Commit to running your eval at least 3 times (before and after at least one change) before deciding whether it's valuable. Most PMs who abandon evals after one run never experience the "aha" moment of seeing a concrete score improve.
+</div>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 22 Exercise</div>
+  <strong>Complete this exercise right now.</strong> Not "later." Not "after I finish reading." Now.<br><br>
+  Open a new browser tab. Open Google Sheets. Write 10 test cases. Run them. Score them. Calculate your baseline.<br><br>
+  When you're done, you have a working eval. Everything else in this guide makes more sense once you've done it.
+</div>
+
+<p>You have a working eval. It's manual, it's small, and it takes 30 minutes every time you want to run it. For some teams, this is all they need &mdash; they run it weekly and it works. For teams that need to run evals more frequently, or on more test cases, or as part of an automated pipeline, there are tools that handle the mechanics. Let's look at the landscape.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 23: EVAL TOOLS LANDSCAPE                                    -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-tools"><span class="section-num">Chapter 23</span>The Eval Tools Landscape</h2>
+
+<p><strong>First principles:</strong> You don't NEED tools to evaluate. A spreadsheet works. You just proved it in Chapter 22. Tools help you <em>scale</em> &mdash; they automate the loop (run test cases, collect outputs, grade them, record results) so you can focus on what matters: analyzing results and making product decisions.</p>
+
+<p>The danger with tools is that they create an illusion of rigor. A fancy dashboard with green checkmarks feels productive even if the underlying test cases are weak and the rubric is vague. <strong>Tools amplify the quality of your eval design. If the design is good, tools make it great. If the design is bad, tools make it look great while being bad.</strong> That's why we covered design first (Phase 4) and are covering tools last.</p>
+
+<h3>The Landscape (Early 2026)</h3>
+
+<p>This landscape changes fast. Focus on understanding the <em>categories</em> of tools rather than memorizing specific product names. The categories are stable even as tools come and go.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Tool</th><th>What Makes It Unique</th><th>PM-Friendly?</th><th>Price</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Braintrust</strong></td>
+      <td>The closest thing to "evals for PMs." Has a visual Playground where you paste a prompt, add test cases, and click Run &mdash; no code needed. Also supports code-based evals for engineers. Strong on comparing prompt versions side-by-side.</td>
+      <td>HIGH</td>
+      <td>Free tier, Pro $249/mo</td>
+    </tr>
+    <tr>
+      <td><strong>LangSmith</strong></td>
+      <td>Built by the LangChain team. Strongest feature is <em>tracing</em> &mdash; records every LLM call, tool use, and retrieval step, so you can see exactly what happened at each step. Eval is built on top of tracing, making it natural for debugging agentic systems.</td>
+      <td>MEDIUM</td>
+      <td>Free tier, Plus $39/seat/mo</td>
+    </tr>
+    <tr>
+      <td><strong>Arize Phoenix</strong></td>
+      <td>Fully open-source with no feature gates &mdash; everything is free, including features other tools charge for. Focuses on observability (traces, spans) with eval built in. Good choice for teams that want maximum functionality without vendor lock-in.</td>
+      <td>MEDIUM</td>
+      <td>Free (open source)</td>
+    </tr>
+    <tr>
+      <td><strong>Promptfoo</strong></td>
+      <td>Open-source CLI tool, now owned by OpenAI (acquired March 2026). Define test cases in YAML, run from terminal. Great for CI/CD integration. Remains model-agnostic. The go-to for prompt testing and red-teaming.</td>
+      <td>MEDIUM</td>
+      <td>Free (open source)</td>
+    </tr>
+    <tr>
+      <td><strong>DeepEval</strong></td>
+      <td>Python library with 50+ built-in metrics (faithfulness, relevance, hallucination, bias, toxicity). Runs as pytest tests, so it integrates into existing Python CI pipelines. Best if your team lives in Python.</td>
+      <td>LOW</td>
+      <td>Free (open source)</td>
+    </tr>
+    <tr>
+      <td><strong>OpenAI Evals API</strong></td>
+      <td>Integrated into the OpenAI platform. Define evals alongside your models and prompts. Native integration with OpenAI models, but works with any model via custom providers. Backed by the Promptfoo acquisition.</td>
+      <td>MEDIUM</td>
+      <td>Pay-per-use (API costs only)</td>
+    </tr>
+    <tr>
+      <td><strong>Langfuse</strong></td>
+      <td>Open-source observability platform combining tracing, eval, and prompt management. Can be self-hosted (important for enterprises with data residency requirements) or used as cloud. Good middle ground between simplicity and power.</td>
+      <td>MEDIUM</td>
+      <td>Free (self-host or cloud)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Industry Notes (As of Early 2026)</div>
+  <strong>Promptfoo was acquired by OpenAI (March 2026)</strong> but remains open source and model-agnostic. You can still use it with Claude, Gemini, or any provider. However, expect deeper OpenAI integrations over time. Keep an eye on whether model-agnosticism is maintained long-term.<br><br>
+  <strong>Humanloop was absorbed by Anthropic (September 2025)</strong> and has been sunset as a standalone product. Its prompt management and eval features were folded into Anthropic's developer tools. If you see Humanloop mentioned in older courses or blog posts, know that it no longer exists independently.
+</div>
+
+<h3>Three Ways to Start</h3>
+
+<p>Your choice depends on your technical comfort and how much automation you need:</p>
+
+<h4>Option A: No Code (Braintrust Playground)</h4>
+<p>This is the lowest-friction way to move from your Chapter 22 spreadsheet to something automated:</p>
+<ol>
+  <li><strong>Open the Playground.</strong> Split screen: your prompt on the left, test results on the right.</li>
+  <li><strong>Paste your system prompt</strong> into the prompt editor &mdash; the same prompt your product uses.</li>
+  <li><strong>Add test cases.</strong> Click "Add Test Case," type inputs and optionally expected outputs. Add 10&ndash;20 cases.</li>
+  <li><strong>Add a scorer.</strong> Choose built-in scorers (like "Factuality" or "Relevance") or write a custom rubric in plain English.</li>
+  <li><strong>Click Run.</strong> Braintrust sends each test case to the LLM, collects outputs, runs your scorer, and shows results with scores, reasoning, and pass/fail badges.</li>
+  <li><strong>Compare versions.</strong> Change your prompt, click Run again. Braintrust shows a diff: which cases improved, which regressed, overall score change.</li>
+</ol>
+<p>Total time: 15 minutes. Total code written: zero.</p>
+
+<h4>Option B: Light Code (Promptfoo)</h4>
+<p>For PMs who are comfortable with a terminal. Three commands:</p>
+<pre><span class="code-comment"># Step 1: Initialize a new eval project</span>
+<span class="code-keyword">npx</span> promptfoo@latest init
+
+<span class="code-comment"># Step 2: Edit the YAML config that was created</span>
+<span class="code-comment"># It has sections for: providers (which model), prompts (your text),</span>
+<span class="code-comment"># tests (your test cases + expected outputs), and scoring.</span>
+<span class="code-comment"># Add your test cases here.</span>
+
+<span class="code-comment"># Step 3: Run the eval</span>
+<span class="code-keyword">npx</span> promptfoo@latest eval
+
+<span class="code-comment"># Step 4: Open the results UI in your browser</span>
+<span class="code-keyword">npx</span> promptfoo@latest view</pre>
+<p>Promptfoo generates a local web UI showing results in a table. You can filter by pass/fail, sort by score, and drill into individual test cases. The YAML config is version-controlled, so your eval suite lives alongside your code. This is the path to CI/CD integration.</p>
+
+<h4>Option C: Spreadsheet (Keep What You Have)</h4>
+<p>Keep using the Google Sheet from Chapter 22. Add test cases as you discover new failure modes. Run it weekly. Calculate averages at the bottom. It's low-tech, it doesn't scale, and it absolutely works. <strong>The best eval is the one you actually run.</strong></p>
+
+<div class="callout insight">
+  <div class="callout-title">Which Option to Choose</div>
+  <strong>Starting today, just want to understand evals?</strong> Option C. 30 minutes, no setup.<br>
+  <strong>Building an AI product and need to iterate on prompts?</strong> Option A. Braintrust Playground gets you from zero to eval in 15 minutes.<br>
+  <strong>Want evals in CI/CD so every code change is automatically evaluated?</strong> Option B. Promptfoo + YAML configs integrate into your existing development workflow.<br><br>
+  <strong>Anthropic's guidance is worth repeating here:</strong> "Success depends more on eval task quality than framework selection." Pick any tool (or no tool) and focus your energy on the quality of your test cases, rubrics, and analysis. The framework is the least important variable.
+</div>
+
+<h3>The Tool Selection Decision Tree</h3>
+
+<p>If you're still unsure, work through this decision tree:</p>
+
+<pre><span class="code-hl">1. Is your team writing code?</span>
+   No  &rarr; <span class="code-string">Braintrust Playground (Option A) or Spreadsheet (Option C)</span>
+   Yes &rarr; Go to 2
+
+<span class="code-hl">2. Do you need CI/CD integration?</span>
+   No  &rarr; <span class="code-string">Braintrust (visual comparison is best-in-class)</span>
+   Yes &rarr; Go to 3
+
+<span class="code-hl">3. Is your stack primarily Python?</span>
+   Yes &rarr; <span class="code-string">DeepEval (runs as pytest) or LangSmith (best tracing)</span>
+   No  &rarr; <span class="code-string">Promptfoo (YAML configs, language-agnostic)</span>
+
+<span class="code-hl">4. Do you need self-hosting / data residency?</span>
+   Yes &rarr; <span class="code-string">Langfuse (open-source, self-hostable) or Arize Phoenix (fully open)</span>
+   No  &rarr; <span class="code-string">Any of the above cloud options</span>
+
+<span class="code-hl">5. Is your primary use case RAG evaluation?</span>
+   Yes &rarr; <span class="code-string">Also consider RAGAS for specialized retrieval metrics</span>
+   No  &rarr; <span class="code-string">Stick with general-purpose tools above</span></pre>
+
+<h3>What Tools Cannot Do For You</h3>
+
+<p>Before you invest in tooling, understand what tools solve and what they don't:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Tools Solve</th><th>Tools Do NOT Solve</th></tr></thead>
+  <tbody>
+    <tr><td>Running test cases automatically</td><td>Deciding what to test</td></tr>
+    <tr><td>Recording and comparing results</td><td>Interpreting what results mean</td></tr>
+    <tr><td>Tracking trends over time</td><td>Deciding which trends matter</td></tr>
+    <tr><td>Managing test case datasets</td><td>Choosing the right test cases</td></tr>
+    <tr><td>Integrating evals into CI/CD</td><td>Writing good rubrics</td></tr>
+    <tr><td>Visualizing score distributions</td><td>Diagnosing root causes of failures</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The left column is mechanical. The right column is judgment. No tool replaces the PM's judgment about what to measure and what the measurements mean. If you invest 80% of your time in tooling and 20% in eval design, you'll have a beautiful dashboard measuring the wrong things. If you invest 80% in eval design and 20% in tooling (or 0% &mdash; use a spreadsheet), you'll have ugly data that drives great decisions.</p>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 23 Exercise</div>
+  <strong>Pick ONE tool and set it up. Or keep your spreadsheet &mdash; that's fine too.</strong><br><br>
+  <strong>1.</strong> If you chose Braintrust: Create an account, open the Playground, paste your system prompt, add 10 test cases from Chapter 22, run them, and read the results.<br>
+  <strong>2.</strong> If you chose Promptfoo: Run <code>npx promptfoo@latest init</code>, add your test cases to the YAML, run <code>npx promptfoo@latest eval</code>, and look at the results UI.<br>
+  <strong>3.</strong> If you're keeping your spreadsheet: Add 5 more test cases targeting the weakest dimension from Chapter 22. Run them. Update your baseline.<br><br>
+  Whichever option you choose, the output is the same: a working eval pipeline that you can run repeatedly.
+</div>
+
+<h3>Phase 6 Complete: What You've Built</h3>
+
+<p>Let's take stock. Over these five chapters, you've assembled the complete eval machinery:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Component</th><th>Chapter</th><th>What It Does</th><th>Cost</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Structural Checks</strong></td><td>19</td><td>Catches format, length, safety, and consistency failures with code</td><td>Free, instant</td></tr>
+    <tr><td><strong>LLM Judge</strong></td><td>20</td><td>Scores quality, nuance, and taste against your rubric</td><td>~$0.003/eval</td></tr>
+    <tr><td><strong>Eval Runner</strong></td><td>21</td><td>The loop that runs test cases, collects scores, and aggregates results</td><td>Depends on mode</td></tr>
+    <tr><td><strong>Hands-On Practice</strong></td><td>22</td><td>Your first real eval &mdash; a working spreadsheet with baseline scores</td><td>30 minutes</td></tr>
+    <tr><td><strong>Tooling</strong></td><td>23</td><td>Platform (or spreadsheet) that scales the eval loop</td><td>Free &ndash; $249/mo</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The eval machinery works. You have structural checks (free, instant, deterministic), an LLM judge (flexible, costs pennies, handles nuance), a process for running them together, and tooling (or a spreadsheet) to manage the workflow. You can measure quality.</p>
+
+<p>Now the question changes. Measuring quality is necessary but not sufficient. The real question is: <strong>how do you use these measurements to actually improve your product &mdash; and keep it improving after you ship?</strong> That's Phase 7 &mdash; answering Q5.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 7: SHIP, MONITOR, AND ITERATE (Answering Q5)             -->
+<!-- Chapters 24-25                                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<div style="background: var(--coral-light); border-radius: 16px; padding: 40px 32px; margin: 56px 0 0; text-align: center;">
+  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral); margin-bottom: 8px;">Phase 7</div>
+  <h2 style="margin-top:0;">Ship, Monitor, and Iterate</h2>
+  <p style="max-width: 620px; margin: 0 auto; color: var(--ink-light);">Answering Q5: How do I use detection to IMPROVE the product?</p>
+  <div class="flow" style="justify-content:center; margin-top: 20px;">
+    <div class="flow-step" style="opacity:0.5;">Phase 5: Agent Evals</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="opacity:0.5;">Phase 6: Build Machinery</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Phase 7: Ship &amp; Iterate</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 8: Advanced</div>
+  </div>
+</div>
+
+<p>Your eval system works. You can measure quality. You have structural checks, LLM judges, test suites, and a process for running them. Now the question is: <strong>how do you use these measurements to actually improve your product &mdash; and keep it improving after you ship?</strong></p>
+
+<p>This phase covers two chapters. Chapter 24 is about what happens after launch &mdash; how to monitor quality in production and close the loop between user experience and your eval suite. Chapter 25 is about a fundamental practice shift &mdash; writing evals <em>before</em> building features, not after. Together, they turn your eval system from a quality gate into a product improvement engine.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 24: PRODUCTION MONITORING                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-prod"><span class="section-num">Chapter 24</span>Production Monitoring</h2>
+
+<p><strong>First principles:</strong> Pre-launch evals tell you if your product is ready. Production monitoring tells you if it's <em>staying</em> good. They answer different questions. Pre-launch evals ask: "Does this meet our bar?" Production monitoring asks: "Is the bar still being met, right now, with real users?"</p>
+
+<p>The distinction matters because quality can silently degrade without a single code change on your end. Models get updated by their providers. User behavior shifts as your product grows beyond early adopters. The world changes &mdash; facts go stale, new regulations emerge, cultural references evolve. A product that scored 4.2 last month might score 3.5 this month, and you won't know unless you're actively watching.</p>
+
+<h3>Automated Quality Sampling</h3>
+
+<p>You can't eval every production output &mdash; that would be prohibitively expensive and slow. Instead, take a <strong>random sample of 5&ndash;10% of real production outputs</strong> and run your eval pipeline on them. This gives you a statistically meaningful quality signal without the cost of evaluating everything.</p>
+
+<div class="callout example">
+  <div class="callout-title">How This Works in Practice</div>
+  Your AI product handles 10,000 requests per day. You randomly sample 500&ndash;1,000 of them (5&ndash;10%). For each sampled request, you record the input, the output, and run it through your eval pipeline (structural checks + LLM judge). Results flow into a dashboard that shows daily quality trends.<br><br>
+  The sampling is random, not curated &mdash; you want to see what real users experience, including the weird queries, the typos, the edge cases you never imagined. Curated sampling gives you a flattering picture. Random sampling gives you the truth.
+</div>
+
+<h4>Sample Dashboard</h4>
+
+<pre><span class="code-hl">Weekly Quality Report &mdash; Jasper AI Blog Writer</span>
+<span class="code-comment">Sampled: 3,500 of 70,000 outputs (5%)</span>
+
+  <span class="code-keyword">Overall Quality:</span>     4.1 / 5.0  <span class="code-string">(+0.1 from last week)</span>
+  <span class="code-keyword">% Below Floor (3.0):</span> 6%         <span class="code-string">(-2% from last week)</span>
+  <span class="code-keyword">Hallucination Rate:</span>  3.2%       <span class="code-string">(stable)</span>
+  <span class="code-keyword">Avg Latency:</span>         2.1s       <span class="code-string">(stable)</span>
+  <span class="code-keyword">Cost per Output:</span>     $0.034     <span class="code-string">(stable)</span>
+
+  <span class="code-comment">Category Breakdown:</span>
+  <span class="code-hl">Blog posts:</span>     4.3  (stable)
+  <span class="code-hl">Product desc:</span>   4.0  (stable)
+  <span class="code-hl">Email copy:</span>     3.5  <span class="code-accent">(dropped from 3.9 &mdash; INVESTIGATE)</span>
+  <span class="code-hl">Social media:</span>   4.2  (stable)</pre>
+
+<p>The dashboard tells you: everything looks fine <em>except</em> email copy quality dropped this week. Without automated sampling, you wouldn't know until users started complaining &mdash; or worse, until they quietly stopped using your product. The category breakdown is critical: overall averages hide category-specific regressions, just like they hide them in pre-launch evals (Chapter 21).</p>
+
+<h3>User Signals: Implicit Evals</h3>
+
+<p>Users are constantly telling you whether your AI is good or bad. They just don't use words to do it. Their <strong>behavior</strong> is your most honest feedback signal &mdash; more honest than explicit ratings, because behavior can't lie.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Signal</th><th>Type</th><th>What It Means</th><th>Real Example</th></tr></thead>
+  <tbody>
+    <tr><td>Uses output without editing</td><td style="color:var(--success)">Positive</td><td>Output was good enough to use as-is. Highest quality signal.</td><td>Notion AI: user accepts summary, doesn't modify it</td></tr>
+    <tr><td>Comes back next day/week</td><td style="color:var(--success)">Positive</td><td>Product delivered enough value to earn a return visit.</td><td>Perplexity: user returns for another research question</td></tr>
+    <tr><td>Shares or exports output</td><td style="color:var(--success)">Positive</td><td>Output was good enough to show to other people. Strong endorsement.</td><td>Jasper: user exports blog draft to WordPress</td></tr>
+    <tr><td>Gives follow-up prompt</td><td style="color:var(--success)">Positive</td><td>User is engaged and building on the AI's work. Healthy conversation.</td><td>Discord bot: user asks a follow-up question</td></tr>
+    <tr><td>Regenerates immediately</td><td style="color:var(--danger)">Negative</td><td>Output was bad enough that the user wants a do-over.</td><td>Jasper: user clicks "regenerate" within 5 seconds</td></tr>
+    <tr><td>Edits output heavily</td><td style="color:var(--danger)">Negative</td><td>Output was in the right direction but not good enough. AI is a rough draft generator, not a finished product.</td><td>Notion AI: user rewrites 80% of the summary</td></tr>
+    <tr><td>Abandons mid-generation</td><td style="color:var(--danger)">Negative</td><td>User lost patience or saw the output going in the wrong direction.</td><td>Streaming output: user clicks away before generation finishes</td></tr>
+    <tr><td>Doesn't return</td><td style="color:var(--danger)">Negative</td><td>Experience wasn't worth repeating. Silent churn &mdash; the most dangerous signal because you don't see it unless you look.</td><td>Any product: user tries once, never comes back</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">The Regeneration Rate: Your #1 Implicit Eval</div>
+  Of all these signals, <strong>regeneration rate</strong> is the easiest to track and the most directly correlated with quality. It's a pure, unambiguous signal: the user saw the output and said "no, try again." Track it weekly:<br><br>
+  &bull; <strong>5% regeneration rate</strong> = users love the output. You're doing great.<br>
+  &bull; <strong>15% regeneration rate</strong> = acceptable but room to improve. Start investigating the worst categories.<br>
+  &bull; <strong>30%+ regeneration rate</strong> = quality crisis. Your churn will spike within weeks. Drop everything and fix it.<br><br>
+  If you can only track one production metric, track this one. It requires no LLM judge, no sampling infrastructure, no cost. Just an analytics event on the regenerate button.
+</div>
+
+<h3>Explicit Feedback</h3>
+
+<p>Implicit signals tell you <em>what</em> users do. Explicit feedback tells you <em>why</em>. These are the direct feedback mechanisms you build into the product:</p>
+
+<ul>
+  <li><strong>Thumbs up / thumbs down</strong> &mdash; The simplest. Low friction, high volume, but no detail. Tells you "good" or "bad" but not why.</li>
+  <li><strong>"Was this helpful?"</strong> &mdash; Slightly more specific. Common in search and support products. Perplexity and Intercom both use this.</li>
+  <li><strong>Free-text feedback</strong> &mdash; "What could have been better?" Optional text field after thumbs-down. Low response rate (~5&ndash;10% of people who give thumbs-down will type something) but the responses are gold &mdash; real users explaining exactly what went wrong in their own words.</li>
+</ul>
+
+<p><strong>The key insight:</strong> Explicit feedback is biased toward extremes. People who had a terrible experience or an amazing experience leave feedback. The silent majority in the middle won't. Don't use explicit feedback to calculate average quality &mdash; use it to <strong>find and fix specific failure modes</strong>. Every thumbs-down with a text explanation is a potential test case for your eval suite.</p>
+
+<h3>The Closed Feedback Loop</h3>
+
+<p>The most valuable thing about production monitoring isn't the monitoring itself &mdash; it's the <strong>loop</strong> it creates. Bad outputs discovered in production become test cases in your eval suite, which prevents the same failure from ever shipping again. This is the cycle that makes your product get better every week:</p>
+
+<pre><span class="code-hl">1. DETECT</span>      &rarr; Production sampling catches a low-scoring output
+<span class="code-hl">2. INVESTIGATE</span> &rarr; Read the trace: what went wrong and why?
+<span class="code-hl">3. ROOT CAUSE</span>  &rarr; Identify the failure mode (bad prompt? bad retrieval? edge case?)
+<span class="code-hl">4. FIX</span>         &rarr; Update the prompt, improve retrieval, add a guardrail
+<span class="code-hl">5. ADD TO SUITE</span> &rarr; Add the failing case to your eval dataset as a regression test
+<span class="code-hl">6. RUN EVALS</span>   &rarr; Verify the fix works AND nothing else broke
+<span class="code-hl">7. DEPLOY</span>      &rarr; Ship the fix to production
+<span class="code-hl">8. MONITOR</span>     &rarr; Confirm the fix holds in the real world
+               <span class="code-accent">&darr;</span>
+         <span class="code-string">Back to step 1 &mdash; the loop never stops</span></pre>
+
+<div class="callout success">
+  <div class="callout-title">Why This Loop Matters</div>
+  Every cycle through this loop makes your product better in three ways:<br><br>
+  &bull; The <strong>immediate fix</strong> solves the problem for today's users.<br>
+  &bull; The <strong>new test case</strong> prevents the problem from ever coming back (regression protection).<br>
+  &bull; The <strong>growing eval suite</strong> catches increasingly subtle issues over time.<br><br>
+  <strong>The PM who runs this loop weekly ships a product that gets better every week.</strong> The PM who skips it ships a product that slowly degrades as models change, user behavior shifts, and edge cases accumulate. After 6 months, the gap between these two PMs is enormous &mdash; and it shows in retention metrics.
+</div>
+
+<h3>The Weekly PM Flywheel</h3>
+
+<p>Here's a concrete weekly cadence that makes the closed loop a habit, not a heroic effort:</p>
+
+<pre><span class="code-hl">Monday:</span>   Review 20 production traces from last week
+          (pick the lowest-scoring ones from your sampling dashboard)
+<span class="code-hl">Tuesday:</span>  Convert worst 5 into eval test cases
+          (add to your dataset with the specific failure mode tagged)
+<span class="code-hl">Wednesday:</span> Run full eval suite against current + candidate prompt
+          (component mode for fast iteration, full pipeline for final check)
+<span class="code-hl">Thursday:</span>  Data determines shipping decisions
+          (if candidate scores higher without regressions, ship it)
+<span class="code-hl">Friday:</span>   Deploy + verify. The flywheel accelerates.
+          (next Monday, review whether this week's fix held)
+
+<span class="code-comment">&mdash; Braintrust's recommended weekly PM cadence</span></pre>
+
+<p>This isn't theoretical. This is a repeatable process that dozens of AI product teams run every week. The cadence matters because it creates rhythm &mdash; your team knows that every Monday, new production failures will be reviewed; every Thursday, shipping decisions will be made based on data. The eval suite grows by ~5 cases per week. After a year, you have 250+ test cases, each representing a real failure that was discovered, diagnosed, and permanently prevented.</p>
+
+<h4>What to Look for in Your Monday Review</h4>
+
+<p>When reviewing those 20 production traces, don't just skim. Use this checklist:</p>
+
+<ul class="checklist">
+  <li>Any output that scored below your quality floor &mdash; read the full output and the judge's reasoning</li>
+  <li>Any output where the user regenerated &mdash; what was wrong with the first attempt?</li>
+  <li>Any output where the user gave explicit negative feedback &mdash; read their explanation word-for-word</li>
+  <li>Any output that took unusually long (high latency) &mdash; was the agent stuck in a loop?</li>
+  <li>Any new category of input you haven't seen before &mdash; does your eval suite cover it?</li>
+  <li>Any output that passed all checks but "feels off" &mdash; trust your instinct, then figure out which dimension is missing from your rubric</li>
+</ul>
+
+<p>The last point is subtle but critical. Sometimes production outputs pass every check and still feel wrong. This is a signal that your eval dimensions are incomplete &mdash; there's a quality aspect your rubric doesn't capture yet. These moments are how your eval system grows: you discover a new failure mode, define a new dimension, add it to the rubric, and add test cases that target it. The eval suite evolves from production reality, not from imagination.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Flywheel in Action at Jasper</div>
+  <strong>Monday:</strong> PM reviews sampled outputs. Notices email subject lines are getting truncated &mdash; 8 of 20 are over 60 characters.<br><br>
+  <strong>Tuesday:</strong> Adds 5 email subject line test cases with assertion: <code>output.length &lt;= 60</code>. Adds to eval suite. This is a structural check (Chapter 19) &mdash; pure code, no LLM needed.<br><br>
+  <strong>Wednesday:</strong> Runs eval with current prompt (fails 8/20 email cases) and candidate prompt that adds "Keep subject lines under 60 characters" (passes 19/20). Runs full suite to check for regressions: blog posts, product descriptions, and social media all stable.<br><br>
+  <strong>Thursday:</strong> Candidate prompt improves email subject lines without regressing any other category. Data says ship it.<br><br>
+  <strong>Friday:</strong> Deployed. Next week's monitoring confirms subject lines are now 95% under 60 chars. The eval suite is now 5 test cases stronger and this bug can never come back undetected.<br><br>
+  Total time invested by the PM: ~3 hours across the week. Impact: a permanent quality improvement backed by automated regression prevention.
+</div>
+
+<h3>When Production Monitoring Reveals Systemic Problems</h3>
+
+<p>Sometimes the feedback loop reveals something bigger than a single prompt fix. Patterns emerge:</p>
+
+<ul>
+  <li><strong>Same failure across multiple categories</strong> &mdash; If hallucination rates are rising in blog posts, product descriptions, AND email copy, the issue isn't category-specific. It might be a model update from your provider, or a systemic prompt issue.</li>
+  <li><strong>Quality drops correlated with model updates</strong> &mdash; Model providers push updates without notification. If your quality dashboard suddenly dips and you didn't change anything, check if your model provider released an update. This is why continuous monitoring matters &mdash; without it, model regressions hide for weeks.</li>
+  <li><strong>New user cohorts perform worse</strong> &mdash; As your product grows beyond early adopters, query diversity increases. Edge cases that were rare become common. The eval suite that passed with 50 beta users may fail with 5,000 general users.</li>
+</ul>
+
+<p>For all three patterns, the response is the same: add the new failure cases to your eval suite, investigate root cause, fix, verify, deploy. The loop scales to systemic problems &mdash; you just need more test cases per cycle.</p>
+
+<h3>Model Drift: The Silent Quality Killer</h3>
+
+<p>Model drift deserves special attention because it's the failure mode most teams are least prepared for. Here's how it works:</p>
+
+<ol>
+  <li>You build and ship your product using, say, Claude Sonnet 4.5.</li>
+  <li>Your eval suite passes at 92%. You ship with confidence.</li>
+  <li>Three weeks later, Anthropic updates Sonnet 4.5 with a minor revision. They don't announce it publicly. They don't change the model name. The API endpoint is identical.</li>
+  <li>Your product's quality drops from 92% to 84%. Users notice. Regeneration rate spikes from 8% to 18%.</li>
+  <li>Your team investigates for two days, checking code changes, infrastructure changes, database changes. Everything looks fine. Because nothing in YOUR system changed.</li>
+  <li>Eventually someone thinks to re-run the eval suite. The drop becomes visible.</li>
+</ol>
+
+<p>This scenario happens to every AI product team eventually. The only defense is <strong>continuous eval runs on a schedule</strong>, not just on code changes. Run your comprehensive suite nightly or at least weekly, even when nothing has changed. If scores drop without a code change, you know it's a model or infrastructure issue.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Detecting a Model Update</div>
+  A writing assistant team runs their eval suite every Monday morning. Results for six consecutive weeks:<br><br>
+  &bull; Week 1: 91% &rarr; Week 2: 92% &rarr; Week 3: 90% &rarr; Week 4: <strong style="color:var(--danger)">82%</strong> &rarr; Week 5: 83% &rarr; Week 6: 84%<br><br>
+  The drop in Week 4 was immediate and persistent. No code changes were deployed. Investigation revealed the model provider had pushed a minor update that changed how the model handled certain formatting instructions. The team added a formatting reinforcement to their system prompt, and Week 7 returned to 90%.<br><br>
+  <strong>Without weekly eval runs, this regression would have been invisible for weeks.</strong> The team would have seen a gradual increase in user complaints and regeneration rates but wouldn't have connected it to a model change they didn't know about.
+</div>
+
+<h3>Setting Alert Thresholds</h3>
+
+<p>Production monitoring is only useful if it triggers action. Set explicit thresholds that generate alerts:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Metric</th><th>Green</th><th>Yellow (Investigate)</th><th>Red (Act Immediately)</th></tr></thead>
+  <tbody>
+    <tr><td>Overall quality score</td><td>&ge; 4.0</td><td>3.5 &ndash; 3.9</td><td>&lt; 3.5</td></tr>
+    <tr><td>% below quality floor</td><td>&le; 5%</td><td>6% &ndash; 15%</td><td>&gt; 15%</td></tr>
+    <tr><td>Regeneration rate</td><td>&le; 10%</td><td>11% &ndash; 25%</td><td>&gt; 25%</td></tr>
+    <tr><td>Structural check failure rate</td><td>&le; 1%</td><td>2% &ndash; 5%</td><td>&gt; 5%</td></tr>
+    <tr><td>Week-over-week quality delta</td><td>&ge; -0.1</td><td>-0.1 to -0.3</td><td>&lt; -0.3</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>These thresholds are starting points &mdash; calibrate them to your product. A creative writing tool might tolerate higher variation than a medical AI. The point is having explicit lines that trigger investigation, not relying on someone noticing a dashboard trend during a meeting.</p>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 24 Exercise</div>
+  <strong>Set up production sampling on 5% of outputs. Track regeneration rate weekly.</strong><br><br>
+  <strong>1.</strong> If your product is live: instrument regeneration rate tracking (an analytics event on the "regenerate" button). This takes one line of code and gives you the highest-signal production metric immediately.<br>
+  <strong>2.</strong> Set up automated sampling: randomly select 5% of production outputs and store them (input + output + metadata) for weekly review.<br>
+  <strong>3.</strong> If your product isn't live yet: plan both of these for launch. Add them to your launch checklist alongside error logging and uptime monitoring. Quality monitoring is as important as availability monitoring.<br><br>
+  The regeneration rate is your canary. If it spikes, something broke. If it trends down, your flywheel is working.
+</div>
+
+<p>Production monitoring closes the loop between your users and your eval suite. Failures in the real world feed back into test cases that prevent those failures from recurring. But there's a more powerful idea that inverts the entire workflow: instead of building first and evaluating after, what if you defined "correct" first and built toward it? That's eval-driven development &mdash; the practice that turns evals from a quality gate into the primary driver of product improvement.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 25: EVAL-DRIVEN DEVELOPMENT                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-edd"><span class="section-num">Chapter 25</span>Eval-Driven Development</h2>
+
+<p><strong>First principles:</strong> In traditional development, you build then test. In AI development, you define "correct" FIRST, then build toward it. The eval IS the spec. This is the single most impactful practice shift you can make as an AI PM.</p>
+
+<p>Think about why. In traditional software, the spec says "clicking the Submit button saves the form." You can verify this deterministically: click the button, check the database, pass or fail. The spec and the test are trivially connected. But in AI, the spec says "the summary should be accurate, complete, and concise." What does that MEAN? How accurate? How complete? How concise? Unless you define these things precisely BEFORE building, you'll spend months building something and then discover you can't tell whether it works. You'll be looking at outputs going "is this... good? I think so? Maybe?"</p>
+
+<p>Eval-driven development solves this by making you define the target before you aim.</p>
+
+<div class="callout definition">
+  <div class="callout-title">The Core Principle</div>
+  <strong>"Practice eval-driven development: build evals before agent capabilities."</strong><br>
+  &mdash; Anthropic, "Building Effective Agents"<br><br>
+  This is not a suggestion. This is the #1 practice recommendation from the team that builds Claude. They discovered through years of internal development that teams who define evaluation criteria before building features ship better products faster than teams who build first and evaluate later.
+</div>
+
+<h3>The EDD Workflow</h3>
+
+<p>Eval-driven development follows a cycle that mirrors Test-Driven Development (TDD) in traditional software, but adapted for stochastic systems:</p>
+
+<pre><span class="code-hl">1. DEFINE</span>     &rarr; What does "correct" mean? (Rubric + assertions)
+<span class="code-hl">2. BUILD</span>      &rarr; Build the eval harness (dataset + grader + runner)
+<span class="code-hl">3. RUN</span>        &rarr; Run evals &mdash; <span class="code-accent">they FAIL</span> (no agent code yet)
+<span class="code-hl">4. IMPLEMENT</span>  &rarr; Write/modify agent code (prompt, tools, pipeline)
+<span class="code-hl">5. MEASURE</span>    &rarr; Run evals &mdash; measure improvement
+<span class="code-hl">6. ITERATE</span>    &rarr; Repeat steps 4-5 until passing threshold
+<span class="code-hl">7. INTEGRATE</span>  &rarr; Add to CI/CD pipeline as regression test
+<span class="code-hl">8. MONITOR</span>    &rarr; Watch production; when new failures surface, go to step 1
+               <span class="code-accent">&darr;</span>
+         <span class="code-string">The cycle continues forever</span></pre>
+
+<p>Notice the parallel to TDD's <strong>Red-Green-Refactor</strong>:</p>
+<ul>
+  <li><strong>Red:</strong> Write a test that fails (step 3 &mdash; your eval fails because nothing exists yet)</li>
+  <li><strong>Green:</strong> Write the minimum code to pass the test (steps 4-6 &mdash; build until evals pass)</li>
+  <li><strong>Refactor:</strong> Improve the code without breaking tests (steps 7-8 &mdash; optimize, monitor, maintain)</li>
+</ul>
+
+<p>But EDD adds three things that TDD doesn't need, because AI systems are fundamentally different from deterministic software:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>TDD Concept</th><th>EDD Extension</th><th>Why It's Needed</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>One pass = success</td>
+      <td><strong>Multiple trials per test case</strong></td>
+      <td>AI is stochastic. One pass could be lucky. Run k=3-5 trials and measure pass^k for reliability.</td>
+    </tr>
+    <tr>
+      <td>Tests are free</td>
+      <td><strong>Cost tracking as first-class metric</strong></td>
+      <td>Each eval run costs money (LLM calls for generation + judging). Token spend and latency are eval dimensions, not afterthoughts.</td>
+    </tr>
+    <tr>
+      <td>Tests run when code changes</td>
+      <td><strong>Continuous running even without code changes</strong></td>
+      <td>Model providers push updates without notification. An eval that passed yesterday can fail today with zero code changes on your side. Run evals on a schedule, not just on commits.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Key Principles</h3>
+
+<p>The eval-driven development philosophy is built on a set of principles that challenge how most product teams operate. Each one is a mindset shift:</p>
+
+<h4>"Evaluation as Product"</h4>
+<p>Your eval system is not a testing tool. It's an engineered artifact that requires the same design rigor as your product. It has users (your team), requirements (accurate quality measurement), bugs (miscalibrated rubrics), and maintenance needs (new test cases as failures emerge). Teams that treat evals as a side project build bad evals. Teams that treat evals as a product build evals that drive real decisions.</p>
+
+<h4>"Ship Evals, Not Demos"</h4>
+<p>A demo proves your product works once, for one input, under controlled conditions. An eval proves it works <em>reliably</em>, across dozens of inputs, including edge cases and adversarial scenarios. When a stakeholder asks "does this feature work?", the answer isn't a live demo &mdash; it's an eval report showing pass rates, score distributions, and failure analysis. Demos are convincing. Evals are true.</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Demo Culture</div>
+    <p>"Let me show you &mdash; look, it works!"</p>
+    <p>Cherry-picked input. One try. Best case.</p>
+    <p>Stakeholder impressed. Ships. Users find the edge cases you didn't demo.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Eval Culture</div>
+    <p>"Here's the eval report: 87% pass rate across 50 test cases, 3 failure modes identified, fixes planned for 2 of 3."</p>
+    <p>Systematic coverage. Multiple trials. Honest.</p>
+    <p>Stakeholder informed. Ships with known risks documented.</p>
+  </div>
+</div>
+
+<h4>"Cost as Metric"</h4>
+<p>Token spend and latency are eval dimensions, not afterthoughts. A feature that scores 4.5/5 on quality but costs $2 per request is a different product than one that scores 4.0/5 and costs $0.02 per request. Your eval dashboard should show cost per output alongside quality scores. When you optimize prompts, track the cost delta as carefully as the quality delta. A prompt change that improves quality by 5% but increases cost by 300% might not be worth it.</p>
+
+<h4>"Architecture Alignment"</h4>
+<p>Your system boundaries should align with what can be independently measured. If you can't eval a component in isolation, your architecture is fighting your eval strategy. This principle has practical implications: design your agent pipeline so that each step (research, generation, review) can be tested independently with pre-made inputs. If step 3 can only be tested by running steps 1 and 2 first, your eval suite will be slow, expensive, and fragile.</p>
+
+<h3>Experiment-Based Roadmaps</h3>
+
+<p>EDD changes how you build roadmaps. Traditional roadmaps promise features by dates: "Feature X ships in Q2." This works for deterministic software where you can estimate effort with reasonable accuracy. But AI features are experimental &mdash; you don't know if a prompt change will improve quality by 2% or 20% or break something entirely.</p>
+
+<p>The alternative is committing to <strong>experimental cadence</strong>, not predetermined outcomes:</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Traditional Roadmap</div>
+    <p>Q2: Ship improved summarization</p>
+    <p>Q3: Ship multi-document support</p>
+    <p>Q4: Ship citation verification</p>
+    <p>Promise: features by dates.</p>
+    <p>Risk: features ship on time but don't actually work well.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Experiment-Based Roadmap</div>
+    <p>Q2: Run 6 eval cycles on summarization. Target: 80% pass^3.</p>
+    <p>Q3: Expand eval suite to multi-document. Establish baseline.</p>
+    <p>Q4: Citation accuracy from 60% to 85% (measured weekly).</p>
+    <p>Promise: measurable progress toward quality targets.</p>
+    <p>Risk: transparent about what's hard.</p>
+  </div>
+</div>
+
+<p>The experiment-based roadmap is more honest. It acknowledges that AI development is iterative and that quality improvements are not guaranteed. But it commits to a cadence of measurement and improvement. Your stakeholders know that every week, the team is running evals, analyzing results, and making data-driven improvements. The trajectory is visible, even if the exact outcome is uncertain.</p>
+
+<h4>The Capability Funnel</h4>
+
+<p>As you build toward your quality targets, track progress through a capability funnel that measures increasingly strict criteria:</p>
+
+<pre><span class="code-hl">Level 1: Responds</span>        &rarr; Agent produces output (not empty, not error)
+<span class="code-hl">Level 2: Executable</span>      &rarr; Output is valid format, passes structural checks
+<span class="code-hl">Level 3: Relevant</span>        &rarr; Output addresses the actual question/task
+<span class="code-hl">Level 4: Matches Intent</span>  &rarr; Output matches what the user actually wanted
+<span class="code-hl">Level 5: Optimal</span>         &rarr; Output is the best achievable answer
+
+<span class="code-comment">Typical new feature progression:</span>
+  Week 1:  Level 1 = 95%, Level 2 = 60%, Level 3 = 30%
+  Week 4:  Level 1 = 99%, Level 2 = 90%, Level 3 = 70%, Level 4 = 40%
+  Week 8:  Level 1 = 99%, Level 2 = 95%, Level 3 = 85%, Level 4 = 65%, Level 5 = 30%</pre>
+
+<p>Each level in the funnel corresponds to a different type of eval: Level 1 is a health check, Level 2 is structural (Chapter 19), Level 3-4 are LLM-judge quality dimensions, and Level 5 is pairwise comparison against the best known output. The funnel shows you where the bottleneck is. If Level 2 is the choke point, you have a formatting problem. If Level 4 is the choke point, you have an intent understanding problem. Different problems, different fixes.</p>
+
+<h3>Cost Tiering for Eval Runs</h3>
+
+<p>Not every eval run needs to be comprehensive. EDD works best with a tiered approach that matches eval depth to the decision being made:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Tier</th><th>When</th><th>What</th><th>Duration</th><th>Cost</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Fast Smoke Test</strong></td>
+      <td>Every commit / every prompt change</td>
+      <td>5&ndash;10 critical test cases, structural checks only (no LLM judge)</td>
+      <td>~seconds</td>
+      <td>~free</td>
+    </tr>
+    <tr>
+      <td><strong>Comprehensive Suite</strong></td>
+      <td>Nightly / before merge</td>
+      <td>50+ test cases with LLM-as-judge, full dimension scoring</td>
+      <td>~minutes</td>
+      <td>$1&ndash;$10</td>
+    </tr>
+    <tr>
+      <td><strong>Full Regression</strong></td>
+      <td>Weekly / before release</td>
+      <td>Complete test set including multi-turn, adversarial, and pass^5 reliability checks</td>
+      <td>~hours</td>
+      <td>$10&ndash;$100</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The smoke test is your safety net &mdash; it catches catastrophic regressions before they reach anyone. The comprehensive suite is your quality bar &mdash; it ensures overall quality meets your standard. The full regression is your thorough audit &mdash; it catches subtle issues that only appear with broader coverage and multiple trials.</p>
+
+<p>Most teams should start with just the smoke test (structural checks on every change) and the comprehensive suite (weekly). Add the full regression tier when your product serves enough users that subtle regressions have meaningful impact.</p>
+
+<h3>EDD in Practice: A Complete Walkthrough</h3>
+
+<p>Let's walk through a complete EDD cycle for a concrete feature. Suppose you're adding a "follow-up question" feature to a research agent &mdash; the agent should be able to answer follow-up questions about a previous research output without losing context.</p>
+
+<h4>Step 1: Define "Correct" (Before Writing Any Code)</h4>
+
+<pre><span class="code-hl">Feature:</span> Follow-up questions on research output
+<span class="code-hl">Quality bar:</span> pass^3 &ge; 80% (all 3 trials succeed for 80%+ of test cases)
+
+<span class="code-keyword">Dimensions:</span>
+  <span class="code-accent">Context Retention</span> &mdash; Does the answer reference specific information
+                     from the previous research? (Not vague restatements)
+  <span class="code-accent">Accuracy</span>          &mdash; Are claims in the follow-up consistent with
+                     the original research output?
+  <span class="code-accent">Completeness</span>      &mdash; Does it actually answer the follow-up question,
+                     or just repeat the original research?</pre>
+
+<h4>Step 2: Build the Eval Harness</h4>
+
+<pre><span class="code-comment">Test cases (8 total):</span>
+
+<span class="code-hl">1. Happy path:</span> Research Nike &rarr; Follow-up: "What specific marketing
+   channels did you find?" &rarr; Should cite channels from research.
+
+<span class="code-hl">2. Happy path:</span> Research Stripe &rarr; Follow-up: "How does their pricing
+   compare to competitors?" &rarr; Should reference pricing from research.
+
+<span class="code-hl">3. Specificity test:</span> Research Airbnb &rarr; Follow-up: "What was the
+   revenue you mentioned?" &rarr; Must cite specific number, not guess.
+
+<span class="code-hl">4. Contradiction test:</span> Research Tesla &rarr; Follow-up: "You said
+   they have 200K employees, right?" (they don't) &rarr; Should
+   correct the false premise, not agree.
+
+<span class="code-hl">5. Scope boundary:</span> Research Shopify &rarr; Follow-up: "What's the
+   weather in Toronto?" &rarr; Should acknowledge this is outside
+   the research scope.
+
+<span class="code-hl">6-8:</span> <span class="code-comment">Three more cases covering edge behaviors...</span></pre>
+
+<h4>Step 3: Run &mdash; They Fail (Expected)</h4>
+
+<p>Run the 8 test cases against the current system (which doesn't have follow-up support). Results: 0/8 pass. The agent treats follow-up questions as new research requests and ignores previous context entirely. This is the "Red" in Red-Green-Refactor.</p>
+
+<h4>Steps 4-6: Build and Iterate</h4>
+
+<pre><span class="code-comment">Iteration 1: Add context injection</span>
+  Pass rate: 3/8 (37.5%)
+  <span class="code-string">Agent now sees previous output but answers are vague.</span>
+
+<span class="code-comment">Iteration 2: Add "refer to specific details" instruction</span>
+  Pass rate: 5/8 (62.5%)
+  <span class="code-string">Context retention improved. Contradiction test still fails.</span>
+
+<span class="code-comment">Iteration 3: Add "verify claims against research" instruction</span>
+  Pass rate: 7/8 (87.5%) <span class="code-keyword">&larr; Above 80% threshold</span>
+  <span class="code-string">Contradiction test now passes. Scope boundary test intermittent.</span>
+
+<span class="code-comment">Run pass^3 check on all 8 cases...</span>
+  pass^3: 6/8 (75%) <span class="code-accent">&mdash; Below 80% threshold</span>
+
+<span class="code-comment">Iteration 4: Refine scope boundary handling</span>
+  pass^3: 7/8 (87.5%) <span class="code-keyword">&larr; Above 80% threshold. Ship it.</span></pre>
+
+<h4>Steps 7-8: Integrate and Monitor</h4>
+
+<p>Add all 8 test cases to the nightly comprehensive suite. Monitor production follow-up queries for the first two weeks. Track: are real-world follow-up patterns covered by the 8 test cases, or do users ask things we didn't anticipate?</p>
+
+<p>In this walkthrough, the eval-driven approach prevented shipping a feature that "seemed to work" after iteration 2 (62.5% pass rate) but would have failed for more than a third of users. Without evals, the PM would have demo'd one of the 5 passing cases, declared victory, and shipped. The contradiction and scope boundary failures would have surfaced as user complaints weeks later.</p>
+
+<h3>The Competitive Advantage</h3>
+
+<p>Here's the market reality: according to the LangChain State of AI Agents survey, <strong>only 52% of teams run offline evals at all</strong>. Fewer still run them before building features. Adopting eval-driven development puts you ahead of nearly half the industry immediately.</p>
+
+<p>But the real advantage isn't being ahead today &mdash; it's the compounding effect. A team that runs the EDD cycle weekly accumulates:</p>
+<ul>
+  <li><strong>5+ new test cases per week</strong> (from production monitoring)</li>
+  <li><strong>Tighter rubrics</strong> (refined through each calibration round)</li>
+  <li><strong>Better prompts</strong> (systematically improved against measured targets)</li>
+  <li><strong>Institutional knowledge</strong> (every failure is documented, diagnosed, and prevented)</li>
+</ul>
+
+<p>After 6 months, the EDD team has 130+ test cases, battle-tested rubrics, and a product that measurably improves every week. The team that skips evals has... vibes. Same team size, same budget, dramatically different outcomes. That compounding gap is why Anthropic, OpenAI, and every serious AI lab considers eval-driven development a core practice, not an optional one.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; How Anthropic Practices EDD Internally</div>
+  Anthropic's "Building Effective Agents" guide reveals their internal practice: before building a new agent capability (like multi-step tool use or complex reasoning), the team first defines eval suites that capture the desired behavior. The agent is then iteratively developed against these evals.<br><br>
+  Key practices they recommend from their own experience:<br>
+  &bull; <strong>Start with the simplest possible agent architecture</strong> and only add complexity when evals prove it's needed. If a simple prompt scores 85%, you don't need an orchestrated multi-agent system.<br>
+  &bull; <strong>Use the eval suite to decide between architectures.</strong> Don't choose "prompt chaining vs. routing vs. autonomous agent" based on theory. Build each one, run the same eval suite against all of them, and let the data decide.<br>
+  &bull; <strong>Track cost alongside quality.</strong> An architecture that scores 4.5/5 at $0.50/request and one that scores 4.3/5 at $0.05/request are both valid &mdash; the eval data lets you make an informed tradeoff.<br><br>
+  This isn't aspirational. This is how the team that builds Claude actually works. When they say "practice eval-driven development," they're describing their daily workflow, not a theoretical framework.
+</div>
+
+<h3>Common Objections to EDD (And How to Address Them)</h3>
+
+<p>When you propose eval-driven development, you'll encounter resistance. Here are the four most common objections and evidence-based responses:</p>
+
+<h4>"Writing evals first slows us down"</h4>
+
+<p>This is the most common objection and the most wrong. Writing evals first takes 1-2 hours for a new feature. But it <em>saves</em> 1-2 weeks of "is this good enough?" debates, ad-hoc testing, post-launch firefighting, and regression investigation. The time investment front-loads certainty: you know EXACTLY when the feature is ready (when evals pass) instead of guessing.</p>
+
+<p>The analogy: "Writing unit tests first slows us down" was the same objection TDD faced in 2005. Two decades later, no serious engineering team skips tests. The same shift is happening with AI evals, just earlier in the adoption curve.</p>
+
+<h4>"We don't know what 'good' looks like yet"</h4>
+
+<p>This is actually an argument FOR EDD, not against it. If you don't know what "good" looks like, how will you know when you've built it? The act of writing eval cases forces you to define "good" concretely. Even if your initial definition is wrong, it's better than no definition. You can refine it &mdash; you can't refine "we'll know it when we see it."</p>
+
+<h4>"Our AI output is too creative/subjective to evaluate"</h4>
+
+<p>Every AI output has evaluable dimensions. Even creative writing has: grammar correctness (structural check), appropriate length (structural check), topic relevance (LLM judge), brand voice consistency (LLM judge), and absence of harmful content (safety check). You might not be able to judge whether a poem is "beautiful," but you can absolutely judge whether it's on-topic, correctly formatted, and safe. Start with the dimensions you CAN evaluate. The "creative" dimensions are the last 20%, not the whole thing.</p>
+
+<h4>"Our leadership wants features shipped fast, not eval infrastructure"</h4>
+
+<p>Reframe: evals are not infrastructure. They're a shipping accelerator. Show leadership the data: teams with eval suites ship <em>faster</em> because they don't spend time debating quality, don't have post-launch quality crises, and don't waste engineering cycles on regressions. Present EDD as "we can prove the feature works before launch" rather than "we need to build testing infrastructure." Leadership cares about confidence in shipping decisions &mdash; that's what evals provide.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Eval-Driven PM's Edge</div>
+  In job interviews, the difference between "I built evals" and "I practice eval-driven development" is the difference between a technician and a strategist. The first one builds infrastructure. The second one drives product quality through a systematic, data-driven process that compounds over time. When an interviewer asks "How would you improve quality for this AI feature?", the EDD answer is: "I'd define what quality means with specific eval dimensions, build the eval suite first, establish a baseline, then iterate against measured targets with weekly cycles." That answer demonstrates systems thinking, not just technical knowledge.
+</div>
+
+<h3>How to Start EDD Tomorrow</h3>
+
+<p>If everything above sounds overwhelming, here's the minimum viable version of eval-driven development. You can start this tomorrow with zero tooling changes:</p>
+
+<h4>The 5-Case Starter</h4>
+
+<p>Before building your next feature:</p>
+
+<ol>
+  <li><strong>Write 5 test cases in a Google Doc.</strong> Each test case is: an input, and a description of what a good output looks like. Not an exact expected output &mdash; a behavioral expectation. "The output should mention the brand name at least twice and reference the target audience" is a behavioral expectation. "The output should be exactly 'Nike resonates with athletes...'" is an exact match (too brittle for AI).</li>
+  <li><strong>Run the 5 cases against your current system.</strong> They should mostly fail (the feature doesn't exist yet). Score each one PASS/FAIL. Record: "0/5 pass. This is the baseline."</li>
+  <li><strong>Build the feature.</strong> Do your normal development work.</li>
+  <li><strong>Run the 5 cases again.</strong> Score each one. Record: "4/5 pass. The scope boundary case still fails."</li>
+  <li><strong>Fix the remaining failure.</strong> Run again. "5/5 pass."</li>
+  <li><strong>Ship with confidence.</strong> You have proof, not a demo.</li>
+</ol>
+
+<p>This entire process adds about 30 minutes to your feature development cycle. No tools. No infrastructure. No approval from leadership. Just a Google Doc with 5 test cases and the discipline to run them before and after. That's EDD.</p>
+
+<h4>Graduating to Full EDD</h4>
+
+<p>Once the 5-case starter becomes habit (2-3 features), expand:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Maturity Level</th><th>What You Do</th><th>Effort</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Starter</strong></td>
+      <td>5 test cases per feature in a Google Doc. Manual run. PASS/FAIL.</td>
+      <td>30 min per feature</td>
+    </tr>
+    <tr>
+      <td><strong>Developing</strong></td>
+      <td>10-20 test cases per feature in a spreadsheet. Include structural checks. Track scores over iterations.</td>
+      <td>1-2 hours per feature</td>
+    </tr>
+    <tr>
+      <td><strong>Established</strong></td>
+      <td>Automated eval suite in Braintrust/Promptfoo. LLM judge with calibrated rubrics. Run on every prompt change. Nightly regression suite.</td>
+      <td>Half-day setup, then 15 min per run</td>
+    </tr>
+    <tr>
+      <td><strong>Advanced</strong></td>
+      <td>CI/CD integration. Smoke tests on every commit. Comprehensive suite nightly. Full regression weekly. Production sampling with alert thresholds. Experiment-based roadmaps.</td>
+      <td>1-2 weeks setup, then continuous</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Most teams should spend 2-4 weeks at each level before graduating to the next. Jumping straight to "Advanced" without the habits and rubric quality built at lower levels leads to sophisticated infrastructure measuring the wrong things &mdash; the Q4 trap from the opening of this document.</p>
+
+<div class="callout success">
+  <div class="callout-title">DO &mdash; Chapter 25 Exercise</div>
+  <strong>Write 5&ndash;10 eval cases for your NEXT feature before building it.</strong><br><br>
+  <strong>1.</strong> Pick a feature you're planning to build (or a feature you wish your current product had).<br>
+  <strong>2.</strong> Define what "correct" looks like for that feature. Write 5&ndash;10 test cases with inputs and expected behaviors (not exact outputs &mdash; behavioral expectations).<br>
+  <strong>3.</strong> Run them against your current system. They should fail &mdash; the feature doesn't exist yet. Record the baseline (probably 0% pass rate).<br>
+  <strong>4.</strong> Build the feature.<br>
+  <strong>5.</strong> Run the eval cases again. Measure the improvement.<br>
+  <strong>6.</strong> Iterate until the pass rate hits your threshold.<br><br>
+  This is eval-driven development in practice. You defined the target before you aimed. You measured before and after. You have proof that the feature works, not a demo that it can work once.
+</div>
+
+<h3>Phase 7 Complete: The Practice Loop</h3>
+
+<p>Let's take stock. Over these two chapters, you've learned the complete practice for shipping and improving AI products:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Component</th><th>Chapter</th><th>What You Learned</th><th>Key Principle</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Production Monitoring</strong></td>
+      <td>24</td>
+      <td>Automated sampling, implicit signals, explicit feedback, the closed feedback loop, the weekly PM flywheel</td>
+      <td>Every production failure becomes a test case. The eval suite grows from reality, not imagination.</td>
+    </tr>
+    <tr>
+      <td><strong>Eval-Driven Development</strong></td>
+      <td>25</td>
+      <td>EDD workflow, experiment-based roadmaps, cost tiering, the capability funnel, the competitive advantage</td>
+      <td>Define "correct" FIRST, then build toward it. The eval is the spec.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>You now have the complete core practice &mdash; from mapping your agent (Phase 1) to observing failures (Phase 2) to defining quality (Phase 3) to designing evals (Phase 4) to evaluating agent-specific behaviors (Phase 5) to building the automation machinery (Phase 6) to shipping, monitoring, and practicing eval-driven development (Phase 7).</p>
+
+<p>Everything from here forward is about getting <em>better</em> at it. Phase 8 covers advanced techniques that sharpen your existing practice: bias detection in your eval system, contamination prevention, governance at scale, cost optimization, stakeholder communication, and the career path from eval practitioner to AI product leader. These are the techniques that separate good from great &mdash; but they all assume you're already running the core loop from Phases 1&ndash;7.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Core Loop</div>
+  If you remember nothing else from this entire document, remember this loop:<br><br>
+  <strong>Map &rarr; Observe &rarr; Define &rarr; Design &rarr; Build &rarr; Ship &rarr; Monitor &rarr; Improve &rarr; Repeat</strong><br><br>
+  Every chapter is a deeper exploration of one step in this loop. The loop itself is the practice. Run it weekly and your product gets measurably better every week. That's the promise of eval-driven development, and that's what sets AI PMs apart from everyone else in the room.
+</div>

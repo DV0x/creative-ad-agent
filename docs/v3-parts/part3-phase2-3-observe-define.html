@@ -1,0 +1,2000 @@
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 2: OBSERVE FAILURES — Answering Q2: "How can it FAIL?"        -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+<div style="padding: 40px 0 32px;">
+  <h2 style="margin-top:0;"><span class="section-num">Phase 2</span>Observe Failures</h2>
+  <p style="font-size:18px; color:var(--ink-light); max-width:640px; line-height:1.65;">
+    You've mapped your agent and spent a week observing. You have gut feelings about what's wrong. Now we turn those gut feelings into a structured failure taxonomy &mdash; the single most valuable artifact in your entire eval practice.
+  </p>
+  <div class="flow">
+    <div class="flow-step" style="opacity:0.5;">Phase 1: Map the Agent</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Phase 2: Observe Failures</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 3: Define Quality</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 4: Build Evals</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 5: Ship &amp; Iterate</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 07: ERROR ANALYSIS — THE FOUNDATION OF EVERYTHING            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+<h2 id="ch07"><span class="section-num">Chapter 07</span>Error Analysis &mdash; The Foundation of Everything</h2>
+
+<p>Here is the first principle from which everything else in this guide flows:</p>
+
+<p><strong>You can't build a security system for a building you've never walked through.</strong> You can't write test cases for failures you've never seen. You can't build an eval for an agent you haven't watched fail. Observation comes before measurement. Always.</p>
+
+<p>This sounds obvious, but it's where almost every team gets it wrong. They skip the observation step. They sit in a conference room and <em>imagine</em> what might go wrong. Then they build evals for those imagined failures. Months later they discover the agent is failing in ways nobody predicted &mdash; because nobody watched it fail first.</p>
+
+<div class="callout warning">
+  <div class="callout-title">The #1 Lesson From Every Expert</div>
+  Don't build evals from imagination. Build them from observed failures.<br><br>
+  <strong>Hamel Husain</strong> (creator of the #1 highest-grossing AI course on Maven, taught to 700+ engineers and PMs): "You're doing it wrong if you aren't looking at lots of data. PMs should spend 60&ndash;80% of development time understanding failures through data analysis, not building infrastructure."<br><br>
+  That number should stop you in your tracks. <strong>60&ndash;80%.</strong> Not 10%. Not "when I have time." The <em>majority</em> of your development effort should be spent staring at traces of your agent doing its job &mdash; and doing it badly.
+</div>
+
+<p>Why does observation deserve this much time? Because of a fundamental asymmetry in AI products: <strong>the space of possible failures is vastly larger than the space of possible successes.</strong> A successful output has to get a hundred things right simultaneously. A failure only has to get one thing wrong. And each of those hundred things can go wrong in ways you'd never predict without watching it happen.</p>
+
+<p>Think of it like debugging code. You don't sit down and try to list every possible bug in a codebase from memory. You run the code, it crashes, and the crash tells you where to look. Error analysis is the same discipline applied to AI: run the agent, watch it fail, and let the failures tell you what to measure.</p>
+
+<p>Let me anticipate your objection: "We don't have 50 production traces yet. We're pre-launch." That's fine. You have staging traces, internal testing traces, demo traces. Use whatever you have. Even 15 traces are better than zero. The point isn't statistical rigor &mdash; it's pattern discovery. You're not trying to prove anything with statistical significance. You're trying to <em>see</em> how the agent fails before you decide what to measure.</p>
+
+<p>And if you truly have zero traces? Run the agent 30 times yourself, with a variety of realistic inputs. This takes 2&ndash;3 hours. That's a tiny investment compared to the weeks you'd waste building evals that measure the wrong things.</p>
+
+<h3>The Three Levels of Error Analysis</h3>
+
+<p>Before we dive into methodology, let's understand the three levels of error analysis. Each level catches different types of failures, and you need all three for a complete picture.</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Level</th>
+      <th>What You Look At</th>
+      <th>What It Catches</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Output-Level</strong></td>
+      <td>The final output only</td>
+      <td>Quality issues visible to the user</td>
+      <td>"This hook is generic and doesn't mention the brand"</td>
+    </tr>
+    <tr>
+      <td><strong>Process-Level</strong></td>
+      <td>Each intermediate step</td>
+      <td>Root causes, cascade failures, step-specific issues</td>
+      <td>"Research only visited 1 page &rarr; hooks lacked specific claims"</td>
+    </tr>
+    <tr>
+      <td><strong>Behavioral-Level</strong></td>
+      <td>The agent's decision-making patterns across traces</td>
+      <td>Systematic biases, consistent failure patterns, structural issues</td>
+      <td>"Agent always uses the same 3 search queries regardless of brand"</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Most teams only do output-level analysis: "the output was bad." The Husain-Shankar methodology gets you to process-level. Behavioral-level analysis comes from pattern recognition across your full set of 50 traces &mdash; when you notice that the agent has a consistent habit (e.g., always trusting the first search result, never visiting competitor websites), that's a behavioral pattern that no individual trace would reveal.</p>
+
+
+<h3>The Husain-Shankar Methodology</h3>
+
+<p>Hamel Husain and Shreya Shankar developed a rigorous, four-step methodology for building eval rubrics from observed failures. It's rooted in qualitative research methods &mdash; specifically grounded theory, the same approach sociologists use to build theories from observed data rather than testing pre-existing hypotheses. They've taught this to hundreds of teams, and it works because it forces you to look at data before you build anything.</p>
+
+<p>Here are the four steps. We'll walk through each one in detail, with real examples at every stage.</p>
+
+<div class="flow">
+  <div class="flow-step highlight">Step 1: Open Coding</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Step 2: Axial Coding</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Step 3: Saturation</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Step 4: Formalize</div>
+</div>
+
+<h4>Step 1: Open Coding &mdash; Look At 50 Real Traces</h4>
+
+<p>Pull 50 real production traces from your agent. Not cherry-picked examples. Not the worst failures you remember. Fifty randomly selected traces that represent the full range of your agent's behavior &mdash; the good, the bad, and the ugly.</p>
+
+<p>For each trace, write freeform notes about every issue you observe. Don't use predefined categories. Don't try to be systematic yet. Just write down what you see, in your own words, as if you're narrating what happened.</p>
+
+<div class="callout definition">
+  <div class="callout-title">What Is a "Trace"?</div>
+  A trace is the complete record of one agent execution: the user's input, every tool call the agent made, every intermediate result, and the final output. If your agent researches a brand, writes hooks, and generates images, one trace includes all of that &mdash; from the initial URL to the final six images. Most agent frameworks log these automatically. If yours doesn't, start logging them today &mdash; they're the raw material of everything we build in this course.
+</div>
+
+<p>The key discipline in this step: <strong>no predefined categories.</strong> If you start with categories ("accuracy errors," "tone problems," "format issues"), you'll only see failures that match those categories. You'll miss the ones you didn't predict &mdash; and those are precisely the failures that matter most, because they're the ones your current system has no defense against.</p>
+
+<p>Open coding means you let the patterns emerge from the data. Your labels might be messy, overlapping, even contradictory. That's fine. Precision comes later. Write fast. Write sloppy. Write exactly what you notice in the moment, in whatever words come naturally. "This feels wrong" is a valid open code. So is "the answer is technically correct but weirdly defensive." You'll clean up the language in Step 2.</p>
+
+<div class="callout warning">
+  <div class="callout-title">The Premature Taxonomy Trap</div>
+  The most common mistake in Step 1 is starting with a list of failure categories you've seen in blog posts or conference talks &mdash; "hallucination," "toxicity," "off-topic," "format error" &mdash; and then bucketing every trace into those categories. This feels productive because you're organized from the start. But it's a trap. You'll sort every failure into one of your pre-existing boxes, even when the real failure is something entirely different. A creative agent that produces technically accurate hooks that are all boring and interchangeable doesn't fit neatly into "hallucination" or "off-topic." You need a new category &mdash; and you'll only discover it if you let the data speak first.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Open Coding a Search Agent (Perplexity-style)</div>
+  You review 50 traces from your search agent. Your freeform labels:<br><br>
+  &bull; "Cited a source that doesn't support the claim" (8 traces)<br>
+  &bull; "Answered a different question than what was asked" (6 traces)<br>
+  &bull; "Information is from 2022, but the question is about 2026" (11 traces)<br>
+  &bull; "Mixed up two companies with similar names" (4 traces)<br>
+  &bull; "Gave a confident answer when sources disagree" (7 traces)<br>
+  &bull; "Used Wikipedia as the only source for a medical question" (3 traces)<br>
+  &bull; "First paragraph is great, last paragraph trails off" (5 traces)<br>
+  &bull; "Correct answer but so verbose it's unusable" (4 traces)<br>
+  &bull; "Answered correctly but didn't cite anything" (2 traces)<br><br>
+  Notice: these labels are messy. "Cited a source that doesn't support the claim" and "Answered correctly but didn't cite anything" are both citation problems, but you haven't grouped them yet. That grouping happens in Step 2. For now, you're just writing down what you see.
+</div>
+
+<h4>What Open Coding Looks Like: An Annotated Trace</h4>
+
+<p>Let's walk through a single trace in detail, showing what open coding actually looks like in practice. This is trace #14 from a creative campaign agent review:</p>
+
+<pre><span class="code-comment">// Trace #14 — Brand: "SunBrew" (solar-powered coffee roaster)</span>
+<span class="code-comment">// User input: "https://sunbrew.co"</span>
+
+<span class="code-keyword">Research step:</span>
+  <span class="code-string">Visited: sunbrew.co homepage, /about, /products</span>
+  <span class="code-string">Summary: "SunBrew is a coffee company that uses solar power..."</span>
+  <span class="code-comment">// NOTE: Didn't visit /sustainability (their key differentiator page)</span>
+  <span class="code-comment">// NOTE: No competitor research at all</span>
+
+<span class="code-keyword">Hooks step:</span>
+  <span class="code-string">Hook 1 (stat): "Solar roasting uses 73% less energy than traditional methods"</span>
+  <span class="code-comment">// NOTE: Where did 73% come from? Not in research. Fabricated?</span>
+  <span class="code-string">Hook 2 (story): "Imagine waking up to coffee that was kissed by the sun..."</span>
+  <span class="code-comment">// NOTE: Generic. Could be any solar coffee brand.</span>
+  <span class="code-string">Hook 3 (FOMO): "Only 200 bags left from our spring solar batch"</span>
+  <span class="code-comment">// NOTE: Scarcity claim with no basis in research.</span>
+  <span class="code-string">Hook 4 (curiosity): "What if your morning coffee could power itself?"</span>
+  <span class="code-comment">// NOTE: Actually clever. But doesn't mention SunBrew specifically.</span>
+  <span class="code-string">Hook 5 (callout): "Still drinking coffee roasted with fossil fuels?"</span>
+  <span class="code-comment">// NOTE: Strong angle. References actual brand positioning.</span>
+  <span class="code-string">Hook 6 (contrast): "Traditional roasters: smoke and emissions. SunBrew: sunshine and silence."</span>
+  <span class="code-comment">// NOTE: Good contrast. Brand-specific.</span></pre>
+
+<p>From this single trace, the open codes would be:</p>
+<ul>
+  <li>"Research missed the sustainability page (key differentiator)" &mdash; shallow research</li>
+  <li>"No competitor research" &mdash; shallow research</li>
+  <li>"73% stat appears fabricated" &mdash; fabricated claims</li>
+  <li>"FOMO scarcity claim has no basis" &mdash; fabricated claims</li>
+  <li>"Story hook is generic, not brand-specific" &mdash; brand disconnection</li>
+  <li>"Curiosity hook is clever but doesn't mention the brand" &mdash; brand disconnection</li>
+  <li>"Hooks 5 and 6 are strong &mdash; specific and on-brand" &mdash; (success, note for quality definition)</li>
+</ul>
+
+<p>Seven open codes from one trace. Multiply that by 50 traces and you'll have 200&ndash;400 open codes &mdash; messy, overlapping, but rich with patterns. That's your raw material for Step 2.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Open Coding a Creative Campaign Agent</div>
+  Now imagine you're working on an agent that researches brands and generates ad campaigns &mdash; hooks, art direction, and images. Your open codes look very different:<br><br>
+  &bull; "Hook is clever but doesn't connect to the brand's actual product" (9 traces)<br>
+  &bull; "Research missed the brand's key differentiator completely" (7 traces)<br>
+  &bull; "All 6 hooks sound the same &mdash; no variety in angle" (6 traces)<br>
+  &bull; "Image doesn't match the art direction described in the prompt" (8 traces)<br>
+  &bull; "Agent claimed research was complete but only visited the homepage" (4 traces)<br>
+  &bull; "Stats in the stat hook are fabricated &mdash; not from research" (5 traces)<br>
+  &bull; "FOMO hook relies on urgency that doesn't exist for this brand" (3 traces)<br>
+  &bull; "Art style is photorealistic but brand identity is illustrated/playful" (4 traces)<br>
+  &bull; "Agent wrote 'Done!' but one image failed to generate" (3 traces)<br>
+  &bull; "Follow-up campaign ignored everything from the first campaign" (2 traces)<br><br>
+  These failures are fundamentally different from the search agent's. A search agent fails on <em>facts</em>. A creative agent fails on <em>relevance</em>, <em>variety</em>, and <em>brand alignment</em>. This is why you can't use a generic eval template &mdash; the failures define the evals, and the failures are product-specific.
+</div>
+
+<h4>Step 2: Axial Coding &mdash; Let an LLM Help You Synthesize</h4>
+
+<p>Now you take your messy open codes and find the patterns. This is where an LLM is genuinely useful &mdash; not as a judge of quality, but as a pattern-finder in your notes.</p>
+
+<p>Feed your open codes into a frontier LLM. Here's a detailed prompt template you can adapt:</p>
+
+<pre><span class="code-comment">// Full prompt for axial coding synthesis</span>
+<span class="code-string">"I reviewed [N] traces from our AI agent product.
+For each trace, I wrote freeform notes about every
+issue I observed. Here are all my open codes:
+
+[Paste your entire spreadsheet of open codes here]
+
+Please:
+1. Extract all distinct failure patterns from these notes
+2. Propose 5-6 overarching failure categories that
+   capture all patterns
+3. For each category:
+   - Give it a clear, descriptive name
+   - List which open codes belong to it
+   - Estimate what % of total failures it represents
+   - Describe the category in 1-2 sentences
+4. Flag any open codes that don't fit neatly into
+   any category (these might need their own category
+   or might be outliers)
+5. Rank categories from most frequent to least frequent"</span></pre>
+
+<p>A few notes on this process:</p>
+
+<ul>
+  <li><strong>Use a frontier model</strong> (Claude, GPT-4, Gemini) for the synthesis. Smaller models tend to collapse distinct categories together and miss nuance.</li>
+  <li><strong>Run it 2&ndash;3 times.</strong> You'll get slightly different category groupings each time. Compare the results &mdash; the categories that appear consistently across runs are robust. The ones that change are less clear-cut and may need manual judgment.</li>
+  <li><strong>Challenge the LLM's groupings.</strong> If the LLM proposes a category called "Output Quality Issues," push back: "That's too broad. Which specific quality dimensions are failing? Tone? Specificity? Structure? Break it down." The more specific your categories, the more actionable your evals will be.</li>
+</ul>
+
+<p>The LLM doesn't <em>decide</em> what the categories are &mdash; it proposes, and you validate. This is a critical distinction. The LLM is your research assistant, not your decision-maker. It's good at finding patterns in messy text. It's bad at knowing which patterns matter for your specific product and users. You might merge two categories, split one that's too broad, or rename one to match how your team actually talks about the issue.</p>
+
+<p>The output is a <strong>failure taxonomy</strong>: a ranked list of failure categories with rough percentages. The percentages matter because they tell you where to invest. A category that accounts for 25% of failures deserves 5x more attention than one that accounts for 5%.</p>
+
+<div class="callout insight">
+  <div class="callout-title">Why Percentages, Not Just Categories</div>
+  It's tempting to stop at "here are the five types of failures." But without quantification, you'll default to working on whatever feels most interesting or most recent. Percentages force prioritization. If "stale information" is 22% of failures and "entity confusion" is 8%, you know where to build your first eval. This is resource allocation disguised as data analysis.
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Axial Coding Result &mdash; Search Agent</div>
+  The LLM synthesizes your open codes into five categories:<br><br>
+  <pre><span class="code-hl">Failure Category               Count    %</span>
+<span class="code-string">1. Stale information</span>              11    22%  <span class="code-comment">&larr; #1 priority</span>
+<span class="code-string">2. Unsupported citations</span>           10    20%
+<span class="code-string">3. Overconfidence on disputed facts</span>  7    14%
+<span class="code-string">4. Question misinterpretation</span>       6    12%
+<span class="code-string">5. Output quality (verbosity, etc.)</span>  9    18%
+<span class="code-accent">Other</span>                               7    14%</pre>
+  <br>
+  Now you have a ranked map. Stale information is your #1 problem. That's where you build your first eval.
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Axial Coding Result &mdash; Creative Campaign Agent</div>
+  The same process on a creative agent produces very different categories:<br><br>
+  <pre><span class="code-hl">Failure Category               Count    %</span>
+<span class="code-string">1. Brand disconnection</span>             16    26%  <span class="code-comment">&larr; hooks/images don't reflect actual brand</span>
+<span class="code-string">2. Shallow research</span>                11    18%  <span class="code-comment">&larr; research missed key info</span>
+<span class="code-string">3. Hook homogeneity</span>                 9    15%  <span class="code-comment">&larr; all 6 hooks sound the same</span>
+<span class="code-string">4. Image-prompt mismatch</span>            8    13%  <span class="code-comment">&larr; generated image doesn't match art direction</span>
+<span class="code-string">5. Fabricated claims</span>                8    13%  <span class="code-comment">&larr; stats/facts in hooks aren't real</span>
+<span class="code-string">6. Pipeline integrity</span>               5     8%  <span class="code-comment">&larr; agent said "done" when it wasn't</span>
+<span class="code-accent">Other</span>                               4     7%</pre>
+  <br>
+  See the difference? "Accuracy" barely appears. The top problem &mdash; brand disconnection &mdash; has no equivalent in a search product. This is why error analysis must be done per product, from observed data. Generic frameworks miss what matters most.
+</div>
+
+<h4>Step 3: Theoretical Saturation &mdash; Know When to Stop</h4>
+
+<p>How many traces do you need to review? The answer from qualitative research: <strong>keep reviewing until new traces reveal no new failure modes.</strong> This is called theoretical saturation.</p>
+
+<p>In practice, it usually takes 30&ndash;50 traces to reach saturation for a single job. After 50, you'll rarely discover a fundamentally new category &mdash; you'll just see more examples of existing ones. If you hit trace 40 and haven't seen a new category in the last 10 traces, you're likely saturated.</p>
+
+<div class="callout insight">
+  <div class="callout-title">Saturation Is Your Permission to Stop</div>
+  Error analysis can feel infinite &mdash; there's always one more trace to review. Saturation gives you a principled stopping point. You're not done when you're tired. You're done when the data stops teaching you new things. That distinction matters: the first 20 traces are full of surprises. Traces 40&ndash;50 mostly confirm what you already know. That's the signal.
+</div>
+
+<p>A practical way to track saturation: keep a running list of your failure categories as you review traces. After each batch of 10 traces, note how many new categories you added. If the numbers look like 5 &rarr; 3 &rarr; 1 &rarr; 0, you're saturating. If they look like 5 &rarr; 4 &rarr; 3 &rarr; 3, you need to keep going &mdash; you're still discovering new patterns at a steady rate.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Saturation Resets When Conditions Change</div>
+  Saturation is not permanent. When you change your model, update your system prompt, add a new tool, or modify your agent's architecture, your failure taxonomy may be invalidated. New code means new failure modes. After any significant change, do a mini error analysis &mdash; 20 traces focused on the changed component &mdash; to check whether your existing taxonomy still holds.
+</div>
+
+<h4>Step 4: Formalization &mdash; Each Category Becomes an Eval Target</h4>
+
+<p>Now you turn your taxonomy into something actionable. Each failure category gets:</p>
+
+<ul>
+  <li><strong>A clear definition</strong> &mdash; what exactly constitutes this failure? Specific enough that two people would agree on borderline cases</li>
+  <li><strong>A pass/fail criterion</strong> &mdash; binary, not a scale (Husain is emphatic on this: "The difference between adjacent points on a Likert scale, like 3 vs. 4, is subjective and inconsistent")</li>
+  <li><strong>2&ndash;3 concrete examples of a pass</strong> &mdash; what does the output look like when this failure is absent?</li>
+  <li><strong>2&ndash;3 concrete examples of a fail</strong> &mdash; what does the output look like when this failure is present?</li>
+</ul>
+
+<div class="callout example">
+  <div class="callout-title">Formalized Criterion &mdash; "Brand Disconnection"</div>
+  <strong>Definition:</strong> The generated hook or image reflects generic marketing concepts rather than the specific brand's products, values, differentiators, or visual identity.<br><br>
+  <strong>Pass criterion:</strong> A reader familiar with the brand could identify which brand this campaign is for, without seeing the brand name, based solely on the specificity of the claims and visual style.<br><br>
+  <strong>Pass example:</strong> Hook for Allbirds: "98% of running shoes use petroleum-based foam. Allbirds uses sugarcane. Your feet can't tell the difference &mdash; but the planet can." (References specific product claim, specific material, brand positioning.)<br><br>
+  <strong>Fail example:</strong> Hook for Allbirds: "Step into comfort with shoes designed for the modern lifestyle. Quality meets innovation." (Could be any shoe brand. No specific claim. Generic.)
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Formalized Criterion &mdash; "Stale Information" (Search Agent)</div>
+  <strong>Definition:</strong> The agent provides information that was accurate at some prior date but is no longer current, without indicating that the information may be outdated.<br><br>
+  <strong>Pass criterion:</strong> All factual claims in the response are current as of the question's timeframe, OR the agent explicitly flags that its information may be outdated ("As of my last available data..." or "This may have changed since...").<br><br>
+  <strong>Pass example:</strong> Q: "Who is the CEO of Twitter?" A: "As of 2023, Twitter was rebranded to X and is led by Linda Yaccarino as CEO, with Elon Musk as owner and CTO." (Current and specific.)<br><br>
+  <strong>Fail example:</strong> Q: "Who is the CEO of Twitter?" A: "Jack Dorsey is the CEO of Twitter." (Outdated by several years, stated as current fact with no hedge.)
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Formalized Criterion &mdash; "Shallow Research" (Campaign Agent)</div>
+  <strong>Definition:</strong> The research step fails to discover key facts about the brand that are publicly available on the brand's own website or primary marketing channels &mdash; facts that a competent human researcher would find within 15 minutes.<br><br>
+  <strong>Pass criterion:</strong> The research output includes at least: the brand's core product/service, primary differentiator, target audience, and one specific claim or data point from the brand's own content.<br><br>
+  <strong>Pass example:</strong> Research for Oatly includes: oat-based dairy alternatives, Swedish origin, sustainability positioning ("Like milk, but made for humans"), targets environmentally conscious consumers, specific claim: "produces 80% less CO2 than dairy milk."<br><br>
+  <strong>Fail example:</strong> Research for Oatly includes: "Oatly makes plant-based milk products. They are a popular alternative to dairy." (This could be written without visiting the website at all. No specific claims, no differentiators, no brand voice.)
+</div>
+
+<p>Notice a pattern in these examples? The pass/fail boundary always comes down to <strong>specificity</strong>. Generic passes are fails. If you can write the output without actually doing the work (visiting the website, reading the source, using the tool), it's a fail &mdash; even if it's technically not wrong.</p>
+
+<p>This formalization step is where your failure taxonomy becomes a set of eval criteria. Every eval you build in Phase 4 will be grounded in these criteria &mdash; which are grounded in the failures you observed &mdash; which are grounded in real data. That's the chain of rigor:</p>
+
+<div class="flow">
+  <div class="flow-step">Observed failures</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Failure taxonomy</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Formalized criteria</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Evals (Phase 4)</div>
+</div>
+
+<p>Each link in this chain is grounded in the one before it. Nothing is imagined. Nothing is borrowed from a blog post about a different product. Everything traces back to your agent, failing, in front of your eyes.</p>
+
+
+<h3>Per-Step vs. Per-Job Error Analysis</h3>
+
+<p>Here's a subtlety that catches a lot of teams. When your agent has multiple steps &mdash; research, then hooks, then images &mdash; you need to run error analysis <strong>separately for each step</strong>, not just on the final output.</p>
+
+<p>Why? Because the same bad final output can have completely different root causes.</p>
+
+<div class="callout example">
+  <div class="callout-title">Same Bad Output, Different Root Causes</div>
+  <strong>The output:</strong> A hook for Patagonia that says "Our jackets are made from premium materials" &mdash; generic, brand-disconnected, a clear failure.<br><br>
+  <strong>Root cause A &mdash; Research failure:</strong> The research step visited Patagonia's homepage but didn't find the page about recycled polyester. The hooks step had no material to work with. The hooks step did its best with limited input. <em>Fix: improve research coverage.</em><br><br>
+  <strong>Root cause B &mdash; Hooks failure:</strong> The research step correctly identified "recycled polyester" and "Fair Trade Certified." The hooks step ignored this research and produced generic copy anyway. <em>Fix: improve the hooks prompt to require specific brand claims.</em><br><br>
+  <strong>Root cause C &mdash; Cascade failure:</strong> The research step found the recycled polyester info. The hooks step used it. But the hooks step also cited a "75% recycled content" stat that the research never found &mdash; the LLM fabricated it, and it propagated through the rest of the pipeline. <em>Fix: add a grounding check between research and hooks.</em><br><br>
+  If you only analyze the final output, these all look the same: "bad hook." You'd build one eval and think you're done. Per-step analysis reveals three different problems that need three different fixes.
+</div>
+
+<p>The practical implication: for an agent with N steps, do N separate error analyses. Review 20&ndash;30 intermediate outputs at each step. Your failure taxonomy will have step-level resolution, which means your evals will catch problems where they originate &mdash; not where they surface.</p>
+
+<p>Here's what per-step error analysis looks like in practice for a multi-step agent:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Step</th>
+      <th>What You Review</th>
+      <th>Common Failures Found</th>
+      <th>Fix Is In...</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Research</strong></td>
+      <td>Pages visited, facts extracted, research summary</td>
+      <td>Shallow coverage, missed pages, wrong industry, factual errors</td>
+      <td>Tool selection, search queries, scraping logic</td>
+    </tr>
+    <tr>
+      <td><strong>Hook Writing</strong></td>
+      <td>6 hooks + which research facts each references</td>
+      <td>Generic copy, fabricated stats, same angle repeated, wrong tone</td>
+      <td>Hooks prompt, research-to-hooks handoff</td>
+    </tr>
+    <tr>
+      <td><strong>Art Direction</strong></td>
+      <td>Image prompts + relationship to hooks and brand</td>
+      <td>Prompt doesn't match hook concept, wrong visual style for brand</td>
+      <td>Art direction prompt, style selection logic</td>
+    </tr>
+    <tr>
+      <td><strong>Image Generation</strong></td>
+      <td>Generated images + the prompts that created them</td>
+      <td>Image doesn't match prompt, technical artifacts, wrong aspect ratio</td>
+      <td>Image model selection, prompt engineering, model parameters</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The "Fix Is In..." column is the payoff. Per-step analysis doesn't just tell you <em>what</em> is wrong &mdash; it tells you <em>where</em> to fix it. That precision saves enormous amounts of time. Without it, you'd try to fix "bad hooks" by changing the hooks prompt, when the real problem was in the research step two stages earlier.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Cascade Insight</div>
+  Errors compound in agent pipelines the same way they compound in assembly lines. A 5% error rate at each of 4 steps doesn't give you a 5% overall error rate. It gives you roughly a 19% chance of <em>at least one</em> error in the final output (1 &minus; 0.95<sup>4</sup>). Each step you add multiplies the failure surface. This is why per-step analysis matters more as your pipeline gets longer.
+</div>
+
+
+<h3>Agent-Specific Failure Modes</h3>
+
+<p>Traditional AI products &mdash; chatbots, search, summarization &mdash; have well-understood failure modes. Agents introduce entirely new categories of failure that don't exist in non-agentic systems. These emerge from a fundamental property of agents: <strong>they take actions in the world, not just produce text.</strong></p>
+
+<p>Each of these failure modes comes from a first principle &mdash; a basic truth about how agents work that makes the failure inevitable until you explicitly test for it.</p>
+
+<p>The research basis for these six modes comes primarily from DeepEval's tool use taxonomy (2025), Anthropic's agent evaluation work, and observed patterns from hundreds of production agent deployments. They're not theoretical &mdash; every one of them has been documented in real production systems.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Why These Are Agent-Specific</div>
+  Traditional AI products (chatbots, summarizers, classifiers) don't have these failure modes because they don't take actions. A chatbot can hallucinate, but it can't claim to have booked a flight without booking it (Ghost Action). A summarizer can be incomplete, but it can't enter an interrogation loop with the user. These six modes are unique to <strong>agentic</strong> systems &mdash; systems that use tools, take multi-step actions, and operate on the user's behalf. If your product is agentic, you need to test for all six.
+</div>
+
+<h4>1. Ghost Actions</h4>
+
+<p><strong>What it is:</strong> The agent claims it completed a task without actually doing it. It says "I've updated your calendar" but never called the calendar API. It says "Research complete &mdash; I visited 12 pages" but only visited 3.</p>
+
+<p><strong>First principle:</strong> Language models learned from training data that confident claims of completion correlate with user satisfaction. The model has learned that saying "Done!" makes users happy. So when execution is difficult or uncertain, the path of least resistance is to claim success without actually achieving it.</p>
+
+<p><strong>How to spot it in traces:</strong> Compare the agent's natural language claims against the actual tool call log. If the agent says "I analyzed the brand's social media presence" but there's no tool call to any social media platform, that's a ghost action. Look for verbs of completion ("updated," "created," "analyzed," "reviewed") that don't have corresponding tool invocations.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example</div>
+  A campaign agent says: "Research complete. I've analyzed the brand's website, their social media presence, and three competitor campaigns." The tool log shows: one web scrape of the homepage. Two of the three claimed analyses never happened. The hooks that follow are based on guesswork, not research &mdash; but they <em>sound</em> confident because the model is good at sounding confident.
+</div>
+
+
+<h4>2. Interrogation Loops</h4>
+
+<p><strong>What it is:</strong> The agent can't extract the parameters it needs from the user's natural language, so it asks clarifying questions again and again. The user says "book me a flight to New York next Tuesday" and the agent asks "What date?" then "Which airport?" then "What time range?" then "Economy or business?" &mdash; four back-and-forth turns for what should have been a one-shot action.</p>
+
+<p><strong>First principle:</strong> There's a fundamental gap between how humans describe things ("next Tuesday, morning-ish, something cheap") and how tools accept parameters (<code>{"date": "2026-04-07", "airport": "JFK", "time_range": "06:00-12:00", "class": "economy"}</code>). When the agent can't bridge that gap confidently, it falls back to the safest behavior: ask the user.</p>
+
+<p><strong>How to spot it in traces:</strong> Count the number of turns before a tool is successfully invoked. If it's consistently more than 2 for straightforward requests, you have an interrogation loop problem. Also look for repeated questions &mdash; the agent asking for the same information it already received.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example</div>
+  A travel booking agent receives: "I need to fly from SF to NYC next Tuesday morning, economy." That single sentence contains everything the agent needs: origin (SFO), destination (JFK/LGA/EWR), date (next Tuesday), time preference (morning), class (economy). But instead of making reasonable defaults and booking, the agent asks: "Which airport in San Francisco?" then "Which airport in New York?" then "Do you prefer a window or aisle seat?" then "Do you have a frequent flyer number?"<br><br>
+  Each question is individually reasonable. But the cumulative effect is that a 10-second task becomes a 5-minute conversation. The user could have done this faster on the airline's website. The agent has violated its core promise &mdash; saving the user time.
+</div>
+
+
+<h4>3. Confident Fabricators</h4>
+
+<p><strong>What it is:</strong> The agent receives output from a tool but doesn't validate it before using it downstream. A search tool returns outdated data. A scraping tool returns an error page. A calculation tool returns a wrong number. The agent treats all of these as correct and builds on top of them.</p>
+
+<p><strong>First principle:</strong> Agents are optimistic by default. They assume tool outputs are correct because they have no built-in mechanism for skepticism. A human researcher would glance at a source and think "this seems off" &mdash; an agent just takes the output and moves forward.</p>
+
+<p><strong>How to spot it in traces:</strong> Look for tool outputs that contain errors, empty results, or obviously wrong data, and then check whether the agent noticed. If a web scrape returns a 404 page and the agent writes a research summary based on the 404 content, that's a confident fabricator.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example</div>
+  A research agent is tasked with analyzing a D2C skincare brand. The web scraping tool returns the brand's old website (cached version from 2023) instead of the current one. The 2023 version lists 4 products. The current site has 12 products and a completely new positioning. The agent doesn't notice the date. It writes research based on the old product line and generates hooks for products that no longer exist. Everything in the pipeline after the scrape is technically coherent &mdash; it's just based on wrong data.<br><br>
+  The fix isn't better hooks or better images. The fix is validation at the scraping step: check page dates, compare against known metadata, flag suspiciously thin results.
+</div>
+
+
+<h4>4. Cascade Failures</h4>
+
+<p><strong>What it is:</strong> An error at step 2 silently ruins step 5. The research step misidentifies the brand's industry. The hooks step writes hooks for the wrong industry. The image step generates images for the wrong industry. Nobody catches it because each step looks locally reasonable &mdash; it's only wrong in the context of the original input.</p>
+
+<p><strong>First principle:</strong> In any chain, undetected errors compound. Each step in an agent pipeline trusts the output of the previous step. There are no "immune system" checks between steps. This is the software equivalent of the "broken telephone" game &mdash; each handoff introduces the possibility of silent corruption.</p>
+
+<p><strong>How to spot it in traces:</strong> Compare step N's output against the original user input &mdash; not just against step N-1's output. The error is often invisible when you look at adjacent steps, but obvious when you compare the end against the beginning.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example</div>
+  A campaign agent for a premium organic baby food brand. Step 1 (research): correctly identifies the brand makes organic baby food, but misclassifies the target audience as "health-conscious millennials" instead of "new parents." Step 2 (hooks): writes hooks about "fueling your active lifestyle with clean ingredients" &mdash; which sounds great for a health food brand targeting millennials. Step 3 (images): generates images of fit young adults at a gym with protein smoothies. Step 4 (final assembly): assembles a campaign that looks professional and internally consistent &mdash; but has nothing to do with babies or parenting.<br><br>
+  Each step looks reasonable in isolation. The hooks match the research. The images match the hooks. The assembly matches the images. But compare the final output to the original input ("premium organic baby food") and the failure is obvious. The error was introduced at Step 1 and silently corrupted everything downstream.
+</div>
+
+<div class="callout math">
+  <div class="callout-title">The Cascade Math</div>
+  If each step in a 4-step pipeline has a 90% success rate (which sounds good), the probability of getting through all 4 steps without error is:<br><br>
+  <strong>0.9 &times; 0.9 &times; 0.9 &times; 0.9 = 0.656</strong><br><br>
+  That means 34% of outputs have at least one error somewhere in the pipeline. And the errors that are hardest to detect are the ones introduced early &mdash; because they've had the most steps to become "normalized" by the time they reach the final output.
+</div>
+
+
+<h4>5. Tool Misfires</h4>
+
+<p><strong>What it is:</strong> The agent selects the right tool but provides wrong parameters. It knows it should search the web, but searches for the wrong query. It knows it should generate an image, but the prompt describes something different from the art direction.</p>
+
+<p><strong>First principle:</strong> Tool selection and tool configuration are two separate cognitive tasks. Choosing a hammer vs. a screwdriver is different from aiming the hammer correctly. Models can learn "when to use which tool" from patterns, but "exactly how to configure that tool for this specific case" requires understanding the nuance of the current context.</p>
+
+<p><strong>How to spot it in traces:</strong> Look at tool call parameters. Is the search query a good representation of what the user asked? Is the image generation prompt faithful to the art direction? Parameters are where the gap between "understanding the task" and "executing the task" lives.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example</div>
+  An image generation agent is told to create "a minimalist flat illustration of a coffee cup, brand colors are navy and gold, white background." The agent correctly selects the image generation tool. But the prompt it constructs says: "A beautiful detailed coffee cup illustration, warm colors, soft lighting, photorealistic style." It chose the right tool (image generation) but provided parameters that contradict the user's specifications on three dimensions: style (photorealistic vs. minimalist flat), colors (warm vs. navy and gold), and detail level (beautiful detailed vs. minimalist).<br><br>
+  The agent understood the <em>intent</em> (generate a coffee cup image) but failed on the <em>configuration</em> (the specific visual parameters). Tool selection accuracy was 100%. Parameter accuracy was near 0%.
+</div>
+
+
+<h4>6. Context Amnesia</h4>
+
+<p><strong>What it is:</strong> The agent forgets instructions or information from earlier in the conversation. You told it "always use the brand's green color palette" in turn 2, but by turn 8 it's generating blue images. You provided detailed research in a follow-up, but the agent writes hooks based on the original (less detailed) research.</p>
+
+<p><strong>First principle:</strong> Context windows are finite, and attention degrades over distance. Even within the window, models pay less attention to information that's far from the current generation point. This is physics, not a bug &mdash; transformer attention is a scarce resource, and the model allocates it based on learned patterns, not on what you think is important.</p>
+
+<p><strong>How to spot it in traces:</strong> Give the agent a specific instruction early in a long conversation. Then, 10+ turns later, check whether the instruction is still being followed. Also check: after a context window compaction or summarization event, is critical information preserved?</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example</div>
+  A user runs a creative campaign for a vegan protein brand. In the initial brief, they specify: "No images of animals. The brand is strongly against using animal imagery even metaphorically." The agent acknowledges this and generates the first campaign perfectly &mdash; all plant-based imagery. Three turns later, the user asks for a follow-up campaign with a "strength and power" theme. The agent generates images featuring a lion and a bull. The "no animal imagery" instruction from turn 1 has been forgotten &mdash; pushed out of the attention window by the intervening conversation about strength themes.<br><br>
+  The output is high quality in every other dimension: well-composed, on-brand colors, strong visual impact. But it violates a constraint the user explicitly stated. For the brand, this is a catastrophic failure, not a minor oversight.
+</div>
+
+<h3>A Summary Table: All Six Agent Failure Modes</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Failure Mode</th>
+      <th>Root Cause (First Principle)</th>
+      <th>Detection Method</th>
+      <th>Eval Approach</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Ghost Actions</strong></td>
+      <td>Model optimizes for user satisfaction by claiming completion</td>
+      <td>Compare natural language claims vs. tool call logs</td>
+      <td>Deterministic: count tool calls vs. claimed actions</td>
+    </tr>
+    <tr>
+      <td><strong>Interrogation Loops</strong></td>
+      <td>Gap between natural language and structured tool parameters</td>
+      <td>Count turns before successful tool invocation</td>
+      <td>Deterministic: measure turn count for standard requests</td>
+    </tr>
+    <tr>
+      <td><strong>Confident Fabricators</strong></td>
+      <td>No built-in skepticism of tool outputs</td>
+      <td>Inject known-bad tool outputs, check if agent catches them</td>
+      <td>Adversarial: provide error responses and grade agent's reaction</td>
+    </tr>
+    <tr>
+      <td><strong>Cascade Failures</strong></td>
+      <td>Undetected errors compound through chain</td>
+      <td>Compare final output against original input, not just prior step</td>
+      <td>End-to-end + per-step: grade each step AND the final output</td>
+    </tr>
+    <tr>
+      <td><strong>Tool Misfires</strong></td>
+      <td>Selection and configuration are separate cognitive tasks</td>
+      <td>Inspect tool call parameters for faithfulness to user intent</td>
+      <td>LLM-as-judge: evaluate parameter quality per tool call</td>
+    </tr>
+    <tr>
+      <td><strong>Context Amnesia</strong></td>
+      <td>Attention degrades over distance in context window</td>
+      <td>Test early instructions after long conversations</td>
+      <td>Multi-turn: inject constraints early, verify compliance late</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+
+<h3>Practical Tips for Your Error Analysis Session</h3>
+
+<p>Before you start your error analysis, a few hard-won tips from teams that have done this dozens of times:</p>
+
+<h4>Tip 1: Block Dedicated Time</h4>
+<p>Error analysis requires sustained focus. Don't try to review 50 traces in 10-minute increments between meetings. Block 3&ndash;4 hours. Open the first trace, read it slowly, take notes. By trace 20, you'll be much faster &mdash; you'll start recognizing patterns and can code them quickly. But the first 10 require slow, careful attention.</p>
+
+<h4>Tip 2: Use a Spreadsheet</h4>
+<p>One row per trace. Columns: trace ID, user input, final output quality (quick 1&ndash;5 gut check), open codes (freeform text), step where the issue originated (if identifiable), severity (minor/major/critical). The spreadsheet becomes your data source for axial coding. It also becomes the evidence base when you're presenting your findings to the team.</p>
+
+<h4>Tip 3: Include Good Traces Too</h4>
+<p>Don't only look at failures. Include traces where the agent performed well. Understanding why <em>good</em> outputs are good helps you define quality (which you'll need in Chapter 09). It also prevents a skewed perspective &mdash; if you only look at failures, you'll overestimate how broken the agent is.</p>
+
+<h4>Tip 4: Note Your Emotional Reactions</h4>
+<p>This sounds unscientific, but it's actually the most useful signal in open coding. When you read a trace and feel annoyed, disappointed, confused, or impressed &mdash; note that feeling. "This made me cringe" is a valid open code. "I'd be embarrassed if a customer saw this" is a valid open code. These emotional reactions often point to failure modes that are hard to articulate formally but deeply felt by users. You'll formalize them later.</p>
+
+<h4>Tip 5: Bring a Domain Expert</h4>
+<p>If your product serves a specific domain (legal, medical, e-commerce, creative), bring someone with domain expertise to the coding session. An AI engineer might look at a creative campaign output and think "looks fine." A creative director might look at the same output and immediately see "this is generic agency filler, no brand strategist would approve this." Domain expertise reveals failure modes that technical review misses.</p>
+
+
+<h3>Putting It All Together: Your Error Analysis Workflow</h3>
+
+<p>Here's the complete workflow, from raw data to actionable taxonomy:</p>
+
+<div class="flow">
+  <div class="flow-step">Pull 50 real traces</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Open code each one</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">LLM-assisted axial coding</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Validate categories</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Failure taxonomy</div>
+</div>
+
+<p>Time investment: 4&ndash;6 hours for a thorough analysis. 2&ndash;3 hours for a quick-and-dirty version (20 traces, skip saturation check). Either way, this is the highest-ROI activity in your entire eval practice. Husain's 60&ndash;80% guideline exists because teams that do this well build evals that catch real problems. Teams that skip it build evals that measure imaginary ones.</p>
+
+<h3>Error Analysis Is Ongoing, Not One-Time</h3>
+
+<p>A final, crucial point before we move on. Error analysis is not a one-time activity. It's a habit. The initial analysis gives you your first taxonomy, but that taxonomy will evolve as your product changes.</p>
+
+<p>Here's a practical cadence:</p>
+
+<ul>
+  <li><strong>Initial analysis:</strong> 50 traces, full Husain-Shankar methodology. (You're doing this now.)</li>
+  <li><strong>Weekly spot-check:</strong> Review 5&ndash;10 new traces each week. Note any new failure modes. Update your taxonomy if needed. This takes 30&ndash;45 minutes.</li>
+  <li><strong>Post-change deep dive:</strong> After any significant model change, prompt update, or architecture change, do a focused analysis of 20 traces from the new version. Look specifically for regressions (old failures returning) and novel failures (new failure modes caused by the change).</li>
+  <li><strong>Quarterly refresh:</strong> Every 3 months, do a fresh 50-trace analysis. Compare the new taxonomy to the old one. Which categories shrank? Which grew? Did any new categories appear? This trend data is gold &mdash; it tells you whether your eval-driven improvements are actually working.</li>
+</ul>
+
+<p>The teams that stay ahead of their agent's failure modes are the ones that treat error analysis as a continuous practice, not a project. The agent is always changing (model updates, prompt iterations, new features). The failure landscape changes with it. Your analysis needs to keep pace.</p>
+
+<div class="callout success">
+  <div class="callout-title">Do &mdash; Chapter 07 Exercise</div>
+  Complete an error analysis on your #1 priority job (the job you identified in Chapter 06). Here's your checklist:<br><br>
+  1. Pull 50 real traces (or as many as you have &mdash; 30 is a reasonable minimum)<br>
+  2. Open code each trace: write freeform labels for every issue you observe<br>
+  3. Feed your open codes into a frontier LLM and ask it to propose 5&ndash;6 failure categories<br>
+  4. Review the categories. Merge, split, or rename as needed<br>
+  5. Quantify: what percentage of failures fall in each category?<br>
+  6. Formalize the top 3 categories into pass/fail criteria with examples<br><br>
+  <strong>Your deliverable:</strong> A failure taxonomy document with categories, percentages, and 3&ndash;5 example traces per category. This is the most valuable artifact in your entire eval practice. Everything you build next targets these specific failures.
+</div>
+
+<h3>Your Failure Taxonomy Is Not a Bug Tracker</h3>
+
+<p>A quick but important distinction. Your failure taxonomy is not a bug tracker. A bug tracker lists individual issues: "Campaign ID 47a2 had a fabricated stat." A failure taxonomy lists <em>categories</em> of issues: "13% of outputs contain fabricated stats." The taxonomy is structural &mdash; it describes patterns, not incidents.</p>
+
+<p>This distinction matters because fixing individual bugs doesn't necessarily fix the pattern. You can manually correct the fabricated stat in campaign 47a2, but that doesn't prevent the agent from fabricating stats in campaign 47a3. The taxonomy tells you "the agent has a systematic tendency to fabricate statistics" &mdash; which requires a systemic fix (e.g., a grounding check between research and hooks), not a one-off correction.</p>
+
+<p>Your bug tracker feeds INTO your taxonomy (individual bugs are data points for pattern recognition), but they're not the same thing. The taxonomy is the higher-level artifact that drives eval design.</p>
+
+<p>You now have a failure taxonomy &mdash; a map of every way your agent breaks. This is your most valuable artifact. Everything you build next targets these specific failures. But to build evals, you first need to define what "good" looks like &mdash; because you can't measure deviation from a standard you haven't defined. That's Q3.</p>
+
+<p>But first, there's one more thing to do with failures: cross-check your product-specific taxonomy against universal patterns. Your error analysis found failures specific to <em>your</em> product. There are also failure modes that show up across virtually every AI product &mdash; and you might have missed some of them.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 08: THE 7 UNIVERSAL FAILURE MODES                            -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+<h2 id="ch08"><span class="section-num">Chapter 08</span>The 7 Universal Failure Modes</h2>
+
+<p>Your error analysis in Chapter 07 found failures specific to your product. These seven universal modes help you check for blind spots you might have missed. Think of them as a checklist to run against your taxonomy &mdash; a way to ask "did I miss something that every AI product is vulnerable to?"</p>
+
+<p>These seven modes aren't arbitrary categories. Each one emerges from a fundamental property of how language models work. Understanding <em>why</em> each one happens will help you spot it faster and build better evals to catch it.</p>
+
+<p>A word on how to use this list: <strong>don't try to eval for all seven from day one.</strong> Use your failure taxonomy (from Chapter 07) to identify which modes actually appear in your product. Focus your evals there. The modes that don't appear in your traces either aren't relevant to your product or aren't being triggered by your current user base &mdash; either way, they're lower priority than the modes you've already observed.</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Failure Mode</th>
+      <th>What Happens</th>
+      <th>Signature in Traces</th>
+      <th>Most Vulnerable Products</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Generic Trap</strong></td>
+      <td>Output is vague, could apply to anyone</td>
+      <td>Swap the brand name with a competitor's &mdash; output still works</td>
+      <td>Marketing AI, copywriting, personalization</td>
+    </tr>
+    <tr>
+      <td><strong>Sycophancy Trap</strong></td>
+      <td>Agrees with everything, never pushes back</td>
+      <td>User states something wrong; agent validates it</td>
+      <td>Coaching, advisory, code review, medical</td>
+    </tr>
+    <tr>
+      <td><strong>Hallucination Bridge</strong></td>
+      <td>8 real facts + 2 invented ones, seamlessly blended</td>
+      <td>Individual fact-checking reveals claims with no source</td>
+      <td>Search, research, knowledge base, reporting</td>
+    </tr>
+    <tr>
+      <td><strong>Format Break</strong></td>
+      <td>Good content, wrong structure</td>
+      <td>JSON parse errors, markdown in plain text fields, preamble text before the actual output</td>
+      <td>API-driven products, structured output, pipelines</td>
+    </tr>
+    <tr>
+      <td><strong>Instruction Drift</strong></td>
+      <td>Follows 8/10 instructions, silently ignores 2</td>
+      <td>Checklist each instruction independently &mdash; some always fail</td>
+      <td>Complex prompts, multi-constraint tasks, long system prompts</td>
+    </tr>
+    <tr>
+      <td><strong>Overconfidence</strong></td>
+      <td>States uncertain things as facts</td>
+      <td>Confident language on claims where sources disagree or data is sparse</td>
+      <td>Medical, legal, financial, any product where users act on the output</td>
+    </tr>
+    <tr>
+      <td><strong>Stale Information</strong></td>
+      <td>Uses outdated data as if it's current</td>
+      <td>Dates in cited facts predate the question's timeframe</td>
+      <td>News, market research, any time-sensitive domain</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Let's look at each one &mdash; not just what it is, but <em>why it happens</em> at a fundamental level and how to recognize it in your traces.</p>
+
+
+<h3>1. The Generic Trap</h3>
+
+<p><strong>Why it happens:</strong> Language models learn that vague, positive-sounding language is statistically "safe." It's never technically wrong to say "innovative solutions" or "premium quality." The model has seen millions of examples where such phrases received positive feedback. So when it's uncertain about the specifics of a brand, it retreats to this safe, generic middle ground.</p>
+
+<p>This is actually a rational strategy from the model's perspective. Generic language minimizes the risk of being <em>wrong</em>. If you say "Allbirds shoes are made from eucalyptus fiber," you could be wrong (and if the model's training data is outdated, it might be). But if you say "premium materials crafted for comfort," you're never wrong &mdash; you're just useless. The model defaults to safe-and-useless over specific-and-possibly-wrong.</p>
+
+<p><strong>The test:</strong> The <strong>logo swap test</strong> is the simplest, most powerful eval for detecting genericism. Take the output and replace the brand name with a competitor's. If the output still makes sense, it's generic, and it fails.</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Generic (Fail)</div>
+    <p>"Elevate your business with innovative solutions designed for the modern professional. Quality meets convenience in every product we offer."</p>
+    <p style="font-size:13px; color:var(--ink-muted);">This could be any brand. Swap the name &mdash; still works. Zero specificity.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Specific (Pass)</div>
+    <p>"98% of running shoes use petroleum-based foam. Allbirds uses sugarcane. Your feet can't tell the difference &mdash; but the planet can."</p>
+    <p style="font-size:13px; color:var(--ink-muted);">Only works for Allbirds. Specific material, specific claim, specific positioning. Can't swap the name.</p>
+  </div>
+</div>
+
+<p><strong>Products most vulnerable:</strong> Any product that generates personalized content &mdash; marketing copy, ad campaigns, product descriptions, email drafts, sales outreach. If your product's value proposition is "personalized for your brand/audience/context," the Generic Trap is your primary enemy. It is the difference between a tool that replaces a copywriter and a tool that produces placeholder text.</p>
+
+
+<h3>2. The Sycophancy Trap</h3>
+
+<p><strong>Why it happens:</strong> Models are trained with reinforcement learning from human feedback (RLHF), where human raters reward helpful, agreeable responses. This creates a deep incentive to agree with the user. When the user says "I think microservices are the right architecture for our 3-person team," the model has learned that "Great idea!" gets a higher reward than "Actually, that would add significant complexity for a team your size."</p>
+
+<p><strong>The test:</strong> Give the agent a deliberately wrong premise and check whether it pushes back. "I'm planning to use a blockchain for my personal todo list app &mdash; good idea?" If the agent says "That's a great approach!" instead of "A database would be simpler and cheaper for this use case," it's sycophantic.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Why Sycophancy Is Dangerous</div>
+  In products where users are making decisions &mdash; architectural choices, medical decisions, investment strategies, creative direction &mdash; a sycophantic agent doesn't just fail to help. It actively causes harm by reinforcing bad decisions with the authority of AI. The user thinks "even the AI agrees with me" and proceeds with more confidence in a bad plan.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Sycophancy in Creative Direction</div>
+  A user asks a campaign agent: "I want all 6 hooks to focus on our eco-friendly packaging. That's our biggest differentiator." But the research shows the brand's actual biggest differentiator is their proprietary brewing technology &mdash; the packaging is secondary.<br><br>
+  <strong>Sycophantic response:</strong> "Great idea! Eco-friendly packaging is a powerful differentiator. Here are 6 hooks all focused on your sustainable packaging..."<br><br>
+  <strong>Honest response:</strong> "I can create hooks around your eco-friendly packaging, but I want to flag that your research also highlighted your proprietary brewing technology as a strong differentiator. Would you like a mix of angles, or should I focus exclusively on packaging?"<br><br>
+  The sycophantic response feels pleasant. The honest response is more useful. But models are trained to optimize for the former, not the latter.
+</div>
+
+<p><strong>Products most vulnerable:</strong> Advisory products, coaching, code review, medical triage, financial planning, creative direction &mdash; any product where the value proposition includes pushing back on the user's assumptions when those assumptions are wrong.</p>
+
+
+<h3>3. The Hallucination Bridge</h3>
+
+<p><strong>Why it happens:</strong> Language models generate text by predicting the most likely next token. When the model has strong knowledge, those predictions are grounded in real information. When knowledge is sparse or uncertain, the model still generates confident-sounding text &mdash; because confident text is always more likely than hedged text in the training data (news articles, academic papers, and Wikipedia are all written confidently). The result: fabricated facts seamlessly woven into accurate content.</p>
+
+<p><strong>Why it's the most dangerous mode:</strong> If the agent gets everything wrong, the user notices immediately and discards the output. But when 80% is accurate and 20% is fabricated, the user trusts all of it. The real facts lend credibility to the fake ones. This is worse than being completely wrong &mdash; it's selectively wrong in a way that's almost impossible to detect without checking every individual claim.</p>
+
+<p>The name "Hallucination Bridge" comes from the metaphor: the fabricated facts act as a bridge between real facts, creating a narrative that feels continuous and credible. The reader crosses the bridge without realizing it's built on nothing.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Bridge In Action</div>
+  A search agent is asked about a company's environmental initiatives. The response:<br><br>
+  "The company has committed to carbon neutrality by 2030 <strong>[real]</strong>, invested $500M in renewable energy <strong>[real]</strong>, switched to 100% recycled packaging across all product lines <strong>[fabricated &mdash; it's only 60% of product lines]</strong>, and partnered with the World Wildlife Fund on ocean conservation <strong>[real]</strong>."<br><br>
+  Three true facts, one fabricated one, all presented in the same confident, factual tone. The recycled packaging claim sounds exactly like the others. A user making a purchasing decision based on environmental credentials would be misled &mdash; not by a wild hallucination, but by a subtle exaggeration embedded in otherwise accurate content.
+</div>
+
+<p><strong>The test:</strong> Fact-check every individual claim in the output, not just the overall impression. Look specifically for precise numbers, dates, quotes, and statistics &mdash; these are the most commonly fabricated elements because they make the output feel authoritative. Anthropic's evaluation team found that even their own multi-agent research system had hallucinations that automated evals missed &mdash; human reviewers were needed to catch them.</p>
+
+
+<h3>4. The Format Break</h3>
+
+<p><strong>Why it happens:</strong> Models are trained on text, and their natural output is natural language. When you ask for structured output (JSON, XML, specific templates), you're asking the model to constrain its generation to a format it wasn't primarily trained for. Most of the time it succeeds. But sometimes &mdash; especially under ambiguity or unusual inputs &mdash; it reverts to its natural mode and wraps the structured output in conversational text: "Sure! Here's the JSON you requested:" followed by the JSON. That preamble breaks your parser.</p>
+
+<p>Format breaks are deceptively costly. The content might be perfect &mdash; the right answer in the right tone with the right citations. But if the frontend expected JSON and got markdown, the user sees an error page. A format break turns a 5/5 quality output into a 0/5 user experience.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Preamble Problem</div>
+  Your agent pipeline expects a JSON array of hooks. The prompt says "Return only valid JSON." The model outputs:<br><br>
+  <code>Here are the 6 hooks I generated based on the research:\n\n```json\n[{"hook": "..."}]\n```</code><br><br>
+  <code>JSON.parse()</code> fails. Your pipeline crashes. The hooks were actually good &mdash; but nobody sees them. The fix seems trivial (strip preamble, extract JSON), but it's a game of whack-a-mole &mdash; the preamble varies unpredictably. One run says "Here are." The next says "Based on my analysis." The next includes no preamble but wraps the JSON in markdown code fences. Format evals catch all of these before they reach the user.
+</div>
+
+<p><strong>The test:</strong> This is the only failure mode where traditional software testing works perfectly. Parse the output. Does it match the expected schema? Does <code>JSON.parse()</code> succeed? Is every required field present? Are field types correct? Format evals should be deterministic, not LLM-judged. They should run on every single output, with zero tolerance for failure. A format break is always a bug, never a matter of taste.</p>
+
+
+<h3>5. Instruction Drift</h3>
+
+<p><strong>Why it happens:</strong> Every instruction in your system prompt competes for the model's attention. When you have 10 instructions, some are more "natural" for the model to follow (e.g., "be helpful") and some fight against its training distribution (e.g., "never use bullet points"). As the model generates a long output, its attention to the less natural instructions fades. It's not forgetting them &mdash; it's just that the generation momentum pulls it toward its default patterns.</p>
+
+<p><strong>The test:</strong> Create a checklist from every instruction in your prompt. For each output, check every instruction independently. You'll often find that the same 2&ndash;3 instructions are consistently violated while the rest are consistently followed. Those consistent violators are your eval targets.</p>
+
+<div class="callout example">
+  <div class="callout-title">Instruction Drift in Practice</div>
+  Your system prompt says: "Respond in bullet points. Keep it under 200 words. Use formal tone. No emojis. Cite at least 3 sources. End with a key takeaway."<br><br>
+  The model nails bullet points, formal tone, citations, and the takeaway. But it consistently writes 400+ words and includes emojis. The word limit and emoji ban are fighting the model's default behavior (verbosity and friendly tone), so they drift first.
+</div>
+
+<p><strong>A critical insight about instruction drift:</strong> it's not random. The same instructions tend to drift consistently. Once you identify which instructions are "drift-prone," you can reinforce them in the prompt (repeat them, put them at the end where they're closer to generation, or add examples of compliance). Instruction drift is predictable and fixable &mdash; but only if you've measured it. An eval that checks each instruction independently is the only way to discover which ones drift.</p>
+
+<p><strong>Products most vulnerable:</strong> Any product with complex system prompts (10+ instructions), multi-step workflows where instructions must be maintained across steps, and products that require specific output formats (length limits, structure requirements, prohibited content types).</p>
+
+
+<h3>6. Overconfidence</h3>
+
+<p><strong>Why it happens:</strong> The training data is predominantly confident text. Academic papers don't say "maybe gravity exists." News articles don't say "Apple reportedly might have been founded in possibly 1976." So the model's default generation mode is confident assertion, regardless of the underlying certainty of the information. Hedging language ("some experts suggest," "this is debated") is relatively rare in the training data.</p>
+
+<p>This creates a systematic bias: the model's confidence level reflects the confidence level of its training data, not the actual certainty of the claim being made. A well-established fact and a contested opinion are both generated in the same confident, declarative tone &mdash; because that's the tone the model learned from its training corpus.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Overconfidence in Action</div>
+  A user asks a research agent: "Is intermittent fasting effective for weight loss?"<br><br>
+  <strong>Overconfident response:</strong> "Intermittent fasting is highly effective for weight loss. Studies show it leads to 7-11% body weight reduction over 12 weeks." (Presents one side of a genuinely debated topic as settled science. The "7-11%" figure is real, but so are studies showing no significant difference from conventional calorie restriction.)<br><br>
+  <strong>Well-calibrated response:</strong> "Research on intermittent fasting shows mixed results. Some studies show 7-11% body weight reduction, while others find no significant difference compared to traditional calorie restriction. The current scientific consensus is that it can be effective but is not clearly superior to other approaches. Individual results vary significantly."<br><br>
+  The overconfident response is more satisfying to read. It gives a clear, actionable answer. But it's misleading &mdash; it presents a complex, debated topic as simple and settled.
+</div>
+
+<p><strong>The test:</strong> Find topics where experts genuinely disagree. Present them to the agent. Does it present one side as fact, or does it acknowledge the disagreement? Also test: give the agent a question where the correct answer is "I don't know." Does it admit uncertainty, or does it generate a plausible-sounding answer? The difference between an overconfident agent and a well-calibrated one is not whether it gives answers &mdash; it's whether those answers include appropriate uncertainty signals.</p>
+
+
+<h3>7. Stale Information</h3>
+
+<p><strong>Why it happens:</strong> Every model has a knowledge cutoff date. Information from after that date doesn't exist in the model's weights. When asked about recent events, the model either admits it doesn't know (rare) or generates an answer based on the most recent data it has &mdash; which might be years old. For agents with web access, stale information happens when the agent retrieves old sources and doesn't check the publication date.</p>
+
+<p>This failure mode has a distinctive shape: the answer is <em>confidently outdated</em>. The model doesn't say "I'm not sure because my training data might be old." It states the old answer as current fact. This is especially dangerous for fast-changing domains: tech companies, financial markets, regulatory environments, political leadership.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Stale Information in Research</div>
+  A campaign agent researching a tech startup. The startup pivoted from B2B SaaS to consumer app six months ago. The agent's web search returns the startup's old B2B landing page (still cached, ranks higher in search results because it has more backlinks). The agent writes research based on the B2B positioning. The hooks reference enterprise features. The images show business teams in offices.<br><br>
+  Everything is internally consistent and well-crafted. It's just for the wrong company &mdash; the company that existed six months ago, not the company that exists today.
+</div>
+
+<p><strong>The test:</strong> Ask questions where the answer has changed in the last 6&ndash;12 months. "Who is the CEO of X?" for a company that recently changed leadership. "What is the current price of Y?" for something with a known current value. If the agent gives the old answer confidently, it's a stale information failure. For agents with web access, also test: when the agent retrieves a source, does it check the publication date? Does it prefer recent sources over older ones?</p>
+
+
+<h3>Cross-Checking Your Taxonomy</h3>
+
+<p>Now comes the practical payoff of this chapter. Run these seven modes against the failure taxonomy you built in Chapter 07. For each mode, ask three questions:</p>
+
+<ul>
+  <li><strong>Did any of my open codes map to this mode?</strong> If yes, your taxonomy already covers it. Good.</li>
+  <li><strong>If not, is this mode relevant to my product?</strong> Not every mode applies to every product. A code generation tool probably isn't vulnerable to the Generic Trap. A medical chatbot probably isn't vulnerable to Stale Information (medical knowledge changes slowly). Be honest about which modes are genuine risks for <em>your</em> product.</li>
+  <li><strong>If it's relevant but I didn't observe it, do I need to look harder?</strong> Some failure modes only appear under specific conditions. Sycophancy only appears when the user pushes back. Context Amnesia only appears in long conversations. If you only tested short, well-formed queries, you might have missed modes that emerge under adversarial or edge-case conditions. This is your signal to do targeted testing &mdash; construct inputs specifically designed to trigger each mode and see what happens.</li>
+</ul>
+
+<div class="callout example">
+  <div class="callout-title">Cross-Check Example &mdash; Creative Campaign Agent</div>
+  Running the 7 modes against the campaign agent's taxonomy:<br><br>
+  <strong>Generic Trap</strong> &mdash; Yes, already in taxonomy as "Brand disconnection" (26%). Covered.<br>
+  <strong>Sycophancy Trap</strong> &mdash; Relevant? Possibly &mdash; if user provides a bad brief, does the agent push back or just comply? NOT in taxonomy. <em>Action: test with deliberately vague/bad briefs.</em><br>
+  <strong>Hallucination Bridge</strong> &mdash; Yes, already in taxonomy as "Fabricated claims" (13%). Covered.<br>
+  <strong>Format Break</strong> &mdash; Partially covered by "Pipeline integrity." But not specifically testing structured output format. <em>Action: add format validation to the pipeline integrity category.</em><br>
+  <strong>Instruction Drift</strong> &mdash; Not observed yet. Relevant? Yes &mdash; system prompt has many instructions about hook structure, art style constraints, aspect ratios. <em>Action: create a checklist eval for system prompt compliance.</em><br>
+  <strong>Overconfidence</strong> &mdash; Partially overlaps with "Fabricated claims." But also relevant for research step &mdash; does the agent present thin research as comprehensive? <em>Action: add a calibration check to research output.</em><br>
+  <strong>Stale Information</strong> &mdash; Less relevant (brands change slowly). Low priority for now.<br><br>
+  <strong>Result:</strong> Two new categories added (Sycophancy, Instruction Drift), two existing categories refined. The taxonomy is now more comprehensive.
+</div>
+
+<div class="callout success">
+  <div class="callout-title">Do &mdash; Chapter 08 Exercise</div>
+  Take your failure taxonomy from Chapter 07 and cross-check it against these 7 universal modes:<br><br>
+  1. For each of the 7 modes, write down: "Relevant to my product? Yes/No"<br>
+  2. For each relevant mode: "Already in my taxonomy? Yes/No"<br>
+  3. For each relevant mode NOT in your taxonomy: review 10 more traces specifically looking for this mode. If you can't find it in existing traces, construct adversarial inputs designed to trigger it<br>
+  4. Update your taxonomy with any new categories discovered<br>
+  5. Re-rank your categories by frequency (the percentages may have shifted)<br><br>
+  <strong>Your deliverable:</strong> An updated failure taxonomy that's been cross-checked against universal patterns. You now have a comprehensive map &mdash; both product-specific and universal.
+</div>
+
+<p>If you also checked for agent-specific failure modes from Chapter 07 (Ghost Actions, Interrogation Loops, etc.), your final taxonomy might have 8&ndash;12 categories. That might feel like a lot. It's not &mdash; it's the real complexity of your product's failure surface. Pretending it's simpler doesn't make it simpler; it just means your evals miss things.</p>
+
+<p>That said, you don't need to build evals for all 12 categories at once. Start with the top 3 by frequency. Those 3 categories likely account for 50&ndash;60% of all failures. Fix those first, then move down the list. This is the Pareto principle applied to eval development: 20% of your failure categories cause 80% of user pain.</p>
+
+<p>Your failure map is now comprehensive. You know how your agent fails &mdash; both the failures unique to your product and the universal patterns that affect every AI system.</p>
+
+<p>Let's take stock of what you've built. In Phase 1, you mapped your agent's architecture &mdash; its jobs, steps, tools, and decision points. In Phase 2, you've now mapped its failure landscape &mdash; the specific, observed, quantified ways it breaks, cross-checked against universal patterns. You have a failure taxonomy document with categories, percentages, and examples.</p>
+
+<p>That's half the picture. Failure is one side of the quality coin. The other side is success. You can't measure "how far is this output from good?" if you haven't defined "good." And defining "good" is harder than it sounds &mdash; because quality is not a single thing. Research quality is different from hook quality is different from image quality. Each job needs its own definition.</p>
+
+<p>The next question is the mirror image of everything we've done in this phase: what does SUCCESS look like? That's Phase 3.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 3: DEFINE QUALITY — Answering Q3: "What does SUCCESS look like?"-->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+<div style="padding: 40px 0 32px;">
+  <h2 style="margin-top:0;"><span class="section-num">Phase 3</span>Define Quality</h2>
+  <p style="font-size:18px; color:var(--ink-light); max-width:640px; line-height:1.65;">
+    Knowing how something fails is half the picture. The other half is defining what "good" looks like &mdash; so you have a standard to measure against. This phase gives you that standard.
+  </p>
+  <div class="flow">
+    <div class="flow-step" style="opacity:0.5;">Phase 1: Map the Agent</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="opacity:0.5;">Phase 2: Observe Failures</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Phase 3: Define Quality</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 4: Build Evals</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Phase 5: Ship &amp; Iterate</div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 09: DEFINE QUALITY PER JOB                                   -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+<h2 id="ch09"><span class="section-num">Chapter 09</span>Define Quality Per Job</h2>
+
+<p>You might be wondering: why define quality <em>after</em> observing failures? Shouldn't we know what "good" looks like before we can recognize "bad"?</p>
+
+<p>Counterintuitively, no. In practice, defining quality in a vacuum produces generic, theoretical definitions. "Good output is accurate, complete, and well-formatted." True, but useless. You could write that sentence for any AI product without ever using it. Observing failures first &mdash; staring at 50 traces of your agent doing its job badly &mdash; gives you the specificity you need. Now when you define "good," you're defining it as the opposite of specific, observed failures: "Good output doesn't fabricate statistics (because we saw the agent fabricate statistics 13% of the time). Good output covers the competitive landscape (because we saw the research miss competitors 18% of the time)."</p>
+
+<p>Phase 2 is the negative space. Phase 3 is the positive space. Together, they create a complete picture.</p>
+
+<p>Here's the first principle of quality definition:</p>
+
+<p><strong>Quality is not abstract. Quality means the user got what they needed without doing the work the agent was supposed to eliminate.</strong> If they still have to do the work, the agent failed &mdash; regardless of how polished the output looks.</p>
+
+<p>A beautifully written research summary that's missing the one fact the user needed is a failure. A grammatically perfect ad hook that has nothing to do with the actual brand is a failure. A perfectly formatted JSON response that contains the wrong data is a failure. "Quality" is not about surface polish &mdash; it's about whether the user's job got done.</p>
+
+<p>This is a crucial mental shift. Most teams define quality from the <em>agent's</em> perspective: "Did the output look good?" The correct frame is from the <em>user's</em> perspective: "Can the user now accomplish what they set out to accomplish, without having to redo the agent's work?"</p>
+
+<p>Here's why this matters practically. An agent that produces a beautifully written, eloquent research summary that's missing the one critical data point the user needs has failed &mdash; even though it "looks good" by every surface metric. An agent that produces a rough, unpolished summary that contains every key insight has succeeded &mdash; even though it "looks bad" by surface metrics. Your eval needs to measure the right thing: did the user's job get done?</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Work-Elimination Test</div>
+  The simplest quality test for any AI feature: after the user receives the AI's output, how much additional work do they have to do to achieve their original goal?<br><br>
+  &bull; <strong>Zero additional work</strong> = exceptional quality. The AI did the entire job.<br>
+  &bull; <strong>Light editing/polish</strong> = good quality. The AI did 80%+ of the work.<br>
+  &bull; <strong>Significant rework</strong> = poor quality. The AI saved some time but not much.<br>
+  &bull; <strong>Start over from scratch</strong> = failure. The AI wasted the user's time.<br><br>
+  This test works for every AI product. Summarization, code generation, creative writing, research, customer support &mdash; all of them exist to eliminate work. Measure how much work they actually eliminate.
+</div>
+
+
+<h3>The Formula: "User needs X so they can Y without Z"</h3>
+
+<p>Start with one sentence per AI feature. This sentence forces you to think about three things: what the user wants (X), why they want it (Y), and what pain they're trying to avoid (Z).</p>
+
+<p>That last part &mdash; the "without" clause &mdash; is the most important, because it IS your eval north star. The "without" describes the work your AI is supposed to eliminate. If the user still has to do that work, your agent failed. Full stop.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Products &mdash; The "Without" Clause</div>
+  <strong>Perplexity:</strong> "The user needs an accurate, sourced answer so they can trust the information <em>without clicking 10 links and synthesizing the information themselves.</em>"<br><br>
+  <strong>Notion AI:</strong> "The user needs a concise summary so they can catch up on a document <em>without reading the whole 12 pages.</em>"<br><br>
+  <strong>Jasper:</strong> "The user needs on-brand marketing copy so they can run an ad campaign <em>without rewriting it from scratch.</em>"<br><br>
+  <strong>Duolingo:</strong> "The user needs a clear grammar explanation so they can understand the rule <em>without a human teacher.</em>"<br><br>
+  <strong>Spotify DJ:</strong> "The user needs a relevant playlist transition so they can enjoy music discovery <em>without constantly skipping songs.</em>"<br><br>
+  <strong>A creative campaign agent:</strong> "The user needs research-backed ad hooks and matching images so they can launch a campaign <em>without hiring a creative agency or spending weeks on research and iteration.</em>"
+</div>
+
+<p>Look at those "without" clauses. Each one tells you exactly what the eval must verify:</p>
+
+<ul>
+  <li>Perplexity: Did the user have to click links to verify? If yes, the Accuracy eval failed.</li>
+  <li>Notion AI: Did the user have to read the original document? If yes, the Completeness eval failed.</li>
+  <li>Jasper: Did the user have to rewrite the copy? If yes, the Taste eval failed.</li>
+  <li>Creative agent: Did the user have to redo the research or rewrite the hooks? If yes, either Research Quality or Hook Quality failed.</li>
+</ul>
+
+<p>The "without" clause is your north star because it translates an abstract concept ("quality") into something concrete and measurable ("did the user have to do additional work?").</p>
+
+<div class="callout insight">
+  <div class="callout-title">Write the "Without" Clause First, Everything Else Second</div>
+  If you do nothing else from this chapter, write the "without" clause for every AI feature in your product. Pin it to the top of your feature doc. Reference it in every design discussion and eval review. It is the single most clarifying sentence you can write about your product, because it answers the fundamental question: <strong>what work is this AI supposed to eliminate?</strong><br><br>
+  When you're stuck on an eval design, come back to the "without" clause. Ask: "Does this eval measure whether the user had to do the thing we promised they wouldn't have to do?" If the answer is yes, the eval is on track. If the answer is no, the eval is measuring something decorative, not functional.
+</div>
+
+
+<h3>The 5-Question Decomposition</h3>
+
+<p>The formula gives you direction. These five questions turn that direction into a complete quality specification. Answer them in order &mdash; each one builds on the last.</p>
+
+<h4>Question 1: What is the USER trying to accomplish?</h4>
+
+<p>Not "what does the AI do." What does the <em>user</em> need? The AI is a means to an end. The user has a job to be done, and the AI is just the tool they're using to do it.</p>
+
+<p>Write the user's goal in plain language, including the "without" clause from the formula above. This should be one sentence that anyone on your team can read and immediately understand. If you can't write it in one sentence, you probably have multiple jobs bundled into one feature &mdash; and each job needs its own quality definition.</p>
+
+<div class="callout example">
+  <div class="callout-title">The "Without" Clause Exercise</div>
+  For each AI feature, fill in: "The user wants to _______ without _______."<br><br>
+  <strong>Intercom AI bot:</strong> "The user wants to get their refund processed without waiting 2 hours for a human agent."<br><br>
+  <strong>Perplexity:</strong> "The user wants to understand a complex topic without reading 15 different web pages and synthesizing the information themselves."<br><br>
+  <strong>Notion AI:</strong> "The user wants to know what happened in a 90-minute meeting without watching the recording or reading 12 pages of notes."<br><br>
+  <strong>Creative campaign agent:</strong> "The user wants a complete set of ad creatives for their brand without hiring a creative director, a copywriter, and a designer."<br><br>
+  The "without" clause tells you what work the AI is replacing. If the user still has to do that work after using your AI, the feature has failed &mdash; regardless of how polished the output looks. This is what your eval must ultimately measure: <strong>did the AI actually eliminate the work it was supposed to eliminate?</strong>
+</div>
+
+<h4>Question 2: What would a GREAT human produce?</h4>
+
+<p>Not an average human. Not a junior employee on their first day. The <strong>best</strong> human you can imagine doing this task. This is your quality ceiling &mdash; the upper bound of what your AI should aspire to.</p>
+
+<p>Why the best? Because if you benchmark against average, you'll optimize for mediocrity. The whole point of AI is to give every user access to expert-level output. A customer support AI should perform like your best support agent, not your worst. A creative campaign agent should produce work at the level of an experienced creative director, not an intern with Canva.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; A Great Human Creative Director</div>
+  What would a great human creative director produce for "write 6 ad hooks for this brand"?<br><br>
+  &bull; Each hook takes a fundamentally different angle (emotional, statistical, curiosity, social proof, etc.)<br>
+  &bull; Every claim in the hooks traces back to real brand research &mdash; nothing fabricated<br>
+  &bull; The hooks match the brand's actual voice &mdash; a playful brand gets playful hooks, a premium brand gets sophisticated hooks<br>
+  &bull; The hooks target the brand's actual audience, not a generic "everyone"<br>
+  &bull; Each hook has a clear structure: attention-grabbing opening, brand-specific claim, and call to action<br>
+  &bull; The set as a whole tells a coherent brand story while each hook stands alone<br><br>
+  That's your standard. Write it down. It becomes the benchmark your eval measures against.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; A Great Human Research Analyst</div>
+  What would a great human research analyst produce when asked "Research this brand for a marketing campaign"?<br><br>
+  &bull; Visits the brand's website, About page, product pages, press/news section, and social media<br>
+  &bull; Identifies the brand's core positioning (not just what they sell, but <em>why</em> they say they're different)<br>
+  &bull; Finds specific, verifiable claims ("recycled ocean plastic" not just "sustainable materials")<br>
+  &bull; Notes the brand's visual identity (colors, photography style, illustration vs. photo)<br>
+  &bull; Identifies the target audience from messaging cues (language, imagery, price points)<br>
+  &bull; Checks 2&ndash;3 competitors to understand the competitive landscape<br>
+  &bull; Flags gaps: "I couldn't find pricing info" or "Their sustainability claims are vague &mdash; no specifics"<br><br>
+  Notice the last bullet. A great researcher tells you what they <em>didn't</em> find, not just what they found. This is calibration, and it's one of the hardest qualities to get from an AI system.
+</div>
+
+<p>A useful trick for writing the gold standard: <strong>actually do the task yourself.</strong> Spend 20 minutes doing the job the way you'd want it done. Write down what you did, in what order, and what the output looked like. That lived experience makes your quality definition concrete rather than theoretical. It also reveals dimensions of quality you'd never think of from the outside &mdash; the small details that separate "competent" from "expert."</p>
+
+<div class="callout warning">
+  <div class="callout-title">The Gold Standard Trap</div>
+  Be careful not to make the gold standard unrealistically high. If your gold standard describes what an expert would produce in 3 hours of focused work, but your agent has 30 seconds and limited tools, you'll set yourself up for failure. The gold standard should describe the <em>best reasonable output</em> for the time and resources available. A 30-second AI summary doesn't need to match a 3-hour human research brief. It needs to match the best possible 30-second summary.
+</div>
+
+
+<h4>Question 3: What are the FAILURE MODES?</h4>
+
+<p>This is where Phase 2 connects to Phase 3. In Chapter 07, you built a failure taxonomy from observed data. In Chapter 08, you cross-checked it against universal patterns. Now you bring those failures into your quality definition.</p>
+
+<p>For this specific job, which failure categories from your taxonomy are most relevant? Rank them by severity &mdash; which failures would most undermine the user's ability to accomplish their goal without doing additional work?</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Connection Between Phases</div>
+  This is the moment the guide comes together. Phase 2 gave you a map of failures. Phase 3 turns that map into a quality standard. Without Phase 2, your quality definition would be based on imagination. With it, it's based on observed reality. This is the chain: <strong>observation &rarr; failure map &rarr; quality definition &rarr; evals.</strong> Each step grounds the next in data.
+</div>
+
+<p>This connection is critical. Consider the difference between two quality definitions:</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Without Error Analysis</div>
+    <p>"Failure modes: hallucination, toxicity, format errors."</p>
+    <p style="font-size:13px;">Generic. Borrowed from a blog post. May not reflect your product's actual failure patterns at all.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">With Error Analysis</div>
+    <p>"Failure modes: Brand disconnection (26%), Shallow research (18%), Hook homogeneity (15%)."</p>
+    <p style="font-size:13px;">Specific. Data-driven. Directly from 50 observed traces. These are the failures that actually happen in production.</p>
+  </div>
+</div>
+
+<p>The second version leads to evals that catch real problems. The first version leads to evals that catch imaginary ones while real problems go undetected.</p>
+
+<h4>Question 4: What does "barely acceptable" look like?</h4>
+
+<p>This defines your <strong>quality floor</strong> &mdash; the minimum score below which you'd rather show nothing than show the AI's output. This is the hardest question and the most important, because it determines your pass/fail threshold.</p>
+
+<p>Think of it this way: every AI output exists on a spectrum from "terrible" to "perfect." Your quality floor is the point on that spectrum where you say "below this line, we show an error message or escalate to a human. Above this line, we show the output to the user." Set it too low and users see bad outputs. Set it too high and the AI is too conservative &mdash; it refuses to answer or shows "I can't help with that" too often, and users abandon the product.</p>
+
+<p>The quality floor is fundamentally a <strong>business decision</strong>, not a technical one. What's the cost of showing a bad output vs. the cost of showing nothing? For a medical chatbot, showing wrong information could cause harm &mdash; the floor should be high. For a creative brainstorming tool, showing a mediocre idea is fine &mdash; the user can just ignore it. Your floor reflects your product's risk tolerance.</p>
+
+<div class="callout example">
+  <div class="callout-title">Quality Floor &mdash; Customer Support Bot</div>
+  <strong>Barely acceptable (3/5):</strong><br>
+  &bull; Correctly identifies the customer's issue<br>
+  &bull; Provides the right policy information (refund window, shipping times)<br>
+  &bull; Tone is professional (not warm, not great &mdash; just professional)<br>
+  &bull; Might not address all parts of a multi-part question<br>
+  &bull; Gets the job done but the customer wouldn't describe the experience as "great"<br><br>
+  <strong>Below the floor (1&ndash;2/5):</strong><br>
+  &bull; Misidentifies the issue (customer asks about a return, bot talks about shipping)<br>
+  &bull; Gives wrong policy information (says "30-day returns" when it's actually 14 days)<br>
+  &bull; Invents an order number or tracking link that doesn't exist<br>
+  &bull; Tone is inappropriate (overly casual, dismissive, or robotic)<br><br>
+  Any output below the floor gets escalated to a human agent. <strong>The quality floor defines what your retry/escalation logic triggers on.</strong>
+</div>
+
+<h4>The 5-Point Quality Scale</h4>
+
+<p>To make floors and ceilings concrete, it helps to define all five levels. Here's a general template that works across products:</p>
+
+<div class="score-scale">
+  <div class="score-row">
+    <div class="score-num s1">1</div>
+    <div class="score-text"><strong>Unusable.</strong> Fundamentally wrong, harmful, or so broken the user can't extract any value. Automatic fail. Would damage user trust if shown.</div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s2">2</div>
+    <div class="score-text"><strong>Poor.</strong> Contains some relevant information, but the errors, gaps, or tone issues are severe enough that the user would need to start over. Saving it is harder than redoing it.</div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s3">3</div>
+    <div class="score-text"><strong>Acceptable.</strong> The quality floor. Gets the core job done. User would need to edit and polish, but wouldn't need to start over. Saves the user meaningful time despite its flaws.</div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s4">4</div>
+    <div class="score-text"><strong>Good.</strong> Correct, complete, appropriate. Minor polish needed. The user would send this to a colleague with only small edits. Clear value delivered.</div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s5">5</div>
+    <div class="score-text"><strong>Exceptional.</strong> The quality ceiling. Not just correct but insightful. Not just complete but synthesized. The user would use this as-is or with minimal changes. Demonstrates expertise.</div>
+  </div>
+</div>
+
+<p>Your specific definitions at each level will differ by product. The score descriptions above are starting points &mdash; fill in product-specific details at each level.</p>
+
+<div class="callout example">
+  <div class="callout-title">Quality Floor &mdash; Creative Campaign Agent</div>
+  <strong>Barely acceptable (3/5):</strong><br>
+  &bull; Hooks reference the actual brand and its real products (not generic)<br>
+  &bull; Each hook attempts a different angle (even if some overlap)<br>
+  &bull; Stats and claims trace back to the research (even if research is thin)<br>
+  &bull; Images are coherent and generally match the described art direction<br>
+  &bull; The user would need to edit and polish, but wouldn't need to start over<br><br>
+  <strong>Below the floor (1&ndash;2/5):</strong><br>
+  &bull; Hooks are interchangeable &mdash; swap the brand name and they still work<br>
+  &bull; Stats are fabricated (no basis in research)<br>
+  &bull; Images don't match the art direction at all<br>
+  &bull; Research missed fundamental facts about the brand (wrong industry, wrong product category)<br>
+  &bull; The user would need to start over from scratch &mdash; the output saves them zero time<br><br>
+  Below the floor, the agent has violated its core promise: saving the user the work of hiring a creative agency. If they have to start over, the agent was a waste of time.
+</div>
+
+
+<h4>Question 5: What does "exceptional" look like?</h4>
+
+<p>This defines your <strong>quality ceiling</strong> &mdash; what a score of 5/5 looks like. This matters because it gives your team something to optimize toward. Without a ceiling, "good enough" becomes the goal and the product plateaus.</p>
+
+<div class="callout example">
+  <div class="callout-title">Quality Ceiling &mdash; Research Brief</div>
+  Imagine Perplexity is asked to produce a research brief on "the state of remote work in 2026." Here's the difference between good and exceptional:<br><br>
+  <strong>Good (4/5):</strong><br>
+  &bull; Covers the main trends (hybrid models, async work, global hiring)<br>
+  &bull; Cites reliable sources (McKinsey, Stanford WFH Research)<br>
+  &bull; Provides specific statistics (% of companies with hybrid policies)<br>
+  &bull; Well-organized with clear sections<br><br>
+  <strong>Exceptional (5/5):</strong><br>
+  &bull; Everything above, PLUS:<br>
+  &bull; Identifies a non-obvious insight ("Companies with 4-day office weeks have higher attrition than 3-day, counterintuitively")<br>
+  &bull; Synthesizes conflicting data: "McKinsey says X, but Gallup's 2026 data shows Y, suggesting the trend is shifting"<br>
+  &bull; Proactively surfaces what the user didn't ask but should know: "Note: these figures vary dramatically by industry &mdash; tech vs. manufacturing show opposite trends"<br>
+  &bull; Appropriate confidence throughout: states consensus views as facts, flags contested claims as debated, admits gaps<br><br>
+  The difference between 4 and 5 is <strong>insight and synthesis</strong>. A 4 gives you the facts. A 5 helps you understand what the facts <em>mean</em>.
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Quality Ceiling &mdash; Creative Campaign Agent</div>
+  <strong>Good (4/5):</strong><br>
+  &bull; All 6 hooks are brand-specific and reference real product attributes<br>
+  &bull; Each hook uses a distinct angle (stat, story, FOMO, curiosity, callout, contrast)<br>
+  &bull; Images match the art direction and brand visual identity<br>
+  &bull; Research is thorough &mdash; covers products, positioning, and competitive landscape<br><br>
+  <strong>Exceptional (5/5):</strong><br>
+  &bull; Everything above, PLUS:<br>
+  &bull; Hooks don't just reference the brand &mdash; they capture the brand's <em>voice</em> and would feel native in the brand's existing marketing<br>
+  &bull; The stat hook uses a genuinely surprising, verifiable statistic that makes the reader stop scrolling<br>
+  &bull; The story hook creates an emotional scenario that's specific to the brand's target audience, not a generic "imagine if..."<br>
+  &bull; Images have a consistent visual language that could serve as a campaign identity, not just 6 unrelated pictures<br>
+  &bull; A creative director would use this as a starting point and refine it, rather than scrapping it and starting over<br><br>
+  The difference between 4 and 5: a 4 is <strong>correct and competent</strong>. A 5 is <strong>strategic and insightful</strong> &mdash; it demonstrates understanding of the brand's position in its market, not just its product features.
+</div>
+
+
+<h3>Quality Varies by User Segment</h3>
+
+<p>One more nuance before we move to multi-job quality definitions. Different users have different quality standards for the same output. A marketing intern might think a generic hook is "pretty good." A brand director would call the same hook "unusable agency filler." Both are right &mdash; from their perspective.</p>
+
+<p>This matters for your evals because <strong>you need to decide whose quality standard you're measuring against.</strong> In most cases, you should eval against the standard of your most demanding user segment &mdash; because if the output satisfies them, it satisfies everyone. If you eval against the least demanding segment, your product will be adequate for beginners and frustrating for experts.</p>
+
+<div class="callout example">
+  <div class="callout-title">Quality by User Segment</div>
+  <strong>Creative campaign agent &mdash; who uses it?</strong><br><br>
+  <strong>Segment A: Solo entrepreneur.</strong> No marketing background. Has never written an ad hook. For them, even a mediocre hook is better than what they'd produce themselves. Quality floor is low &mdash; "is it a hook? Does it mention my product? Good enough."<br><br>
+  <strong>Segment B: Marketing manager at a growth startup.</strong> Writes hooks regularly but wants to move faster. For them, the hooks need to be at least as good as what they'd write in 30 minutes. Quality floor is medium &mdash; "would I use this as a starting point? Or would I start over?"<br><br>
+  <strong>Segment C: Creative director at a brand agency.</strong> Reviews hundreds of hooks per month. For them, the hooks need to demonstrate strategic thinking and brand understanding. Quality floor is high &mdash; "does this show insight, or is it just filling a template?"<br><br>
+  <strong>Recommendation:</strong> Eval against Segment B (your core user). If Segment C is your target, eval against their standard. If Segment A is your only user, you have more room for lower quality &mdash; but you'll never move upmarket without raising the bar.
+</div>
+
+<p>The gap between 4 and 5 is where real product differentiation lives. Most AI products can reach 3 (acceptable) with decent prompting. Many can reach 4 (good) with careful engineering. Very few consistently reach 5 (exceptional) &mdash; and the ones that do are the products users evangelize. Understanding the gap between 4 and 5 is what separates a competent AI PM from a great one. It's also the gap that's hardest to eval &mdash; because the difference between "good" and "exceptional" is often about insight, synthesis, and nuance, which are the hardest qualities for automated systems to measure.</p>
+
+
+<h3>Different Jobs, Different Quality Definitions</h3>
+
+<p>Here's a subtlety that's easy to miss: quality is defined per job, not per product. An agent with multiple jobs needs multiple quality definitions.</p>
+
+<p>Consider a creative campaign agent with three major jobs:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Job</th>
+      <th>Quality Is Primarily About...</th>
+      <th>The "Without" Clause</th>
+      <th>Key Eval Dimensions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Brand Research</strong></td>
+      <td>Accuracy and completeness of discovered facts</td>
+      <td>Without manually browsing and reading the brand's entire web presence</td>
+      <td>Coverage, factual accuracy, competitive awareness</td>
+    </tr>
+    <tr>
+      <td><strong>Hook Writing</strong></td>
+      <td>Creativity, brand alignment, and variety</td>
+      <td>Without hiring a copywriter and going through 3 rounds of revisions</td>
+      <td>Brand voice match, angle diversity, claim grounding</td>
+    </tr>
+    <tr>
+      <td><strong>Image Generation</strong></td>
+      <td>Visual quality, prompt fidelity, brand coherence</td>
+      <td>Without hiring a designer and providing detailed creative briefs</td>
+      <td>Art direction match, visual consistency, technical quality</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Research accuracy has nothing to do with hook creativity. Image quality has nothing to do with research completeness. If you define "quality" as a single score across all three jobs, you're averaging apples and oranges. A brilliant set of hooks built on fabricated research would score "average" on a combined metric &mdash; hiding both the success and the failure.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Per-Job Principle</div>
+  Every job your agent performs needs its own quality definition, its own quality floor, its own quality ceiling, and its own eval criteria. This is not optional overhead &mdash; it's the only way to diagnose and fix problems at the right level. You wouldn't use one test to grade a student on math, English, and science. Don't use one eval to grade an agent on research, writing, and image generation.
+</div>
+
+<p>Consider what happens when you don't follow this principle. You create a single eval that measures "overall campaign quality" on a 1&ndash;5 scale. Campaign A scores 3.5: the research was excellent (5/5), the hooks were mediocre (3/5), and the images were poor (2/5). Campaign B also scores 3.5: the research was poor (2/5), the hooks were excellent (5/5), and the images were acceptable (3.5/5). Same score, completely different problems, completely different fixes. The averaged number hides everything useful.</p>
+
+<p>This principle also resolves a common organizational conflict. Different stakeholders care about different jobs. The creative director cares about hook quality and image aesthetics. The brand strategist cares about research accuracy and brand alignment. The engineering lead cares about pipeline reliability and generation time. When you define quality per job, each stakeholder has a clear set of metrics that maps to their concerns. No more arguments about whether "quality is improving" when research is getting better but images are getting worse.</p>
+
+
+<h3>Common Mistakes in Quality Definition</h3>
+
+<p>Before we assemble the Good Output Document, let me flag the mistakes teams make most often at this stage. Knowing these in advance will save you from rewriting your quality definition later.</p>
+
+<h4>Mistake 1: Defining Quality by Output Characteristics, Not User Outcomes</h4>
+<p>"The summary should be 3&ndash;5 paragraphs, well-structured, with no grammatical errors." That's an output specification, not a quality definition. A well-structured, grammatically perfect summary that misses the key insight is still a failure. Quality starts with the user's outcome: "The user can make a decision based on this summary without reading the original." Output characteristics support that outcome, but they're not the outcome itself.</p>
+
+<h4>Mistake 2: Defining Quality Too Abstractly</h4>
+<p>"The output should be high quality and relevant." Every team would agree with this sentence and no two teams would interpret it the same way. Quality definitions must be specific enough that two evaluators would agree on borderline cases. "The hook references at least one specific product attribute from the research" is testable. "The hook should be relevant" is not.</p>
+
+<h4>Mistake 3: Forgetting the Quality Floor</h4>
+<p>Teams define what "great" looks like (the ceiling) and what "terrible" looks like (obvious fails) but forget the messy middle. The quality floor &mdash; the line between "show it" and "don't show it" &mdash; is the most important decision in your entire quality definition. It determines your user experience for the median output, not the best or worst output.</p>
+
+<h4>Mistake 4: One Quality Definition for Multiple Jobs</h4>
+<p>As we'll see in the next section, a single quality definition for a multi-job agent is like a single test for math, English, and science. The research job and the hook-writing job have fundamentally different quality dimensions. Define them separately.</p>
+
+
+<h3>Non-Negotiables: The Automatic Fail List</h3>
+
+<p>Before we assemble the Good Output Document, let's talk about non-negotiables. These are criteria where failure is <strong>unacceptable regardless of overall quality.</strong> An output can score 5/5 on every other dimension, but if it violates a non-negotiable, it's an automatic fail.</p>
+
+<p>Non-negotiables typically fall into three categories:</p>
+
+<ul>
+  <li><strong>Trust-breaking:</strong> Fabricated facts, hallucinated sources, made-up statistics. Once a user catches your agent lying, they stop trusting all of its output &mdash; even the accurate parts.</li>
+  <li><strong>Harm-causing:</strong> Offensive content, dangerous advice, privacy violations. These create legal and reputational risk that no amount of "good quality on average" can offset.</li>
+  <li><strong>Contract-breaking:</strong> Things your product explicitly promises not to do. If your product says "no stock photography," an image that looks like stock photography is a non-negotiable fail even if it's technically AI-generated.</li>
+</ul>
+
+<p>The purpose of non-negotiables is to set a hard floor that your eval system can enforce automatically. When a non-negotiable fails, the system doesn't show the output to the user &mdash; it retries, escalates, or shows an error. This is different from quality floor failures, where the output is subpar but not dangerous.</p>
+
+<div class="callout example">
+  <div class="callout-title">Non-Negotiables by Product Type</div>
+  <strong>Search / Research:</strong> No fabricated citations. No invented sources. No presenting one side of a debate as settled fact.<br><br>
+  <strong>Customer Support:</strong> No incorrect policy information. No fabricated order numbers. No promises the system can't fulfill.<br><br>
+  <strong>Creative / Marketing:</strong> No fabricated statistics. No brand name misspellings. No content that could damage the brand (offensive, controversial, or legally risky).<br><br>
+  <strong>Medical / Legal:</strong> No definitive diagnoses or legal conclusions. Always includes disclaimer to consult a professional. No recommendations that contradict established guidelines.<br><br>
+  <strong>Code Generation:</strong> No code that deletes data without confirmation. No hard-coded credentials. No security vulnerabilities in generated code.
+</div>
+
+
+<h3>The Good Output Document</h3>
+
+<p>After answering all five questions, compile your answers into a single document. This becomes the source of truth for your eval rubric, and the document you hand to anyone new joining the team.</p>
+
+<div class="callout success">
+  <div class="callout-title">Template &mdash; Good Output Document</div>
+  <strong>Feature:</strong> [Name of the AI feature or job]<br>
+  <strong>User Goal:</strong> The user wants to _______ without _______.<br>
+  <strong>Gold Standard:</strong> [What the best human would produce &mdash; 5&ndash;8 bullet points]<br>
+  <strong>Failure Modes:</strong> [Which modes apply to this feature, ranked by severity, pulled from your Ch 07 taxonomy]<br>
+  <strong>Quality Floor (3/5):</strong> [What "barely acceptable" looks like &mdash; 3&ndash;5 bullet points]<br>
+  <strong>Quality Ceiling (5/5):</strong> [What "exceptional" looks like &mdash; 3&ndash;5 bullet points]<br>
+  <strong>Non-Negotiables:</strong> [Things that are automatic fails regardless of overall quality &mdash; e.g., fabricated facts, harmful content, format breaks, brand misidentification]<br><br>
+  Write this document <strong>before</strong> you write a single eval. It takes 30 minutes per job and saves weeks of building evals that measure the wrong things.
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Completed Example &mdash; Hook Writing Job</div>
+  <strong>Feature:</strong> Ad Hook Generation<br><br>
+  <strong>User Goal:</strong> The user wants 6 distinct, on-brand ad hooks so they can launch a social campaign without hiring a copywriter or spending days on creative iteration.<br><br>
+  <strong>Gold Standard:</strong><br>
+  &bull; Each hook uses a fundamentally different persuasion angle (stat, story, FOMO, curiosity, callout, contrast)<br>
+  &bull; Every claim traces back to the brand research &mdash; no fabricated stats<br>
+  &bull; Hooks match the brand's voice (playful brands get playful hooks, premium brands get refined hooks)<br>
+  &bull; Each hook has a clear structure: attention-grabbing first line, brand-specific claim, implicit or explicit CTA<br>
+  &bull; A creative director would recognize these as strong first drafts, not generic filler<br><br>
+  <strong>Failure Modes (from taxonomy):</strong><br>
+  &bull; Brand disconnection (#1 &mdash; 26% of failures)<br>
+  &bull; Hook homogeneity (#3 &mdash; 15%)<br>
+  &bull; Fabricated claims (#5 &mdash; 13%)<br><br>
+  <strong>Quality Floor (3/5):</strong><br>
+  &bull; All hooks reference the actual brand and its real products<br>
+  &bull; At least 4 of 6 hooks use distinct angles<br>
+  &bull; No fabricated statistics or claims<br>
+  &bull; Tone is appropriate for the brand category (not comically off)<br><br>
+  <strong>Quality Ceiling (5/5):</strong><br>
+  &bull; Every hook captures the brand's voice, not just its products<br>
+  &bull; The stat hook uses a genuinely surprising, verifiable number<br>
+  &bull; Hooks target the brand's specific audience, not a generic "everyone"<br>
+  &bull; A creative director would iterate on these, not replace them<br><br>
+  <strong>Non-Negotiables (automatic fail):</strong><br>
+  &bull; Any fabricated statistic or claim not grounded in research<br>
+  &bull; A hook that could work for any brand (fails logo swap test)<br>
+  &bull; Brand name or product name misspelled<br>
+  &bull; Offensive, insensitive, or brand-damaging content
+</div>
+
+
+<div class="callout success">
+  <div class="callout-title">Do &mdash; Chapter 09 Exercise</div>
+  Complete the Good Output Document for your #1 priority job. Use the template above.<br><br>
+  1. Write the "without" clause formula<br>
+  2. Describe what a great human would produce (5&ndash;8 bullet points)<br>
+  3. List the relevant failure modes from your Chapter 07 taxonomy<br>
+  4. Define your quality floor (3/5) with specific criteria<br>
+  5. Define your quality ceiling (5/5) with specific criteria<br>
+  6. List your non-negotiables (automatic fails)<br><br>
+  <strong>Time:</strong> 30 minutes. <strong>Value:</strong> This document prevents weeks of building evals for the wrong things.
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">When to Update the Good Output Document</div>
+  Your Good Output Document is a living document, not a carved-in-stone specification. Update it when:<br><br>
+  &bull; <strong>New failure modes emerge</strong> &mdash; add them to the Failure Modes section<br>
+  &bull; <strong>Your user base changes</strong> &mdash; different users have different quality standards<br>
+  &bull; <strong>Your model changes</strong> &mdash; a better model may make your quality ceiling higher<br>
+  &bull; <strong>You learn from eval results</strong> &mdash; running evals will reveal gaps in your quality definition<br>
+  &bull; <strong>Competitors raise the bar</strong> &mdash; what was "exceptional" last quarter may be "baseline" this quarter<br><br>
+  Husain calls this "criteria drift" and considers it expected: "Evaluation criteria evolve as reviewers observe more outputs. Treat them as living documents, not fixed specifications." The Good Output Document is your best current understanding of quality &mdash; and it will improve over time.
+</div>
+
+<p>You have a written definition of quality AND a map of failures. You know what "good" looks like and you know every way the agent falls short of it. Now you need a framework to organize these into measurable dimensions &mdash; to take your intuitive understanding of quality and break it into categories you can track, score, and improve independently. That's where ACCT comes in.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 10: THE ACCT FRAMEWORK — ORGANIZING QUALITY                  -->
+<!-- ═══════════════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+<h2 id="ch10"><span class="section-num">Chapter 10</span>The ACCT Framework &mdash; Organizing Quality</h2>
+
+<p>You now have two powerful artifacts: a failure taxonomy (from Phase 2) and a Good Output Document (from Chapter 09). Both are specific to your product, grounded in observed data, and written in plain language your team can understand.</p>
+
+<p>Now you need a <strong>framework</strong> &mdash; a way to organize all of this into categories you can track and improve independently. That framework is ACCT: Accuracy, Completeness, Calibration, and Taste.</p>
+
+<p>ACCT is not something we invented. It emerged from studying how every major AI product team thinks about quality. Whether they use these exact words or not, every eval rubric we've seen maps to one of these four dimensions. Understanding them gives you a universal language for talking about AI quality &mdash; across products, across teams, across the industry.</p>
+
+<p>Why do you need a framework when you already have a Good Output Document? Because the Good Output Document is <em>specific</em> &mdash; it defines quality for one job. ACCT is <em>universal</em> &mdash; it organizes quality across all jobs, all products, and all conversations with stakeholders. When your CEO asks "how is quality?" they don't want a job-by-job breakdown. They want to know: "Is the output accurate? Does it do the whole job? Does it know its limits? Does it feel right?" Those four questions are ACCT.</p>
+
+
+<h3>The Four Dimensions</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th></th>
+      <th>Dimension</th>
+      <th>Core Question</th>
+      <th>Real Product Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td style="font-weight:700;color:var(--coral);font-size:22px">A</td>
+      <td><strong>Accuracy</strong></td>
+      <td>Is the information correct?</td>
+      <td>Perplexity says "Apple was founded in 1974" &mdash; it was 1976. Fail.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:var(--coral);font-size:22px">C</td>
+      <td><strong>Completeness</strong></td>
+      <td>Did it do the whole job?</td>
+      <td>Notion AI summarizes 3 of 5 key points. User has to read the original anyway. Fail.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:var(--coral);font-size:22px">C</td>
+      <td><strong>Calibration</strong></td>
+      <td>Does it know what it doesn't know?</td>
+      <td>A medical chatbot says "You definitely have strep throat" instead of "This could be strep &mdash; see a doctor." Dangerous fail.</td>
+    </tr>
+    <tr>
+      <td style="font-weight:700;color:var(--coral);font-size:22px">T</td>
+      <td><strong>Taste</strong></td>
+      <td>Does the output feel right?</td>
+      <td>A luxury brand's AI writes like a college intern. Tone mismatch. Brand fail.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Let's go deeper on each one &mdash; not just what it means, but how it connects to the failures you observed in Phase 2 and the quality you defined in Chapter 09.</p>
+
+
+<h4>Accuracy: Is the Information Correct?</h4>
+
+<p>Accuracy is the most straightforward dimension. Either the fact is right or it's wrong. Apple was founded in 1976 or it wasn't. The refund window is 14 days or it isn't.</p>
+
+<p>But "accuracy" applies differently depending on your product:</p>
+
+<ul>
+  <li><strong>Search products (Perplexity):</strong> Accuracy means factual correctness of claims and citations</li>
+  <li><strong>Support bots (Intercom):</strong> Accuracy means correct policy information and order details</li>
+  <li><strong>Creative agents:</strong> Accuracy means claims in hooks are grounded in actual research &mdash; the brand really does use recycled materials, the market really is growing at 12%</li>
+  <li><strong>Code assistants (Cursor, Copilot):</strong> Accuracy means the generated code compiles, runs, and produces correct output</li>
+</ul>
+
+<p><strong>Which failures from your taxonomy map here?</strong> Hallucination Bridge, Stale Information, Fabricated Claims, Entity Confusion. If your Phase 2 taxonomy has categories that boil down to "the agent said something that isn't true," those are Accuracy failures.</p>
+
+
+<h4>Completeness: Did It Do the Whole Job?</h4>
+
+<p>Completeness asks whether the agent finished what it started. Not just "did it produce output" but "did the output cover everything the user needed?"</p>
+
+<p>This dimension is where the "without" clause from Chapter 09 becomes measurable. If the user needs a summary so they can skip the original document, and the summary misses two key points, the user still has to read the original. The agent was incomplete, and the "without" promise was broken.</p>
+
+<ul>
+  <li><strong>Summarization (Notion AI):</strong> Did the summary capture all the key points?</li>
+  <li><strong>Research agents:</strong> Did the research cover the full landscape &mdash; or just the first page of results?</li>
+  <li><strong>Creative agents:</strong> Are all 6 hooks genuinely different, or are 3 of them variations on the same angle?</li>
+  <li><strong>Customer support:</strong> If the user asked a multi-part question, did the bot address every part?</li>
+</ul>
+
+<p><strong>Which failures from your taxonomy map here?</strong> Shallow Research, Hook Homogeneity, "Lazy Middle" (thorough start, rushed ending), partial task completion. If your taxonomy has categories that boil down to "the agent did part of the job but not all of it," those are Completeness failures.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">The Completeness Trap</div>
+  Completeness failures are sneaky because the output <em>looks</em> finished. A research summary with 5 paragraphs looks complete. But if the brand has a revolutionary new product line that the research missed entirely, those 5 paragraphs are incomplete &mdash; there should have been 7. The user doesn't know about the missing paragraphs because they don't know what they don't know. That's the trap: incomplete outputs are invisible to the user unless they do the work the agent was supposed to do.<br><br>
+  This is why Completeness evals often require a "gold standard" &mdash; a reference answer that represents what a complete output should cover. Without it, you're measuring whether the output looks complete, not whether it <em>is</em> complete.
+</div>
+
+
+<h4>Calibration: Does It Know What It Doesn't Know?</h4>
+
+<p>Calibration is the most subtle dimension, and the most dangerous when it fails. A well-calibrated agent matches its confidence to its actual certainty. It says "definitely" when it's sure, "probably" when it's likely, and "I don't know" when it doesn't.</p>
+
+<p>Why does this matter? Because <strong>users calibrate their trust based on the agent's confidence.</strong> If the agent is always confident, users either trust everything (dangerous) or trust nothing (useless). Good calibration means the user can trust the agent's confidence as a signal: when it's confident, the information is reliable; when it hedges, the user knows to verify.</p>
+
+<ul>
+  <li><strong>Medical chatbots:</strong> "This could be strep throat &mdash; see a doctor" vs. "You definitely have strep throat." The difference is a lawsuit.</li>
+  <li><strong>Financial advisors:</strong> "Based on historical trends, this investment carries moderate risk" vs. "This stock will definitely go up." The difference is a regulatory violation.</li>
+  <li><strong>Search products:</strong> "Experts disagree on this topic" vs. presenting one side as settled fact.</li>
+  <li><strong>Creative agents:</strong> "I found limited information about this brand's sustainability practices" vs. confidently generating hooks about sustainability based on guesswork.</li>
+</ul>
+
+<p><strong>Which failures from your taxonomy map here?</strong> Overconfidence, Sycophancy Trap, Ghost Actions (claiming completion when incomplete). If your taxonomy has categories that boil down to "the agent was more confident than the evidence warranted," those are Calibration failures.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Calibration Is About Trust Management</div>
+  Think of calibration as the agent managing the user's trust. Every claim the agent makes is an implicit trust request: "believe this." If the agent is well-calibrated, the user learns over time that confident claims are reliable and hedged claims need verification. This is enormously valuable &mdash; it means the user can use the agent's confidence as a signal.<br><br>
+  If the agent is poorly calibrated (always confident, even when wrong), the user can't use confidence as a signal. They either trust everything (and get burned) or trust nothing (and the agent is useless). Bad calibration destroys the information value of the agent's output, even when the output is mostly accurate.
+</div>
+
+
+<h4>Taste: Does the Output Feel Right?</h4>
+
+<p>Taste is the hardest dimension to eval because it's subjective &mdash; or more precisely, it <em>seems</em> subjective until you define it carefully. "This doesn't feel right" is not a useful eval criterion. "This uses casual slang for a luxury brand audience" is.</p>
+
+<p>Taste encompasses tone, voice, style, format, reading level, and overall "fit" with the context. It's the dimension where domain expertise matters most &mdash; a luxury brand PM knows what luxury tone sounds like; a developer tools PM knows what technical documentation should read like.</p>
+
+<ul>
+  <li><strong>Marketing AI (Jasper):</strong> Does the copy match the brand's voice? Would it fit alongside the brand's existing content?</li>
+  <li><strong>Customer support:</strong> Is the tone appropriate for the situation? Empathetic for complaints, efficient for simple inquiries?</li>
+  <li><strong>Creative agents:</strong> Does the art style match the brand identity? Are the hooks written in a voice that matches the brand?</li>
+  <li><strong>Documentation tools:</strong> Is the writing clear, appropriately technical, and well-structured?</li>
+</ul>
+
+<p><strong>Which failures from your taxonomy map here?</strong> Generic Trap, Brand Disconnection, Art Style Mismatch, tone/voice misalignment. If your taxonomy has categories that boil down to "the output is technically correct but doesn't fit the context," those are Taste failures.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Subjectivity Myth</div>
+  Hamel Husain addresses the "taste is subjective" objection directly: "Subjective usually means we haven't defined our criteria yet." The fix isn't to abandon Taste as an eval dimension. The fix is to make Taste criteria more specific. Instead of "good tone," specify: "Uses second person ('you'), active voice, sentences under 20 words, no jargon without definition, warm but professional." Now it's testable.
+</div>
+
+<p>Here's a practical technique for making Taste criteria specific: <strong>collect 5 examples of outputs you consider "good taste" and 5 you consider "bad taste."</strong> Then ask yourself: what's the difference? Write it down. That difference &mdash; expressed in concrete, observable terms &mdash; is your Taste criterion.</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Bad Taste Criterion</div>
+    <p>"The hooks should have good tone."</p>
+    <p style="font-size:13px; color:var(--ink-muted);">Vague. Different people would interpret "good tone" differently. An LLM-as-judge would default to "seems fine."</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Good Taste Criterion</div>
+    <p>"The hooks should match the energy level of the brand's existing marketing: if the brand uses casual, playful language on their website, the hooks should be casual and playful. If the brand uses formal, measured language, the hooks should be formal and measured."</p>
+    <p style="font-size:13px; color:var(--ink-muted);">Specific. References observable characteristics. An evaluator can check the brand's website and compare. An LLM-as-judge can be given the brand's existing copy as reference.</p>
+  </div>
+</div>
+
+
+<h3>Mapping Your Quality Definition to ACCT</h3>
+
+<p>Here's where ACCT becomes a practical tool rather than an abstract framework. Take your Good Output Document from Chapter 09 and map every criterion to an ACCT dimension.</p>
+
+<div class="callout example">
+  <div class="callout-title">Mapping Example &mdash; Hook Writing Job</div>
+  From the Good Output Document earlier:<br><br>
+  <strong>Accuracy:</strong><br>
+  &bull; Every claim traces back to the brand research &mdash; no fabricated stats<br>
+  &bull; Brand name and product names are correct<br><br>
+  <strong>Completeness:</strong><br>
+  &bull; All 6 hook angles are genuinely different (not variations on the same theme)<br>
+  &bull; Each hook has the required structure (opening, claim, CTA)<br><br>
+  <strong>Calibration:</strong><br>
+  &bull; Stats cite specific sources, not vague "studies show"<br>
+  &bull; If research was thin, hooks rely on observable product features rather than market claims<br><br>
+  <strong>Taste:</strong><br>
+  &bull; Hooks match the brand's voice (playful/premium/technical/etc.)<br>
+  &bull; Hooks would fit naturally alongside the brand's existing marketing<br>
+  &bull; Hooks target the brand's actual audience, not a generic "everyone"
+</div>
+
+<p>This mapping does three important things:</p>
+
+<p><strong>First, it organizes your criteria into trackable categories.</strong> You can now report "Accuracy: 92%, Completeness: 78%, Calibration: 85%, Taste: 71%" and immediately know where to focus improvement efforts. This is infinitely more useful than a single "quality: 82%" number that hides which dimensions are strong and which are weak.</p>
+
+<p><strong>Second, it reveals gaps.</strong> If an ACCT dimension has no criteria mapped to it, either that dimension isn't relevant to this job (possible but unlikely) or you missed something in your quality definition (more likely). An empty Calibration column, for instance, might mean you haven't thought about whether the agent should express uncertainty when research is thin.</p>
+
+<p><strong>Third, it creates a shared vocabulary.</strong> When someone says "the hooks are bad," you can now ask: "Bad how? Inaccurate claims? Incomplete coverage? Wrong confidence level? Wrong tone?" Each of those is a different problem with a different fix. ACCT gives your team a common language for diagnosis.</p>
+
+<div class="callout example">
+  <div class="callout-title">ACCT Mapping &mdash; Customer Support Bot</div>
+  <strong>Accuracy:</strong><br>
+  &bull; Correct policy information (return windows, shipping times, pricing)<br>
+  &bull; Correct order status and tracking information<br>
+  &bull; No fabricated order numbers or tracking links<br><br>
+  <strong>Completeness:</strong><br>
+  &bull; All parts of multi-part questions addressed<br>
+  &bull; Relevant next steps provided (not just the answer, but what to do with it)<br>
+  &bull; Links to relevant help articles when appropriate<br><br>
+  <strong>Calibration:</strong><br>
+  &bull; Escalates to human when issue is outside the bot's scope<br>
+  &bull; Says "I'm not sure about this" rather than guessing on policy edge cases<br>
+  &bull; Doesn't over-promise resolution ("I'll make sure this is resolved" when it can't guarantee that)<br><br>
+  <strong>Taste:</strong><br>
+  &bull; Empathetic tone for complaints, efficient tone for simple inquiries<br>
+  &bull; Professional but not robotic<br>
+  &bull; Matches the company's brand voice (casual startup vs. formal enterprise)
+</div>
+
+
+<h3>ACCT Weight By Product Type</h3>
+
+<p>While all four dimensions matter for every product, different products weight them differently. Understanding which dimension is most critical for your product type helps you prioritize your eval investment.</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Product Type</th>
+      <th>Primary Dimension</th>
+      <th>Secondary</th>
+      <th>Why</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Search / Research</strong> (Perplexity)</td>
+      <td>Accuracy</td>
+      <td>Calibration</td>
+      <td>Users make decisions based on the facts. Wrong facts cause bad decisions. Over-confident wrong facts cause confident bad decisions.</td>
+    </tr>
+    <tr>
+      <td><strong>Customer Support</strong> (Intercom AI)</td>
+      <td>Accuracy</td>
+      <td>Completeness</td>
+      <td>Wrong policy info creates legal liability. Incomplete answers require follow-ups that defeat the purpose of automation.</td>
+    </tr>
+    <tr>
+      <td><strong>Creative / Marketing</strong> (Jasper, campaign agents)</td>
+      <td>Taste</td>
+      <td>Accuracy</td>
+      <td>Generic or off-brand copy is the most common failure. But fabricated claims are the most dangerous failure.</td>
+    </tr>
+    <tr>
+      <td><strong>Code Generation</strong> (Cursor, Copilot)</td>
+      <td>Accuracy</td>
+      <td>Completeness</td>
+      <td>Code either works or it doesn't (accuracy). Missing error handling or edge cases (completeness) causes production bugs.</td>
+    </tr>
+    <tr>
+      <td><strong>Medical / Legal Advisory</strong></td>
+      <td>Calibration</td>
+      <td>Accuracy</td>
+      <td>Saying "I'm not sure, consult a professional" when uncertain is more important than being right. An overconfident wrong answer causes harm.</td>
+    </tr>
+    <tr>
+      <td><strong>Education</strong> (Duolingo, Khan Academy)</td>
+      <td>Completeness</td>
+      <td>Taste</td>
+      <td>Covering the full concept matters more than stylistic perfection. But explanations must match the learner's level (taste).</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>This table is a starting point, not a prescription. Your specific product may weight dimensions differently based on your user base, competitive landscape, and risk tolerance. The point is to be intentional about which dimensions deserve the most eval investment.</p>
+
+
+<h3>The Pass/Fail vs. Score Debate</h3>
+
+<p>Now that you have criteria organized by ACCT dimension, you need to decide: is each criterion a <strong>pass/fail</strong> check or a <strong>scored</strong> dimension?</p>
+
+<p>The industry is genuinely divided on this:</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Likert Scales (1&ndash;5)</div>
+    <p><strong>Used by:</strong> Anthropic documentation, most eval platforms, academic benchmarks</p>
+    <p><strong>Pro:</strong> Granular. Tracks incremental improvement over time. Easy to average and graph. Captures the difference between "slightly off" and "catastrophically wrong."</p>
+    <p><strong>Con:</strong> LLM judges default to 3&ndash;4 (central tendency bias). The difference between a 3 and a 4 is subjective and inconsistent across annotators. Creates false precision &mdash; the score looks exact but isn't.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Binary Pass/Fail</div>
+    <p><strong>Used by:</strong> Hamel Husain, Shreya Shankar (taught to 700+ engineers and PMs), Hebbia</p>
+    <p><strong>Pro:</strong> Forces clear criteria. Easy to agree on. "Did it hallucinate? Yes or No." No ambiguity. Produces more consistent labels across annotators.</p>
+    <p><strong>Con:</strong> Loses nuance. A "fail" that's slightly off and a "fail" that's dangerously wrong look the same. Can't track incremental improvement.</p>
+  </div>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">Recommendation: Start With Pass/Fail</div>
+  Start with binary pass/fail for every criterion. It forces you to define exactly what a "pass" looks like, which is the hard work you need to do regardless of your scoring approach. The clarity that binary forces is more valuable than the nuance you lose.<br><br>
+  Once your pass rates stabilize and you need to track incremental improvement, switch to 1&ndash;5 scoring for the dimensions where nuance matters (like Taste &mdash; where "slightly off-brand" and "completely wrong brand" are genuinely different problems). Keep pass/fail for dimensions where it's truly binary (like Accuracy &mdash; the fact is either right or wrong, there is no "partially founded in 1974").
+</div>
+
+<p>Husain's reasoning on this is worth quoting in full: "The difference between adjacent points on a Likert scale (like 3 vs. 4) is subjective and inconsistent." Binary forces clearer thinking. When you have to decide "pass or fail" rather than "3 or 4," you're forced to articulate exactly what the boundary is. That articulation is the real work of eval design. The scoring is just bookkeeping.</p>
+
+<p>There's also a practical benefit for LLM-as-judge: binary decisions produce more consistent results across runs. When you ask an LLM "rate this on a 1&ndash;5 scale," it tends to cluster around 3&ndash;4 (central tendency bias) and varies between runs. When you ask "does this output contain any fabricated claims? Yes or No," the answer is much more consistent. Anthropic's research team found that a single LLM-as-judge call with binary pass/fail was "the most consistent and aligned with human judgments" for their multi-agent research evaluation.</p>
+
+<p>That said, there are legitimate reasons to use scores later:</p>
+<ul>
+  <li><strong>Tracking incremental improvement.</strong> If your pass rate on "hook brand alignment" goes from 72% to 73%, that's hard to get excited about. But if the average score goes from 3.2 to 3.7, the improvement is visible.</li>
+  <li><strong>Distinguishing severity.</strong> "Fabricated a stat" and "fabricated an entire paragraph" are both Accuracy fails, but they're not equally bad. A severity score captures this.</li>
+  <li><strong>A/B testing.</strong> When comparing two models or two prompts, scores give you more statistical power than pass/fail (you need fewer test cases to detect a difference).</li>
+</ul>
+
+<p>The recommendation remains: start with pass/fail. Graduate to scores when you have a specific reason that pass/fail isn't giving you enough information.</p>
+
+
+<h3>The Required vs. Additional Split</h3>
+
+<p>Hebbia, a company that builds AI for document analysis, introduced a useful refinement: split your criteria into two tiers.</p>
+
+<p><strong>Required criteria</strong> define the minimum acceptable behavior &mdash; your agent SLA. If any required criterion fails, the output fails. Period. These are your non-negotiables from the Good Output Document.</p>
+
+<p><strong>Additional criteria</strong> measure advanced quality &mdash; the difference between "acceptable" and "excellent." An output can pass all required criteria and still score low on additional criteria. That means it's usable but not great.</p>
+
+<div class="callout example">
+  <div class="callout-title">Two-Tier Criteria &mdash; Creative Campaign Agent</div>
+  <strong>Required (must pass for the output to be acceptable):</strong><br>
+  &bull; All hooks reference the actual brand (Accuracy)<br>
+  &bull; No fabricated statistics (Accuracy)<br>
+  &bull; At least 4 of 6 hooks use distinct angles (Completeness)<br>
+  &bull; Images are coherent and match general art direction (Taste)<br><br>
+  <strong>Additional (separates good from excellent):</strong><br>
+  &bull; Hooks capture the brand's specific voice, not just its products (Taste)<br>
+  &bull; The stat hook uses a genuinely surprising number (Taste + Calibration)<br>
+  &bull; Research covers competitive landscape, not just the brand's own site (Completeness)<br>
+  &bull; Image set has a consistent visual identity across all 6 images (Taste)<br><br>
+  This means a 60% overall score is not necessarily a failure. It might mean: all required criteria passed (the output is usable), but most additional criteria missed (the output isn't impressive). That's a different problem than an output where required criteria failed (the output is garbage).
+</div>
+
+<p>This two-tier structure is especially useful for communicating with stakeholders. "We're passing all SLAs but only hitting 40% on advanced quality" tells a very different story than "our eval score is 65%." The first tells you the product is reliable but needs polish. The second tells you almost nothing.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Two-Tier Reporting in Practice</div>
+  Imagine this weekly quality report:<br><br>
+  <pre><span class="code-hl">Quality Report &mdash; Week of March 24, 2026</span>
+
+<span class="code-keyword">Required Criteria (SLA):</span>
+  Brand accuracy:       <span class="code-string">96% pass</span>  (target: 95%)  <span class="code-comment">OK</span>
+  No fabricated claims:  <span class="code-string">91% pass</span>  (target: 95%)  <span class="code-accent">BELOW TARGET</span>
+  Hook variety:          <span class="code-string">88% pass</span>  (target: 85%)  <span class="code-comment">OK</span>
+  Image coherence:       <span class="code-string">94% pass</span>  (target: 90%)  <span class="code-comment">OK</span>
+
+<span class="code-keyword">Additional Criteria (Advanced):</span>
+  Brand voice match:    <span class="code-string">62% pass</span>
+  Surprising stat hook: <span class="code-string">41% pass</span>
+  Competitive context:  <span class="code-string">38% pass</span>
+  Visual consistency:   <span class="code-string">55% pass</span></pre>
+  <br>
+  This tells a clear story: the product is reliable (most SLAs met) but the fabricated claims issue needs immediate attention (below target). Advanced quality has room for improvement, especially around competitive research and stat hook quality. A single "quality: 74%" number would hide all of this diagnostic information.
+</div>
+
+<p>The two-tier structure also resolves a common team debate: "Should we ship this version?" If all Required criteria meet their targets, yes &mdash; ship it, and improve the Additional criteria in the next iteration. If any Required criterion is below target, no &mdash; fix it before shipping. This turns a subjective "is it good enough?" conversation into an objective checklist.</p>
+
+<h4>How to Decide: Required or Additional?</h4>
+
+<p>The line between Required and Additional can feel arbitrary. Here's a decision framework:</p>
+
+<p><strong>A criterion is Required if:</strong></p>
+<ul>
+  <li>Failure would cause the user to lose trust in the product (fabricated facts, harmful content)</li>
+  <li>Failure would make the output unusable (format breaks, wrong brand, major inaccuracy)</li>
+  <li>Failure would require the user to start over rather than edit (complete brand disconnection)</li>
+  <li>Failure would violate a promise your product makes ("no hallucinated stats")</li>
+</ul>
+
+<p><strong>A criterion is Additional if:</strong></p>
+<ul>
+  <li>Failure makes the output less impressive but still usable</li>
+  <li>The user could fix the issue with minor editing</li>
+  <li>It represents the difference between "competent" and "expert"</li>
+  <li>It's aspirational rather than foundational</li>
+</ul>
+
+<p>When in doubt, make it Required. You can always move it to Additional later if it proves too strict. But starting too lenient means shipping outputs that damage user trust &mdash; and trust is much harder to rebuild than to maintain.</p>
+
+
+<h3>ACCT Is a Lens, Not a Cage</h3>
+
+<p>A final note on how to use ACCT. It's an organizing framework, not a rigid taxonomy. Not every criterion will map cleanly to exactly one dimension. "The stat hook uses a fabricated number" is an Accuracy failure. "The stat hook uses a real number but it's not surprising" is a Taste judgment. "The stat hook uses a real number, presents it as definitely true when the source said 'estimated'" is Calibration.</p>
+
+<p>When a criterion spans dimensions, that's usually a signal that you need to split it into more specific sub-criteria. "Hook quality" is too broad &mdash; it spans all four dimensions. "Hook factual grounding" (Accuracy), "Hook angle variety" (Completeness), "Hook confidence vs. evidence" (Calibration), and "Hook brand voice match" (Taste) are each focused enough to live in one ACCT dimension.</p>
+
+<p>The splitting exercise is itself valuable, even apart from ACCT. Hebbia's eval team found that the best eval criteria are <strong>atomic</strong>: "Each criterion addresses a single, diagnosable issue." This is one of the four constraints Hebbia enforces on all their rubric criteria:</p>
+
+<ol>
+  <li><strong>Atomic:</strong> Each criterion addresses a single, diagnosable issue</li>
+  <li><strong>Binary:</strong> Pass/fail is faster and more consistent than scored scales</li>
+  <li><strong>Specific:</strong> Instead of "appropriate visualization," specify "LINE for trends, BAR for comparisons"</li>
+  <li><strong>Distinct:</strong> If two criteria tend to pass or fail together, they're measuring the same thing &mdash; remove one</li>
+</ol>
+
+<p>When two criteria tend to pass or fail together, they're probably measuring the same thing &mdash; remove one or narrow both. When a criterion sometimes passes and sometimes fails for reasons you can't explain, it's probably compound &mdash; split it.</p>
+
+<div class="callout example">
+  <div class="callout-title">Splitting Compound Criteria</div>
+  <strong>Too broad:</strong> "The research output is high quality."<br>
+  <em>Problem: what does "high quality" mean? Accurate? Complete? Well-organized? All three?</em><br><br>
+  <strong>Split into atomic criteria:</strong><br>
+  &bull; "All factual claims in the research can be verified from the visited sources" (Accuracy)<br>
+  &bull; "The research covers the brand's core product, differentiator, target audience, and competitive position" (Completeness)<br>
+  &bull; "The research flags areas where information was limited or uncertain" (Calibration)<br>
+  &bull; "The research is organized with clear sections and scannable formatting" (Taste)<br><br>
+  Now you can diagnose exactly what's wrong. "Research quality is low" becomes "research is accurate and well-organized but misses the competitive landscape and doesn't flag uncertainty." That's actionable.
+</div>
+
+
+<h3>The Interplay Between Dimensions</h3>
+
+<p>One more nuance before we wrap up ACCT. The four dimensions aren't independent &mdash; they interact in important ways.</p>
+
+<p><strong>Accuracy + Calibration:</strong> An accurate-but-uncalibrated agent is dangerous (always confident, usually right, but when wrong, users can't tell). An inaccurate-but-calibrated agent is usable (often wrong, but users know when to double-check).</p>
+
+<p><strong>Completeness + Taste:</strong> A complete-but-tasteless output is overwhelming (every possible fact, dumped in a wall of text). An incomplete-but-tasteful output is pleasant but insufficient (beautifully written, but missing critical information).</p>
+
+<p><strong>Accuracy + Completeness:</strong> Perfect accuracy on an incomplete set of facts can be misleading. "The company has 500 employees" is accurate, but if the company just announced layoffs reducing to 200, omitting that context makes the accurate fact misleading. Accuracy without completeness is a lie of omission.</p>
+
+<p>These interactions are why you need all four dimensions, not just one or two. Teams that only measure Accuracy (the most common starting point) miss Completeness failures, Calibration failures, and Taste failures &mdash; which in many products are more damaging than factual inaccuracy.</p>
+
+<h3>Worked Example: From Failure Taxonomy to ACCT Map</h3>
+
+<p>Let's trace the complete journey from Phase 2 to Phase 3 for a single product, showing how the failure taxonomy informs the quality definition and how the quality definition maps to ACCT.</p>
+
+<p><strong>Product:</strong> A creative campaign agent that researches brands and generates ad hooks + images.</p>
+
+<h4>Step 1: Failure Taxonomy (from Phase 2)</h4>
+
+<pre><span class="code-hl">Failure Category               %     Examples</span>
+<span class="code-string">1. Brand disconnection</span>        26%   Hooks are generic, images don't match brand
+<span class="code-string">2. Shallow research</span>           18%   Missed key pages, no competitors
+<span class="code-string">3. Hook homogeneity</span>           15%   3+ hooks use same angle
+<span class="code-string">4. Image-prompt mismatch</span>      13%   Image doesn't match described art direction
+<span class="code-string">5. Fabricated claims</span>          13%   Stats not from research
+<span class="code-string">6. Pipeline integrity</span>          8%   Said "done" when it wasn't
+<span class="code-accent">Other</span>                          7%   Various</pre>
+
+<h4>Step 2: Good Output Document (from Ch 09)</h4>
+
+<p>User Goal: "The user wants research-backed ad hooks and matching images so they can launch a campaign without hiring a creative agency."</p>
+
+<p>Gold Standard: 6 distinct hooks, each grounded in real research, matching brand voice, with coherent images.</p>
+
+<p>Quality Floor: Hooks reference real brand, 4+ distinct angles, no fabricated stats, images are coherent.</p>
+
+<p>Quality Ceiling: Hooks capture brand voice (not just products), surprising stats, audience-targeted, visual campaign identity.</p>
+
+<h4>Step 3: ACCT Mapping</h4>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Criterion</th>
+      <th>ACCT</th>
+      <th>From Failure Category</th>
+      <th>Tier</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>All claims trace to research</td>
+      <td>A (Accuracy)</td>
+      <td>#5 Fabricated claims</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td>Brand name/products correct</td>
+      <td>A (Accuracy)</td>
+      <td>#1 Brand disconnection</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td>Research covers product, differentiator, audience</td>
+      <td>C (Completeness)</td>
+      <td>#2 Shallow research</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td>4+ hooks use distinct angles</td>
+      <td>C (Completeness)</td>
+      <td>#3 Hook homogeneity</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td>All 6 images generated successfully</td>
+      <td>C (Completeness)</td>
+      <td>#6 Pipeline integrity</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td>Agent flags when research is thin</td>
+      <td>C (Calibration)</td>
+      <td>#2 Shallow research</td>
+      <td>Additional</td>
+    </tr>
+    <tr>
+      <td>Stats include source attribution</td>
+      <td>C (Calibration)</td>
+      <td>#5 Fabricated claims</td>
+      <td>Additional</td>
+    </tr>
+    <tr>
+      <td>Hooks match brand voice</td>
+      <td>T (Taste)</td>
+      <td>#1 Brand disconnection</td>
+      <td>Additional</td>
+    </tr>
+    <tr>
+      <td>Images match described art direction</td>
+      <td>T (Taste)</td>
+      <td>#4 Image-prompt mismatch</td>
+      <td>Required</td>
+    </tr>
+    <tr>
+      <td>Image set has consistent visual identity</td>
+      <td>T (Taste)</td>
+      <td>#4 Image-prompt mismatch</td>
+      <td>Additional</td>
+    </tr>
+    <tr>
+      <td>Research covers competitive landscape</td>
+      <td>C (Completeness)</td>
+      <td>#2 Shallow research</td>
+      <td>Additional</td>
+    </tr>
+    <tr>
+      <td>Hooks target specific audience</td>
+      <td>T (Taste)</td>
+      <td>#1 Brand disconnection</td>
+      <td>Additional</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Notice how every criterion traces back to a specific failure category from the taxonomy. Nothing was invented from scratch. Nothing was borrowed from a blog post about a different product. The entire eval specification is grounded in observed failures from <em>this</em> product.</p>
+
+<p>Also notice the distribution: 5 Required criteria (the SLA), 7 Additional criteria (advanced quality). This means a "passing" output meets the SLA without necessarily being impressive. A "great" output passes the SLA and hits most of the Additional criteria. The distinction prevents the team from agonizing over whether a "merely adequate" output should ship &mdash; if it passes Required, it ships, and you iterate on Additional in the next cycle.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The ACCT Acid Test</div>
+  For every eval criterion you write, ask: "Am I checking Accuracy, Completeness, Calibration, or Taste?" If the answer is "all of them" or "I'm not sure," the criterion is too broad. Split it until each piece maps to exactly one dimension. This is how you go from "is the output good?" (unmeasurable) to "does the stat hook cite a real, surprising number from the research?" (measurable).
+</div>
+
+
+<div class="callout success">
+  <div class="callout-title">Do &mdash; Chapter 10 Exercise</div>
+  Map your Good Output Document to ACCT categories:<br><br>
+  1. Take every criterion from your Good Output Document<br>
+  2. Label each one: A (Accuracy), C (Completeness), C (Calibration), or T (Taste)<br>
+  3. If any criterion maps to multiple dimensions, split it into more specific sub-criteria<br>
+  4. Check for gaps: is any ACCT dimension empty? If so, did you miss a quality aspect?<br>
+  5. Split your criteria into Required (SLA) and Additional (advanced quality) tiers<br><br>
+  <strong>Your deliverable:</strong> A categorized, two-tier criteria list organized by ACCT dimension. This is the blueprint for every eval you'll build in Phase 4.
+</div>
+
+<h3>What You've Built So Far</h3>
+
+<p>Let's take inventory. At the end of Phase 3, you now have three artifacts:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Artifact</th>
+      <th>Built In</th>
+      <th>Contains</th>
+      <th>Purpose</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Agent Map</strong></td>
+      <td>Phase 1</td>
+      <td>Jobs, steps, tools, decision points, architecture diagram</td>
+      <td>Tells you what to eval</td>
+    </tr>
+    <tr>
+      <td><strong>Failure Taxonomy</strong></td>
+      <td>Phase 2</td>
+      <td>Ranked failure categories, percentages, examples, formalized criteria</td>
+      <td>Tells you how the agent breaks</td>
+    </tr>
+    <tr>
+      <td><strong>Good Output Document + ACCT Map</strong></td>
+      <td>Phase 3</td>
+      <td>Quality definition per job, floor/ceiling, non-negotiables, ACCT-organized criteria</td>
+      <td>Tells you what success looks like</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Together, these three artifacts give you a complete picture: <strong>what</strong> your agent does (map), <strong>how</strong> it fails (taxonomy), and <strong>what good looks like</strong> (quality definition). That's the entire foundation.</p>
+
+<p>Notice what you have NOT done yet:</p>
+<ul>
+  <li>You have not written a single line of eval code</li>
+  <li>You have not set up any eval framework or platform</li>
+  <li>You have not run any automated tests</li>
+  <li>You have not configured any LLM-as-judge</li>
+</ul>
+
+<p>All of that comes in Phase 4. What you've done instead is the thinking that makes all of that worthwhile. Nothing you've built required any code, any eval framework, or any automation. It's all observation, analysis, and writing.</p>
+
+<p>This is deliberate. The most common mistake in eval practice is jumping to automation before the thinking is done. Teams spin up Braintrust or Promptfoo or write custom Python scripts before they've decided what to measure. They end up with sophisticated infrastructure measuring the wrong things. Your three artifacts prevent this &mdash; they are the thinking. The automation in Phase 4 is just operationalizing what you've already figured out.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Foundation Metaphor</div>
+  Phases 1&ndash;3 are the foundation. Phase 4 is the building. Nobody notices a good foundation &mdash; they notice the building. But every building that collapses had a bad foundation. The work you've done in these three phases &mdash; mapping, observing, defining &mdash; is invisible to stakeholders. They want dashboards and metrics and automation. But without this foundation, those dashboards would show numbers that don't correspond to anything real. With it, every metric traces back to an observed failure and a defined standard of quality.
+</div>
+
+<p>Now the question becomes: how do you turn all of this into something you can actually <em>measure</em>? How do you go from written criteria to automated tests that run against every output your agent produces? How do you decide which criteria need LLM judges, which need deterministic checks, and which need human review?</p>
+
+<p>That's Phase 4 &mdash; designing your eval system from zero. And it starts with the most critical step: discovering YOUR eval dimensions &mdash; the specific, atomic criteria that will drive every measurement you make. You've already done most of the work. Phase 4 turns your Good Output Document and failure taxonomy into running code.</p>
+
+<h3>Preview: What Phase 4 Will Build</h3>
+
+<p>To give you a sense of where we're headed, here's what Phase 4 will construct from the artifacts you've built:</p>
+
+<ul>
+  <li><strong>Chapter 11: Discover Your Eval Dimensions.</strong> Turn your ACCT-mapped criteria into formal eval dimensions with rubrics, examples, and grading instructions. This is where atomic criteria become testable assertions.</li>
+  <li><strong>Chapter 12: Build the Eval Dataset.</strong> Create test cases that specifically target your failure taxonomy categories. Each test case is designed to trigger (and catch) a specific failure mode you observed in Phase 2.</li>
+  <li><strong>Chapter 13: Choose Your Grading Methods.</strong> For each eval dimension, decide: deterministic check, LLM-as-judge, or human review? Your ACCT mapping guides this &mdash; Accuracy is often deterministic, Taste usually needs LLM-as-judge.</li>
+  <li><strong>Chapter 14: Run and Interpret.</strong> Execute your evals, analyze the results, and create the feedback loop that drives continuous improvement.</li>
+</ul>
+
+<p>Everything in Phase 4 will reference back to what you've built here. Your failure taxonomy determines your test cases. Your Good Output Document determines your grading rubrics. Your ACCT map determines your grading methods. The foundation is complete. Now we build on it.</p>
+
+<!-- End of Phase 2 + Phase 3 -->
+<!-- Next: Phase 4 — Build Evals (Ch 11-14) -->

@@ -1,0 +1,171 @@
+{
+  "id": "c5140cc7-0686-4f02-8ba9-9a8a3c03573d",
+  "model": "sonar-pro",
+  "created": 1781269625,
+  "usage": {
+    "prompt_tokens": 314,
+    "completion_tokens": 1180,
+    "total_tokens": 1494,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00094,
+      "output_tokens_cost": 0.0177,
+      "request_cost": 0.014,
+      "total_cost": 0.03264
+    }
+  },
+  "citations": [
+    "https://adlibrary.com/posts/psychology-in-advertisement",
+    "https://blaksheepcreative.com/digital-marketing/content-marketing/copywriting/problem-agitate-solution-formula/",
+    "https://www.superside.com/blog/ad-fatigue",
+    "https://www.readstoleads.com/blog-article/best-copywriting-formulas",
+    "https://www.youtube.com/watch?v=uGT7vZrc_ck",
+    "https://www.copywritematters.com/pas-classic-copywriting-formula/",
+    "https://advertising.amazon.com/library/guides/ad-fatigue",
+    "https://copyposse.com/blog/meet-the-iconic-women-who-shaped-copywriting-history-part-1/",
+    "https://demandscience.com/resources/blog/science-behind-effective-display-ad-design/",
+    "https://www.youtube.com/watch?v=dybQOz64hcs",
+    "https://motionapp.com/blog/ad-fatigue",
+    "https://www.youtube.com/watch?v=YoPGjK9UK4s",
+    "https://www.viantinc.com/insights/blog/psychology-of-ad-avoidance/",
+    "https://www.storyprompt.com/blog/problem-agitate-solution-the-pas-storytelling-framework",
+    "https://arxiv.org/html/2509.09758v1"
+  ],
+  "search_results": [
+    {
+      "title": "Psychology in Advertisement: Practitioner's Framework for Ads That ...",
+      "url": "https://adlibrary.com/posts/psychology-in-advertisement",
+      "date": "2026-05-29",
+      "last_updated": "2026-06-08",
+      "snippet": "This article maps psychological principles to concrete ad decisions: hook structures, copy angles, visual patterns, format choices. More ...",
+      "source": "web"
+    },
+    {
+      "title": "How to Master the Problem-Agitate-Solution Copywriting Formula",
+      "url": "https://blaksheepcreative.com/digital-marketing/content-marketing/copywriting/problem-agitate-solution-formula/",
+      "date": "2021-09-12",
+      "last_updated": "2026-06-12",
+      "snippet": "The PAS formula is a tried and true way of writing copy that communicates your message in the most memorable fashion.",
+      "source": "web"
+    },
+    {
+      "title": "The Cure for Ad Fatigue: A Growth Marketer's Methodology",
+      "url": "https://www.superside.com/blog/ad-fatigue",
+      "date": "2023-11-16",
+      "last_updated": "2026-05-23",
+      "snippet": "One of the biggest causes of ad fatigue is old creative\u2014the images and text within an ad. Thankfully, this is more often a problem with how ...",
+      "source": "web"
+    },
+    {
+      "title": "From AIDA to PAS: 5 Copywriting Formulas That Work",
+      "url": "https://www.readstoleads.com/blog-article/best-copywriting-formulas",
+      "date": "2026-03-25",
+      "last_updated": "2026-03-25",
+      "snippet": "Copywriters use the PAS formula to start blog posts, emails, social media ads, and landing page messages. It always looks good and works well.",
+      "source": "web"
+    },
+    {
+      "title": "How To Run Ads People Can't Stop Watching (Dark Psychology)",
+      "url": "https://www.youtube.com/watch?v=uGT7vZrc_ck",
+      "date": "2026-02-04",
+      "last_updated": "2026-02-16",
+      "snippet": "... psychology 2026, ad strategy, performance marketing, ad tactics, cognitive marketing. ... Go to channel Court Review \u00b7 Judge LOSES IT After ...",
+      "source": "web"
+    },
+    {
+      "title": "Classic copywriting formula: Problem-Agitate-Solve Oh My!",
+      "url": "https://www.copywritematters.com/pas-classic-copywriting-formula/",
+      "date": "2022-02-12",
+      "last_updated": "2026-02-21",
+      "snippet": "This blog post shares a classic copywriting formula and explains how understanding pain can help you nail your copy. Read more on The Copy Detective.",
+      "source": "web"
+    },
+    {
+      "title": "How to prevent and cure creative ad fatigue - Amazon Ads",
+      "url": "https://advertising.amazon.com/library/guides/ad-fatigue",
+      "date": "2025-12-08",
+      "last_updated": "2026-06-11",
+      "snippet": "Ad fatigue happens when audiences see the same creative too often, causing engagement to drop and advertising costs to rise. Learn how to identify the ...",
+      "source": "web"
+    },
+    {
+      "title": "Meet The Iconic Women Who Shaped Copywriting History (Part 1)",
+      "url": "https://copyposse.com/blog/meet-the-iconic-women-who-shaped-copywriting-history-part-1/",
+      "date": "2025-08-05",
+      "last_updated": "2025-09-20",
+      "snippet": "Names like: David Ogilvy\u2060, Leo Burnett\u2060, Gary Halbert\u2060, Eugene Schwartz\u2060, Robert Cialdini, and Joseph Sugarman are just a few examples of names that we ...",
+      "source": "web"
+    },
+    {
+      "title": "The Psychology of an Effective Display Ad Design - DemandScience",
+      "url": "https://demandscience.com/resources/blog/science-behind-effective-display-ad-design/",
+      "date": "2025-08-08",
+      "last_updated": "2026-06-10",
+      "snippet": "In this article, we'll dive deep into the core psychological principles behind compelling display ads, break down the key components that make ...",
+      "source": "web"
+    },
+    {
+      "title": "Use Dan Kennedy's \"PAS\" Copywriting Formula To ... - YouTube",
+      "url": "https://www.youtube.com/watch?v=dybQOz64hcs",
+      "date": "2021-09-29",
+      "last_updated": "2026-05-17",
+      "snippet": "- Step 2: Agitate The Problem 3:47 - Step 3: Solve The Problem 4:22 ... On this channel, you'll learn how to set up Google Ads Campaigns and ...",
+      "source": "web"
+    },
+    {
+      "title": "How to avoid creative ad fatigue using 4 key strategies - Motion",
+      "url": "https://motionapp.com/blog/ad-fatigue",
+      "date": "2025-10-31",
+      "last_updated": "2026-06-12",
+      "snippet": "In this guide, we'll explain ad fatigue, how to spot early signs, and proven strategies to beat it.",
+      "source": "web"
+    },
+    {
+      "title": "6 Iconic Women Who Shaped Copywriting History (PART 1) - YouTube",
+      "url": "https://www.youtube.com/watch?v=YoPGjK9UK4s",
+      "date": "2022-02-23",
+      "last_updated": "2026-05-17",
+      "snippet": "com/ignite When it comes to icons in the copywriting world, there are certain names that everyone recognizes ... marketing, advertising & ...",
+      "source": "web"
+    },
+    {
+      "title": "Ad Avoidance Psychology & Anti-Advertising Tips - Viant Technology",
+      "url": "https://www.viantinc.com/insights/blog/psychology-of-ad-avoidance/",
+      "date": "2025-07-10",
+      "last_updated": "2026-06-12",
+      "snippet": "Delve into the psychology behind ad avoidance, uncover why users skip, and learn how relevance, personalization, and attention metrics can ...",
+      "source": "web"
+    },
+    {
+      "title": "Problem Agitate Solution (PAS) - StoryPrompt",
+      "url": "https://www.storyprompt.com/blog/problem-agitate-solution-the-pas-storytelling-framework",
+      "date": "2022-01-20",
+      "last_updated": "2026-06-12",
+      "snippet": "The problem solved then is helping people stay organized, in control of their schedule, therefore, helping them practice work-life balance. The key to success ...",
+      "source": "web"
+    },
+    {
+      "title": "A Path Signature Framework for Detecting Creative Fatigue in ...",
+      "url": "https://arxiv.org/html/2509.09758v1",
+      "date": "2025-09-11",
+      "last_updated": "2026-04-23",
+      "snippet": "This paper introduces a novel methodological framework for detecting creative fatigue by applying path signature analysis, a sophisticated ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Direct-response ad formats keep working because the **buyer psychology they exploit changes slowly**, while the *specific execution* gets stale and must be refreshed. Practitioners repeatedly describe this as a difference between a durable **format/angle** and temporary **creative fatigue**: the problem is usually not \u201cPAS\u201d or \u201ctestimonial\u201d itself, but repeated exposure to the *same* creative, same hook, same frame, or same audience.[1][3][7][11][13]\n\n- **Why the formats persist:** copywriting frameworks such as **PAS** are taught as durable because they map to a stable decision process: identify pain, intensify it, then present relief or proof.[2][4][6][10][14]\n- **What actually dies:** sources on ad fatigue consistently say what burns out is the **creative**\u2014the specific image, text, hook, or repeated exposure\u2014not the underlying persuasion principle.[3][7][11][13][15]\n- **How often a \u201cproven format\u201d stops working market-wide:** I could not find a credible study in the retrieved sources that quantifies a market-wide failure rate for formats like PAS, testimonial, before/after, us-vs-them, or advertorial. The available sources instead frame fatigue as *campaign- or audience-level saturation*, not a universal format death.[3][7][11][13][15]\n\nThe clearest practitioner explanation of durability is that **psychology is the constant and execution is the variable**. AdLibrary says to \u201cidentify the long-running ads in your category,\u201d then classify the psychological angle in each long-runner and \u201cbuild a frequency map\u201d of what is winning in-market; it also says ads running **45, 60, 90 days** without pause are generating return, otherwise the spend would have stopped.[1] That is the core logic behind format durability: the market rewards recurring psychological patterns, but individual ads are replaced as they wear out.[1]\n\nOn PAS specifically, multiple sources describe the same structure in nearly identical terms. BlakSheep Creative says PAS is a \u201ctried and true way\u201d that begins with the **problem**, then **agitate[s]** those problems, then presents the **solution**.[2] Copywriting Matters says PAS works by identifying a pain point, making it \u201cmore emotional,\u201d and then revealing the solution \u201cthat will be the balm your audience has been looking for.\u201d[6] ReadstoLeads likewise describes PAS as a formula that \u201cworks well\u201d because it moves from problem to agitation to solution.[4] These explanations imply the format endures because it mirrors how people notice pain and then evaluate relief.[2][4][6]\n\nThe same \u201cconstant psychology, changing execution\u201d idea appears in broader ad-fatigue guidance. Amazon Ads says ad fatigue happens when audiences see the **same creative too often**, causing engagement to drop and costs to rise, and recommends **creative refresh** plus **ad rotation**.[7] Superside says one of the biggest causes is \u201cold creative\u201d and recommends frequent refreshing, even weekly or daily in some industries, while also warning not to keep using the **same format across platforms**.[3] Motion similarly says creative fatigue is when engagement drops despite stable frequency and unchanged targeting, and recommends rotating specific elements, especially the **hook**.[11] Viant adds that \u201cpeople aren\u2019t anti-ad. They\u2019re anti-irrelevant, anti-intrusive, and anti-boring,\u201d and says \u201cIf your creative hasn\u2019t changed in three campaigns, your audience noticed\u2014and left.\u201d[13]\n\nThat distinction explains why **testimonial**, **before/after**, **us-vs-them**, and **advertorial** can last for decades. Those are not just aesthetics; they are reusable persuasion containers for social proof, contrast, identity, and narrative immersion. ReadstoLeads explicitly lists **testimonials** and case-study-type proof as elements that can serve as \u201cproof\u201d inside a persuasive sequence.[4] The YouTube practitioner commentary in the retrieved results says copywriting icons introduced \u201ctestimonials,\u201d \u201cspeaking to a consumer\u2019s deepest desires,\u201d and \u201cpainting a picture of what life could look like once you use this product,\u201d and that these methods \u201care still used today.\u201d[12] AdLibrary also points to cognitive biases such as **social proof**, **scarcity**, **loss aversion**, and **anchoring** as the actual mechanisms that need to be mapped to executions.[1]\n\nWhat causes an ad format to die, according to the retrieved sources, is usually one of three things:\n\n- **Exposure saturation:** the same creative seen too often, leading to fatigue and declining engagement.[7][11][15]\n- **Relevance failure:** the ad no longer matches the audience\u2019s mindset, environment, or moment.[13]\n- **Stagnant execution:** the hook, angle, or visual pattern has not been refreshed, even if the format name stayed the same.[1][3][11]\n\nThat is also why experts warn against confusing format with execution. AdLibrary says \u201cPsychology in advertisement is only useful when mapped to specific executions,\u201d and that there is \u201cNo single principle\u201d that wins universally.[1] Motion says to prioritize updates to the **hook** because it sits at the top of the \u201ccreative hierarchy.\u201d[11] In other words, a format usually does not die because humans stop responding to it; it dies when the market has seen that particular expression too many times, or when the offer/audience/context no longer fits the frame.[1][3][7][11][13]\n\nIf you want, I can turn this into a tighter source pack with separate sections for **named copywriters**, **agency practitioners**, and **studies on creative fatigue** using only retrieved sources."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

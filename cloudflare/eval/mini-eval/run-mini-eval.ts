@@ -22,6 +22,7 @@ import * as os from 'node:os';
 import { strategyApprentice, type Apprentice } from './apprentices/strategy.js';
 import { researchApprentice } from './apprentices/research.js';
 import { compApprentice } from './apprentices/comp.js';
+import { cellApprentice } from './apprentices/cell.js';
 import { perplexityMcpServer } from './mcp/perplexity.js';
 import { scrapecreatorsMcpServer } from './mcp/scrapecreators.js';
 
@@ -30,6 +31,7 @@ const APPRENTICES: Record<string, Apprentice> = {
   strategy: strategyApprentice,
   research: researchApprentice,
   comp: compApprentice,
+  cell: cellApprentice,
 };
 
 // MCP servers per apprentice — kept off the Apprentice interface so that type
@@ -51,6 +53,22 @@ const EXTRA_FILES_FOR: Record<string, Array<{ src: string; dest: string }>> = {
     { src: 'agent/.claude/skills/research/reference/hyperlocal.md',
       dest: 'reference/hyperlocal.md' },
   ],
+  // The cell's multi-file binder: SKILL.md is inlined (binderPaths); these
+  // reference files are placed in the working dir so the binder's
+  // "see references/X.md" instructions resolve at runtime. The nested
+  // formats/ paths are preserved so the format docs' "../layer-stack.md"
+  // relative links resolve too.
+  cell: [
+    { src: 'agent/.claude/skills/cell/references/layer-stack.md', dest: 'references/layer-stack.md' },
+    { src: 'agent/.claude/skills/cell/references/style-grammar.md', dest: 'references/style-grammar.md' },
+    { src: 'agent/.claude/skills/cell/references/type-grammar.md', dest: 'references/type-grammar.md' },
+    { src: 'agent/.claude/skills/cell/references/shot-spec.md', dest: 'references/shot-spec.md' },
+    { src: 'agent/.claude/skills/cell/references/critic.md', dest: 'references/critic.md' },
+    { src: 'agent/.claude/skills/cell/references/counterexamples.md', dest: 'references/counterexamples.md' },
+    { src: 'agent/.claude/skills/cell/references/formats/testimonial.md', dest: 'references/formats/testimonial.md' },
+    { src: 'agent/.claude/skills/cell/references/formats/founder-pov.md', dest: 'references/formats/founder-pov.md' },
+    { src: 'agent/.claude/skills/cell/references/formats/pas-real-world.md', dest: 'references/formats/pas-real-world.md' },
+  ],
 };
 
 // Per-apprentice SDK caps. Strategy works from canned files and finishes in
@@ -60,11 +78,16 @@ const MAX_TURNS_FOR: Record<string, number> = {
   strategy: 25,
   research: 40,
   comp: 40,
+  // The cell has the longest tool chain: read the Bet + binder refs, match,
+  // mine takes, self-critique, write the spec, render (Bash), read back the
+  // PNG for the vision gate, and one targeted retry. It needs headroom.
+  cell: 50,
 };
 const MAX_BUDGET_USD_FOR: Record<string, number> = {
   strategy: 1.5,
   research: 2.5,
   comp: 2.5,
+  cell: 4.0,
 };
 
 // Per-apprentice required env vars. The harness fails fast if anything is
@@ -507,7 +530,7 @@ async function main() {
 
     let judge: JudgeResult | undefined;
     let judgeError: string | undefined;
-    if (run.bet) {
+    if (run.bet && !process.env.MINIEVAL_NO_JUDGE) {
       process.stdout.write('judging … ');
       try {
         judge = await judgeBet(app, rubric, run.bet, run.sources);

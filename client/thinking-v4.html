@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Thinking Block V4 — Unhinged</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f0f0f; color: #f5f5f5; font-family: 'DM Sans', sans-serif; padding: 40px 60px; }
+  :root {
+    --accent: #ff6b6b; --accent-glow: rgba(255,107,107,0.25); --accent-dim: rgba(255,107,107,0.5);
+    --bg-raised: #171717; --bg-elevated: #1f1f1f; --border: #2a2a2a;
+    --text-secondary: #a3a3a3; --text-muted: #555;
+    --blue: #4361ee; --purple: #7c3aed; --orange: #f59e0b; --green: #22c55e;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 12px; color: var(--text-secondary); }
+  .subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 48px; }
+  .concept { margin-bottom: 72px; }
+  .concept-label { font-size: 11px; text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600; }
+  .concept-desc { font-size: 13px; color: var(--text-secondary); margin-bottom: 24px; max-width: 540px; line-height: 1.6; }
+  .chat-frame { max-width: 480px; background: var(--bg-raised); border-radius: 16px; border: 1px solid var(--border); overflow: hidden; }
+  .chat-body { padding: 20px 16px; }
+  .user-msg { background: var(--accent); color: white; padding: 8px 14px; border-radius: 12px 12px 4px 12px; font-size: 13px; display: inline-block; float: right; margin-bottom: 20px; clear: both; }
+  .agent-area { clear: both; }
+  .ts { font-size: 10px; color: var(--text-muted); margin-top: 8px; }
+  .verb { font-size: 11px; color: var(--accent); opacity: 0.7; }
+  .timer { font-size: 11px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+  .orb { position: relative; display: inline-block; width: 14px; height: 14px; flex-shrink: 0; }
+  .orb .t { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(255,107,107,0.1); }
+  .orb .dw { position: absolute; inset: 0; animation: os 1.4s linear infinite; }
+  .orb .dw:nth-child(3) { animation-delay: 0.7s; }
+  .orb .d { width: 3.5px; height: 3.5px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .orb .dw:nth-child(3) .d { background: var(--accent-dim); box-shadow: none; }
+  @keyframes os { from { transform: rotate(0deg) translateX(calc(50% - 1.5px)) rotate(0deg); } to { transform: rotate(360deg) translateX(calc(50% - 1.5px)) rotate(-360deg); } }
+
+  /* ═══════════════════════════════════════ */
+  /* R. LAVA LAMP                            */
+  /* ═══════════════════════════════════════ */
+  .lava-container { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+  .lava-lamp {
+    width: 28px; height: 48px;
+    background: linear-gradient(180deg, #1a1020 0%, #150d1e 100%);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid #2a2030;
+  }
+  .lava-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(2px);
+  }
+  .lava-blob:nth-child(1) {
+    width: 14px; height: 14px;
+    background: var(--accent);
+    bottom: 4px; left: 4px;
+    animation: lavaRise 3s ease-in-out infinite;
+  }
+  .lava-blob:nth-child(2) {
+    width: 10px; height: 12px;
+    background: var(--purple);
+    bottom: 8px; right: 3px;
+    animation: lavaRise 4s ease-in-out infinite 1s;
+  }
+  .lava-blob:nth-child(3) {
+    width: 8px; height: 8px;
+    background: var(--orange);
+    bottom: 2px; left: 10px;
+    animation: lavaRise 3.5s ease-in-out infinite 0.5s;
+    opacity: 0.7;
+  }
+  @keyframes lavaRise {
+    0%, 100% { transform: translateY(0) scale(1); border-radius: 50%; }
+    25% { transform: translateY(-12px) scale(0.9); border-radius: 45% 55% 50% 50%; }
+    50% { transform: translateY(-24px) scale(1.1); border-radius: 55% 45% 50% 50%; }
+    75% { transform: translateY(-12px) scale(0.95); border-radius: 50% 50% 45% 55%; }
+  }
+  .lava-info { flex: 1; }
+  .lava-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .lava-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+
+  /* ═══════════════════════════════════════ */
+  /* S. AURORA / NORTHERN LIGHTS             */
+  /* ═══════════════════════════════════════ */
+  .aurora-container { padding: 8px 0; }
+  .aurora-band {
+    height: 40px;
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 8px;
+  }
+  .aurora-layer {
+    position: absolute; inset: 0;
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(67, 97, 238, 0.3) 15%,
+      rgba(124, 58, 237, 0.4) 30%,
+      rgba(255, 107, 107, 0.35) 50%,
+      rgba(124, 58, 237, 0.3) 70%,
+      rgba(67, 97, 238, 0.25) 85%,
+      transparent 100%
+    );
+    animation: auroraShift 6s ease-in-out infinite;
+    filter: blur(8px);
+  }
+  .aurora-layer:nth-child(2) {
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(255, 107, 107, 0.2) 20%,
+      rgba(245, 158, 11, 0.3) 40%,
+      rgba(255, 107, 107, 0.25) 60%,
+      rgba(124, 58, 237, 0.2) 80%,
+      transparent 100%
+    );
+    animation: auroraShift 8s ease-in-out infinite reverse;
+    filter: blur(12px);
+    top: 8px;
+  }
+  .aurora-layer:nth-child(3) {
+    background: linear-gradient(90deg,
+      transparent 0%,
+      rgba(34, 197, 94, 0.15) 30%,
+      rgba(67, 97, 238, 0.2) 50%,
+      rgba(255, 107, 107, 0.15) 70%,
+      transparent 100%
+    );
+    animation: auroraShift 5s ease-in-out infinite;
+    animation-delay: -2s;
+    filter: blur(6px);
+    top: -4px;
+  }
+  @keyframes auroraShift {
+    0%, 100% { transform: translateX(-10%) scaleY(1); opacity: 0.6; }
+    33% { transform: translateX(5%) scaleY(1.3); opacity: 1; }
+    66% { transform: translateX(-5%) scaleY(0.8); opacity: 0.8; }
+  }
+  .aurora-meta { display: flex; gap: 8px; align-items: center; }
+  .aurora-meta .phase { font-size: 12px; color: var(--text-secondary); }
+  .aurora-dots { display: flex; gap: 4px; margin-left: auto; }
+  .aurora-dot { width: 5px; height: 5px; border-radius: 50%; }
+  .aurora-dot.done { background: var(--green); opacity: 0.5; }
+  .aurora-dot.active { background: var(--accent); box-shadow: 0 0 6px var(--accent-glow); }
+  .aurora-dot.pending { background: #2a2a2a; }
+
+  /* ═══════════════════════════════════════ */
+  /* T. INK DROP                             */
+  /* ═══════════════════════════════════════ */
+  .ink-container { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+  .ink-well {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    position: relative;
+    overflow: hidden;
+    background: #111;
+    flex-shrink: 0;
+    border: 1px solid #222;
+  }
+  .ink-drop {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(3px);
+    animation: inkSpread 4s ease-out infinite;
+  }
+  .ink-drop:nth-child(1) {
+    width: 20px; height: 20px;
+    background: var(--accent);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 0s;
+  }
+  .ink-drop:nth-child(2) {
+    width: 16px; height: 16px;
+    background: var(--purple);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 1.3s;
+  }
+  .ink-drop:nth-child(3) {
+    width: 12px; height: 12px;
+    background: var(--blue);
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    animation-delay: 2.6s;
+  }
+  @keyframes inkSpread {
+    0% { transform: translate(-50%, -50%) scale(0.2); opacity: 0.9; }
+    50% { transform: translate(-50%, -50%) scale(1.8); opacity: 0.4; }
+    100% { transform: translate(-50%, -50%) scale(0.2); opacity: 0; }
+  }
+  .ink-info { flex: 1; }
+  .ink-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .ink-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+
+  /* ═══════════════════════════════════════ */
+  /* U. CAMPFIRE                             */
+  /* ═══════════════════════════════════════ */
+  .fire-container { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+  .fire-pit {
+    width: 40px; height: 44px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .flame {
+    position: absolute;
+    bottom: 10px;
+    border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+    filter: blur(1px);
+  }
+  .flame:nth-child(1) {
+    width: 16px; height: 22px;
+    left: 12px;
+    background: linear-gradient(0deg, #ff6b6b, #ff8f3f, #ffd93d);
+    animation: flameFlicker 0.8s ease-in-out infinite alternate;
+  }
+  .flame:nth-child(2) {
+    width: 10px; height: 16px;
+    left: 8px;
+    background: linear-gradient(0deg, #ff6b6b, #ff6b3f);
+    animation: flameFlicker 0.6s ease-in-out infinite alternate-reverse;
+    opacity: 0.7;
+  }
+  .flame:nth-child(3) {
+    width: 10px; height: 14px;
+    left: 20px;
+    background: linear-gradient(0deg, #ff8f3f, #ffd93d);
+    animation: flameFlicker 0.7s ease-in-out infinite alternate;
+    animation-delay: 0.2s;
+    opacity: 0.6;
+  }
+  .flame:nth-child(4) {
+    width: 6px; height: 8px;
+    left: 16px;
+    bottom: 26px;
+    background: #ffd93d;
+    animation: flameFlicker 0.5s ease-in-out infinite alternate;
+    opacity: 0.8;
+    filter: blur(0.5px);
+  }
+  /* embers */
+  .ember {
+    position: absolute;
+    width: 2px; height: 2px;
+    border-radius: 50%;
+    background: #ffd93d;
+  }
+  .ember:nth-child(5) { left: 14px; bottom: 32px; animation: emberFloat 2s ease-out infinite; }
+  .ember:nth-child(6) { left: 22px; bottom: 30px; animation: emberFloat 2.5s ease-out infinite 0.5s; }
+  .ember:nth-child(7) { left: 18px; bottom: 28px; animation: emberFloat 1.8s ease-out infinite 1s; }
+  @keyframes flameFlicker {
+    0% { transform: scaleX(1) scaleY(1) translateY(0); }
+    100% { transform: scaleX(0.85) scaleY(1.15) translateY(-3px); }
+  }
+  @keyframes emberFloat {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-20px) translateX(6px) scale(0.3); }
+  }
+  .fire-logs {
+    position: absolute;
+    bottom: 4px; left: 6px;
+    width: 28px; height: 6px;
+    background: #5c3a1e;
+    border-radius: 3px;
+    transform: rotate(-5deg);
+  }
+  .fire-logs::after {
+    content: '';
+    position: absolute;
+    width: 24px; height: 5px;
+    background: #4a2e16;
+    border-radius: 3px;
+    top: -3px; left: 4px;
+    transform: rotate(12deg);
+  }
+  .fire-info { flex: 1; }
+  .fire-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .fire-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+  .fire-sparks {
+    font-size: 10px; color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 3px;
+  }
+
+  /* ═══════════════════════════════════════ */
+  /* V. BREATHING ORB (like Siri)            */
+  /* ═══════════════════════════════════════ */
+  .orb-container { display: flex; align-items: center; gap: 14px; padding: 8px 0; }
+  .breath-orb {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .breath-orb .ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    background: conic-gradient(from 0deg, var(--accent), var(--purple), var(--blue), var(--accent)) border-box;
+    -webkit-mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    animation: orbSpin 3s linear infinite;
+  }
+  .breath-orb .glow {
+    position: absolute; inset: 4px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255,107,107,0.3) 0%, transparent 70%);
+    animation: orbBreathe 2s ease-in-out infinite;
+  }
+  .breath-orb .core {
+    position: absolute; inset: 10px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 40% 40%, var(--accent), var(--purple));
+    animation: orbBreathe 2s ease-in-out infinite;
+  }
+  @keyframes orbSpin { to { transform: rotate(360deg); } }
+  @keyframes orbBreathe {
+    0%, 100% { transform: scale(0.9); opacity: 0.7; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+  .orb-info { flex: 1; }
+  .orb-phase { font-size: 13px; color: var(--text-secondary); font-weight: 500; }
+  .orb-meta { display: flex; gap: 8px; align-items: center; margin-top: 3px; }
+
+  /* ═══════════════════════════════════════ */
+  /* W. GRADIENT MESH MORPH                  */
+  /* ═══════════════════════════════════════ */
+  .mesh-container { padding: 8px 0; }
+  .mesh-canvas {
+    height: 48px;
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 8px;
+    background: #111;
+  }
+  .mesh-blob {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(20px);
+  }
+  .mesh-blob:nth-child(1) {
+    width: 80px; height: 80px;
+    background: var(--accent);
+    top: -20px; left: 10%;
+    animation: meshFloat 5s ease-in-out infinite;
+    opacity: 0.5;
+  }
+  .mesh-blob:nth-child(2) {
+    width: 60px; height: 60px;
+    background: var(--purple);
+    top: -10px; left: 40%;
+    animation: meshFloat 7s ease-in-out infinite reverse;
+    opacity: 0.4;
+  }
+  .mesh-blob:nth-child(3) {
+    width: 70px; height: 70px;
+    background: var(--blue);
+    top: -15px; right: 10%;
+    animation: meshFloat 6s ease-in-out infinite;
+    animation-delay: -2s;
+    opacity: 0.35;
+  }
+  .mesh-blob:nth-child(4) {
+    width: 50px; height: 50px;
+    background: var(--orange);
+    top: 0; right: 30%;
+    animation: meshFloat 4s ease-in-out infinite;
+    animation-delay: -1s;
+    opacity: 0.25;
+  }
+  @keyframes meshFloat {
+    0%, 100% { transform: translate(0, 0) scale(1); }
+    25% { transform: translate(20px, 8px) scale(1.1); }
+    50% { transform: translate(-10px, -5px) scale(0.9); }
+    75% { transform: translate(15px, -8px) scale(1.05); }
+  }
+  .mesh-overlay {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    gap: 8px;
+    background: rgba(15,15,15,0.3);
+    backdrop-filter: blur(1px);
+  }
+  .mesh-overlay .phase { font-size: 12px; color: #fff; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+  .mesh-meta { display: flex; gap: 8px; align-items: center; }
+  .mesh-meta .phase-name { font-size: 12px; color: var(--text-secondary); }
+
+</style>
+</head>
+<body>
+
+<h1>Thinking Block V4 — Unhinged</h1>
+<div class="subtitle">Pure vibes. Atmosphere. The kind of thing you stare at and forget you're waiting.</div>
+
+<!-- R. LAVA LAMP -->
+<div class="concept">
+  <div class="concept-label">R. Lava Lamp</div>
+  <div class="concept-desc">A tiny lava lamp with colored blobs rising and falling. Each blob is a different phase color. Hypnotic, retro, the kind of thing you'd find on a creative director's desk in 1998.</div>
+  <div class="chat-frame"><div class="chat-body">
+    <div class="user-msg">Create ads for verbisedu.com</div>
+    <div class="agent-area">
+      <div class="lava-container">
+        <div class="lava-lamp">
+          <div class="lava-blob"></div>
+          <div class="lava-blob"></div>
+          <div class="lava-blob"></div>
+        </div>
+        <div class="lava-info">
+          <div class="lava-phase">Creating art direction</div>
+          <div class="lava-meta">
+            <span class="verb" id="vR">Bubbling...</span>
+            <span class="timer" id="tR">2:05</span>
+          </div>
+        </div>
+      </div>
+      <div class="ts">Agent</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- S. AURORA -->
+<div class="concept">
+  <div class="concept-label">S. Aurora / Northern Lights</div>
+  <div class="concept-desc">Shimmering bands of color that drift and pulse — like watching the northern lights. Three blurred gradient layers moving at different speeds. Atmospheric and stunning. Makes the wait feel magical.</div>
+  <div class="chat-frame"><div class="chat-body">
+    <div class="user-msg">Create ads for verbisedu.com</div>
+    <div class="agent-area">
+      <div class="aurora-container">
+        <div class="aurora-band">
+          <div class="aurora-layer"></div>
+          <div class="aurora-layer"></div>
+          <div class="aurora-layer"></div>
+        </div>
+        <div class="aurora-meta">
+          <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+          <span class="phase">Creating art direction</span>
+          <span class="verb" id="vS">Shimmering...</span>
+          <span class="timer" style="margin-left:auto" id="tS">2:05</span>
+          <div class="aurora-dots">
+            <div class="aurora-dot done"></div>
+            <div class="aurora-dot done"></div>
+            <div class="aurora-dot active"></div>
+            <div class="aurora-dot pending"></div>
+          </div>
+        </div>
+      </div>
+      <div class="ts">Agent</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- T. INK DROP -->
+<div class="concept">
+  <div class="concept-label">T. Ink Drop</div>
+  <div class="concept-desc">Colored ink drops blooming in water. Different colors pulse and spread — coral, purple, blue — mixing into each other. Like watching watercolors bleed on paper. Raw and artistic.</div>
+  <div class="chat-frame"><div class="chat-body">
+    <div class="user-msg">Create ads for verbisedu.com</div>
+    <div class="agent-area">
+      <div class="ink-container">
+        <div class="ink-well">
+          <div class="ink-drop"></div>
+          <div class="ink-drop"></div>
+          <div class="ink-drop"></div>
+        </div>
+        <div class="ink-info">
+          <div class="ink-phase">Creating art direction</div>
+          <div class="ink-meta">
+            <span class="verb" id="vT">Bleeding...</span>
+            <span class="timer" id="tT">2:05</span>
+          </div>
+        </div>
+      </div>
+      <div class="ts">Agent</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- U. CAMPFIRE -->
+<div class="concept">
+  <div class="concept-label">U. Campfire</div>
+  <div class="concept-desc">Tiny animated flames with floating embers. The agent is stoking the creative fire. Flames flicker, embers drift upward. Warm, inviting, primal. Your ideas are catching fire.</div>
+  <div class="chat-frame"><div class="chat-body">
+    <div class="user-msg">Create ads for verbisedu.com</div>
+    <div class="agent-area">
+      <div class="fire-container">
+        <div class="fire-pit">
+          <div class="flame"></div>
+          <div class="flame"></div>
+          <div class="flame"></div>
+          <div class="flame"></div>
+          <div class="ember"></div>
+          <div class="ember"></div>
+          <div class="ember"></div>
+          <div class="fire-logs"></div>
+        </div>
+        <div class="fire-info">
+          <div class="fire-phase">Creating art direction</div>
+          <div class="fire-meta">
+            <span class="verb" id="vU">Stoking...</span>
+            <span class="timer" id="tU">2:05</span>
+          </div>
+          <div class="fire-sparks">. . . . . .</div>
+        </div>
+      </div>
+      <div class="ts">Agent</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- V. BREATHING ORB -->
+<div class="concept">
+  <div class="concept-label">V. Breathing Orb</div>
+  <div class="concept-desc">A Siri-like orb with a spinning conic gradient ring, a glowing core that breathes in and out, and a radial gradient center. Feels like a living AI entity. Premium and mesmerizing.</div>
+  <div class="chat-frame"><div class="chat-body">
+    <div class="user-msg">Create ads for verbisedu.com</div>
+    <div class="agent-area">
+      <div class="orb-container">
+        <div class="breath-orb">
+          <div class="ring"></div>
+          <div class="glow"></div>
+          <div class="core"></div>
+        </div>
+        <div class="orb-info">
+          <div class="orb-phase">Creating art direction</div>
+          <div class="orb-meta">
+            <span class="verb" id="vV">Channeling...</span>
+            <span class="timer" id="tV">2:05</span>
+          </div>
+        </div>
+      </div>
+      <div class="ts">Agent</div>
+    </div>
+  </div></div>
+</div>
+
+<!-- W. GRADIENT MESH -->
+<div class="concept">
+  <div class="concept-label">W. Gradient Mesh</div>
+  <div class="concept-desc">A miniature version of those trendy gradient mesh backgrounds. Four colored blobs floating and blending behind frosted glass. The colors shift per phase. Like staring into a creative portal.</div>
+  <div class="chat-frame"><div class="chat-body">
+    <div class="user-msg">Create ads for verbisedu.com</div>
+    <div class="agent-area">
+      <div class="mesh-container">
+        <div class="mesh-canvas">
+          <div class="mesh-blob"></div>
+          <div class="mesh-blob"></div>
+          <div class="mesh-blob"></div>
+          <div class="mesh-blob"></div>
+          <div class="mesh-overlay">
+            <div class="orb"><div class="t"></div><div class="dw"><div class="d"></div></div><div class="dw"><div class="d"></div></div></div>
+            <span class="phase">Creating art direction</span>
+            <span class="verb" id="vW">Manifesting...</span>
+          </div>
+        </div>
+        <div class="mesh-meta">
+          <span class="phase-name" style="font-size:11px; color:var(--text-muted)">Phase 3 of 4</span>
+          <span class="timer" style="margin-left:auto" id="tW">2:05</span>
+        </div>
+      </div>
+      <div class="ts">Agent</div>
+    </div>
+  </div></div>
+</div>
+
+<div style="height: 80px"></div>
+
+<script>
+  const VERBS = [
+    'Pondering','Cogitating','Noodling','Brewing','Conjuring','Scheming','Vibing',
+    'Spelunking','Wrangling','Simmering','Manifesting','Ruminating','Percolating',
+    'Tinkering','Musing','Crafting','Painting','Imagining','Weaving','Composing',
+    'Channeling','Transmuting','Hatching','Incubating','Dreaming','Bubbling',
+    'Shimmering','Bleeding','Stoking','Igniting','Glowing','Swirling',
+  ];
+  const verbIds = ['vR','vS','vT','vU','vV','vW'];
+  setInterval(() => {
+    verbIds.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = VERBS[Math.floor(Math.random() * VERBS.length)] + '...';
+    });
+  }, 800);
+  const timers = { tR:125, tS:125, tT:125, tU:125, tV:125, tW:125 };
+  setInterval(() => {
+    Object.keys(timers).forEach(id => {
+      timers[id]++;
+      const s = timers[id];
+      const el = document.getElementById(id);
+      if (el) el.textContent = `${Math.floor(s/60)}:${(s%60).toString().padStart(2,'0')}`;
+    });
+  }, 1000);
+</script>
+</body>
+</html>

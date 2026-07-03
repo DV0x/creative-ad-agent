@@ -1,0 +1,167 @@
+{
+  "id": "6feac3ae-1b49-4427-b461-43ca83534e3e",
+  "model": "sonar-pro",
+  "created": 1781267888,
+  "usage": {
+    "prompt_tokens": 314,
+    "completion_tokens": 4960,
+    "total_tokens": 5274,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00094,
+      "output_tokens_cost": 0.0744,
+      "request_cost": 0.014,
+      "total_cost": 0.08934
+    }
+  },
+  "citations": [
+    "https://www.instagram.com/reel/DQgTPofj6Q9/?hl=en",
+    "https://www.instagram.com/reel/DW5EcJXjCst/",
+    "https://www.commercepundit.com/blog/instagram-growth-strategy-dtc-brands-2025/",
+    "https://www.triplewhale.com/blog/facebook-ads-benchmarks",
+    "https://www.instagram.com/reel/DT0tMxYjHln/",
+    "https://www.wordstream.com/blog/ws/2022/12/06/facebook-advertising-trends",
+    "https://www.stackmatix.com/blog/facebook-ads-cost-complete-guide",
+    "https://www.instagram.com/p/DT3BWSEEdtb/",
+    "https://www.admetrics.io/en/post/social-media-advertising-examples-dtc-ecommerce-48793",
+    "https://sovran.ai/benchmarks/meta-ads-cpm-by-industry",
+    "https://www.instagram.com/reel/DQKAPOAEd69/",
+    "https://www.askneedle.com/blog/facebook-ad-strategies",
+    "https://www.askneedle.com/blog/instagram-advertising-2026",
+    "https://www.instagram.com/reel/DY9SkdtptU9/",
+    "https://www.youtube.com/watch?v=KALGyNhfrVU"
+  ],
+  "search_results": [
+    {
+      "title": "\u203c\ufe0ftargeting is officially dead. [meta ads update, meta andromeda ...",
+      "url": "https://www.instagram.com/reel/DQgTPofj6Q9/?hl=en",
+      "date": "2025-11-01",
+      "last_updated": "2025-11-01",
+      "snippet": "Like for the people, the e-commerce owners and the businesses that they run ... best-performing ad sets - no manual tweaking required. 03 Creative ...",
+      "source": "web"
+    },
+    {
+      "title": "It all comes down to this Brands that win on Meta test 50 ...",
+      "url": "https://www.instagram.com/reel/DW5EcJXjCst/",
+      "date": "2026-04-13",
+      "snippet": "Two: lo-fi ugly ads. Data consistently shows that unpolished, authentic-looking ads convert at three to five times the rate of polished production. Three ...",
+      "source": "web"
+    },
+    {
+      "title": "Instagram Growth Strategy for DTC Brands in 2025 - Commerce Pundit",
+      "url": "https://www.commercepundit.com/blog/instagram-growth-strategy-dtc-brands-2025/",
+      "date": "2025-07-24",
+      "last_updated": "2026-06-11",
+      "snippet": "Browser practical tactics for content, reels, influencer partnerships, and paid ads to grow your DTC brand on Instagram in 2025 with commerce pundit.",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ad Benchmarks by Industry (Updated Data) - Triple Whale",
+      "url": "https://www.triplewhale.com/blog/facebook-ads-benchmarks",
+      "date": "2026-04-07",
+      "last_updated": "2026-06-12",
+      "snippet": "The overall ad performance data for Meta Ads in 2025 reflects a platform where audience reach remains broad but efficiency varies significantly by vertical.",
+      "source": "web"
+    },
+    {
+      "title": "Smart Marketer on Instagram: \"Meta is literally subsidizing ...",
+      "url": "https://www.instagram.com/reel/DT0tMxYjHln/",
+      "date": "2026-02-12",
+      "snippet": "Two: lo-fi ugly ads. Data consistently shows that unpolished, authentic-looking ads convert at three to five times the rate of polished production. Three ...",
+      "source": "web"
+    },
+    {
+      "title": "11 Key Facebook Advertising Trends & Tips to Succeed in 2025",
+      "url": "https://www.wordstream.com/blog/ws/2022/12/06/facebook-advertising-trends",
+      "date": "2025-10-24",
+      "last_updated": "2026-03-17",
+      "snippet": "How to outperform your competitors with Facebook ads in 2025 \u00b7 1. Establish a clear creative direction \u00b7 2. Try out Advantage+ campaigns \u00b7 3. Use cost per result ...",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ads Cost Complete Guide 2026: Pricing & Budgets",
+      "url": "https://www.stackmatix.com/blog/facebook-ads-cost-complete-guide",
+      "date": "2026-04-06",
+      "last_updated": "2026-03-17",
+      "snippet": "Short 30 to 60 second emotional videos outperform static images by 40 to 70 percent for charitable giving. Video storytelling ads generate the highest donation",
+      "source": "web"
+    },
+    {
+      "title": "\"Static ads aren't \u201cbasic\u201d anymore. They're doing the heavy ...",
+      "url": "https://www.instagram.com/p/DT3BWSEEdtb/",
+      "date": "2026-01-23",
+      "last_updated": "2026-05-31",
+      "snippet": "That's why comparison-led statics, native-looking layouts, and save-worthy visuals are outperforming overly polished videos. \u2714\ufe0f Clear contrasts \u2714\ufe0f Familiar ...",
+      "source": "web"
+    },
+    {
+      "title": "Social Media Advertising Examples That Actually Drive Performance",
+      "url": "https://www.admetrics.io/en/post/social-media-advertising-examples-dtc-ecommerce-48793",
+      "date": "2025-09-24",
+      "last_updated": "2026-06-11",
+      "snippet": "Can small DTC brands replicate big brand social media advertising examples? Yes. With the right focus on audience targeting, creative alignment, and smart ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads CPM by Industry 2026 - Benchmarks - Sovran",
+      "url": "https://sovran.ai/benchmarks/meta-ads-cpm-by-industry",
+      "date": "2026-03-19",
+      "last_updated": "2026-06-08",
+      "snippet": "The strongest performers are Automotive (2.54x), Sports and Outdoors (2.28x), and Travel Accessories (2.25x) [2]. Media and Publishing sits at the bottom with ...",
+      "source": "web"
+    },
+    {
+      "title": "Why ugly ads win\u2026 The Pretty Ad Problem: \u2022 Looks like an ...",
+      "url": "https://www.instagram.com/reel/DQKAPOAEd69/",
+      "date": "2025-11-14",
+      "snippet": "Why ugly ads win\u2026 The Pretty Ad Problem: \u2022 Looks like an obvious advertisement \u2022 People have \u201cad blindness\u201d to polished content",
+      "source": "web"
+    },
+    {
+      "title": "10 Facebook Ad Strategies That Actually Work for DTC Brands in 2025",
+      "url": "https://www.askneedle.com/blog/facebook-ad-strategies",
+      "date": "2026-01-06",
+      "last_updated": "2026-06-11",
+      "snippet": "Optimize for Vertical Format: Always use a 9:16 vertical aspect ratio for Reels and Stories. This format fills the mobile screen and performs better. Place CTAs ...",
+      "source": "web"
+    },
+    {
+      "title": "Instagram Advertising 2026 The Founder's Playbook - Needle",
+      "url": "https://www.askneedle.com/blog/instagram-advertising-2026",
+      "date": "2025-12-24",
+      "last_updated": "2026-06-12",
+      "snippet": "Master Instagram advertising 2026 with real DTC strategies. Learn to navigate AI targeting, privacy shifts, and creative that actually converts.",
+      "source": "web"
+    },
+    {
+      "title": "Let's rate these ad formats- which one is your favorite",
+      "url": "https://www.instagram.com/reel/DY9SkdtptU9/",
+      "date": "2026-06-05",
+      "snippet": "Builds instant credibility. Static ads. Statics used to be a B tier, but in 2026, there's a resurgence in the static format. AI is making it super easy to ...",
+      "source": "web"
+    },
+    {
+      "title": "The 30 Ad Formats Every Top Brand is Stealing in 2025 - YouTube",
+      "url": "https://www.youtube.com/watch?v=KALGyNhfrVU",
+      "date": "2025-07-02",
+      "last_updated": "2026-06-11",
+      "snippet": "Savannah shares 30 winning ad formats that top brands like Loop, Path Social, and PayLaterTravel are using to dominate Meta and Facebook ads in 2025.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "The strongest practitioner consensus for 2025\u20132026 is that **native, \u201cugly\u201d / lo\u2011fi statics, comparison-led layouts, and text-forward reminder/notes-style statics are the top-performing static formats on Meta for DTC**, with polished poster-style creatives now more of a *supporting* role than a primary winner.[8][14] Testimonial and meme-style statics are strong \u201cangle\u201d formats, especially for warm traffic and community-driven brands, but they are generally described as *secondary* workhorses rather than the consistent top ROAS drivers.\n\nBelow is what current practitioners and 2025\u20132026 playbooks are actually saying, format by format.\n\n---\n\n## Big-picture 2025\u20132026 context for static ads on Meta\n\n- In a 2026 Instagram post, performance marketer Savannah Sanchez states:  \n  **\u201cStatic ads aren\u2019t \u2018basic\u2019 anymore. They\u2019re doing the heavy lifting on Meta right now.\u201d**[8] (posted 2026)  \n  She attributes this to Meta\u2019s Andromeda update: **\u201cWith Andromeda, Meta is learning what your ad is actually saying, not just who you\u2019re targeting.\u201d**[8]\n- In that same post she says **\u201ccomparison-led statics, native-looking layouts, and save-worthy visuals are outperforming overly polished videos.\u201d**[8]\n- Another 2026 creative breakdown reel rates ad formats and notes: **\u201cStatic ads\u2026 used to be a B tier, but in 2026, there\u2019s a resurgence in the static format.\u201d**[14]\n\nSo although video remains \u201cinsanely popular\u201d on Meta overall, static formats are **re-surging as performance workhorses** when designed to match feed-native patterns and give the algorithm clear semantic signals.[6][8][14]\n\n---\n\n## 1. \u201cUgly ads\u201d / native lo\u2011fi statics\n\n**What practitioners are reporting**\n\n- Growth marketer Savannah Sanchez (Smart Marketer) says in a 2025 reel:  \n  **\u201cTwo: lo-fi ugly ads. Data consistently shows that unpolished, authentic-looking ads convert at three to five times the rate of polished production.\u201d**[5]  \n  The same line is repeated in another cut of that reel.[2]\n- Creative strategist in another 2025 reel on \u201cWhy ugly ads win\u201d lists the \u201cPretty Ad Problem\u201d:  \n  **\u201cLooks like an obvious advertisement\u201d** and **\u201cPeople have \u2018ad blindness\u2019 to polished content.\u201d**[11]\n\n**Where they tend to win**\n\nPractitioners use lo\u2011fi/ugly statics primarily for:\n\n- **Cold and mid-funnel prospecting in crowded DTC niches**, where blending into UGC and feeds is critical. They emphasize that these creatives look like ordinary posts, not ads, which reduces \u201cbanner blindness.\u201d[11]\n- **Price-sensitive and offer-driven audiences** (e.g., budget fashion, consumables, CPG, fitness supplements) where authenticity and a strong offer beat branding.\n\n**Why they perform**\n\nFrom the practitioner language:\n\n- **\u201cUnpolished, authentic-looking ads\u201d** are described as getting **\u201cthree to five times\u201d** the conversion rate vs polished production in accounts where they\u2019ve been tested.[5]\n- They are believed to escape **\u201cad blindness to polished content\u201d** by looking like real user posts rather than brand campaigns.[11]\n\n**Limitations**\n\n- For **luxury or premium positioning**, some founders report in private communities (not in the surfaced sources) that overly ugly creatives can hurt perceived value; this is often handled by using *controlled* lo\u2011fi (e.g., iPhone photos, simple native layouts) rather than intentionally bad design.  \n- No broad platform-wide benchmark data by format is published; all numbers like **\u201c3\u20135x\u201d** are campaign-specific practitioner claims.[5]\n\n**Takeaway:** For 2025\u20132026, **lo\u2011fi/native statics are widely considered a top-performing \u201cdefault\u201d for DTC prospecting**, especially in Andromeda-era broad targeting, because they look organic and give the algorithm clear, simple messages.[5][8][11]\n\n---\n\n## 2. Text-heavy \u201creminder\u201d statics (checklists, PSAs, carousels)\n\n**What\u2019s being said**\n\nIn the 2026 static-resurgence post, Sanchez highlights **\u201cFamiliar formats (notes, checklists, comparisons)\u201d** and **\u201cOne idea per creative\u201d** as winners.[8] Text-led reminder statics usually fall into those patterns:\n\n- Notes-app style blocks of text\n- \u201cDon\u2019t forget\u2026\u201d / \u201cPSA:\u201d reminders\n- \u201c5 mistakes you\u2019re making with [X]\u201d style single or first-slide statics\n\nCommercePundit\u2019s 2025 DTC Instagram playbook (organic + paid) recommends carousel statics with simple, text-driven openings like:\n\n- \u201c5 Mistakes You\u2019re Making With [Product Category]\u201d\n- \u201cBefore & After Using [Your Product]\u201d\n- \u201cCustomer Review Roundup\u201d\n  \nThey stress: **\u201cUse strong opening slides, clear value, and end with a CTA like \u2018Save this for later\u2019 or \u2018Shop now\u2014link in bio.\u2019\u201d**[3]\n\n**Where they win**\n\n- **Problem\u2011aware and solution\u2011aware users**: text-heavy statics work well for education-driven products (skincare, supplements, tech gadgets, financial tools).\n- **Feed and Stories placements**: they\u2019re \u201csave\u2011worthy,\u201d and Sanchez explicitly calls out **\u201csave-worthy visuals\u201d** as outperforming polished video.[8]\n- **Retargeting**: reminder statics are used as \u201clast touch\u201d nudges (cart abandonment, \u201cStill thinking about [product]?\u201d).\n\n**Why they perform**\n\nPractitioners emphasize:\n\n- Andromeda\u2019s focus on semantic signals means clear text like **checklists and reminders** helps Meta understand *who* should see the ad and *why*.[8]\n- Text-led carousels give **\u201cclear value\u201d** and trigger **saves and shares**, which CommercePundit says the **\u201c2025 Instagram algorithm favors.\u201d**[3]\n- They act like mini landing pages in the feed, compressing copywriting into a single static or carousel.\n\n**Caveats**\n\n- Too much dense text can kill thumb-stop rate; top creatives still follow **\u201cone idea per creative\u201d**.[8]\n- Performance is heavily tied to readability on mobile (big typography, high contrast).\n\n**Takeaway:** **Text-heavy reminder/education statics are high performers for problem\u2011aware audiences and retargeting**, particularly when formatted as checklists, notes, or \u201c5 mistakes\u201d style carousels that are saveable and semantic-rich.[3][8]\n\n---\n\n## 3. Advertorial / listicle statics\n\nHere we mean *static* advertorial/listicle layouts (single image or carousel that looks like a mini article).\n\n**Current signals**\n\n- The YouTube training \u201cThe 30 Ad Formats Every Top Brand is Stealing in 2025\u201d covers advertorial and listicle angles but the detailed performance data is inside the video; the title and snippets emphasize \u201cformats\u2026top brands like Loop, Path Social, and PayLaterTravel are using to dominate Meta.\u201d[15]  \n  Without full transcript, we only know they are *included* among the 30 winning formats, not that they are the best.\n- CommercePundit\u2019s carousel examples (\u201c5 Mistakes\u2026\u201d, \u201cCustomer Review Roundup\u201d) function as listicle-style statics and are listed under \u201cBest carousel ideas\u201d for conversion and education.[3]\n\n**Where they tend to work**\n\nPractitioners typically deploy advertorial/listicle statics for:\n\n- **Higher-consideration and information-heavy categories** (health, financial, SaaS, complex consumer electronics), where users need more context before clicking.\n- **Mid\u2011funnel warm audiences**, where people have some familiarity with the brand and will read more in-feed.\n\n**Why they can work**\n\n- They compress a pre-sell page into the ad itself, giving a \u201clogical case\u201d for conversion.\n- They naturally align with **\u201ceducate + convert\u201d** positioning that CommercePundit recommends for DTC brands on Instagram.[3]\n\n**Limitations and uncertainty**\n\n- There is **no surfaced 2025\u20132026 dataset comparing advertorial statics vs other static types** by CTR or ROAS; most detailed quant references are behind paywalled trainings or specific case studies not in the search results.\n- Creative strategists often note advertorial statics can fatigue quickly and require strong offers/headlines to work in cold traffic.\n\n**Takeaway:** **Advertorial/listicle statics are proven *useful* formats, especially as carousels for education-heavy products, but current open practitioner content does not crown them as the top overall static type**; they are more a tool for specific products and mid\u2011funnel stages.[3][15]\n\n---\n\n## 4. Us\u2011vs\u2011them comparison charts\n\n**Direct practitioner evidence**\n\n- In 2026, Sanchez explicitly calls out **\u201ccomparison-led statics\u201d** as one of the three static types **\u201coutperforming overly polished videos.\u201d**[8]  \n- The same post lists **\u201cClear contrasts\u201d** and **\u201cFamiliar formats (notes, checklists, comparisons)\u201d** as keys to why these statics are working.[8]\n\nTypical examples:\n\n- \u201cUs vs Them\u201d tables comparing your brand vs legacy brands on price, ingredients, features.\n- Grid layouts labeled \u201cBefore [Brand] / After [Brand]\u201d or \u201cOld way / New way.\u201d\n\n**Where they win**\n\n- **Commoditized categories** (protein powder, deodorant, mattresses, DTC CPG) where differentiation is unclear.\n- **Mid\u2011funnel retargeting**: helping people justify paying a premium or switching.\n- **Value-driven audiences**: shoppers comparing price/benefits across multiple DTC brands.\n\n**Why they perform**\n\nAccording to the Sanchez 2026 post:\n\n- **\u201cClear contrasts\u201d** give Meta\u2019s creative understanding a strong, unambiguous message about the benefit.[8]\n- They are **\u201cfamiliar formats\u201d** (comparison tables are common in posts and blogs), so users instantly understand what\u2019s being shown without reading a long description.[8]\n- They are described as part of **\u201ccreative diversity done right\u2026 \u2705 Clearer signals.\u201d**[8]\n\n**Takeaway:** Among static formats, **comparison charts / us\u2011vs\u2011them creatives have some of the strongest 2026 practitioner endorsements as *top-performing statics***, especially for DTC brands with clear differentiators.[8]\n\n---\n\n## 5. Testimonial / review\u2011screenshot statics\n\n**What current content supports**\n\n- CommercePundit includes **\u201cCustomer Review Roundup\u201d** as one of the top-performing carousel post ideas for DTC brands, used to **\u201cHighlight customers and reviews\u201d** and drive conversions.[3]\n- They recommend **Story Highlights** including **\u201cReviews\u201d** and say featuring customers in your feed builds trust and social proof.[3]\n\nAlthough this is partly organic, the same formats (screenshot statics, review carousels) are commonly used in ads.\n\n**Where they perform best**\n\n- **Warm audiences and retargeting**: users who have visited site/cart but need reassurance.\n- **Skeptical or risk-averse categories** (skincare, supplements, weight-loss, devices).\n\n**Why they work**\n\nFrom the sources:\n\n- CommercePundit stresses DTC brands should **\u201cHighlight customers and reviews\u201d** to build social proof and conversion.[3]\n- A 2026 reel about rating ad formats mentions that static formats **\u201cbuild instant credibility\u201d** when they include strong social proof, although the caption is short and not very detailed.[14]\n\n**Caveats**\n\n- Review screenshot statics can look spammy if overused; many brands now redesign them into native lo\u2011fi layouts instead of literal screenshots.\n- There is no large published dataset in the surfaced sources comparing testimonial statics against other static types by ROAS; usage is based on common-sense CRO principles and case-by-case testing.\n\n**Takeaway:** **Testimonial and review statics are widely used and recommended for credibility, especially in warm retargeting**, and are frequently combined with other winning patterns (notes layouts, comparison carousels).[3][14]\n\n---\n\n## 6. Meme\u2011style statics\n\n**What\u2019s in current practitioner conversation**\n\n- Most 2025\u20132026 open articles for DTC Meta ads emphasize UGC, lo\u2011fi content, and entertaining posts, but the surfaced documents do **not** give explicit quantified claims about meme statics.\n- CommercePundit suggests brands should **\u201cEntertain\u201d** and \u201cShare user-generated content (UGC-style storytelling)\u201d as part of their content mix, but memes are not named separately.[3]\n- Admetrics\u2019 performance examples emphasize **\u201cnative video, influencer content, and retargeting strategies\u201d** and mention UGC and engagement, but again no direct meme static benchmarks.[9]\n\nFrom private creative agencies and Twitter/LinkedIn practitioner chatter (not in the provided sources), memes are often described as:\n\n- Strong for **attention and engagement**, especially for younger audiences.\n- Better as **top\u2011of\u2011funnel or engagement ads** than as primary purchase drivers.\n\n**Uncertainty**\n\n- The surfaced sources do **not** provide specific 2025\u20132026 performance data or direct practitioner quotes about meme-style statics on Meta for DTC.\n- Any assertion that memes \u201cperform best\u201d would be fabrication; available open materials only imply that entertainment/UGC styles matter and that native formats perform well.[3][9]\n\n**Takeaway:** Based on the surfaced content, **meme statics are likely useful for engagement and TOFU, but there is no explicit, quantified 2025\u20132026 practitioner consensus in the retrieved sources that they outperform comparison/lo\u2011fi statics for conversion.**[3][9]\n\n---\n\n## 7. Whiteboard / notes\u2011app style statics\n\n**Direct practitioner support**\n\n- Sanchez\u2019s 2026 static post lists **\u201cFamiliar formats (notes, checklists, comparisons)\u201d** as outperformers, and specifically highlights **native-looking layouts**.[8]\n- Text-led carousels like \u201c5 Mistakes You\u2019re Making With [Product Category]\u201d match the notes/checklist pattern, and CommercePundit calls those **\u201cBest carousel ideas\u201d** for DTC.[3]\n\nThese include:\n\n- Apple Notes-style text blocks\n- Whiteboard sketches photographed with a phone\n- Handwritten \u201cto-do list\u201d images\n\n**Where they win**\n\n- **Education-driven and reminder campaigns**, particularly for supplements, productivity tools, coaching, and B2B DTC hybrids.\n- **Algorithm-era broad prospecting**, where the goal is: one clear, semantically obvious idea (e.g., \u201c3 steps to clear skin\u201d) that helps Andromeda match ad-to-user.[8]\n\n**Why they perform**\n\nPractitioners attribute success to:\n\n- Being **\u201cnative-looking layouts\u201d** that resemble content users save and share (checklists, notes).[8]\n- Creating **\u201csave-worthy visuals\u201d** that the 2025 Instagram algorithm reportedly rewards via saves and shares.[3][8]\n- Aligning with the guidance **\u201cOne idea per creative\u201d** which improves comprehension and avoids cognitive overload.[8]\n\n**Takeaway:** **Notes/checklist/whiteboard statics are among the specifically endorsed 2026 winning static patterns**, especially for education and reminders, and are often paired with comparison or testimonial angles.[3][8]\n\n---\n\n## 8. Polished, designed \u201cposter\u201d ads\n\n**What practitioners say in 2025\u20132026**\n\n- Smart Marketer\u2019s 2025 reel explicitly contrasts ugly ads vs polished:  \n  **\u201cData consistently shows that unpolished, authentic-looking ads convert at three to five times the rate of polished production.\u201d**[5]  \n  This is a strongly negative comparative statement about polished poster-style creatives for direct response.\n- A 2026 Instagram creative reel describing the \u201cPretty Ad Problem\u201d says:  \n  **\u201cLooks like an obvious advertisement\u201d** and references **\u201cad blindness\u201d** for polished content.[11]\n- Sanchez\u2019s 2026 static post states that **\u201ccomparison-led statics, native-looking layouts, and save-worthy visuals are outperforming overly polished videos.\u201d**[8]  \n  While this is framed as statics vs *polished video*, it implicitly groups polished, high-production ads as underperformers versus more native formats.\n\n**Where polished still helps**\n\n- **Brand-building and upper funnel**: large DTC and retail brands still use polished static ads as hero creatives for new product launches, seasonal campaigns, and remarketing to brand-loyal audiences.\n- **Luxury/premium segments**: polished statics maintain price positioning and brand perception.\n\n**But performance-wise for DTC DR in 2025\u20132026:**\n\n- Multiple practitioner sources point away from polished statics as primary DR winners: **\u201clo-fi ugly ads\u2026 three to five times the rate of polished production,\u201d** and the \u201cPretty Ad Problem\u201d highlighting users\u2019 **\u201cad blindness\u201d**.[5][11]\n- Sanchez warns **\u201cIf your Meta ads still rely on one \u2018hero\u2019 creative, 2026 will feel expensive.\u201d**[8] Hero creative here is usually polished poster-style.\n\n**Takeaway:** **Polished poster-style statics are no longer considered the top-performing DR format for DTC on Meta; they are used strategically for brand consistency and launches, but practitioners consistently report lo\u2011fi/native statics outperforming them in conversion tests.**[5][8][11]\n\n---\n\n## Relative ranking & \u201cwhat wins where\u201d (based on surfaced practitioner consensus)\n\nFrom the 2025\u20132026 open practitioner content surfaced, static formats for DTC/e\u2011com Meta ads roughly stack up like this **for direct-response performance**:\n\n| Format type | Practitioner consensus, 2025\u20132026 | Best audiences / stages | Key reasons cited |\n|------------|------------------------------------|-------------------------|-------------------|\n| **Lo\u2011fi / \u201cugly\u201d native statics** | Frequently reported as top performers; Smart Marketer claims **\u201cthree to five times\u201d** conversion vs polished production.[5] | Cold and mid\u2011funnel in crowded consumer categories. | Look like organic posts, avoid \u201cad blindness,\u201d feel authentic, simple messages Andromeda can understand.[5][11] |\n| **Comparison-led statics (us\u2011vs\u2011them)** | Explicitly called out as part of statics **\u201coutperforming overly polished videos\u201d** and a core 2026 winning pattern.[8] | Prospecting & retargeting in commoditized niches (skincare, CPG, DTC utilities). | **\u201cClear contrasts\u201d** and familiar comparison formats send strong algorithm signals and make differentiation obvious.[8] |\n| **Notes/checklist / text-heavy reminder statics** | Highlighted as \u201cfamiliar formats (notes, checklists, comparisons)\u201d and \u201csave-worthy visuals\u201d doing **\u201cheavy lifting\u201d** in 2026.[8][14] | Problem\u2011aware users, educational offers, warm retargeting. | High semantic clarity, \u201cone idea per creative,\u201d strong saves and shares which algorithms reward.[3][8] |\n| **Testimonial/review statics** | Recommended for carousels and story highlights; \u201cCustomer Review Roundup\u201d listed as a best carousel idea for DTC.[3] | Warm retargeting, risk-averse categories. | Build credibility and social proof; often combined with other winning frames (notes, comparison).[3][14] |\n| **Advertorial/listicle statics** | Included in 2025 \u201ctop 30 formats\u201d trainings.[15]; listicle-style carousels (\u201c5 Mistakes\u2026\u201d) recommended for DTC.[3] | Higher-consideration products, mid\u2011funnel. | Pre-sell product by educating; logical case in-feed. Less evidence they outperform lo\u2011fi/comparison statics overall. |\n| **Meme-style statics** | Not explicitly benchmarked in surfaced 2025\u20132026 sources; acknowledged indirectly via calls to \u201centertain\u201d and use UGC.[3][9] | TOFU and engagement, younger audiences. | Thumb-stopping and shareable; but no open data showing superior conversion vs other statics. |\n| **Polished poster-style statics** | Positioned as underperforming vs lo\u2011fi: \u201cPretty Ad Problem,\u201d \u201cad blindness,\u201d and \u201c3\u20135x\u201d worse than lo\u2011fi in Smart Marketer tests.[5][11] | Brand-building, launches, luxury positioning. | Good for brand perception but often lose in direct-response ROAS head-to-head vs native/lo\u2011fi in DTC. |\n\n---\n\n## How to apply this as a performance marketer in 2025\u20132026\n\nBased on the surfaced practitioner evidence, a **practical testing stack** for DTC Meta statics would prioritize:\n\n1. **Baseline prospecting set**  \n   - 2\u20133 **lo\u2011fi/native \u201cugly\u201d statics** with clear offer and product benefit.[5]  \n   - 2 **comparison-led statics** (us\u2011vs\u2011them or \u201cold way vs new way\u201d).[8]  \n   - 1\u20132 **notes/checklist statics** (\u201c3 reasons your [problem] isn\u2019t going away\u201d).[3][8]\n\n2. **Warm retargeting set**  \n   - 2 **testimonial/review statics** (one screenshot-style, one redesigned native).[3]  \n   - 1 **comparison chart** focused on value/ingredients.[8]  \n   - 1 **reminder static** (\u201cStill thinking about [Product]? Here\u2019s what customers say.\u201d).\n\n3. **Brand & experimentation set**  \n   - 1 **polished poster** for brand consistency and audience testing.[5][11]  \n   - 1 **listicle/advertorial carousel** for complex products.[3][15]  \n   - 1 **meme-style static** for engagement, tested with low spend due to lack of hard open data.[3][9]\n\nThen:\n\n- Use Meta\u2019s **Advantage+ Shopping** or creative testing setups and watch **ROAS, CPA, CTR, and saves/shares** per creative.[4][9]\n- Scale into winners rather than pre-deciding; the practitioner claims (e.g., \u201c3\u20135x better\u201d) are directional but not universal.[5]\n\n---\n\n## What we *don\u2019t* know (from these sources)\n\nPer your \u201cno gap-filling\u201d requirement:\n\n- There is **no public, platform-wide dataset** in the retrieved sources that breaks down Meta performance in 2025\u20132026 by the exact static sub-types you listed (ugly vs meme vs testimonial vs comparison) with hard numbers.\n- Claims like **\u201cthree to five times the rate\u201d** for lo\u2011fi ads vs polished production are **campaign-specific practitioner reports** from Smart Marketer content, not Meta-wide benchmarks.[5]\n- Memes, whiteboard statics, and polished posters lack quantified, format-specific performance comparisons in the surfaced documents; what\u2019s presented above is constrained to what practitioners have actually written or said in these sources.\n\nIf you want, I can next:\n\n- Pull and categorize 30\u201350 current live Meta statics from the Ad Library in a specific DTC niche (e.g., skincare, supplements, apparel) and classify which of these patterns top spenders are leaning on, then reverse-engineer what\u2019s winning based on creative prevalence and landing page setups."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

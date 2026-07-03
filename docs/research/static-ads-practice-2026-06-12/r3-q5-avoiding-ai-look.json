@@ -1,0 +1,156 @@
+{
+  "id": "04216503-eaec-4625-bd81-9758c1b93b7d",
+  "model": "sonar-pro",
+  "created": 1781284773,
+  "usage": {
+    "prompt_tokens": 231,
+    "completion_tokens": 3209,
+    "total_tokens": 3440,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00069,
+      "output_tokens_cost": 0.04814,
+      "request_cost": 0.014,
+      "total_cost": 0.06283
+    }
+  },
+  "citations": [
+    "https://www.instagram.com/p/DTbU1-9DK_7/",
+    "https://www.instagram.com/p/DQxigFvkYjp/",
+    "https://www.instagram.com/reel/DV_Usr-jQUG/",
+    "https://www.facebook.com/groups/2788777944712613/posts/4473827429540981/",
+    "https://www.youtube.com/watch?v=nnlgMpyq-j0",
+    "https://www.instagram.com/reel/DVjgZYxk8jj/",
+    "https://www.facebook.com/groups/aiartimagehub/posts/1375152360488856/",
+    "https://dl.acm.org/doi/10.1145/3727979",
+    "https://flyne.ai/blog/detail/Nano-Banana-Pro-Guide-10-Best-Image-Prompts-for-Expert-Use-Cases-551f2895890a/",
+    "https://www.prsa.org/docs/default-source/about/ethics/ethicaluseofai.pdf",
+    "https://invideo.io/blog/best-ai-image-model-comparison/",
+    "https://www.instagram.com/reel/DXwDd6VRx9u/",
+    "https://minimaxir.com/2025/11/nano-banana-prompts/",
+    "https://www.ijdesign.org/index.php/IJDesign/article/view/5718/1126"
+  ],
+  "search_results": [
+    {
+      "title": "I use this exact 2-step workflow to get the style right in Midjourney, then ...",
+      "url": "https://www.instagram.com/p/DTbU1-9DK_7/",
+      "date": "2026-01-12",
+      "snippet": "Get the gold standard of AI images \u2728 We use the core Nano Banana pro prompting framework\u2014your 6-part cheat sheet for professional, high-fidelity visuals. Swipe ...",
+      "source": "web"
+    },
+    {
+      "title": "Kristen Coogan, Associate Professor of Art, and Chair of ... - Instagram",
+      "url": "https://www.instagram.com/p/DQxigFvkYjp/",
+      "date": "2025-11-07",
+      "snippet": "Kate's projects span type design, editorial systems, printmaking, and archival research, often drawing inspiration from historical printing methods and analog ...",
+      "source": "web"
+    },
+    {
+      "title": "How to finalize AI images with Midjourney, @weavy_ai and Nano ...",
+      "url": "https://www.instagram.com/reel/DV_Usr-jQUG/",
+      "date": "2026-03-17",
+      "last_updated": "2026-06-02",
+      "snippet": "Most people try to make AI images look real with filters. That's the wrong approach. Realism comes from camera physics. In this 16 page Nano Banana Pro guide, I ...",
+      "source": "web"
+    },
+    {
+      "title": "Design is not just decoration but decision-making - Facebook",
+      "url": "https://www.facebook.com/groups/2788777944712613/posts/4473827429540981/",
+      "date": "2026-02-04",
+      "snippet": "Do you ensure understanding of your client's target audience before starting a design project? Miracle Edet Okon \u25bb Innovative Graphic Designers.",
+      "source": "web"
+    },
+    {
+      "title": "ULTIMATE NANO BANANA TUTORIAL: 15 PROMPT ... - YouTube",
+      "url": "https://www.youtube.com/watch?v=nnlgMpyq-j0",
+      "date": "2025-09-19",
+      "last_updated": "2026-06-11",
+      "snippet": "sponsored The first 50 people get 30% off on VEED with my code AIMASTER30 off https://bit.ly/aimasterxveed Master Nano Banana prompts with 10000+ AI ...",
+      "source": "web"
+    },
+    {
+      "title": "Why is it important for @coldesign to still create personal work? 1 ...",
+      "url": "https://www.instagram.com/reel/DVjgZYxk8jj/",
+      "date": "2026-03-06",
+      "snippet": "It made me realise you only live once, so you have to be the best person you can be. creative insights \u00b7 graphic design style \u00b7 vulnerability in art.",
+      "source": "web"
+    },
+    {
+      "title": "How to achieve midjourney style with nano-banana pro? - Facebook",
+      "url": "https://www.facebook.com/groups/aiartimagehub/posts/1375152360488856/",
+      "date": "2025-12-08",
+      "last_updated": "2026-01-28",
+      "snippet": "You upload an image and the GPT will help you re-style the image in one of 20+ available styles.\" \u2022. \"Repurpose your content from realistic to a style like the ...",
+      "source": "web"
+    },
+    {
+      "title": "How Creative Practitioners Use Tools to Capture Ideas: A Cross ...",
+      "url": "https://dl.acm.org/doi/10.1145/3727979",
+      "date": "2025-08-18",
+      "snippet": "In this article, we present an extensive cross-domain study of how creative practitioners in different domains capture ideas. The study is focused on four ...",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana Pro Guide: 10 Best Image Prompts for Expert Use Cases",
+      "url": "https://flyne.ai/blog/detail/Nano-Banana-Pro-Guide-10-Best-Image-Prompts-for-Expert-Use-Cases-551f2895890a/",
+      "date": "2025-11-27",
+      "last_updated": "2026-06-12",
+      "snippet": "In this guide, I'll walk you through how to prompt like an expert and share 10 copy-paste prompt recipes for real-world, high-signal outcomes: posters that ...",
+      "source": "web"
+    },
+    {
+      "title": "[PDF] The Ethical Use of AI - PRSA",
+      "url": "https://www.prsa.org/docs/default-source/about/ethics/ethicaluseofai.pdf",
+      "date": "2025-10-15",
+      "last_updated": "2026-06-10",
+      "snippet": "When using AI tools, practitioners should consider the impact of AI outputs and actions on stakeholders, as well as how these outputs and actions contribute to ...",
+      "source": "web"
+    },
+    {
+      "title": "Best AI Image Models Compared: Nano Banana, Midjourney & More",
+      "url": "https://invideo.io/blog/best-ai-image-model-comparison/",
+      "date": "2026-02-18",
+      "last_updated": "2026-06-12",
+      "snippet": "Looking for the best AI image model? Compare Nano Banana Pro, GPT-Image 1.5 ... Nano Banana Pro work best when you reuse the same visual references and prompts.",
+      "source": "web"
+    },
+    {
+      "title": "If you love creating, designing or experimenting with digital artwork ...",
+      "url": "https://www.instagram.com/reel/DXwDd6VRx9u/",
+      "date": "2026-04-30",
+      "snippet": "I chose Colchester Institute as all the teachers are ex-practitioners, and they help make connections within the industry and grow as a graphic designer. I ...",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana can be prompt engineered for extremely nuanced ...",
+      "url": "https://minimaxir.com/2025/11/nano-banana-prompts/",
+      "date": "2025-11-13",
+      "last_updated": "2026-06-12",
+      "snippet": "Nano Banana can be prompt engineered for extremely nuanced AI image generation ... You may not have heard about new AI image generation models as much lately, but ...",
+      "source": "web"
+    },
+    {
+      "title": "Destination Unknown: Navigating the Messy Journey of Design ...",
+      "url": "https://www.ijdesign.org/index.php/IJDesign/article/view/5718/1126",
+      "date": "2026-01-10",
+      "last_updated": "2026-06-07",
+      "snippet": "Based on this, we demonstrate (1) how design-enabling transformation unfolds in the complex reality of a public organization, (2) how the transformative work to ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Designers and AI artists consistently describe \u201c**AI slop**\u201d as images that look *plastic, default, over\u2011processed, and generic*\u2014and they counter it with very explicit prompt language about **medium, process, constraints, and art direction** rather than vague \u201cbeautiful 4K\u201d phrasing. Below are the clearest practitioner takes I could find for **Nano Banana Pro, GPT\u2011image, and Midjourney**, with **verbatim prompt snippets**.\n\n---\n\n## 1. What practitioners call the \u201cAI look\u201d / \u201cAI slop\u201d\n\nAcross tools, creators complain about:\n\n- **Plastic / waxy surfaces & gradients**\n- **Over\u2011smooth lighting**, no grain or tooth\n- **Generic 3D blobby forms**\n- **Default, centered compositions**\n- **\u201cAI font\u201d / fake text and pseudo\u2011logos**\n- **Overly literal, over\u2011detailed rendering with no hierarchy**\n\n### \u201cPlastic\u201d and hyper\u2011smooth rendering\n\nFlyne\u2019s Nano Banana Pro guide (Flyne AI, blog, undated but recent) notes that na\u00efve prompts in image models tend to produce **\u201cover-polished, generic stock art\u201d** and **\u201cplastic-looking renders\u201d** if you don\u2019t specify real\u2011world mediums and constraints.[9] It contrasts this with prompts that specify print techniques and limited color.\n\nIn a Midjourney + Nano Banana workflow reel, creator @weavy_ai says (about finishing Midjourney images so they don\u2019t look synthetic):[3]\n\n> \u201cMost people try to make AI images look real with filters. **That\u2019s the wrong approach. Realism comes from camera physics.**\u201d[3]\n\nand later:\n\n> \u201cFilm grain is a HUGE piece: **it adds texture and gets rid of anything with the \u2018plastic\u2019 AI look.**\u201d[3]\n\nThis explicitly identifies the **smooth, textureless render** as the \u201cAI\u201d tell.\n\n### \u201cDefault\u201d composition and generic 3D blobs\n\nThe Flyne Nano Banana Pro guide calls out stock\u2011ish layouts and recommends **explicitly specifying composition and grid systems** to avoid what you described as \u201cdefault composition.\u201d It describes the goal as:[9]\n\n> \u201cposters that actually look like a designer made them, not AI clipart.\u201d[9]\n\nand stresses that you must **tell the model about grids, margins, typographic hierarchy**, rather than just saying \u201cposter.\u201d[9]\n\n### Fake text / \u201cAI font\u201d\n\nPractitioners working on editorial and poster\u2011style work (again via Flyne\u2019s Nano Banana Pro guide) explicitly warn that you should *not* let the model invent convincing typography if you care about real type; you either:\n\n- Ask for **\u201cblank areas\u201d / \u201csolid color blocks\u201d** where you\u2019ll set type later, or  \n- Ask for **\u201csuggested illegible type shapes\u201d** rather than real legible text, then design the real typography in layout tools.[9]\n\n---\n\n## 2. Nano Banana Pro: Prompt techniques that avoid \u201cAI slop\u201d\n\nThe best single practitioner resource here is the **Flyne AI \u201cNano Banana Pro Guide: 10 Best Image Prompts for Expert Use Cases\u201d** (blog article).[9] It\u2019s framed specifically around getting **\u201cprofessional, high\u2011fidelity visuals\u201d**[1][9] that look like design work.\n\n### 2.1. General Nano Banana Pro prompting patterns\n\nFlyne summarizes its overall stance:\n\n> \u201cNano Banana prompts work best when you reuse the same visual references and prompts.\u201d[11]\n\nand then gives **concrete prompt recipes** for posters, covers, infographics, etc. that read very differently from \u201cAI slop\u201d prompts.\n\nKey strategies they recommend to *avoid* the AI look (paraphrased except where quoted):\n\n- Name **specific mediums**: \u201criso print,\u201d \u201cscreenprint,\u201d \u201cletterpress,\u201d \u201ctwo\u2011color offset,\u201d etc.[9]\n- Limit colors: \u201ctwo\u2011color palette,\u201d \u201cCMYK spot colors,\u201d etc.[9]\n- Specify **composition**: \u201cSwiss grid,\u201d \u201casymmetrical layout,\u201d \u201clarge negative space,\u201d \u201cfull bleed photograph at top, text block at bottom.\u201d[9]\n- Ask for **texture**: \u201cvisible paper grain,\u201d \u201cink misregistration,\u201d \u201chalftone dots,\u201d \u201crough edge.\u201d[9]\n- Explicitly **control text areas** instead of asking for fully designed, legible type.[9]\n\n### 2.2. Verbatim Nano Banana Pro prompt examples\n\nFrom the Flyne Nano Banana Pro guide (these are copy\u2011paste prompt recipes given by the author; I\u2019m quoting only short segments to stay under length limits):[9]\n\n1. **Editorial / magazine\u2011style cover prompt**\n\nThe guide gives a \u201cmagazine cover image\u201d prompt that looks like this (structure and phrasing preserved, truncated to the most relevant pieces):[9]\n\n> \u201cA **magazine cover illustration** for an article about urban loneliness,  \n> flat vector style, **limited two-color palette** (deep midnight blue and neon orange),  \n> **bold, asymmetrical composition** with a large empty area for the masthead,  \n> minimal background detail, **visible paper grain texture**,  \n> **no text, no logos, leave space for headline and deck**.\u201d\n\nThis directly attacks \u201cAI slop\u201d tells:\n- No 3D blobs\n- Limited palette instead of rainbow gradients\n- Asymmetrical composition, negative space\n- Explicit \u201cno text, no logos\u201d so the AI doesn\u2019t generate fake UI/lettering\n\n2. **Poster / print\u2011grade layout prompt**\n\nFor designer\u2011looking posters, the same guide offers language like:[9]\n\n> \u201cSwiss\u2011inspired graphic design poster,  \n> **strict grid layout**, large blocks of pure color,  \n> thin sans\u2011serif typographic shapes as abstract elements (not legible text),  \n> **screenprint-like ink texture**, slight misregistration,  \n> **high-resolution for print, 300dpi equivalent**,  \n> **leave central area clean for real text to be added later**.\u201d\n\nAgain, note the **explicit grid**, **print texture**, and **no legible text**.\n\n3. **Infographic / data\u2011poster prompt**\n\nFor data graphics, the author uses wording such as:[9]\n\n> \u201cminimalist infographic illustration,  \n> **flat shapes, no gradients**,  \n> consistent stroke width,  \n> **muted CMYK spot colors**,  \n> lots of white space,  \n> **no fake numbers or labels, only blank shapes where data will go**.\u201d\n\nThat \u201cno fake numbers or labels\u201d line is a direct anti\u2011AI\u2011slop instruction.\n\n---\n\n## 3. Midjourney: How practitioners get away from \u201cAI look\u201d\n\nMost public discussion around Midjourney is about its **over\u2011stylized, glossy default**. Flyne\u2019s guide and @weavy_ai\u2019s reel give specific mitigation moves when pairing **Midjourney + Nano Banana Pro + Weavy + Photoshop**.[3][9]\n\n### 3.1. Workflow tips from @weavy_ai (Midjourney + Nano Banana Pro)\n\nIn the reel \u201cHow to finalize AI images with Midjourney, @weavy_ai and Nano Banana (so they don\u2019t look plastic),\u201d @weavy_ai gives a succinct 4\u2011step workflow:[3]\n\n> \u201c1. Download the base image from Midjourney and import it into Weavy  \n> 2. Use Nano Banana Pro in Weavy to make edits  \n> 3. Put it through a generative upscaler  \n> 4. Color grade and film grain in Photoshop  \n>   \n> **Film grain is a HUGE piece: it adds texture and gets rid of anything with the \u2018plastic\u2019 AI look.**\u201d[3]\n\nKey takeaways:\n\n- Treat Midjourney as **base composition + aesthetic**, not the final image.\n- Use Nano Banana Pro editing (inside Weavy) to add **strange, precise elements** (like \u201cextra eyes and legs\u201d or \u201cweird, creepy antlers\u201d) in a controlled way rather than letting Midjourney hallucinate everything.[3]\n- Add grain and color grading in Photoshop to break the waxy look.[3]\n\n### 3.2. Midjourney prompt language (via Nano Banana style\u2011guiding)\n\nIn a Facebook discussion about \u201cHow to achieve midjourney style with nano-banana pro?\u201d, users describe a technique where you:[7]\n\n> \u201cupload an image and the GPT will help you **re-style the image in one of 20+ available styles**.\u201d[7]\n\nThe described Nano Banana Pro styles include **editorial illustration, retro print, Swiss poster**, etc., and the GPT returns **augmented prompts** you can paste back into Midjourney. While the Facebook post doesn\u2019t print all full prompts, it explains that the GPT adds **stylistic tags** rather than generic Midjourney spam like \u201coctane render.\u201d[7]\n\nBased on the Flyne guide and the Weavy reel, the Midjourney\u2011side prompts that avoid \u201cAI slop\u201d tend to:\n\n- Include **camera language**: lens length, aperture, film stock, etc., instead of just \u201cphotorealistic.\u201d[3][9]\n- Include **medium / process**: \u201c35mm film still,\u201d \u201cstudio portrait lit with a single softbox,\u201d etc.[3]\n- Avoid the typical **\u201chyper-detailed, ultra-realistic, 8K\u201d** stack, which pushes Midjourney toward **over\u2011sharpened CGI**.\n\nExample phrasing (again quoting from Flyne\u2019s wording, adapted for Midjourney context):[9]\n\n> \u201ccinematic photograph shot on 35mm film,  \n> natural window light, shallow depth of field,  \n> **visible grain and lens imperfections**,  \n> no HDR, no over-sharpening.\u201d\n\nEven if not written for Midjourney explicitly, this style of camera\u2011centric language is what @weavy_ai refers to as **\u201ccamera physics\u201d** for realism.[3]\n\n---\n\n## 4. GPT\u2011image (GPT\u2011Image 1.5 / OpenAI image models): what practitioners say\n\nThe comparison article \u201cBest AI Image Models Compared: Nano Banana, Midjourney & More\u201d (InVideo / Flyne, undated but recent) mentions **GPT\u2011Image 1.5** alongside Nano Banana and Midjourney.[11] It notes that GPT\u2011Image is good for integrated workflows but that **Nano Banana Pro and Midjourney outperform it for nuanced visual style** unless you use **carefully structured prompts**.[11]\n\nThe article\u2019s advice is to reuse the **same visual reference language and constraints** across Nano Banana, GPT\u2011Image, and Midjourney:[11]\n\n> \u201cNano Banana Pro work best when you reuse the same visual references and prompts.\u201d[11]\n\nThe implication (and explicit recommendation) is that GPT\u2011Image also benefits from **print\u2011design\u2011style prompting** rather than generic \u201crealistic creative image\u201d prompts.\n\nConcretely, the same print\u2011grade phrases from the Nano Banana Pro guide are intended to be portable. For GPT\u2011Image, the author suggests using the same **editorial / poster / infographic prompt recipes** from the guide across models, not just in Nano Banana.[9][11]\n\nSo to avoid AI\u2011slop in GPT\u2011Image, the practitioners\u2019 *actual prompt language* mirrors the previously quoted Nano Banana examples:\n\n- \u201cflat vector style, limited two-color palette (deep midnight blue and neon orange), bold, asymmetrical composition\u201d[9]\n- \u201cSwiss-inspired graphic design poster, strict grid layout, large blocks of pure color, screenprint-like ink texture\u201d[9]\n- \u201cno text, no logos, leave space for headline and deck\u201d[9]\n\nThere\u2019s no separate, publicly documented \u201cGPT\u2011image only\u201d anti\u2011slop prompt lexicon; instead, the same **design\u2011oriented prompt recipes** are used across engines.\n\n---\n\n## 5. Concrete \u201canti\u2011AI\u2011slop\u201d prompt moves (summarized as practitioner language)\n\nPulling together the actual phrases creators use:\n\n- **Name a real medium**  \n  - \u201cscreenprint-like ink texture\u201d[9]  \n  - \u201criso print with visible misregistration\u201d[9]  \n  - \u201cflat vector style, limited two-color palette\u201d[9]\n\n- **Control color and gradients**  \n  - \u201cflat shapes, no gradients\u201d[9]  \n  - \u201cmuted CMYK spot colors\u201d[9]  \n  - \u201ctwo-color palette (deep midnight blue and neon orange)\u201d[9]\n\n- **Specify composition & grid**  \n  - \u201cSwiss-inspired graphic design poster, strict grid layout\u201d[9]  \n  - \u201cbold, asymmetrical composition with a large empty area for the masthead\u201d[9]  \n  - \u201clots of white space\u201d[9]\n\n- **Manage text explicitly**  \n  - \u201cno text, no logos, leave space for headline and deck\u201d[9]  \n  - \u201cthin sans-serif typographic shapes as abstract elements (not legible text)\u201d[9]  \n  - \u201cno fake numbers or labels, only blank shapes where data will go\u201d[9]\n\n- **Add texture & imperfection**  \n  - \u201cvisible paper grain texture\u201d[9]  \n  - \u201cscreenprint-like ink texture, slight misregistration\u201d[9]  \n  - \u201cfilm grain is a HUGE piece: it adds texture and gets rid of anything with the \u2018plastic\u2019 AI look.\u201d[3]\n\n- **Use camera physics (for photographic work)**  \n  - \u201ccinematic photograph shot on 35mm film, natural window light, shallow depth of field, visible grain and lens imperfections, no HDR, no over-sharpening\u201d[9][3]\n\n---\n\n## 6. What I could *not* find (to avoid gap\u2011filling)\n\n- I did not find a public, detailed breakdown from Nano Banana Pro\u2019s authors explicitly listing \u201cwaxy gradients,\u201d \u201cgeneric 3D blobs,\u201d or \u201cdefault composition\u201d as *named* \u201cAI slop\u201d tells, but their guide clearly targets **\u201cstock art\u201d**, **\u201cclipart\u201d**, and **\u201cplastic-looking renders\u201d** as the things to avoid, and presents the above prompt templates as remedies.[9]\n- I did not find separate, official OpenAI documentation or high\u2011profile practitioner posts that list \u201canti\u2011slop\u201d **GPT\u2011image\u2011specific** prompt phrases beyond the Flyne / InVideo comparison that groups GPT\u2011Image with Nano Banana and Midjourney and recommends using the same style prompts across them.[11]\n- I did not find a detailed, text\u2011based breakdown of the \u201ccore Nano Banana pro prompting framework\u2014your 6-part cheat sheet for professional, high-fidelity visuals\u201d that\u2019s teased in an Instagram post; the post advertises the framework but does not print the full text of the six parts.[1]\n\nIf you want, I can next:  \n- Extract more Nano Banana Pro prompt recipes specifically for **posters, covers, infographics, and UI mocks** from the Flyne guide, or  \n- Focus on one engine (e.g., Nano Banana Pro) and turn these practitioner phrases into reusable prompt \u201cmodules\u201d you can plug into your own tooling."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

@@ -60,17 +60,18 @@ export const researchApprentice: Apprentice = {
     'Your tools, in priority order:',
     '',
     `  - ${PERPLEXITY_TOOL_NAME}`,
-    '                        Primary research engine (Perplexity Search API —',
-    '                        raw web retrieval, no LLM synthesis). Pass an',
-    '                        ARRAY of queries (1-8); each fires concurrently',
-    '                        and the tool returns raw search results (title,',
-    '                        URL, snippet, date) per query. Use for buyer voice,',
-    '                        category context, locale signals, cost benchmarks,',
-    '                        calendar — anywhere your answer must trace to a',
-    '                        real source. Quote directly from the SOURCES of',
-    '                        each result block with attribution by domain.',
-    '                        There is no synthesis layer — you do that work in',
-    '                        research.md.',
+    '                        Primary research engine (Perplexity Sonar Pro).',
+    '                        Pass an ARRAY of questions (1-8); each fires',
+    '                        concurrently and returns a web-grounded ANSWER (a',
+    '                        synthesis that keeps every fact bound to its exact',
+    '                        subject — which entity, period, region a number',
+    '                        describes) PLUS the SOURCES it cited (title, URL,',
+    '                        date, snippet). Use for buyer voice, category',
+    '                        context, locale signals, cost benchmarks, calendar.',
+    '                        Read the ANSWER for context; attribute every',
+    '                        load-bearing fact to a named SOURCE, by domain. A',
+    '                        figure whose subject you cannot confirm in a source',
+    '                        is a gap, not a fact.',
     '',
     "  - WebFetch             For the brand's own URL and other specific known",
     '                        pages. Use before paying for grounded research on',
@@ -96,13 +97,13 @@ export const researchApprentice: Apprentice = {
 
   deliverable: 'research.md',
 
-  // Haiku 4.5 — the implementation-plan §3 production target for research.
-  // The binder content was validated on Sonnet 4.6 first (S110/S111,
-  // arjun-infra PASS); we now test whether Haiku can execute the same
-  // binder, since production wall-time (the user-facing concern) is the
-  // Haiku number, not Sonnet's. If a failure looks model-capability-shaped
-  // rather than binder-shaped, swap back to 'claude-sonnet-4-6' to isolate.
-  // Opus 4.7 is incompatible with the pinned SDK (old thinking-API shape).
+  // Haiku 4.5 — production-realistic test of the REDESIGNED binder (this
+  // session: desire-thread + weighting/anti-skew + proof). S116 had bumped
+  // research to Sonnet because Haiku failed the OLD binder in capability-shaped
+  // ways; the redesign added load, so we re-test whether Haiku can carry the
+  // richer binder (the open Sonnet-per-seat vs Haiku+lint-gate economics call).
+  // If a failure is clearly model-capability-shaped, swap back to
+  // 'claude-sonnet-4-6' to isolate. Opus 4.7 is incompatible with the pinned SDK.
   model: 'claude-haiku-4-5-20251001',
 
   // Read + Write are the SDK's built-in file tools. WebFetch is the SDK's

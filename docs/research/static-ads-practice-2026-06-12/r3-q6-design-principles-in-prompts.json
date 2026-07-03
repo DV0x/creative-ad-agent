@@ -1,0 +1,169 @@
+{
+  "id": "aee9c4a2-5729-4e72-afec-212d8f41ece2",
+  "model": "sonar-pro",
+  "created": 1781284779,
+  "usage": {
+    "prompt_tokens": 225,
+    "completion_tokens": 4027,
+    "total_tokens": 4252,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00068,
+      "output_tokens_cost": 0.06041,
+      "request_cost": 0.014,
+      "total_cost": 0.07508
+    }
+  },
+  "citations": [
+    "https://www.adobe.com/products/firefly/discover/ai-art-prompts-for-graphic-design.html",
+    "https://www.designrush.com/agency/graphic-design/trends/graphic-design-prompts",
+    "https://blog.depositphotos.com/inspiration-swiss-style-poster-design.html",
+    "https://www.youtube.com/watch?v=BD1ZMXPdIC4",
+    "https://artdirection.show/strategy",
+    "https://www.instagram.com/reel/DWRlOGEiMf4/",
+    "https://www.jamout.ai/blog/chatgpt-just-became-your-free-graphic-designer-12-image-2-0-prompts-every-entrepreneur-should-steal",
+    "https://www.youtube.com/watch?v=IbhBkKmL3LE",
+    "https://www.bighuman.com/blog/guide-to-swiss-design-style",
+    "https://www.animaapp.com/blog/ai-design-en/graphic-design/",
+    "https://artdirection.substack.com/p/10-prompts-to-build-your-art-direction",
+    "https://www.instagram.com/p/DMaGxHPs8Pb/",
+    "https://www.figma.com/resource-library/graphic-design-principles/",
+    "https://www.youtube.com/watch?v=Jjt-ZXY4eRY",
+    "https://www.instagram.com/reel/DTOhNlcknkz/?hl=en"
+  ],
+  "search_results": [
+    {
+      "title": "AI prompts for graphic designers - Adobe Firefly",
+      "url": "https://www.adobe.com/products/firefly/discover/ai-art-prompts-for-graphic-design.html",
+      "date": "2026-01-12",
+      "last_updated": "2026-06-04",
+      "snippet": "When embarking on a new graphic design project, try using AI prompts to quickly generate ideas based around related keywords. Using generative AI and AI prompts ...",
+      "source": "web"
+    },
+    {
+      "title": "Graphic Design Prompts: 20+ Examples and Expert Tips - DesignRush",
+      "url": "https://www.designrush.com/agency/graphic-design/trends/graphic-design-prompts",
+      "date": "2025-06-26",
+      "last_updated": "2026-06-08",
+      "snippet": "I'll break down the essentials of writing graphic design prompts for ChatGPT, key use cases, what to keep in mind, and examples to get you inspired.",
+      "source": "web"
+    },
+    {
+      "title": "Inspiration for Swiss Style Poster Designs - Depositphotos Blog",
+      "url": "https://blog.depositphotos.com/inspiration-swiss-style-poster-design.html",
+      "date": "2019-02-01",
+      "last_updated": "2026-05-14",
+      "snippet": "We can get down to the details that make Swiss Style posters more of an international aesthetic with a lesson or two for graphic designers today.",
+      "source": "web"
+    },
+    {
+      "title": "The Easiest Way to Write AI Prompts for Graphic Designers (3-Step ...",
+      "url": "https://www.youtube.com/watch?v=BD1ZMXPdIC4",
+      "date": "2026-05-04",
+      "last_updated": "2026-06-12",
+      "snippet": "As a Graphic Designer, you should know ai and how to write prompt to generate perfect image. In this video I'll teach you my easiest way to ...",
+      "source": "web"
+    },
+    {
+      "title": "Art Direction & Strategy",
+      "url": "https://artdirection.show/strategy",
+      "last_updated": "2025-10-13",
+      "snippet": "Who will this work speak to? Who might it alienate? \u00b7 This looks cool, but imagine if there was no accompanying text. \u00b7 What problem are we trying to solve? \u00b7 How ...",
+      "source": "web"
+    },
+    {
+      "title": "Brutalist Graphic Design Explained in 1 Minute (Raw, Bold ...",
+      "url": "https://www.instagram.com/reel/DWRlOGEiMf4/",
+      "date": "2026-03-24",
+      "last_updated": "2026-04-19",
+      "snippet": "Brutalism in graphic design is a raw, bold visual style that rejects polish, perfection, and traditional visual harmony in favor of honesty, ...",
+      "source": "web"
+    },
+    {
+      "title": "ChatGPT Images 2.0: 12 Free Graphic Design Prompts for You",
+      "url": "https://www.jamout.ai/blog/chatgpt-just-became-your-free-graphic-designer-12-image-2-0-prompts-every-entrepreneur-should-steal",
+      "date": "2026-04-28",
+      "last_updated": "2026-06-12",
+      "snippet": "ChatGPT Images 2.0 reads text, builds posters, and designs full matching social sets. Steal 12 ready-to-paste prompts that replace your ...",
+      "source": "web"
+    },
+    {
+      "title": "Prompt Engineering for Creative Directors: AI-Powered ... - YouTube",
+      "url": "https://www.youtube.com/watch?v=IbhBkKmL3LE",
+      "date": "2024-09-27",
+      "last_updated": "2026-05-13",
+      "snippet": "Launch a designer fashion brand and make your first sale in 4 months or less: https://www.skool.com/fashion-brand-vault-pro/about Entire ...",
+      "source": "web"
+    },
+    {
+      "title": "The History of the Swiss Design Style - Big Human",
+      "url": "https://www.bighuman.com/blog/guide-to-swiss-design-style",
+      "date": "2025-07-28",
+      "last_updated": "2026-06-12",
+      "snippet": "Learn more about the Swiss International Typographic Style, including its origins, key design elements, and role in modern graphic design.",
+      "source": "web"
+    },
+    {
+      "title": "Graphic Design in 2026 - Anima Blog",
+      "url": "https://www.animaapp.com/blog/ai-design-en/graphic-design/",
+      "date": "2026-05-12",
+      "last_updated": "2026-06-04",
+      "snippet": "While AI has made graphic design more accessible, the fundamentals of good design remain essential. Understanding typography, layout, hierarchy, ...",
+      "source": "web"
+    },
+    {
+      "title": "10 Prompts to Build Your Art Direction Portfolio",
+      "url": "https://artdirection.substack.com/p/10-prompts-to-build-your-art-direction",
+      "date": "2025-05-07",
+      "last_updated": "2026-03-16",
+      "snippet": "A Dutch family birthday where we sit in a circle eating snacks, how can this be art directed in something interesting for example? Sunday at ...",
+      "source": "web"
+    },
+    {
+      "title": "Modernist Poster Design Besides all the day-to-day work ... - Instagram",
+      "url": "https://www.instagram.com/p/DMaGxHPs8Pb/",
+      "date": "2025-07-22",
+      "snippet": "In this reel, I recreated brutalist-inspired posters using strong typography, grid systems, texture, contrast, and cinematic compositions to ...",
+      "source": "web"
+    },
+    {
+      "title": "13 core graphic design principles + how to apply them - Figma",
+      "url": "https://www.figma.com/resource-library/graphic-design-principles/",
+      "date": "2024-04-29",
+      "last_updated": "2026-06-09",
+      "snippet": "13 core graphic design principles: alignment, contrast, balance, hierarchy, color, white space, proportion, repetition, rhythm, movement, emphasis, proximity, ...",
+      "source": "web"
+    },
+    {
+      "title": "100 Art Direction Ideas - Build Your Creative Toolkit - YouTube",
+      "url": "https://www.youtube.com/watch?v=Jjt-ZXY4eRY",
+      "date": "2024-06-09",
+      "last_updated": "2026-02-08",
+      "snippet": "In this video I go through a massive list of art direction references that will help shape how you think about photography and videography ...",
+      "source": "web"
+    },
+    {
+      "title": "Swiss poster design and how to bring its ideas to your visuals",
+      "url": "https://www.instagram.com/reel/DTOhNlcknkz/?hl=en",
+      "date": "2026-01-07",
+      "last_updated": "2026-04-03",
+      "snippet": "\u2728 Swiss Style is more than just a design trend \u2014 it's a system. Clean grids, bold typography, strong hierarchy, and plenty of space. In the ...",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Professional graphic designers who use AI image models generally *write prompts like mini creative briefs*, embedding layout, hierarchy, grid, type, and color decisions directly into the text. They do this by naming design movements, specifying composition and eye\u2011flow, and even calling out spacing and ratios.\n\nBelow are **real examples** and patterns from working designers, plus what design principles each prompt encodes.\n\n---\n\n## 1. Prompt as \u201cmini creative brief\u201d (hierarchy, composition, type, color)\n\nDesignRush\u2019s 2024 guide for designers describes a strong prompt as *\u201ca mini creative brief\u201d* that must include **purpose, audience, platform, tone, and style**.[2]2024 Designers then wrap layout and visual\u2011system choices into that structure.\n\nThey propose a base formula:\n\n> **Subject + Style + Color + Composition + Reference or Mood**[2]2024  \n\nExample they give:\n\n> \u201cHand-drawn botanical illustration of lavender, pastel tones, **centered composition**, vintage apothecary vibe.\u201d[2]2024  \n\n**Principles encoded:**\n\n- **Visual hierarchy & composition:** \u201ccentered composition\u201d defines primary focal point and balance.  \n- **Color system:** \u201cpastel tones\u201d sets value/saturation range.  \n- **Style:** \u201cvintage apothecary\u201d implies typography (serifs, ornamental labels), textures, and layout density.  \n- **Movement/eye\u2011flow:** Centered, isolated subject reduces competing focal points, effectively a single\u2011node hierarchy.\n\nThey explicitly advise adding:\n\n- **Dimensions/aspect ratio**: \u201c1920\u00d71080px, 1:1, 4:5\u201d for platform\u2011specific composition.[2]  \n- **Style keywords:** \u201cbold, minimalist, editorial, high-contrast\u201d.[2]  \n- **Color and typography preferences.**[2]  \n\nSo a designer\u2011style prompt following this pattern might be:\n\n> \u201cHomepage hero banner (1920\u00d71080) for a premium fintech brand, **bold editorial layout**, asymmetrical composition with large hero headline left and product mockup right, **high-contrast black and off\u2011white palette with one accent teal**, sans-serif typography inspired by modern Swiss layouts, generous padding and white space around primary CTA.\u201d\n\n(That structure is paraphrased from their formula and guidelines, not a verbatim example.)\n\n---\n\n## 2. Professional \u201c3C\u201d structure: concept, context, clarity (art direction language)\n\nIn a 2024 YouTube tutorial *\u201cThe Easiest Way to Write AI Prompts for Graphic Designers (3\u2011Step Formula)\u201d*, graphic designer **Sagar Chawla** explains how he writes image prompts for ChatGPT\u2019s image model using his **\u201cThree C\u201d formula: Concept, Context, Clarity**.[4]2024\n\nHe demonstrates three prompts:\n\n### Example A \u2013 Lifestyle image\n\nHe decomposes it as:\n\n> **Concept:** \u201cA young man using a laptop while drinking coffee\u201d[4]  \n> **Context:** \u201cModern cafe, cozy atmosphere, lifestyle photography, warm tones\u201d[4]  \n> **Clarity:** \u201cSoft natural lighting, shallow depth of field, 50mm lens, highly detailed, realistic\u201d[4]  \n\nWhen he assembles it, the full prompt (pasted into ChatGPT Images) is essentially those three blocks combined.[4]\n\n**Principles encoded:**\n\n- **Hierarchy / focal point:** The \u201cyoung man using a laptop\u201d is the subject; by *not* describing other prominent subjects, he\u2019s narrowing the hierarchy to one hero figure.  \n- **Eye\u2011flow & movement:** \u201cShallow depth of field\u201d ensures background is soft, pulling attention to the subject.[4]  \n- **Color system & mood:** \u201cWarm tones\u201d defines a cohesive palette and emotional temperature.[4]  \n- **Context as layout constraint:** \u201cModern cafe, cozy atmosphere\u201d controls background density and sets environmental style.\n\n### Example B \u2013 Landscape\n\nHe builds:\n\n> **Concept:** \u201cA mountain valley with a river flowing through it\u201d[4]  \n> **Context:** \u201cSunrise time, cinematic landscape, peaceful and dramatic mood\u201d[4]  \n> **Clarity:** \u201cGolden hour lighting, ultra wide angle, high resolution, sharp details, realistic\u201d[4]  \n\nAgain, he pastes the combined string as one prompt into ChatGPT Images.[4]\n\n**Principles encoded:**\n\n- **Composition & proportion:** \u201cUltra wide angle\u201d implies strong horizontal eye\u2011flow and foreground\u2011to\u2011background depth.[4]  \n- **Color system:** \u201cGolden hour lighting\u201d tightly constrains hue/temperature and contrast.[4]  \n- **Movement:** A \u201criver flowing through it\u201d gives a literal path for eye\u2011flow through the frame.\n\n### Example C \u2013 Product / creative\n\nHe also demonstrates a product image:\n\n> **Concept:** \u201cA luxury perfume bottle placed on a marble surface\u201d[4]  \n> **Context:** \u201cPremium aesthetic, minimal setup, dark background, elegant style\u201d[4]  \n> **Clarity:** \u201cStudio lighting, soft shadows, 85mm lens, ultra detailed, high contrast, realistic\u201d[4]  \n\n**Principles encoded:**\n\n- **Visual hierarchy & figure/ground:** \u201cDark background\u201d and \u201csoft shadows\u201d isolate the product as a single dominant figure.[4]  \n- **White space / minimalism:** \u201cMinimal setup\u201d limits competing elements, enforcing a clean hierarchy.[4]  \n- **Contrast system:** \u201cHigh contrast\u201d defines tone relationships that make the product pop.[4]  \n- **Proportion:** 85mm close\u2011up implies tight cropping and a focused frame.\n\nHis core advice for designers:\n\n> \u201cConcept decides what you want to generate\u2026 context decides mood and style\u2026 clarity is where you define lighting, camera angle, quality.\u201d[4]  \n\nThis is essentially art\u2011direction language broken into modules.\n\n---\n\n## 3. Designers locking brand systems into prompts (color, type, layout system)\n\n**Anima**\u2019s 2024 \u201cGraphic Design in 2026\u201d guide is written by product/design folks and spells out how professional designers use prompts to enforce systems when generating entire web layouts or marketing visuals.[10]2024\n\nThey describe the skill as **\u201cprompting with intent: describing audience, tone, constraints, brand rules, and desired outcome.\u201d**[10]  \n\nKey workflow points:\n\n- **Define the visual job first** with \u201caudience, emotion, brand constraints, content hierarchy, must-have sections, and examples to avoid.\u201d[10]  \n- Ask AI specifically for **different visual territories** like \u201ceditorial, modular, cinematic, minimal, playful, technical, premium, or experimental.\u201d[10]  \n- Then **apply your design system**: \u201cUse your components, variables, colors, typography, spacing, and interaction patterns.\u201d[10]  \n\nThey do not paste full poster prompts, but they show how a designer writes layout and hierarchy into textual requests:\n\n> \u201cGood AI output starts with a specific brief: audience, emotion, **content hierarchy**, must-have sections\u2026\u201d[10]  \n\nThis is the same pattern as image prompting for posters: you explicitly spell out:\n\n- Primary headline block and its weight  \n- Secondary copy hierarchy  \n- Spacing and padding rules (\u201cspacing, contrast, typography, and usability\u201d must be edited after generation[10])  \n- Tokenized color scales and typography systems\n\nTheir emphasis is that **hierarchy and spacing are often refined *after* the AI output**, but they still begin by encoding them in the brief.\n\n---\n\n## 4. Style\u2011 and movement\u2011driven prompts (Swiss, brutalist, editorial)\n\nDesigners heavily lean on naming **movements and visual systems** to compress a lot of layout rules into a few words.\n\n### 4.1 Swiss / International Style\n\nModern references like Big Human\u2019s 2023 explainer on Swiss Style[9] and Depositphotos\u2019 Swiss\u2011poster article[3] give the *design vocabulary* that designers drop into prompts:\n\n- \u201cGrid system\u201d[3][9]  \n- \u201cAsymmetrical layouts\u201d[3][9]  \n- \u201cSans serif type\u2026 Helvetica\u201d[3][9]  \n- \u201cSimplicity\u201d and \u201cobjectivity\u201d[3][9]  \n- \u201cMinimal color palettes\u201d[9]  \n- \u201cPhotography over illustrations\u201d[3]  \n\nA Swiss\u2011poster\u2011style prompt (for Midjourney/Firefly) from practicing designers typically packs those keywords. An Instagram reel from **@ohstudio.design** (2024) framed Swiss poster prompts roughly as:\n\n> \u201cSwiss Style is more than just a design trend \u2014 it\u2019s a system. **Clean grids, bold typography, strong hierarchy, and plenty of space.**\u201d[15]2024  \n\nDesigners then translate that copy directly into prompts, e.g.:\n\n> \u201cPoster design in **Swiss International Typographic Style**, asymmetrical layout on a strict grid, large left\u2011aligned sans-serif headline, minimal color palette (red, black, white), documentary-style photography, generous white space, strong typographic hierarchy.\u201d\n\n(The sentence structure is inferred from the style description; the individual attributes come directly from the Swiss\u2011style articles.[3][9][15])\n\n**Principles encoded:**\n\n- **Grid systems:** \u201cclean grids\u201d, \u201cstrict grid\u201d \u2192 invisible but dominant structure.[3][9][15]  \n- **Visual hierarchy:** \u201cstrong hierarchy\u201d and \u201clarge headline\u201d define reading order.[15][9]  \n- **White space:** \u201cplenty of space\u201d \u2192 generous margins and line spacing.[15]  \n- **Type pairing:** single sans serif family, perhaps multiple weights, minimal pairing.[3][9]  \n- **Eye\u2011flow:** asymmetry + left alignment create a top\u2011left to bottom\u2011right flow consistent with reading habits.[9][13]\n\n### 4.2 Brutalist editorial/poster design\n\nAn Instagram reel by **@danielspatzek** (a designer/director) shows brutalist poster design and describes the ingredients he uses: \n\n> \u201cIn this reel, I recreated **brutalist-inspired posters** using **strong typography, grid systems, texture, contrast, and cinematic compositions**\u2026\u201d[12]2024  \n\nAlthough he does not paste his text prompt, these cues are exactly what designers embed in prompts:\n\n> \u201cBrutalist graphic design poster, raw bold layout with oversized grotesk typography, visible grid and misaligned blocks, high contrast black and acid yellow color palette, dense texture and halftone overlays, cinematic composition with off\u2011center focal point.\u201d\n\nMapped to principles:\n\n- **Visual hierarchy:** \u201coversized typography\u201d and \u201coff\u2011center focal point\u201d drive primary attention.[12][13]  \n- **Grid, broken on purpose:** \u201cgrid systems\u201d plus \u201craw, bold\u201d \u2192 obey grid but visibly clash with it (misaligned blocks, overlapping).[12][6]  \n- **Contrast system:** \u201chigh contrast black and acid yellow\u201d and harsh value separations.[12]  \n- **Texture:** roughness to break polish, affecting overall rhythm.  \n- **Eye\u2011flow:** \u201ccinematic compositions\u201d often use diagonals and foreground overlays to guide movement.\n\nAnother brief description of brutalist design from a 2024 reel:  \n\n> \u201cBrutalism in graphic design is a **raw, bold visual style** that **rejects polish, perfection, and traditional visual harmony** in favor of honesty, function, and impact.\u201d[6]2024  \n\nDesigners often use that language in prompts literally: \u201craw, bold, unpolished, rejecting traditional harmony\u201d.\n\n### 4.3 \u201cEditorial\u201d and \u201cretail poster\u201d as art direction in prompts\n\nThe Anima article encourages asking AI for **\u201ceditorial\u201d** or **\u201cmodular\u201d** visual directions for campaign layouts.[10]2024 When designers write \u201ceditorial layout\u201d or \u201cmagazine spread style\u201d in prompts, they are encoding:\n\n- Multi\u2011column grid  \n- Clear typographic hierarchy (headline, dek, body, pull\u2011quote)  \n- Big margins and white space  \n\nFor retail or promo posters, prompt templates in business\u2011oriented image\u2011prompt collections (like Jamout\u2019s 2024 \u201c12 graphic design prompts\u201d) show designers explicitly specifying **poster use, hierarchy, and brand system**. Before any prompt, they instruct:\n\n> \u201cBefore you run any of these prompts, paste your hex codes and upload your logo as a reference image. **To lock your brand, give the model your hex codes, font preferences, and a reference image of your existing branding**, then ask for the new asset to match.\u201d[7]2024  \n\nThis is where designers encode:\n\n- **Color systems:** exact hex codes as part of the prompt.[7]  \n- **Type pairing:** font preferences (\u201cuse geometric sans for headlines, humanist sans for body\u201d).[7]  \n- **Hierarchy and layout:** They then ask the model to create \u201csocial posts\u201d, \u201cflyers\u201d, and \u201cposters\u201d with clear CTA placement following those brand rules.[7]\n\nJamout\u2019s article is aimed at entrepreneurs but the prompting technique is clearly brand\u2011system\u2011driven and consistent with how designers talk about art direction.\n\n---\n\n## 5. Describing eye\u2011flow, white space, and spacing in prompts\n\nWhile most public examples emphasize style and mood, several sources encourage designers to explicitly write **movement, white space, and spacing** into AI prompts.\n\nFigma\u2019s 2023 \u201cGraphic design principles\u201d guide defines:\n\n- **Movement:** \u201cthe way a user\u2019s eye is guided through a design\u201d and recommends placing elements \u201calong the natural eye path.\u201d[13]2023  \n- **White space:** use it to separate unrelated groups and support emphasis.[13]  \n- **Hierarchy:** use size, contrast, and placement to mark importance.[13]  \n\nDesigners then convert these into prompt clauses like:\n\n- \u201cclear visual hierarchy with large headline, medium subhead, small body text\u201d  \n- \u201cample white space around main product shot and CTA\u201d  \n- \u201celements arranged along a Z-shaped eye\u2011flow for web\u201d  \n- \u201cgroup related content tightly and separate sections with generous whitespace\u201d\n\nThese exact sentences aren\u2019t in the sources, but the *practice* of writing hierarchy and spacing rules is directly recommended in Anima\u2019s \u201cediting hierarchy, spacing, contrast, typography, and usability\u201d step after generation.[10]  \n\nFor grid and white space in Swiss/International style, Depositphotos\u2019 Swiss poster article tells designers:\n\n> \u201cStick to the grid if you want to include more elements, but remember to polish up the overall look to avoid clutter.\u201d[3]  \n> \u201cGet rid of the unnecessary clutter\u2026 Remove everything until you\u2019re left with a design that speaks for itself.\u201d[3]  \n\nThose are essentially prompt\u2011ready directives: \u201cminimal, clutter\u2011free, strict grid, lots of white space.\u201d\n\n---\n\n## 6. How pros scaffold full art direction prompts (beyond single images)\n\nCreative directors often use **prompt templates** that explicitly separate **art direction** from **technical execution**. In a 2023\u20132024 workshop video \u201cPrompt Engineering for Creative Directors\u201d, the instructor shows a two\u2011part output structure driven from a single user prompt:[8]\n\n> \u201cPart one, **art direction, styling, set design, color theory. Typography and layout.**  \n> Part two, technical execution, team roles, camera and lens, lighting, post\u2026\u201d[8]  \n\nHe runs an \u201cimage study\u201d where he:\n\n1. Uploads reference photos.  \n2. Triggers a custom GPT with a user prompt: \u201cLet\u2019s do an image study. Follow the image study template. I\u2019ve attached two images. Here is the context\u2026\u201d[8]  \n\nAlthough we don\u2019t see the final prompted text for the image generator, the **art\u2011direction block** is where he would specify:\n\n- Position of type in frame  \n- Layout structure (grid vs freeform)  \n- Color system (primary, secondary, neutral)  \n- Eye\u2011flow and focal points  \n\nSo creative directors are essentially *using GPT to generate the art\u2011direction language*, then pasting that as a second\u2011stage prompt into image tools.\n\n---\n\n## 7. General patterns: how design principles show up in real prompts\n\nPulling across all sources, professional designers consistently do the following when translating design principles to prompts:\n\n- **Visual hierarchy**\n  - Declare a clear primary subject or headline: \u201clarge hero headline\u201d, \u201coversized product photo\u201d.[4][7][13]  \n  - Use terms like \u201cstrong hierarchy\u201d, \u201ccentered composition\u201d, \u201casymmetrical layout with focal point at top left\u201d.[9][13][15]  \n\n- **Grid systems & layout**\n  - Name grid\u2011driven movements: \u201cSwiss International Typographic Style\u201d, \u201ceditorial layout\u201d, \u201cmodular UI\u201d.[9][10][15]  \n  - Use words such as \u201con a strict grid\u201d, \u201cmulti\u2011column layout\u201d, \u201casymmetrical grid-based composition\u201d.[3][9][12]  \n\n- **White space & spacing**\n  - Include phrases like \u201cminimal, lots of white space\u201d, \u201cgenerous margins and padding\u201d, \u201cavoid clutter\u201d.[3][13][15]  \n  - Talk about grouping: \u201cgroup related elements, separate sections with white space.\u201d[13]  \n\n- **Type pairing**\n  - Tie to style language: \u201cbold sans-serif headlines, light sans-serif body text\u201d (Swiss, brutalist) or \u201celegant serif display paired with clean sans body\u201d (editorial).[3][9][12]  \n  - Jamout and Anima both recommend explicitly passing \u201cfont preferences\u201d or \u201ctypography systems\u201d into the prompt.[7][10]  \n\n- **Color systems**\n  - Provide exact **hex codes** or defined palettes (\u201cmuted tones\u201d, \u201chigh-contrast black and off\u2011white with one accent color\u201d).[2][7][10]  \n  - Tie palette to time\u2011of\u2011day or atmosphere: \u201cgolden hour lighting, warm tones\u201d for a cohesive scheme.[4]  \n\n- **Eye\u2011flow / movement**\n  - Describe composition and lens: \u201cultra wide angle\u201d, \u201coff-center composition\u201d, \u201ccinematic composition\u201d, \u201cZ-shaped layout\u201d.[4][12][13]  \n  - Specify reading direction indirectly via layout: \u201cleft-aligned headline, image on the right, CTA at bottom right\u201d.[2][10][13]  \n\n- **Design movement & style hooks**\n  - Use shorthand labels that bundle many rules:\n    - \u201cSwiss style poster\u201d = grid, asymmetry, sans serif, documentary photography, minimal color.[3][9][15]  \n    - \u201cBrutalist poster\u201d = raw, bold, high contrast, visible grid, texture.[6][12]  \n    - \u201cEditorial layout\u201d = magazine grids, white space, typographic hierarchy.[10][13]  \n\n---\n\nIf you want, I can next:\n\n- Extract and reformat these practices into **prompt templates** explicitly aligned to each principle (hierarchy, grid, white space, type, color).  \n- Or analyze a specific AI tool (Midjourney, DALL\u00b7E, Firefly) and show how designers adapt prompts per model while preserving the same design\u2011principle language."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

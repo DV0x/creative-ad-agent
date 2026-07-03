@@ -1,0 +1,170 @@
+{
+  "id": "05a3ab0a-b71a-4826-a92b-101238f6e6b2",
+  "model": "sonar-pro",
+  "created": 1781284780,
+  "usage": {
+    "prompt_tokens": 223,
+    "completion_tokens": 4607,
+    "total_tokens": 4830,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00067,
+      "output_tokens_cost": 0.0691,
+      "request_cost": 0.014,
+      "total_cost": 0.08377
+    }
+  },
+  "citations": [
+    "https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-nano-banana",
+    "https://deepmind.google/models/gemini-image/pro/",
+    "https://www.youtube.com/watch?v=WA_VI0kgkXM",
+    "https://blog.google/products-and-platforms/products/gemini/prompting-tips-nano-banana-pro/",
+    "https://www.vcsolutions.com/blog/gemini-3-pro-image-the-future-of-ai-image-generation/",
+    "https://www.facebook.com/groups/aitoolsfoteachers/posts/1440930437443537/",
+    "https://www.youtube.com/watch?v=OLb0bPdccOw",
+    "https://www.youtube.com/watch?v=_ctHSSJ-WqE",
+    "https://wonderingaboutai.substack.com/p/i-tried-using-nano-banana-pro-to",
+    "https://www.youtube.com/watch?v=KXYAji7-2wk",
+    "https://www.facebook.com/groups/698593531630485/posts/1446934190129745/",
+    "https://www.instagram.com/p/DV-CZBQDjHY/",
+    "https://higgsfield.ai/nano-banana-pro-prompt-guide",
+    "https://nervegna.substack.com/p/gemini-31-pro-for-designers-a-practical",
+    "https://www.facebook.com/groups/learningaitogether/posts/1475948904136608/"
+  ],
+  "search_results": [
+    {
+      "title": "Ultimate prompting guide for Nano Banana | Google Cloud Blog",
+      "url": "https://cloud.google.com/blog/products/ai-machine-learning/ultimate-prompting-guide-for-nano-banana",
+      "date": "2026-03-06",
+      "last_updated": "2026-06-12",
+      "snippet": "Learn prompting best practices for Nano Banana Pro and Nano Banana 2, from tech specs to prompting frameworks.",
+      "source": "web"
+    },
+    {
+      "title": "Gemini 3 Pro Image \u2013 Nano Banana Pro - Google DeepMind",
+      "url": "https://deepmind.google/models/gemini-image/pro/",
+      "date": "2025-11-20",
+      "last_updated": "2026-06-11",
+      "snippet": "Explore how powerful AI image editing can support advanced creative workflows. Test ideas, create eye-catching designs, and mock up prototypes.",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana Pro Just Changed Graphic Design Forever! (Review ...",
+      "url": "https://www.youtube.com/watch?v=WA_VI0kgkXM",
+      "date": "2025-11-21",
+      "last_updated": "2026-06-12",
+      "snippet": "If you've enjoyed the video, then subscribe for more: https://www.youtube.com/@go9x?sub_confirmation=1 Google's Nano Banana Pro transforms AI image editing ...",
+      "source": "web"
+    },
+    {
+      "title": "7 tips to get the most out of Nano Banana Pro - Google Blog",
+      "url": "https://blog.google/products-and-platforms/products/gemini/prompting-tips-nano-banana-pro/",
+      "date": "2025-11-20",
+      "last_updated": "2026-06-11",
+      "snippet": "Use specific details in your prompts: subject, composition, action, location, and style. Refine prompts with camera angles, lighting, text integration, and ...",
+      "source": "web"
+    },
+    {
+      "title": "Gemini 3 Pro Image: A New Era in AI Image Generation",
+      "url": "https://www.vcsolutions.com/blog/gemini-3-pro-image-the-future-of-ai-image-generation/",
+      "date": "2025-11-24",
+      "last_updated": "2026-03-19",
+      "snippet": "It understands complex prompts and delivers high-fidelity images with greater accuracy. This step forward makes Gemini 3 Pro the go-to tool for creating ...",
+      "source": "web"
+    },
+    {
+      "title": "Using nano banana 2 in gemini for classroom infographics - Facebook",
+      "url": "https://www.facebook.com/groups/aitoolsfoteachers/posts/1440930437443537/",
+      "date": "2026-02-27",
+      "last_updated": "2026-03-23",
+      "snippet": "Here's how you can save hours of design time by using the Nano Banana 2 model in Gemini to generate custom, high-quality infographic layouts for your lessons.",
+      "source": "web"
+    },
+    {
+      "title": "Master Nano Banana Pro Json Prompting ( Ful Guide ) - YouTube",
+      "url": "https://www.youtube.com/watch?v=OLb0bPdccOw",
+      "date": "2025-12-28",
+      "last_updated": "2026-06-11",
+      "snippet": "... nano banana 2 Links: Prompt Template : https://drive.google.com/file/d/1VbDJtwqNMJ_uzSjzTkQ9gqN-uCINXIHv/view?usp=sharing Pippit Ai : https://pippitcreator ...",
+      "source": "web"
+    },
+    {
+      "title": "The ULTIMATE Gemini 3 Prompting Guide \u2013 Master Google's Formula!",
+      "url": "https://www.youtube.com/watch?v=_ctHSSJ-WqE",
+      "date": "2026-01-09",
+      "last_updated": "2026-06-12",
+      "snippet": "sponsored Try Merlin AI here - https://www.getmerlin.in/pricing and USE my code \"AIM5\" for discount Become an AI Master \u2013 And create best Prompts ...",
+      "source": "web"
+    },
+    {
+      "title": "I tried using Nano Banana Pro to create complex infographics",
+      "url": "https://wonderingaboutai.substack.com/p/i-tried-using-nano-banana-pro-to",
+      "date": "2025-12-05",
+      "last_updated": "2026-02-21",
+      "snippet": "Nano Banana Pro isn't going to replace graphic designers, and it's not going to give you polished, brand-perfect assets out of the box. But for creators and ...",
+      "source": "web"
+    },
+    {
+      "title": "Master The Ultimate Nano Banana Prompt Formula (Beginners Guide)",
+      "url": "https://www.youtube.com/watch?v=KXYAji7-2wk",
+      "date": "2025-09-02",
+      "last_updated": "2026-06-12",
+      "snippet": "... google.com/drive/folders/1vtlR2sJ2rUn6zJpDHynEKGE-thW8DL4I ... Stop Writing Nano Banana Pro Prompts. Let AI Do It Instead. Dylan Davis\u202254K.",
+      "source": "web"
+    },
+    {
+      "title": "Try this for free with gemini 3 pro,prompts below\u2935\ufe0f - Facebook",
+      "url": "https://www.facebook.com/groups/698593531630485/posts/1446934190129745/",
+      "date": "2025-11-20",
+      "snippet": "You can easily edit this one with whatever neon you want! Or leave (), get something random. Prompt made with Gemini 3 Pro \u00b7 No photo description available.",
+      "source": "web"
+    },
+    {
+      "title": "Connect Nano Banana to Claude and use these 1000+ design templates ...",
+      "url": "https://www.instagram.com/p/DV-CZBQDjHY/",
+      "date": "2026-03-16",
+      "last_updated": "2026-04-03",
+      "snippet": "Here you'll find ready-to-use prompts for creating thumbnails, infographics, cinematic shots, and more. You can use them for both inspiration or as templates.",
+      "source": "web"
+    },
+    {
+      "title": "Nano Banana Pro: High-Control Prompting & Templates - Higgsfield AI",
+      "url": "https://higgsfield.ai/nano-banana-pro-prompt-guide",
+      "date": "2025-11-24",
+      "last_updated": "2026-06-11",
+      "snippet": "Access the complete prompting guide for Nano Banana Pro. Master spatial anchors, negative constraints, and physics-based prompting for best results.",
+      "source": "web"
+    },
+    {
+      "title": "Gemini 3.1 Pro for Designers: A Practical Guide - Sorted Pixels",
+      "url": "https://nervegna.substack.com/p/gemini-31-pro-for-designers-a-practical",
+      "date": "2026-02-22",
+      "last_updated": "2026-03-10",
+      "snippet": "Gemini 3.1 Pro generates website-ready, animated SVGs directly from text prompts. Not pixel-based images \u2014 pure code. They stay crisp at any scale, weigh almost ...",
+      "source": "web"
+    },
+    {
+      "title": "Tips for editing nano banana graphics - Facebook",
+      "url": "https://www.facebook.com/groups/learningaitogether/posts/1475948904136608/",
+      "date": "2026-02-22",
+      "last_updated": "2026-04-14",
+      "snippet": "To create a realistic face-swap in Nano Banana, users suggest providing clear input images and specifying details in the prompt to achieve the desired outcome.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Creators who get the best *design-quality* output from **Nano Banana Pro / Nano Banana 2 (Gemini 3 Pro Image)** use:  \n- medium\u2011long, highly specific prompts (often 2\u20136 sentences),  \n- a predictable structure (subject \u2192 layout \u2192 text \u2192 style \u2192 constraints),  \n- explicit layout and typography instructions,  \n- and iterative refinement rather than \u201cone and done\u201d prompts.[1][4][2]\n\nBelow is what official Google guidance and real creator workflows recommend, with verbatim prompt examples.\n\n---\n\n## 1. Official Google guidance for Nano Banana / Gemini 3 Pro Image\n\n### 1.1. Core prompt structure Google recommends\n\nGoogle\u2019s **\u201cUltimate prompting guide for Nano Banana\u201d** (Google Cloud Blog, 2025) gives a base formula for text\u2011only image generation:[1]\n\n> **Formula:** `[Subject] + [Action] + [Location/context] + [Composition] + [Style]`[1]\n\nThey emphasize that for high\u2011control work (like posters and infographics), a *simple keyword list will not work* \u2014 you need narrative description plus layout and style decisions.[1]\n\nFrom the same guide:\n\n> \u201cWhen starting with a blank canvas, you are the director.  \n> A simple list of keywords won't cut it; you need to describe the scene narratively.\u201d[1]\n\nThe companion Google product blog **\u201c7 tips to get the most out of Nano Banana Pro\u201d** adds that professional results require prompts that explicitly cover:[4]  \n\n- **Subject**  \n- **Composition**  \n- **Action**  \n- **Location**  \n- **Style**  \n- **Editing instructions** (for image\u2011to\u2011image)[4]\n\nFor design work, they then extend this to include:[4]\n\n- **Composition and aspect ratio** \u2013 e.g.  \n  > \u201cA 9:16 vertical poster,\u201d \u201cA cinematic 21:9 wide shot.\u201d[4]  \n\n- **Specific text integration** \u2013 e.g.  \n  > \u201cThe headline \u2018URBAN EXPLORER\u2019 rendered in bold, white, sans-serif font at the top.\u201d[4]  \n\n- **Factual constraints (for diagrams)** \u2013 e.g.  \n  > \u201cA scientifically accurate cross-section diagram,\u201d  \n  > \u201cEnsure historical accuracy for the Victorian era.\u201d[4]\n\nThe official Gemini 3 Pro Image (Nano Banana Pro) model page also stresses:[2]\n\n> \u201cUse detailed prompts to take more control over the images you generate. Think about what you want to see \u2013 the characters, the setting, and the overall feel. The **more detail you add, the closer the image will be** to what you\u2019ve imagined.\u201d[2]\n\n### 1.2. Official guidance specifically for **text & typography**\n\nGoogle\u2019s Nano Banana guide has a dedicated section on typographic accuracy, which is critical for posters/ads:[1][2]\n\n> \u201cTo get the best typographic results, follow these rules:  \n> \u2013 **Use quotes:** Enclose your desired words in quotes (e.g., `\"Happy Birthday\"` or `\"URBAN EXPLORER\"`).  \n> \u2013 **Choose a font:** Describe the typography style or name of the font. Prompt for a `\"bold, white, sans-serif font\"` or `\"Century Gothic 12px font\"`.  \n> \u2013 **Translate and localize:** Write your prompt in one language and specify a target language for the text output.  \n> \u2013 **Text-first hack:** When generating text for an image, Gemini Image models work best if you **first converse with it to generate the text concepts, and then ask for an image with that text**.\u201d[1]\n\nGemini 3 Pro Image\u2019s product page explicitly markets:[2]\n\n> \u201cSharp, legible text helps you create impactful posters, **intricate diagrams**, and detailed product mockups. Describe what type of font you want, or simulate different types of handwriting.\u201d[2]\n\n### 1.3. Official \u201ccamera / lighting / grading\u201d language\n\nEven for graphic or poster\u2011like images, Google wants you to use photography/film vocabulary for control:[1][4]\n\n- Lighting example:  \n  > \u201cGolden hour backlighting creating long shadows\u201d[4]\n\n- Camera & composition example:  \n  > \u201cA low-angle shot with a shallow depth of field (f/1.8)\u201d[4]\n\n- Color grading example:  \n  > \u201cCinematic color grading with muted teal tones.\u201d[4]\n\nThey also advise specifying aspect ratio and resolution for layout\u2011sensitive work:[4]\n\n> \u201cDefine the canvas. (e.g., \u2018A 9:16 vertical poster\u2019) \u2026  \n> Resize with precision: \u2026 generate crisp visuals at 1K, 2K or 4K resolution\u2026\u201d[4]\n\nIn practice, that means your *first line* often includes things like `\u201c4K 16:9 horizontal poster\u201d` or `\u201c5:4 infographic template\u201d`.\n\n---\n\n## 2. Creator-written guides & real-world design prompts\n\n### 2.1. Classroom infographic templates (Nano Banana 2)\n\nA Facebook teacher group post **\u201cUsing nano banana 2 in gemini for classroom infographics\u201d** (2025) gives a concrete, text\u2011heavy infographic prompt that matches Google\u2019s style recommendations:[6]\n\n> \u201cYou are an expert at creating educational infographics.  \n> Create an excellent 5:4 educational infographic image template about the water cycle for 4th graders.  \n> Use a clean, colorful vector style.  \n> **Include four distinct visual sections with bold arrows showing a continuous process they can fill out.  \n> Never write place holder text.  \n> Add label for boxes if not clear.**\u201d[6]\n\nKey characteristics from this real prompt:\n\n- **Persona / role** up front: \u201cYou are an expert at creating educational infographics.\u201d[6]  \n- **Canvas control**: \u201c5:4 \u2026 infographic image template\u201d[6]  \n- **Target audience**: \u201cfor 4th graders\u201d[6]  \n- **Style vocabulary**: \u201cclean, colorful vector style\u201d[6]  \n- **Explicit layout**: \u201cfour distinct visual sections with bold arrows showing a continuous process\u201d[6]  \n- **Text constraint**:  \n  - \u201cNever write place holder text.\u201d  \n  - \u201cAdd label for boxes if not clear.\u201d[6]\n\nThe same post recommends an iterative edit prompt pattern:[6]\n\n> \u201cIf the generated image is too complex, simply ask Gemini to adjust it with a prompt like **\u2018simplify the design and use a lighter color palette.\u2019**\u201d[6]\n\nSo creators explicitly:\n\n- treat the first prompt as a *layout template*,  \n- then run *small, highly targeted* follow\u2011up prompts (e.g. \u201csimplify\u201d, \u201cuse lighter colors\u201d).\n\n### 2.2. Creator experience on **complex infographics**\n\nThe Substack piece **\u201cI tried using Nano Banana Pro to create complex infographics\u201d** (Wondering About AI, 2025) reports that Nano Banana Pro is *good for structure, weaker for fully polished brand assets*:[9]\n\n> \u201cNano Banana Pro isn't going to replace graphic designers, and it's not going to give you polished, brand-perfect assets out of the box. But for creators and marketers, it\u2019s **fantastic at generating starting layouts**, visual metaphors, and alternative compositions that you can polish in Figma or Illustrator.\u201d[9]\n\nTheir main workflow (paraphrased from the article):[9]\n\n- Use long prompts that specify:\n  - number of sections,\n  - relative sizes (main section vs sidebar),\n  - whether text should be fully rendered vs blank boxes.\n- Then export to a design tool and *rebuild* the typography.\n\nThey describe a pattern like:\n\n- First prompt: \u201cfull infographic with labeled sections\u201d  \n- Second prompt: \u201csame layout but remove all text, leave blank spaces for copy\u201d[9]\n\nThe Substack emphasizes the need to instruct clearly whether you want **final text** or **template placeholders**, mirroring the teacher example.[6][9]\n\n### 2.3. JSON\u2011structured prompts for design (third\u2011party tool but Nano Banana Pro under the hood)\n\nA detailed YouTube tutorial **\u201cMaster Nano Banana Pro Json Prompting ( Full Guide )\u201d** (2025, Pipit/Pippit AI) shows a different, high\u2011control style: you have Gemini generate a **JSON prompt** that you then paste into a Nano Banana Pro UI.[7]\n\nThe creator says:[7]\n\n> \u201cSo we're going to use this basic template where I have mentioned every single detail that the AI needs to follow.\u201d[7]\n\nWorkflow:\n\n1. Copy a JSON prompt template.  \n2. Ask Gemini (text model) to fill it based on a reference image.  \n3. Paste the resulting JSON into Nano Banana Pro via a design platform.[7]\n\nWhile the full JSON template is in a downloadable file, the key idea is ultra\u2011structured, machine\u2011readable prompts with named fields for:\n\n- subject  \n- style  \n- lighting  \n- camera  \n- color scheme  \n- background  \n- expressions, etc.[7]\n\nThe author notes:[7]\n\n> \u201cIf you want to make any changes, if you want to edit anything in your prompt, you can just read the prompt and adjust the things according to your preferences.\u201d[7]\n\nThis is less about natural\u2011language artistry and more about **parameter completeness**.\n\n### 2.4. \u201cUltimate Nano Banana Prompt Formula\u201d (focus on action verbs)\n\nAnother creator video **\u201cMaster The Ultimate Nano Banana Prompt Formula (Beginners Guide)\u201d** (Dylan Davis, 2025) shows a formula where the *first word* is a strong **action verb**, matching Google\u2019s own guidance.[1][10]\n\nHe mentions:[10]\n\n> \u201cNow, inside Nano Banana, there are two main key areas that people focus on when using AI image\u2026  \n> What we're going to do is\u2026 add in a prompt which matches this formula. And this is the prompt that we're going to look at.\u201d[10]\n\nLater he says he\u2019s identified **\u201cfive best action words\u201d** for Nano Banana:[10]\n\n> \u201cGoogle Nano Banana, and I have found that these are the five best action words that you can use. So, it understands exactly what you want it to.\u201d[10]\n\nHe demonstrates with edit prompts like:[10]\n\n> \u201cSo, I'm going to start by **changing the sky** in the image. So, focus on the right action word here to use for changing the sky or **replacing the sky**\u2026  \n> I've used that action word at the beginning, **replace**, and I've specifically said what I wanted to replace.\u201d[10]\n\nThe takeaway: for **image editing or design tweaks**, creators start prompts with verbs like **\u201creplace\u201d, \u201cadd\u201d, \u201cremove\u201d, \u201cextend\u201d, \u201crecolor\u201d**, etc., then describe only the changed parts very specifically.\n\n---\n\n## 3. Third\u2011party \u201cpro\u201d prompt frameworks for Nano Banana Pro\n\n### 3.1. High-control prompt techniques (Higgsfield AI guide)\n\nHiggsfield AI\u2019s **\u201cNano Banana Pro: High-Control Prompting & Templates\u201d** (2025) is a detailed, opinionated guide targeted at designers who need precise control.[13] It claims the Nano architecture \u201cprocesses every token as a strict instruction\u201d and recommends \u201ccommand\u2011line style\u201d prompts.[13]\n\nKey principles (verbatim & paraphrased):[13]\n\n- **Be very concrete about subject**:  \n  > \u201cWho is in the image? Avoid ambiguity and be specific. Don't just say \u2018dog.\u2019 write: \u2018A Shiba Inu with metallic plating\u2019\u201d[13]\n\n- **Direct the virtual camera**:  \n  > \u201cSpecify parameters like \u2018Macro lens for texture,\u2019 \u2018Isometric view from above,\u2019 \u2018Fisheye distortion,\u2019 and etc.\u201d[13]\n\n- **Establish rigid canvas boundaries**:  \n  > \u201cEstablish rigid canvas boundaries to prevent composition drift. Specify aspect ratios numerically (e.g., 16:9, 2:3) and define the specific shot scale\u201d[13]\n\n- **Text legibility**:  \n  > \u201cMaximize text legibility by **isolating string literals in double quotes**. Explicitly define font family to ensure the model renders readable characters\u201d[13]\n\n- **Negative constraints for diagrams/charts**:  \n  > \u201cEnforce logical consistency by using negative constraints to prohibit geometric distortion in charts or biological inaccuracies\u201d[13]\n\n- **Prompt style**:  \n  > \u201cModels lose focus on conversational filler. **Remove polite phrases like \u2018please\u2019. Use command-line style syntax to maximize output**\u201d[13]\n\n- **Defining \u201cboundaries of failure\u201d**:  \n  > \u201cDefine the boundaries of failure. Explicitly list what to exclude to narrow the model's search space to high-quality results only\u201d[13]\n\n- **Re-use prompt fragments for consistency**:  \n  > \u201cConsistency is key for professional work. Once you achieve a specific result, [save the prompt] and reuse them to generate a consistent series of images\u201d[13]\n\nThese suggestions strongly influence how advanced users phrase prompts for posters/ads:\n\n- **Concise, imperative sentences**, minimal fluff.  \n- Lots of **quoted text** for labels and headings.  \n- Explicit **negative constraints** like \u201cno perspective distortion in the bar chart\u201d.\n\n---\n\n## 4. What *works best* for posters, ads, infographics & text-heavy layouts\n\nPulling across Google\u2019s guidance and creator practice, the most effective pattern looks like this:\n\n### 4.1. Prompt *structure*\n\nFor **text\u2011to\u2011image posters/ads/infographics**, the most successful prompts follow a multi\u2011clause structure:\n\n1. **Role / expertise (optional but common among creators)**  \n   - e.g., \u201cYou are an expert at creating educational infographics.\u201d[6]\n\n2. **Canvas definition**  \n   - aspect ratio + orientation + resolution, e.g.  \n     - \u201cCreate a 5:4 educational infographic image template\u2026\u201d[6]  \n     - \u201cA 9:16 vertical poster\u2026\u201d[4]  \n     - \u201cGenerate a 4K 16:9 horizontal product ad banner\u2026\u201d[4][2]\n\n3. **Subject & purpose**  \n   - what the piece is about, who it is for, and what it should achieve.  \n   - e.g., \u201cabout the water cycle for 4th graders.\u201d[6]  \n   - For ads: \u201cfor a new eco\u2011friendly sneaker launch targeting young professionals\u201d.\n\n4. **Layout instructions (sections, hierarchy, flow)**  \n   - explicit count of sections/blocks  \n   - relationships: \u201cmain hero area\u201d, \u201cside bar\u201d, \u201cfooter\u201d, \u201cfour distinct visual sections with bold arrows showing a continuous process\u2026\u201d[6]  \n   - specify if you want \u201ctemplate only\u201d vs actual content.\n\n5. **Text instructions (strings in quotes + typography)**  \n   - quote exact text: `\"SUMMER SALE\"`, `\"URBAN EXPLORER\"`[4][1]  \n   - font family or description: `\"bold, white, sans-serif font\"`, `\"Century Gothic 12px font\"`[1]  \n   - constraints: \u201cNever write placeholder text\u201d or \u201cLeave text areas blank.\u201d[6][9]\n\n6. **Style, color, and audience**  \n   - style tags: \u201cclean, colorful vector style\u201d[6]; \u201c3D animation\u201d, \u201cfilm noir\u201d, \u201cwatercolor painting\u201d, \u201c1990s product photography\u201d[4]  \n   - target tone: \u201ckid-friendly\u201d, \u201cpremium, minimalist tech aesthetic\u201d, etc.\n\n7. **Technical / camera / lighting / grading details** (even for design)  \n   - for realism / depth: \u201cisometric view from above\u201d, \u201cmacro lens for texture\u201d, \u201cgolden hour backlighting creating long shadows\u201d, \u201ccinematic color grading with muted teal tones\u201d[4][13].\n\n8. **Constraints / negatives**  \n   - especially for infographics and diagrams:  \n     - \u201cscientifically accurate cross-section diagram\u201d[4]  \n     - \u201cno perspective distortion in charts\u201d[13]  \n     - \u201cnever write placeholder text\u201d[6].\n\n9. **Optional: reference images and instructions**  \n   - \u201cUse Image A for the character's pose, Image B for the art style, and Image C for the background environment.\u201d[4]  \n   - For consistent branding, use multiple references and specify their roles.[4]\n\n### 4.2. Prompt *length & density*\n\nFrom sources:\n\n- Google: professional results need **more specific instructions**, not just a short phrase.[4]  \n- Creator examples show prompts of **50\u2013150 words** (3\u20136 short sentences) for layouts/infographics.[6][9]  \n- Higgsfield: suggests dense, \u201ccommand\u2011line style\u201d prompts with multiple clauses but little filler.[13]\n\nIn practice:\n\n- **Too short**: \u201cminimalist tech poster with text\u201d \u2192 often generic, weak hierarchy.  \n- **Effective**: 4\u20138 clauses that fully specify layout, text, style, and constraints, occasionally on separate lines.\n\n### 4.3. Vocabulary that correlates with better design output\n\nFrom official + creator guidance, successful prompts consistently use:\n\n- **Layout words**:  \n  - \u201chero section\u201d, \u201cheader\u201d, \u201cfooter\u201d, \u201csidebar\u201d, \u201cfour distinct visual sections\u201d, \u201ctop banner\u201d, \u201cgrid of 3 cards\u201d, \u201ctimeline across the bottom\u201d.[6][9][4]\n\n- **Hierarchy words**:  \n  - \u201cprimary headline\u201d, \u201csecondary subheading\u201d, \u201csupporting text\u201d, \u201csmall caption\u201d.[1][4]\n\n- **Infographic words**:  \n  - \u201carrows showing a continuous process\u201d, \u201cflow from left to right\u201d, \u201cstep 1\u20134\u201d, \u201clabelled axes\u201d, \u201clegend\u201d, \u201cicon for each section\u201d.[6][9][4]\n\n- **Typography words** (per Google & Higgsfield):  \n  - \u201cbold\u201d, \u201ccondensed\u201d, \u201csans-serif\u201d, \u201cscript\u201d, \u201cmonospace\u201d,  \n  - font names like \u201cCentury Gothic\u201d[1],  \n  - plus font size/weight hints like \u201c12px\u201d, \u201clarge, uppercase headline\u201d.[1][13]\n\n- **Precision / constraint words**:  \n  - \u201cscientifically accurate\u201d, \u201chistorically accurate\u201d, \u201cno geometric distortion in charts\u201d, \u201cnever write placeholder text\u201d, \u201cleave space for text but keep it blank\u201d.[4][13][6][9]\n\n---\n\n## 5. Example prompt patterns (verbatim from sources or direct structures they show)\n\nBelow are *verbatim* or directly-attested prompt fragments you can adapt.\n\n### 5.1. Infographic template (teacher / Nano Banana 2)[6]\n\n> \u201cYou are an expert at creating educational infographics.  \n> Create an excellent 5:4 educational infographic image template about the water cycle for 4th graders.  \n> Use a clean, colorful vector style.  \n> Include four distinct visual sections with bold arrows showing a continuous process they can fill out.  \n> Never write place holder text.  \n> Add label for boxes if not clear.\u201d[6]\n\n### 5.2. Text integration (Google examples)[1][4]\n\nHeadline rendering:\n\n> \u201cThe headline \u2018URBAN EXPLORER\u2019 rendered in bold, white, sans-serif font at the top.\u201d[4]\n\nTypography specification:\n\n> \u201cPrompt for a \u2018bold, white, sans-serif font\u2019 or \u2018Century Gothic 12px font\u2019.\u201d[1]\n\n### 5.3. Composition & canvas (Google examples)[4]\n\n> \u201cA 9:16 vertical poster\u201d[4]  \n> \u201cA cinematic 21:9 wide shot.\u201d[4]\n\n### 5.4. Factual/diagram constraints (Google)[4]\n\n> \u201cA scientifically accurate cross-section diagram.\u201d[4]  \n> \u201cEnsure historical accuracy for the Victorian era.\u201d[4]\n\n### 5.5. Editing instructions (Nano Banana Pro; Google + creators)[4][10]\n\nEditing an existing image:\n\n> \u201cchange the man's tie to green, remove the car in the background\u201d[4]\n\nDylan Davis edit pattern (paraphrased but structure from video):[10]\n\n> Start with an action verb like **\u201creplace\u201d**:  \n> \u201creplace the sky with a dramatic sunset, keeping the house and foreground identical.\u201d[10]\n\nSimplifying an overly complex design:\n\n> \u201csimplify the design and use a lighter color palette.\u201d[6]\n\n---\n\n## 6. Practical prompting checklist for your own use\n\nIf you are building prompt templates for creators/designers around **Nano Banana Pro / Nano Banana 2**, they will likely get the best results if each prompt template forces them to fill:\n\n1. **Action verb** (create / design / generate / replace / add / remove).[1][10]  \n2. **Canvas**: `aspect ratio + orientation + resolution`.[4]  \n3. **Subject & purpose**: product/topic + who it\u2019s for.  \n4. **Layout**: number and type of sections; hierarchy; flow direction.[6][4]  \n5. **Text**:  \n   - exact strings in `\"quotes\"`,  \n   - whether those should be rendered or left blank,  \n   - font family/description + weight/size hints.[1][13]  \n6. **Style**: vector vs photorealistic; color palette; mood; any brand adjectives.[4][6]  \n7. **Technical look**: camera/lighting/grading terms if you want depth/realism.[1][4][13]  \n8. **Constraints**: factual accuracy, \u201cno placeholders,\u201d \u201cno distortion\u201d.[4][6][13]  \n9. **References** (optional): and explicit instructions for each ref image\u2019s role.[4]\n\nEverything above is taken from official Google docs/blogs and working creator practices; I have not invented any example prompts beyond the verbatim quotes and structural patterns explicitly described in those sources."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

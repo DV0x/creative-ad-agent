@@ -1,0 +1,22 @@
+Create a 4:5 vertical designed advertisement graphic, 1080×1350, for an Instagram feed ad.
+
+This is a bold typographic poster built by a poster designer — the type is the architecture of the image, with one photographic product image integrated into it. Not a photograph of a scene; a designed graphic.
+
+Canvas: solid warm cream background (soft off-white with a warm paper tone), edge to edge.
+
+Upper two-thirds: massive condensed dark charcoal sans-serif type, left-aligned, stacked four lines, filling the width of the canvas:
+"JUST"
+"REORDERED"
+"THE 1KG"
+"PACK."
+One thick muted-gold underline bar sits directly beneath the word "REORDERED".
+
+Below the type block: a small dark plum rounded chip with cream text: "— Instagram comment"
+
+Bottom-right: the product pouch, large, standing upright, lit in bright soft studio light, slightly overlapping the bottom edge of the last type line for poster depth, one true soft shadow grounding it on the cream.
+
+Bottom-left: one small dark charcoal sans-serif line: "Your first tub → thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): a bright raspberry-magenta stand-up pouch, wide and squat — nearly as wide as it is tall — matte finish, gusseted base. White stacked "The Whole Truth" wordmark in the upper-left area of the pack face. In the upper right, a dark plum rounded badge reading "24 g protein per scoop" in white; beneath it, small white text lines printed directly on the magenta surface — "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" beside a small gold dot. Across the center-left in large white type: "Cleanest, lightest whey protein. Ever." with a small paragraph of fine white text below it. A small green vegetarian mark. Near the bottom, a dark rounded band reading "light cocoa · whey protein isolate + concentrate". A bold white panel with fine grey diagonal stripes wraps the pouch's left edge. There is no red corner ribbon and no large gold seal anywhere — those are website graphics, not part of the pack. The protein badge reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the cream background, the four-line type block with its gold underline, the attribution chip, the pouch with its shadow, and the small bottom-left line. All text exactly as written above, no extra words anywhere.

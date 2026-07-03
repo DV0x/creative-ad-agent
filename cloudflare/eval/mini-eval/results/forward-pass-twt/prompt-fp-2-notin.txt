@@ -1,0 +1,22 @@
+Create a 4:5 vertical designed advertisement graphic, 1080×1350, for an Instagram feed ad.
+
+This is a flat designed print-style poster built by a graphic designer — a bold typographic layout with one photographic product image placed into it. Not a photograph of a scene; a designed graphic.
+
+Canvas: solid dark plum background (deep wine-plum, matching the dark badge color on the product pack), edge to edge.
+
+Top third: giant cream-colored headline in heavy sans-serif, left-aligned: "NOT in this tub:"
+
+Middle: a vertical list in large cream sans-serif type, left-aligned, generous line spacing, each word struck through with one clean thick raspberry-magenta horizontal strikethrough line through its middle:
+"Sucralose"
+"Gums"
+"Thickeners"
+
+Below the list, one small cream line in regular sans-serif: "Whey protein isolate + concentrate — declared on the front of the pack."
+
+Bottom-left: small cream italic quote on the plum: ""Easy on the stomach." — Amazon review"
+
+Bottom-right: the product pouch, medium size, standing upright, lit with soft studio light, one true soft shadow on the plum ground. Under it a small cream rounded chip with dark plum text: "thewholetruthfoods.com"
+
+Product accuracy — match the attached reference image exactly (light-cocoa-24g-whey.png): a bright raspberry-magenta stand-up pouch, wide and squat — nearly as wide as it is tall — matte finish, gusseted base. White stacked "The Whole Truth" wordmark in the upper-left area of the pack face. In the upper right, a dark plum rounded badge reading "24 g protein per scoop" in white; beneath it, small white text lines printed directly on the magenta surface — "6.8 g BCAA", "whey isolate as primary source of protein", and "Trustified gold certified" beside a small gold dot. Across the center-left in large white type: "Cleanest, lightest whey protein. Ever." with a small paragraph of fine white text below it. A small green vegetarian mark. Near the bottom, a dark rounded band reading "light cocoa · whey protein isolate + concentrate". A bold white panel with fine grey diagonal stripes wraps the pouch's left edge. There is no red corner ribbon and no large gold seal anywhere — those are website graphics, not part of the pack. The protein badge reads 24 g, exactly as in the reference.
+
+The frame contains exactly: the plum background, the headline, the three struck-through words, the one small declaration line, the small quote, the pouch with its shadow, and the one chip. All text exactly as written above, no extra words anywhere.

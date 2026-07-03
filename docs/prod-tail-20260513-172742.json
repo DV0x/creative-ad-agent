@@ -1,0 +1,3795 @@
+=== [tail-restart 17:27:42] ===
+{
+    "wallTime": 947,
+    "cpuTime": 23,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/api/assets/folders"
+            ],
+            "level": "log",
+            "timestamp": 1778673486698
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673486789
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/api/assets/folders status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673487496
+        }
+    ],
+    "eventTimestamp": 1778673486510,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/api/assets/folders",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb17d49ee272cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "content-type": "application/json",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 24,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "SEs5liUM4gqayVCVQK2jVUslDDoEiIUvdGeKEwcYEHc=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "2Pe2uNQjpVh3C6a1cmRnRwp5ZOM=",
+                "tlsClientExtensionsSha1Le": "ITMkVK7gyLU3XZajTb7IYZ995a0=",
+                "tlsClientHelloLength": "1735",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 8138776
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 2558,
+    "cpuTime": 28,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/api/campaigns"
+            ],
+            "level": "log",
+            "timestamp": 1778673486675
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673486770
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/api/campaigns status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673487230
+        }
+    ],
+    "eventTimestamp": 1778673486510,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/api/campaigns",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb17d49ee262cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "content-type": "application/json",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 24,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "SEs5liUM4gqayVCVQK2jVUslDDoEiIUvdGeKEwcYEHc=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "2Pe2uNQjpVh3C6a1cmRnRwp5ZOM=",
+                "tlsClientExtensionsSha1Le": "ITMkVK7gyLU3XZajTb7IYZ995a0=",
+                "tlsClientHelloLength": "1735",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 8138776
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 2513,
+    "cpuTime": 29,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/api/payments/subscription"
+            ],
+            "level": "log",
+            "timestamp": 1778673486719
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673486943
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/api/payments/subscription status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673487228
+        }
+    ],
+    "eventTimestamp": 1778673486544,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/api/payments/subscription",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb17d49ee282cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "content-type": "application/json",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 24,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "SEs5liUM4gqayVCVQK2jVUslDDoEiIUvdGeKEwcYEHc=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "2Pe2uNQjpVh3C6a1cmRnRwp5ZOM=",
+                "tlsClientExtensionsSha1Le": "ITMkVK7gyLU3XZajTb7IYZ995a0=",
+                "tlsClientHelloLength": "1735",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 8138776
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 2658,
+    "cpuTime": 13,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/api/credits"
+            ],
+            "level": "log",
+            "timestamp": 1778673486599
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673486701
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/api/credits status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673487254
+        }
+    ],
+    "eventTimestamp": 1778673486514,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/api/credits",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb17d49ee292cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "content-type": "application/json",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 24,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "SEs5liUM4gqayVCVQK2jVUslDDoEiIUvdGeKEwcYEHc=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "2Pe2uNQjpVh3C6a1cmRnRwp5ZOM=",
+                "tlsClientExtensionsSha1Le": "ITMkVK7gyLU3XZajTb7IYZ995a0=",
+                "tlsClientHelloLength": "1735",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 8138776
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 2673,
+    "cpuTime": 14,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/api/assets/folders/folder_mp3q7na7ybyips/files"
+            ],
+            "level": "log",
+            "timestamp": 1778673487927
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673488105
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/api/assets/folders/folder_mp3q7na7ybyips/files status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673488597
+        }
+    ],
+    "eventTimestamp": 1778673487837,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/api/assets/folders/folder_mp3q7na7ybyips/files",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb17d524ed02cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "content-type": "application/json",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 25,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "SEs5liUM4gqayVCVQK2jVUslDDoEiIUvdGeKEwcYEHc=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "2Pe2uNQjpVh3C6a1cmRnRwp5ZOM=",
+                "tlsClientExtensionsSha1Le": "ITMkVK7gyLU3XZajTb7IYZ995a0=",
+                "tlsClientHelloLength": "1735",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 8138776
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 2664,
+    "cpuTime": 30,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/api/campaigns/campaign_mp3q9e5n9d2f81"
+            ],
+            "level": "log",
+            "timestamp": 1778673489141
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673489252
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/api/campaigns/campaign_mp3q9e5n9d2f81 status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673489799
+        }
+    ],
+    "eventTimestamp": 1778673489004,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/api/campaigns/campaign_mp3q9e5n9d2f81",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb17d598f4a2cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "content-type": "application/json",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 24,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "SEs5liUM4gqayVCVQK2jVUslDDoEiIUvdGeKEwcYEHc=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "2Pe2uNQjpVh3C6a1cmRnRwp5ZOM=",
+                "tlsClientExtensionsSha1Le": "ITMkVK7gyLU3XZajTb7IYZ995a0=",
+                "tlsClientHelloLength": "1735",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 8138776
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 8,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_3Dext3JrWtBN6RB3rdVF6YghwmZ"
+            ],
+            "level": "log",
+            "timestamp": 1778673512787
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778656746384_2andxr"
+            ],
+            "level": "log",
+            "timestamp": 1778673512788
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8ba2948a-6ae5-43c7-9887-cef08fed82c2 campaign=campaign_mp3q9e5n9d2f81 gen=false userId=user_3Dext3JrWtBN6RB3rdVF6YghwmZ"
+            ],
+            "level": "log",
+            "timestamp": 1778673512790
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3q9e5n9d2f81 type=ping gen=false session=8ba2948a-6ae5-43c7-9887-cef08fed82c2"
+            ],
+            "level": "log",
+            "timestamp": 1778673512790
+        }
+    ],
+    "eventTimestamp": 1778673487433,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 8,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T1][session][restore.userId] from=storage userId=user_3Dext3JrWtBN6RB3rdVF6YghwmZ"
+            ],
+            "level": "log",
+            "timestamp": 1778673537754
+        },
+        {
+            "message": [
+                "[T2][session][restore.agentProcessId] processId=proc_1778656746384_2andxr"
+            ],
+            "level": "log",
+            "timestamp": 1778673537755
+        },
+        {
+            "message": [
+                "[T3][session][restore.found] session=8ba2948a-6ae5-43c7-9887-cef08fed82c2 campaign=campaign_mp3q9e5n9d2f81 gen=false userId=user_3Dext3JrWtBN6RB3rdVF6YghwmZ"
+            ],
+            "level": "log",
+            "timestamp": 1778673537757
+        },
+        {
+            "message": [
+                "[T4][ws][message] cid=campaign_mp3q9e5n9d2f81 type=ping gen=false session=8ba2948a-6ae5-43c7-9887-cef08fed82c2"
+            ],
+            "level": "log",
+            "timestamp": 1778673537757
+        }
+    ],
+    "eventTimestamp": 1778673513613,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 401,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673545552,
+    "event": {
+        "rpcMethod": ""
+    }
+}
+{
+    "wallTime": 401,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673545648,
+    "event": {
+        "rpcMethod": "cleanupCompletedProcesses"
+    }
+}
+{
+    "wallTime": 761,
+    "cpuTime": 5,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "Error checking 3000: The container is not listening in the TCP address 10.0.0.1:3000"
+            ],
+            "level": "debug",
+            "timestamp": 1778673546141
+        },
+        {
+            "message": [
+                "Port 3000 is ready"
+            ],
+            "level": "log",
+            "timestamp": 1778673546648
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Version retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"unknown\",\"timestamp\":\"2026-05-13T11:59:06.684Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546684
+        },
+        {
+            "message": [
+                "{\"level\":\"warn\",\"msg\":\"Container version check: Container version could not be determined. This may indicate an outdated container image. Please update your container to match SDK version 0.7.19\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"timestamp\":\"2026-05-13T11:59:06.684Z\"}"
+            ],
+            "level": "warn",
+            "timestamp": 1778673546684
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Session created\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: sandbox-user-user_3dext3jrwtbn6rb3rdvf6yghwmz-v2\",\"timestamp\":\"2026-05-13T11:59:06.693Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546693
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"pkill -f agent-runner 2>/dev/null || true, Success: true\",\"timestamp\":\"2026-05-13T11:59:06.766Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546766
+        }
+    ],
+    "eventTimestamp": 1778673546038,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 10,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Unmounting bucket from /mnt/r2\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"timestamp\":\"2026-05-13T11:59:06.805Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546805
+        }
+    ],
+    "eventTimestamp": 1778673546766,
+    "event": {
+        "rpcMethod": "unmountBucket"
+    }
+}
+{
+    "wallTime": 78,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"pkill -9 s3fs 2>/dev/null; umount -l /mnt/r2 2>/dev/null; fusermount -u /mnt/r2 2>/dev/null; rm -rf /mnt/r2; mkdir -p /mnt/r2, Success: true\",\"timestamp\":\"2026-05-13T11:59:06.884Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546884
+        }
+    ],
+    "eventTimestamp": 1778673546805,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 234,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Mounting bucket creative-agent-assets-prod to /mnt/r2\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"timestamp\":\"2026-05-13T11:59:06.893Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546893
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"File written\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"/tmp/.passwd-s3fs-debd4bac-6871-4ace-81ce-9cc6da7bd4d0 (124 chars)\",\"timestamp\":\"2026-05-13T11:59:06.913Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546913
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"chmod 0600 '/tmp/.passwd-s3fs-debd4bac-6871-4ace-81ce-9cc6da7bd4d0', Success: true\",\"timestamp\":\"2026-05-13T11:59:06.983Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673546983
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"mkdir -p '/mnt/r2', Success: true\",\"timestamp\":\"2026-05-13T11:59:07.009Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673547009
+        }
+    ],
+    "eventTimestamp": 1778673546884,
+    "event": {
+        "rpcMethod": "mountBucket"
+    }
+}
+{
+    "wallTime": 1017,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"node -e \\\"\\n          async function test() {\\n            const r1 = await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':process.env.ANTHROPIC_API_KEY,'anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:5,messages:[{role:'user',content:'hi'}]})});\\n            console.log('WITH_KEY='+r1.status);\\n            const r3 = await fetch('https://httpbin.org/ip');\\n            const t3 = await r3.text();\\n            console.log('IP='+t3.trim());\\n          }\\n          test().catch(e=>console.log('ERR='+e.message));\\n        \\\", Success: true\",\"timestamp\":\"2026-05-13T11:59:08.140Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673548140
+        }
+    ],
+    "eventTimestamp": 1778673547125,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 36,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"rm -f /app/generated-images.jsonl /app/turn-result.json 2>/dev/null || true, Success: true\",\"timestamp\":\"2026-05-13T11:59:08.176Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673548176
+        }
+    ],
+    "eventTimestamp": 1778673548140,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 79,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"rm -rf /app/agent/files/* 2>/dev/null; rm -rf /app/agent/.claude/skills/hook-methodology/hook-bank/*.md 2>/dev/null || true, Success: true\",\"timestamp\":\"2026-05-13T11:59:08.255Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673548255
+        }
+    ],
+    "eventTimestamp": 1778673548176,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 39,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"rm -f /app/refs.json 2>/dev/null || true, Success: true\",\"timestamp\":\"2026-05-13T11:59:08.292Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673548292
+        }
+    ],
+    "eventTimestamp": 1778673548255,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 28,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 3863 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T11:59:15.036Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673555036
+        }
+    ],
+    "eventTimestamp": 1778673555010,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673555036,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 2314,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T60][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673562752
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=3 req=turn_1778673563551"
+            ],
+            "level": "log",
+            "timestamp": 1778673563643
+        }
+    ],
+    "eventTimestamp": 1778673560627,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 28,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 6183 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T11:59:25.123Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673565123
+        }
+    ],
+    "eventTimestamp": 1778673565096,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673565123,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 25,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 6615 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T11:59:35.204Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673575204
+        }
+    ],
+    "eventTimestamp": 1778673575179,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10029,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673575204,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 26,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 11488 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T11:59:45.285Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673585285
+        }
+    ],
+    "eventTimestamp": 1778673585261,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673585285,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 7567,
+    "cpuTime": 5,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T103][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673587748
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=8 req=turn_1778673588556"
+            ],
+            "level": "log",
+            "timestamp": 1778673588653
+        },
+        {
+            "message": [
+                "[sdk-parser] msg.type=trace uuid=none"
+            ],
+            "level": "log",
+            "timestamp": 1778673592173
+        },
+        {
+            "message": [
+                "[T104][emit][tool_start] cid=campaign_mp40awylzb2gch eventId=6 wsCount=1 tool=Write"
+            ],
+            "level": "log",
+            "timestamp": 1778673592274
+        },
+        {
+            "message": [
+                "[parser][emit][file] type=research path=gent/files/research/thewholetruthfoods_research.md contentLen=6552"
+            ],
+            "level": "log",
+            "timestamp": 1778673592274
+        },
+        {
+            "message": [
+                "[T105][emit][file] cid=campaign_mp40awylzb2gch eventId=7 wsCount=1 fileType=research"
+            ],
+            "level": "log",
+            "timestamp": 1778673592274
+        },
+        {
+            "message": [
+                "[sdk-parser] msg.type=trace uuid=none"
+            ],
+            "level": "log",
+            "timestamp": 1778673592624
+        },
+        {
+            "message": [
+                "[sdk-parser] msg.type=user uuid=1febeafb"
+            ],
+            "level": "log",
+            "timestamp": 1778673592624
+        },
+        {
+            "message": [
+                "[T106][emit][tool_end] cid=campaign_mp40awylzb2gch eventId=8 wsCount=1"
+            ],
+            "level": "log",
+            "timestamp": 1778673592624
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=9 req=turn_1778673593556"
+            ],
+            "level": "log",
+            "timestamp": 1778673593579
+        }
+    ],
+    "eventTimestamp": 1778673585317,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 28,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 19613 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T11:59:55.368Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673595368
+        }
+    ],
+    "eventTimestamp": 1778673595342,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673595368,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 32,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 53243 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:00:05.453Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673605453
+        }
+    ],
+    "eventTimestamp": 1778673605424,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 1902,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T141][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673613586
+        }
+    ],
+    "eventTimestamp": 1778673613577,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 10027,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673605453,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 31,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 53677 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:00:15.544Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673615544
+        }
+    ],
+    "eventTimestamp": 1778673615517,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10025,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673615544,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 40,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 54359 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:00:25.636Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673625636
+        }
+    ],
+    "eventTimestamp": 1778673625605,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10031,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673625636,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 39,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 89380 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:00:35.740Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673635740
+        }
+    ],
+    "eventTimestamp": 1778673635711,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 8036,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T191][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673637745
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=18 req=turn_1778673638560"
+            ],
+            "level": "log",
+            "timestamp": 1778673638620
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=19 req=turn_1778673643560"
+            ],
+            "level": "log",
+            "timestamp": 1778673643646
+        },
+        {
+            "message": [
+                "[ws-send] text_start cid=campaign_mp40awylzb2gch"
+            ],
+            "level": "log",
+            "timestamp": 1778673644349
+        },
+        {
+            "message": [
+                "[ws-send] text_delta len=3 cid=campaign_mp40awylzb2gch"
+            ],
+            "level": "log",
+            "timestamp": 1778673644349
+        },
+        {
+            "message": [
+                "[ws-send] text_delta len=44 cid=campaign_mp40awylzb2gch"
+            ],
+            "level": "log",
+            "timestamp": 1778673644349
+        },
+        {
+            "message": [
+                "[ws-send] text_end cid=campaign_mp40awylzb2gch"
+            ],
+            "level": "log",
+            "timestamp": 1778673644349
+        }
+    ],
+    "eventTimestamp": 1778673635783,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 10027,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673635740,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 38,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 89969 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:00:45.837Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673645837
+        }
+    ],
+    "eventTimestamp": 1778673645808,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10023,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673645837,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 217,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 101367 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:00:55.927Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673655927
+        }
+    ],
+    "eventTimestamp": 1778673655899,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 3391,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T225][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673662755
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=23 req=turn_1778673663561"
+            ],
+            "level": "log",
+            "timestamp": 1778673663668
+        }
+    ],
+    "eventTimestamp": 1778673658635,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673655927,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 39,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 103255 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:01:06.205Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673666205
+        }
+    ],
+    "eventTimestamp": 1778673666171,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673666205,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 41,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 103689 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:01:16.301Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673676301
+        }
+    ],
+    "eventTimestamp": 1778673676267,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10028,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673676301,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 32,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 104123 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:01:26.393Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673686393
+        }
+    ],
+    "eventTimestamp": 1778673686366,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10028,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673686393,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 8686,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T266][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673687743
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=28 req=turn_1778673688562"
+            ],
+            "level": "log",
+            "timestamp": 1778673688598
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=29 req=turn_1778673693562"
+            ],
+            "level": "log",
+            "timestamp": 1778673693623
+        }
+    ],
+    "eventTimestamp": 1778673686431,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 38,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 104557 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:01:36.488Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673696488
+        }
+    ],
+    "eventTimestamp": 1778673696455,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10027,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673696488,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 38,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 104991 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:01:46.583Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673706583
+        }
+    ],
+    "eventTimestamp": 1778673706551,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 3861,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T293][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673712756
+        }
+    ],
+    "eventTimestamp": 1778673712325,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 10025,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673706583,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 42,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 105284 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:01:56.682Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673716682
+        }
+    ],
+    "eventTimestamp": 1778673716646,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 2591,
+    "cpuTime": 13,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/images/1778673657363_1_professional_product_photography_of_clean_label_pr.png"
+            ],
+            "level": "log",
+            "timestamp": 1778673719287
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673719384
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/images/1778673657363_1_professional_product_photography_of_clean_label_pr.png status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673719876
+        }
+    ],
+    "eventTimestamp": 1778673719188,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/images/1778673657363_1_professional_product_photography_of_clean_label_pr.png",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb182f8298b2ce8",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/workspace",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 18,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "BjYRLgsc0qe7aX89f9zBu0XlsI0pFhD6PFi5j8Z9nzU=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "GeI2CBvs6Fbc7SJXqQbNnfMUGdo=",
+                "tlsClientExtensionsSha1Le": "hq7LRq80UB7h54hBQ+UWAAKQw9U=",
+                "tlsClientHelloLength": "1738",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 80360
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 10027,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673716682,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 42,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 115904 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:02:06.775Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673726775
+        }
+    ],
+    "eventTimestamp": 1778673726743,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 180018,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"s3fs 'creative-agent-assets-prod:/users/user_3Dext3JrWtBN6RB3rdVF6YghwmZ' '/mnt/r2' -o 'passwd_file=/tmp/.passwd-s3fs-debd4bac-6871-4ace-81ce-9cc6da7bd4d0,nomixupload,url=https://091650847ca6a1d9bb40bee044dfdc91.r2.cloudflarestorage.com', Success: true\",\"timestamp\":\"2026-05-13T11:59:07.116Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673547116
+        },
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Successfully mounted bucket creative-agent-assets-prod to /mnt/r2\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"timestamp\":\"2026-05-13T11:59:07.116Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673547116
+        }
+    ],
+    "eventTimestamp": 1778673547009,
+    "event": {
+        "scheduledTime": "2026-05-13T11:59:07.047Z"
+    }
+}
+{
+    "wallTime": 295,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673726775,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 170,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 116338 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:02:17.005Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673737005
+        }
+    ],
+    "eventTimestamp": 1778673736841,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10028,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673737005,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 9299,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T338][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673737743
+        },
+        {
+            "message": [
+                "[sdk-parser] heartbeat count=38 req=turn_1778673742433"
+            ],
+            "level": "log",
+            "timestamp": 1778673742504
+        }
+    ],
+    "eventTimestamp": 1778673737477,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 42,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 116772 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:02:27.102Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673747102
+        }
+    ],
+    "eventTimestamp": 1778673747068,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 10026,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673747102,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 45,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 117206 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:02:37.205Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673757205
+        }
+    ],
+    "eventTimestamp": 1778673757167,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 4495,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T365][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=true session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673762750
+        },
+        {
+            "message": [
+                "[stream] non-JSON line (75 chars): [2026-05-13T12:02:43.253Z] API response received for image 1 (took 41176ms)"
+            ],
+            "level": "log",
+            "timestamp": 1778673763312
+        }
+    ],
+    "eventTimestamp": 1778673762508,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 10027,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673757205,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 34,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 117716 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:02:47.299Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673767299
+        }
+    ],
+    "eventTimestamp": 1778673767270,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 2967,
+    "cpuTime": 17,
+    "truncated": false,
+    "executionModel": "stateless",
+    "outcome": "ok",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[trace][worker][api] method=GET path=/images/1778673722076_1_editorial_magazine_style_product_advertisement_wit.png"
+            ],
+            "level": "log",
+            "timestamp": 1778673770340
+        },
+        {
+            "message": [
+                "[AUTH] JWT verified OK: sub=user_3Dext3JrWtBN6RB3rdVF6YghwmZ, iss=https://clerk.creativemachines.xyz"
+            ],
+            "level": "log",
+            "timestamp": 1778673770588
+        },
+        {
+            "message": [
+                "[trace][worker][api_done] method=GET path=/images/1778673722076_1_editorial_magazine_style_product_advertisement_wit.png status=200"
+            ],
+            "level": "log",
+            "timestamp": 1778673771305
+        }
+    ],
+    "eventTimestamp": 1778673770227,
+    "event": {
+        "request": {
+            "url": "https://creativemachines.xyz/images/1778673722076_1_editorial_magazine_style_product_advertisement_wit.png",
+            "method": "GET",
+            "headers": {
+                "accept": "*/*",
+                "accept-encoding": "gzip, br",
+                "accept-language": "en-US,en;q=0.9",
+                "authorization": "REDACTED",
+                "cf-connecting-ip": "175.101.96.206",
+                "cf-ipcountry": "IN",
+                "cf-ray": "9fb184373ea22cea",
+                "cf-visitor": "{\"scheme\":\"https\"}",
+                "cookie": "REDACTED",
+                "host": "creativemachines.xyz",
+                "priority": "u=1, i",
+                "referer": "https://creativemachines.xyz/workspace",
+                "sec-ch-ua": "\"Not:A-Brand\";v=\"99\", \"Google Chrome\";v=\"145\", \"Chromium\";v=\"145\"",
+                "sec-ch-ua-mobile": "?0",
+                "sec-ch-ua-platform": "\"macOS\"",
+                "sec-fetch-dest": "empty",
+                "sec-fetch-mode": "cors",
+                "sec-fetch-site": "same-origin",
+                "user-agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36",
+                "x-forwarded-proto": "https",
+                "x-real-ip": "175.101.96.206"
+            },
+            "cf": {
+                "httpProtocol": "HTTP/3",
+                "clientAcceptEncoding": "gzip, deflate, br",
+                "requestPriority": "",
+                "edgeRequestKeepAliveStatus": 1,
+                "requestHeaderNames": {},
+                "clientTcpRtt": 0,
+                "clientQuicRtt": 96,
+                "colo": "HYD",
+                "asn": 17754,
+                "asOrganization": "Excell Media Pvt Ltd",
+                "country": "IN",
+                "isEUCountry": false,
+                "city": "Narasaraopet",
+                "continent": "AS",
+                "region": "Andhra Pradesh",
+                "regionCode": "AP",
+                "timezone": "Asia/Kolkata",
+                "longitude": "80.04927",
+                "latitude": "16.23488",
+                "postalCode": "522414",
+                "tlsVersion": "TLSv1.3",
+                "tlsCipher": "AEAD-AES128-GCM-SHA256",
+                "tlsClientRandom": "hd+dd69s1dljCYuWe7ZVBFon7hez/Ark3FG77QvECMs=",
+                "tlsClientCiphersSha1": "3HTt3+R/6BL3zeALJDSq0pR1yOQ=",
+                "tlsClientExtensionsSha1": "g3O8nAys9O30GqnG8oyaraihrik=",
+                "tlsClientExtensionsSha1Le": "0Ix8/lnosXryDHMdcpR1i7w3i/Q=",
+                "tlsClientHelloLength": "1743",
+                "tlsClientAuth": {
+                    "certPresented": "0",
+                    "certVerified": "NONE",
+                    "certRevoked": "0",
+                    "certIssuerDN": "",
+                    "certSubjectDN": "",
+                    "certIssuerDNRFC2253": "",
+                    "certSubjectDNRFC2253": "",
+                    "certIssuerDNLegacy": "",
+                    "certSubjectDNLegacy": "",
+                    "certSerial": "",
+                    "certIssuerSerial": "",
+                    "certSKI": "",
+                    "certIssuerSKI": "",
+                    "certFingerprintSHA1": "",
+                    "certFingerprintSHA256": "",
+                    "certNotBefore": "",
+                    "certNotAfter": "",
+                    "certRFC9440": "",
+                    "certRFC9440TooLarge": false,
+                    "certChainRFC9440": "",
+                    "certChainRFC9440TooLarge": false
+                },
+                "verifiedBotCategory": "",
+                "edgeL4": {
+                    "deliveryRate": 15315
+                },
+                "botManagement": {
+                    "corporateProxy": false,
+                    "verifiedBot": false,
+                    "jsDetection": {
+                        "passed": false
+                    },
+                    "staticResource": false,
+                    "detectionIds": {},
+                    "score": 99
+                }
+            }
+        },
+        "response": {
+            "status": 200
+        }
+    }
+}
+{
+    "wallTime": 9917,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673767299,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 112,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"File read\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"/app/turn-result.json (18721 chars)\",\"timestamp\":\"2026-05-13T12:02:57.250Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673777250
+        }
+    ],
+    "eventTimestamp": 1778673767560,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 50,
+    "cpuTime": 2,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Process logs retrieved\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"ID: proc_1778673548287_jd5jg1, stdout: 133200 chars, stderr: 0 chars\",\"timestamp\":\"2026-05-13T12:02:57.394Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673777394
+        }
+    ],
+    "eventTimestamp": 1778673777361,
+    "event": {
+        "rpcMethod": "getProcessLogs"
+    }
+}
+{
+    "wallTime": 3245,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"File read\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"/app/turn-result.json (18721 chars)\",\"timestamp\":\"2026-05-13T12:02:57.441Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673777441
+        }
+    ],
+    "eventTimestamp": 1778673777394,
+    "event": {
+        "rpcMethod": "readFile"
+    }
+}
+{
+    "wallTime": 25033,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T408][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673787755
+        }
+    ],
+    "eventTimestamp": 1778673786788,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 24947,
+    "cpuTime": 1,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T409][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673812789
+        }
+    ],
+    "eventTimestamp": 1778673807114,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 25104,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T410][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673837737
+        }
+    ],
+    "eventTimestamp": 1778673837410,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 25701,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T411][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673862842
+        }
+    ],
+    "eventTimestamp": 1778673840653,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 126455,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "{\"level\":\"info\",\"msg\":\"Command executed\",\"component\":\"sandbox-do\",\"sandboxId\":\"28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83\",\"traceId\":\"tr_f9b09bc4734540a5\",\"details\":\"rm -f /app/turn-result.json, Success: true\",\"timestamp\":\"2026-05-13T12:03:00.696Z\"}"
+            ],
+            "level": "log",
+            "timestamp": 1778673780696
+        }
+    ],
+    "eventTimestamp": 1778673777673,
+    "event": {
+        "rpcMethod": "exec"
+    }
+}
+{
+    "wallTime": 180032,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673727063,
+    "event": {
+        "scheduledTime": "2026-05-13T12:02:07.047Z"
+    }
+}
+{
+    "wallTime": 25031,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T412][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673888544
+        }
+    ],
+    "eventTimestamp": 1778673863100,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 24957,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T413][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673913577
+        }
+    ],
+    "eventTimestamp": 1778673888807,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 55017,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T414][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673938535
+        }
+    ],
+    "eventTimestamp": 1778673913833,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 59988,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T415][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778673993553
+        }
+    ],
+    "eventTimestamp": 1778673938791,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}
+{
+    "wallTime": 180037,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "28403d625e77b4e8677c198ac9caf6ab5d7e2994c772a15f95b019420141fd83",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "Sandbox",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [],
+    "eventTimestamp": 1778673907106,
+    "event": {
+        "scheduledTime": "2026-05-13T12:02:07.089Z"
+    }
+}
+{
+    "wallTime": 60018,
+    "cpuTime": 0,
+    "truncated": false,
+    "executionModel": "durableObject",
+    "outcome": "ok",
+    "durableObjectId": "23a7a16e89f80e1c197b6b63329e2580b752535a2c3fe9ff3eae4de4e01ee948",
+    "scriptTags": [
+        "cf:service=creative-agent",
+        "cf:environment=production"
+    ],
+    "scriptVersion": {
+        "id": "c7fb1a6a-ad3c-4bb0-b6a9-21170be21fe5"
+    },
+    "entrypoint": "CampaignSession",
+    "scriptName": "creative-agent-production",
+    "diagnosticsChannelEvents": [],
+    "exceptions": [],
+    "logs": [
+        {
+            "message": [
+                "[T416][ws][message] cid=campaign_mp40awylzb2gch type=ping gen=false session=9839870b-1427-4db8-974e-4d3ebd0ae499"
+            ],
+            "level": "log",
+            "timestamp": 1778674053542
+        }
+    ],
+    "eventTimestamp": 1778673993856,
+    "event": {
+        "getWebSocketEvent": {
+            "webSocketEventType": "message"
+        }
+    }
+}

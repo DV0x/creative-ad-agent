@@ -269,16 +269,23 @@ Agent process stays alive. The SDK retains full conversation history **in the ac
 
 ### Cold Start (Slow Path)
 
-Container was evicted. The DO:
+Container was evicted. The DO restores context from D1 in **two parts** — files and chat transcript — because the SDK's in-memory conversation history is gone:
+
 1. Queries D1 for existing campaign files (`campaign_files` table)
 2. **Hydrates files** into the sandbox filesystem before starting the agent:
    - Research → `/app/agent/files/research/restored_research.md`
    - Hooks → `/app/agent/.claude/skills/hook-methodology/hook-bank/restored_hooks.md`
    - Prompts → `/app/agent/files/creatives/restored_prompts.json`
 3. Files are written via `sandbox.exec(node -e "fs.writeFileSync(...)")` with content passed as env vars
-4. Starts a fresh SDK session (no conversation history — only the hydrated files provide context)
+4. **Hydrates the chat transcript** from the `messages` table directly into the prompt text (`campaign-session.ts:1260-1276`). `db.getMessages()` returns the prior turns, which are formatted as a `[PREVIOUS CONVERSATION: ... Continue the conversation from here.]` block appended to `aiPrompt`.
+5. Starts a fresh SDK session (no SDK-level history — only the hydrated files + transcript provide context)
 
-This means the agent can reference existing work but doesn't remember the conversation itself.
+This means the agent can reference existing work and see what was *said*, but doesn't truly remember the conversation as the SDK would on a warm container.
+
+**Chat-transcript hydration caveats:**
+- **Truncated** — each message is capped at `content.substring(0, 2000)` chars; long turns get clipped.
+- **Text-only** — only `role` + `content` are injected. The `messages` table also stores `blocks` (structured thinking-block JSON), `image_refs`, and `file_refs`, but those are used for **UI replay of the chat panel**, *not* fed to the agent during hydration. The agent sees the words, not the structured tool/image metadata.
+- This transcript path is **cold-start only** — on a warm container the SDK holds the real conversation in memory and the D1 transcript is never used.
 
 **Source-research campaigns:** The same hydration path is used for campaigns created via "New from Existing". The hydration condition is `if (sdkSessionId || hasSourceResearch)`. When only research exists (no hooks/prompts yet), a smart follow-up note tells the agent to generate hooks and prompts from the pre-loaded research.
 

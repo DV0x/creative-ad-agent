@@ -1,0 +1,1814 @@
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 5: AGENT-SPECIFIC EVALUATION                            -->
+<!-- Answering Q4, Part 2: How do I detect failure in agent-only   -->
+<!-- behaviors? Steps, tools, memory, multi-agent coordination.    -->
+<!-- Chapters 15–18                                                -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+
+<!-- ═══ PHASE INTRO ═══ -->
+<hr class="section-divider">
+<h2 id="phase5"><span class="section-num">Phase 5</span>Agent-Specific Evaluation</h2>
+
+<p>Your eval system handles the basics &mdash; accuracy, completeness, tone. But agents do things chatbots don't: they execute multi-step plans, use tools, maintain memory across turns, and sometimes coordinate with other agents. Each of these behaviors has unique failure modes that require specialized evaluation.</p>
+
+<p>This is the second half of Q4: <em>"How do I detect failure automatically?"</em> Phase 4 covered the general machinery &mdash; dimensions, rubrics, weights, test cases. Phase 5 covers what makes agents <em>different</em>. If you skipped Phase 4, go back. The techniques in this phase build on the foundations you laid there.</p>
+
+<p>Here is what we will cover:</p>
+
+<div class="flow">
+  <div class="flow-step"><strong>Chapter 15</strong><br>Step-Level Evaluation<br><span style="opacity:0.6">Where in the chain did it break?</span></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Chapter 16</strong><br>Tool Use Evaluation<br><span style="opacity:0.6">Right tool? Right input? Right interpretation?</span></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Chapter 17</strong><br>Multi-Turn &amp; Memory<br><span style="opacity:0.6">Does it remember? Does it update?</span></div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Chapter 18</strong><br>Multi-Agent Evaluation<br><span style="opacity:0.6">Who do you blame when it breaks?</span></div>
+</div>
+
+<p>Each chapter tackles a category of agent behavior that chatbot evals ignore entirely. By the end of Phase 5, your evaluation system will cover every surface where an agent can fail &mdash; not just the obvious ones.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 15: STEP-LEVEL EVALUATION                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-step-eval"><span class="section-num">Chapter 15</span>Step-Level Evaluation</h2>
+
+<div class="callout insight">
+  <div class="callout-title">First Principle</div>
+  An agent is a chain. If link 3 breaks, everything after it is garbage &mdash; but the final output might <em>look</em> fine because later links compensated. Conversely, the final output might be terrible, but you won't know which link failed unless you check each one. Step-level evaluation answers one question: <strong>WHERE in the chain did it break?</strong>
+</div>
+
+<h3>The Diagnosis Problem</h3>
+
+<p>Imagine a doctor who can only tell you "you're sick" but not where, or why, or what organ is affected. That's what end-to-end eval looks like without step-level evaluation. You know the output is bad. You don't know which step caused it.</p>
+
+<p>This is the most common situation teams find themselves in. The final output scores 2/5 on accuracy. The PM files a bug. The engineer stares at the prompt, changes a few words, runs the eval again, and the score moves to 2.5. Nobody knows if the improvement was luck, if it fixed the root cause, or if it just shifted the failure to a different test case. Three weeks of this and the team is demoralized, the score is still bouncing between 2 and 3, and nobody has actually diagnosed anything.</p>
+
+<p>The fix is not a better prompt. The fix is <strong>visibility into each step</strong>.</p>
+
+<h4>The Error Cascade Math</h4>
+
+<p>Here is why step-level evaluation is not optional. It is math.</p>
+
+<p>If your agent has 4 steps and each step has a 90% success rate (which sounds good!), the probability that the entire pipeline succeeds is:</p>
+
+<div class="callout math">
+  <div class="callout-title">Error Cascade</div>
+  <code>0.90 &times; 0.90 &times; 0.90 &times; 0.90 = 0.656</code><br><br>
+  A pipeline of 4 steps at 90% each produces a <strong>65.6% end-to-end success rate</strong>.<br>
+  At 6 steps: <strong>53.1%</strong>.<br>
+  At 8 steps: <strong>43.0%</strong>.<br><br>
+  This is why agents with many steps feel unreliable even when each individual step seems fine. The failures are multiplicative, not additive. A 10% failure rate at each step compounds into a coin-flip at the end. And without step-level evaluation, you cannot tell which step's 10% failure rate is the one worth investing in.
+</div>
+
+<p>The cascade math also explains why eval gates (which we'll get to shortly) are so powerful. If you add a retry mechanism at each gate and the retry succeeds 80% of the time, a 90% step success rate becomes ~98%. At 4 steps: <code>0.98<sup>4</sup> = 0.922</code>. That's a 26 percentage point improvement in end-to-end success rate, achieved not by making any step better but by adding the ability to catch and retry failures between steps.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Why This Matters Practically</div>
+  Consider an agent that researches a company, writes marketing hooks, generates art direction, and produces images. The final images are bland and generic. Where did it go wrong?
+  <ul>
+    <li>Maybe the research step found the wrong company (entity confusion).</li>
+    <li>Maybe the research was fine but the hooks ignored it (context loss between steps).</li>
+    <li>Maybe the hooks were good but the art direction was generic (creative collapse).</li>
+    <li>Maybe everything upstream was great but the image prompt was poorly structured.</li>
+  </ul>
+  Without checking each step independently, you're guessing. With step-level eval, you know in 30 seconds: "Research was correct, hooks were specific, art direction collapsed to generic stock-photo aesthetic. Fix the art direction prompt."
+</div>
+
+<h3>LangChain's 5 Evaluation Patterns</h3>
+
+<p>LangChain's team published "Evaluating Deep Agents" based on their experience building and evaluating production agents. They identified five patterns that, together, form a complete step-level evaluation strategy. Each pattern exists because a specific type of failure is invisible without it.</p>
+
+<h4>Pattern 1: Bespoke Test Logic Per Datapoint</h4>
+
+<p>This is the one most teams resist, because it sounds like more work. It is more work. It's also unavoidable.</p>
+
+<p>Agents handle diverse tasks. A single agent might schedule meetings, write emails, search databases, and update CRMs &mdash; all in the same conversation. Using one uniform success criterion across all of those tasks is like using one grading rubric for a math test, a poetry assignment, and a chemistry lab. The criteria for "correct meeting scheduling" are completely different from the criteria for "good email writing."</p>
+
+<p>Each test case needs custom success criteria matched to the specific task it's testing. For a calendar scheduling test, you check: did the agent update the right calendar, with the right time, the right attendees, and the right title? For an email writing test, you check: does the email match the requested tone, include the key points, and address the right person?</p>
+
+<div class="callout definition">
+  <div class="callout-title">The Key Insight</div>
+  Uniform eval criteria across all test cases is insufficient for agents. Each test case is a miniature product requirement, with its own definition of "correct." This is fundamentally different from evaluating a chatbot, where "helpfulness" and "accuracy" might carry you through most cases.
+</div>
+
+<p>What this means in practice: your test dataset is not just inputs and expected outputs. Each row also needs a column for "how to check this specific case" &mdash; regex for some, LLM-as-judge for others, deterministic assertion for others. Your eval harness needs to support this flexibility.</p>
+
+<h4>Pattern 2: Single-Step Evaluations</h4>
+
+<p>This is where you should start. It gives you the highest ROI for the least investment.</p>
+
+<p>The idea: pause the agent before it executes a tool call, and inspect the decision it made. Don't run the tool. Just look at what the agent <em>chose</em> to do and what parameters it <em>chose</em> to pass. Evaluate the decision, not the outcome.</p>
+
+<p>Why is this so powerful? Because approximately half of all agent failures happen at the decision point, not during execution. The agent picks the wrong tool. Or it picks the right tool but fills in the parameters incorrectly. Or it picks the right tool with the right parameters but for the wrong reason (and will therefore misinterpret the result). All of these are detectable by inspecting the single step before execution.</p>
+
+<p>LangChain found that roughly half of their test cases involved single-step evaluations. They use LangGraph's interrupt capabilities to pause before tool execution and inspect the agent's reasoning. This lets you evaluate decisions without executing them &mdash; which is cheaper, faster, and doesn't require standing up external services.</p>
+
+<div class="callout success">
+  <div class="callout-title">Start Here</div>
+  If you do nothing else from this chapter, implement single-step evaluations. Intercept the agent's tool calls before execution. For each intercepted call, check: (1) Is this the right tool for this situation? (2) Are the parameters correct? (3) Does the agent's reasoning for this call make sense? This alone catches the majority of step-level failures.
+</div>
+
+<h4>Pattern 3: Full Agent Turns</h4>
+
+<p>When you need to evaluate more than a single decision, you evaluate a complete execution turn. A "turn" here means: the user says something, the agent thinks, calls tools, gets results, and produces a final response. The whole thing.</p>
+
+<p>Full-turn evaluation checks three dimensions simultaneously:</p>
+
+<ol>
+  <li><strong>Trajectory</strong> &mdash; Were the right tools called in a reasonable order? Did the agent take a sensible path, or did it wander? (More on trajectory evaluation below.)</li>
+  <li><strong>Final Response</strong> &mdash; Was the output to the user high quality? This is your standard rubric-based evaluation from Phase 4.</li>
+  <li><strong>State Artifacts</strong> &mdash; Were files, databases, or other side effects correct? An agent might produce a great user-facing response while silently corrupting a database. Checking only the response misses this.</li>
+</ol>
+
+<p>State artifacts are the hidden evaluation surface that most teams miss. If your agent writes files, updates databases, modifies configurations, or changes any external state, those changes need evaluation criteria too. The user-facing response is only half the story.</p>
+
+<h4>Pattern 4: Multi-Turn Conversations</h4>
+
+<p>When the agent has a back-and-forth conversation with the user (or with other agents), you need conditional logic between turns. Not rigid scripts &mdash; conditional flows.</p>
+
+<p>A rigid test script says: "Send message A. Expect response B. Send message C. Expect response D." This breaks the moment the agent words its response slightly differently than expected (which is every time, because agents are non-deterministic).</p>
+
+<p>A conditional test flow says: "Send message A. Check if the response contains the key information X. If yes, proceed with message C. If no, mark this turn as a failure and stop." The evaluation adapts to the agent's actual behavior while still checking that critical requirements are met at each stage.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Fail Early</div>
+  The critical principle: check output after each turn and proceed only if it meets expectations. If the agent's response to turn 2 is already off track, there's no point evaluating turns 3, 4, and 5. Fail early. This saves eval compute and gives you a clear signal about where the conversation went wrong &mdash; not where it ended up after compounding several earlier errors.
+</div>
+
+<h4>Pattern 5: Environment Setup</h4>
+
+<p>This is the infrastructure pattern that makes the other four possible at scale.</p>
+
+<p>"Deep agent evals require environments that reset per test." An agent that writes files, calls APIs, and modifies databases will leave state behind that affects the next test. If test #1 creates a file and test #2 unexpectedly finds that file, your test is evaluating the agent in a contaminated environment. The result means nothing.</p>
+
+<p>The solution: isolated, resettable environments. Docker containers that spin up fresh for each test run. Temporary directories that get deleted after each case. Mocked external APIs (using tools like vcr for Python or Hono proxies for JavaScript) that return deterministic responses without hitting real services.</p>
+
+<p>This costs engineering time upfront. It saves you from months of flaky, unreproducible eval results. Every team that skips this step ends up building it later, after wasting weeks debugging test failures that were actually environment contamination.</p>
+
+<div class="callout example">
+  <div class="callout-title">Environment Setup in Practice</div>
+  A real example of what goes wrong without environment reset: Team A runs 50 eval tests sequentially. Test #12 creates a file called <code>research.md</code>. Test #23 asks the agent to "find existing research." The agent finds the file from test #12 and uses it. Test #23 passes &mdash; but only because of state leaking from test #12. When test #23 runs in isolation (or in a different order), it fails. The team spends two days debugging a "flaky test" that isn't flaky at all &mdash; it's order-dependent. A fresh Docker container per test would have caught this on day one.
+</div>
+
+<h4>Putting the 5 Patterns Together</h4>
+
+<p>The five patterns are not alternatives &mdash; they're layers. Here is how they compose:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Pattern</th><th>What It Catches</th><th>Cost</th><th>Priority</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>P2: Single-Step</strong></td>
+      <td>Wrong tool selection, bad parameters, flawed reasoning before execution</td>
+      <td>Low</td>
+      <td>Start here &mdash; highest ROI</td>
+    </tr>
+    <tr>
+      <td><strong>P1: Bespoke Logic</strong></td>
+      <td>Task-specific failures that generic criteria miss</td>
+      <td>Medium</td>
+      <td>Add as test cases grow</td>
+    </tr>
+    <tr>
+      <td><strong>P3: Full Turns</strong></td>
+      <td>Bad trajectories, state artifact corruption, response quality combined with action quality</td>
+      <td>Medium-High</td>
+      <td>Add when single-step evals pass but end-to-end quality is still low</td>
+    </tr>
+    <tr>
+      <td><strong>P4: Multi-Turn</strong></td>
+      <td>Context loss between turns, failure to incorporate feedback, conversation drift</td>
+      <td>High</td>
+      <td>Add when your agent has iterative conversations (see Chapter 17)</td>
+    </tr>
+    <tr>
+      <td><strong>P5: Environment Setup</strong></td>
+      <td>Nothing on its own &mdash; it makes the other 4 patterns reliable and reproducible</td>
+      <td>One-time engineering investment</td>
+      <td>Build as early as possible &mdash; retroactively fixing contaminated test results is painful</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Trajectory Evaluation: Was the Sequence of Actions Reasonable?</h3>
+
+<p>Beyond evaluating individual steps, you sometimes need to evaluate the <em>path</em> the agent took through its tools. Was the sequence of actions reasonable? Did it take unnecessary detours? Did it skip critical steps?</p>
+
+<p>This is trajectory evaluation, and it has its own tooling. LangChain's open-source <code>agentevals</code> library provides five match modes for comparing an agent's actual trajectory against an expected one:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Match Mode</th><th>What It Tests</th><th>When to Use</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Strict Match</strong></td>
+      <td>Identical tool call sequence, same order</td>
+      <td>Compliance-driven workflows where the exact sequence is mandated. Financial reporting, regulatory filings, auditing processes.</td>
+    </tr>
+    <tr>
+      <td><strong>Unordered Match</strong></td>
+      <td>All expected tools called, any order</td>
+      <td>When tool interdependencies don't require ordering. "I need the agent to search, summarize, and format &mdash; but I don't care which happens first."</td>
+    </tr>
+    <tr>
+      <td><strong>Subset Match</strong></td>
+      <td>Trajectory contains at least the expected calls</td>
+      <td>When your reference represents minimum requirements. "At minimum, it must search and cite. If it also validates sources, great."</td>
+    </tr>
+    <tr>
+      <td><strong>Superset Match</strong></td>
+      <td>Reference encompasses actual execution</td>
+      <td>Identifying optimized paths. "The agent found a shorter route than our reference &mdash; that's good, not bad."</td>
+    </tr>
+    <tr>
+      <td><strong>LLM-as-Judge</strong></td>
+      <td>Overall quality and reasonableness of the trajectory</td>
+      <td>When there are no strict requirements, and you want a nuanced assessment. "Was this a reasonable approach?" Not "Did it match a template?"</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h4>The Key Tension: Outcomes vs. Trajectories</h4>
+
+<p>There is a genuine tension in the industry about trajectory evaluation, and you need to understand it to make good decisions for your product.</p>
+
+<p><strong>Anthropic's position</strong> (from "Demystifying Evals"): "Grade outcomes, not paths." There is a common instinct to check that agents followed very specific steps &mdash; a sequence of tool calls in the right order. This approach is too rigid and penalizes valid alternative solutions. An agent that achieves the right result via an unexpected path should not be marked as a failure.</p>
+
+<p><strong>LangChain's position</strong> (from "Evaluating Deep Agents"): Trajectory evaluation is essential for deep agents. When agents take dozens of steps across multiple tools, the trajectory IS part of the quality. An agent that achieves the right result but takes 47 unnecessary steps and costs $3 in tokens is not as good as one that does it in 5 steps for $0.15.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Resolution</div>
+  Both are right, but for different situations. <strong>Start with outcomes.</strong> If the agent produces correct, high-quality results, the path it took is secondary. Add trajectory evaluation ONLY when one of these is true:
+  <ul>
+    <li>Outcomes pass consistently but users still complain (the path is causing latency, cost, or UX issues)</li>
+    <li>You need to debug WHY outcomes sometimes fail (trajectory eval becomes a diagnostic tool, not a grading tool)</li>
+    <li>The path itself has compliance or safety implications (financial auditing, medical protocols)</li>
+    <li>Efficiency matters &mdash; token cost and latency are product metrics, not just engineering metrics</li>
+  </ul>
+  In practice: 80% of teams should start with outcome-only evaluation. The other 20% have regulatory, cost, or UX constraints that make trajectory evaluation a first-order concern from day one.
+</div>
+
+<h3>Designing Eval Gates Between Steps</h3>
+
+<p>The most practical application of step-level evaluation is the <strong>eval gate</strong>: a checkpoint between pipeline steps that decides whether to proceed, retry, or escalate.</p>
+
+<p>Think of it like quality control on an assembly line. After each station, an inspector checks the work. If it's good, the piece moves to the next station. If it's bad, it gets sent back or flagged. Without inspection, a defect at station 2 propagates through stations 3, 4, 5, and 6 &mdash; and you discover it only at the end, when fixing it requires tearing apart the entire assembly.</p>
+
+<p>Here's how to design eval gates for a generic agent pipeline:</p>
+
+<h4>Gate Design Template</h4>
+
+<p>For each gate, define four things:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Gate Component</th><th>What to Define</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Position</strong></td>
+      <td>Between which two steps?</td>
+      <td>After Research, before Analysis</td>
+    </tr>
+    <tr>
+      <td><strong>What to Check</strong></td>
+      <td>The specific quality dimensions relevant to this step's output</td>
+      <td>Did it find relevant sources? Are sources authoritative? Is the entity correctly identified?</td>
+    </tr>
+    <tr>
+      <td><strong>Pass/Fail Criteria</strong></td>
+      <td>Unambiguous conditions for proceeding</td>
+      <td>Pass: 3+ relevant sources found, correct entity identified. Fail: 0-2 sources OR wrong entity.</td>
+    </tr>
+    <tr>
+      <td><strong>Fail Action</strong></td>
+      <td>What happens when the gate fails</td>
+      <td>Retry with modified query (max 2 retries). If still failing, escalate to human.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h4>Common Gate Types</h4>
+
+<p>Different steps need different types of gates:</p>
+
+<p><strong>After a Research/Retrieval Step:</strong></p>
+<ul>
+  <li>Did it find relevant sources? (Count: 3+ means pass)</li>
+  <li>Are sources authoritative? (Check domains, publication dates)</li>
+  <li>Is the correct entity identified? (Deterministic check against input)</li>
+  <li>Fail action: Retry with expanded/modified search query. After 2 retries, flag for human review.</li>
+</ul>
+
+<p><strong>After an Analysis/Reasoning Step:</strong></p>
+<ul>
+  <li>Are conclusions supported by the research? (LLM-as-judge: "Do these conclusions follow from the sources?")</li>
+  <li>Are there unsupported claims? (LLM check for statements not grounded in retrieved data)</li>
+  <li>Is the analysis specific, not generic? (The Logo Swap Test from Chapter 11)</li>
+  <li>Fail action: Regenerate with stronger grounding instruction. Include the failing criterion in the retry prompt.</li>
+</ul>
+
+<p><strong>After a Generation/Creative Step:</strong></p>
+<ul>
+  <li>Does the output match the analysis? (LLM-as-judge: consistency check)</li>
+  <li>Does it meet format constraints? (Deterministic: word count, structure, required elements)</li>
+  <li>Is it brand-appropriate? (LLM-as-judge with brand guidelines as context)</li>
+  <li>Fail action: Regenerate with specific feedback about what's missing. Include the analysis output explicitly in the retry prompt.</li>
+</ul>
+
+<p><strong>After an Execution/Action Step:</strong></p>
+<ul>
+  <li>Was the action actually performed? (Check logs, database state, API responses &mdash; not the agent's claim)</li>
+  <li>Were the parameters correct? (Compare actual parameters against expected)</li>
+  <li>Is the result consistent with the instruction? (Semantic check)</li>
+  <li>Fail action: Depends on reversibility. Reversible actions: undo and retry. Irreversible actions: halt and escalate to human.</li>
+</ul>
+
+<h3>Real Example: Eval Gates for an Ad Campaign Agent</h3>
+
+<p>Let's make this concrete with a real pipeline. An ad campaign agent takes a brand URL and produces creative assets. Here's the pipeline with eval gates at every transition:</p>
+
+<div class="flow">
+  <div class="flow-step"><strong>Research</strong><br>Scrape brand URL<br>Identify audience, voice, products</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>GATE 1</strong><br>Sources found?<br>Brand identified correctly?<br>Key attributes extracted?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Hooks</strong><br>Generate 6 ad hooks<br>(stat, story, fomo, curiosity, callout, contrast)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>GATE 2</strong><br>Hooks specific to brand?<br>Each hook uses a different formula?<br>No generic filler?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Art Direction</strong><br>Generate visual style<br>for each hook</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>GATE 3</strong><br>Style matches brand?<br>Each direction distinct?<br>Technically feasible?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Images</strong><br>Generate 6 images<br>via image API</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>FINAL EVAL</strong><br>End-to-end quality<br>against all dimensions</div>
+</div>
+
+<p>Each gate catches failures at the point where they originate, before they cascade downstream. Without gates, a research step that misidentifies the brand produces hooks that sound wrong, art direction that doesn't fit, and images that have nothing to do with the actual brand. The final eval says "1/5 on brand alignment," but doesn't tell you that the root cause was a research failure, not a creative failure. The engineer changes the creative prompt, the real problem persists, and two weeks of iteration produces no improvement.</p>
+
+<p>With gates, Gate 1 catches the entity confusion immediately. The agent retries the research step with a clarified query. Everything downstream works correctly on the first try.</p>
+
+<div class="callout example">
+  <div class="callout-title">Worked Example &mdash; Gate 2 in Detail</div>
+  <strong>Position:</strong> After hook generation, before art direction.<br><br>
+  <strong>What to check:</strong>
+  <ul>
+    <li>Each hook references at least 1 specific detail from the research (a product name, a stat, a customer segment)</li>
+    <li>All 6 hooks use different formulas (no two hooks use the same approach)</li>
+    <li>No hook could apply to a different brand without modification (the Logo Swap Test)</li>
+  </ul>
+  <strong>Pass criteria:</strong> All 6 hooks pass all 3 checks.<br>
+  <strong>Partial pass:</strong> 4-5 hooks pass all checks &rarr; regenerate only the failing hooks.<br>
+  <strong>Fail:</strong> Fewer than 4 hooks pass &rarr; regenerate all hooks with the research output explicitly injected into the prompt and a note: "Each hook MUST reference specific brand details from the research."<br>
+  <strong>Hard fail:</strong> Second attempt still fails &rarr; escalate. The research output may be too thin. Go back to Gate 1.<br><br>
+  <strong>Implementation:</strong> LLM-as-judge with a focused prompt: "Given this brand research [insert research], evaluate each hook. Does it reference specific details from the research? Could it apply to a different brand without modification? Score each hook individually."
+</div>
+
+<h3>How Many Gates Are Enough?</h3>
+
+<p>You don't need a gate after every step. Gates have a cost: they add latency (each gate is an LLM call or a deterministic check), they add complexity (each gate needs maintenance), and they can produce false positives that trigger unnecessary retries.</p>
+
+<p>The rule of thumb: <strong>put gates at the boundaries where information transforms</strong>. Research becomes analysis. Analysis becomes creative output. Creative output becomes execution. These transformation boundaries are where context is most likely to be lost, distorted, or fabricated.</p>
+
+<p>Don't put gates between steps that are purely mechanical (formatting, file writing, API calls with deterministic inputs). These either work or throw an error &mdash; there's nothing for an eval gate to evaluate.</p>
+
+<h3>Implementing Gates: Lightweight vs. Heavy</h3>
+
+<p>Not every gate needs an LLM judge. Match the gate's complexity to the step's risk:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Gate Type</th><th>Cost</th><th>Speed</th><th>When to Use</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Deterministic</strong></td>
+      <td>Free</td>
+      <td>&lt;1ms</td>
+      <td>Output has a checkable structure</td>
+      <td>JSON schema validation, word count check, required fields present</td>
+    </tr>
+    <tr>
+      <td><strong>Regex/Pattern</strong></td>
+      <td>Free</td>
+      <td>&lt;1ms</td>
+      <td>Output must contain or exclude specific patterns</td>
+      <td>Check that URLs are present, phone numbers are formatted, no PII leaked</td>
+    </tr>
+    <tr>
+      <td><strong>Embedding Similarity</strong></td>
+      <td>Cheap</td>
+      <td>~50ms</td>
+      <td>Output should be semantically related to input</td>
+      <td>Research output's embedding is close to the brand's known content</td>
+    </tr>
+    <tr>
+      <td><strong>LLM-as-Judge (fast model)</strong></td>
+      <td>Moderate</td>
+      <td>1-3s</td>
+      <td>Quality judgment needed, but not complex</td>
+      <td>Haiku checking "does this hook mention a specific brand attribute?"</td>
+    </tr>
+    <tr>
+      <td><strong>LLM-as-Judge (strong model)</strong></td>
+      <td>Expensive</td>
+      <td>3-10s</td>
+      <td>Nuanced quality judgment</td>
+      <td>Opus evaluating creative quality, brand alignment, strategic reasoning</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Start with deterministic gates everywhere you can. Graduate to LLM-as-judge only for steps where the quality judgment is genuinely subjective. Most teams over-index on LLM judges when a simple check for "does the output contain the brand name" would catch 60% of failures at zero cost.</p>
+
+<h3>The Cost-Benefit of Step-Level Eval</h3>
+
+<p>Step-level evaluation is not free. Each gate adds latency and (for LLM-based gates) cost. Here's how to think about the trade-off:</p>
+
+<div class="callout math">
+  <div class="callout-title">The Gate ROI Calculation</div>
+  <strong>Without gates:</strong><br>
+  A 6-step pipeline with 90% per-step success rate = 53% end-to-end success. You discover failures only at the end. Re-running the entire pipeline for each failure costs 100% of pipeline compute.<br><br>
+
+  <strong>With 3 deterministic gates (free, &lt;1ms each):</strong><br>
+  If a gate catches a failure at step 2, you retry only step 2 instead of the whole pipeline. Cost savings: 67% of pipeline compute per retry. Latency added: &lt;3ms total. This is an obvious win.<br><br>
+
+  <strong>With 3 LLM-based gates ($0.01-0.05 per call):</strong><br>
+  Each gate adds 1-3 seconds and a few cents. For a pipeline that costs $0.50 and takes 45 seconds, adding $0.15 in gates (3 gates &times; $0.05) increases cost by 30% but reduces wasted retries by 50%+. The gates pay for themselves if your failure rate is above ~10%.<br><br>
+
+  <strong>Rule of thumb:</strong> If your pipeline failure rate is above 10%, gates save money even accounting for their cost. If below 5%, gates cost more than they save. Between 5-10%, deterministic gates are worth it but LLM gates may not be.
+</div>
+
+<p>Track your pipeline's per-step failure rates for one week before deciding where to place gates. The data will tell you exactly which steps need gates and which don't.</p>
+
+<h3>The Practical Recommendation</h3>
+
+<div class="callout success">
+  <div class="callout-title">Where to Start</div>
+  Start with single-step evaluations (Pattern 2). They catch most issues &mdash; wrong tool selection, bad parameters &mdash; at minimal cost. Only invest in full trajectory evaluation after single-step evals pass consistently but end-to-end quality still isn't where it needs to be.<br><br>
+  Add eval gates at your pipeline's 2-3 most critical transformation boundaries. Use deterministic gates where possible, LLM judges where necessary. Don't try to gate every step on day one.
+</div>
+
+<div class="callout example">
+  <div class="callout-title">DO &mdash; Your Turn</div>
+  Design eval gates for your agent's top pipeline. For each gate:<br>
+  <ul>
+    <li><strong>Position:</strong> Between which two steps?</li>
+    <li><strong>What to check:</strong> 2-3 specific quality criteria</li>
+    <li><strong>Pass criteria:</strong> Unambiguous conditions for proceeding</li>
+    <li><strong>Fail action:</strong> Retry? Escalate? Fallback?</li>
+  </ul>
+  Start with 2-3 gates. You can always add more later. The first gates should go at the points where you've seen the most failures in production.
+</div>
+
+<p>Steps are covered. But many of those steps involve the agent using tools &mdash; and tool use has its own unique failure modes that step-level evaluation alone won't catch.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 16: TOOL USE EVALUATION                                    -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-tool-eval"><span class="section-num">Chapter 16</span>Tool Use Evaluation</h2>
+
+<div class="callout insight">
+  <div class="callout-title">First Principle</div>
+  Every tool call is a 3-part decision. The agent decides <strong>WHICH</strong> tool to use, <strong>WHAT</strong> input to give it, and <strong>HOW TO INTERPRET</strong> the result. Each part can fail independently. That gives you 3 evaluation surfaces per tool call &mdash; and agents can make dozens of tool calls per task.
+</div>
+
+<p>When a chatbot gives a bad answer, there's one thing to evaluate: the answer. When an agent gives a bad answer, the answer might be fine but the action it took was wrong. Or the action was right but the parameters were wrong. Or the parameters were right but the agent misunderstood the result. Tool use is where the agent-chatbot divide gets real, and where generic eval frameworks fall apart.</p>
+
+<h3>The 3 Core Metrics</h3>
+
+<p>Amazon's agentic AI teams and Confident AI's DeepEval framework converge on three essential metrics for tool use. These are not optional &mdash; if your agent uses tools (and almost every production agent does), you need all three.</p>
+
+<h4>Metric 1: Tool Selection Accuracy</h4>
+
+<p><em>Did the agent choose the right tool?</em></p>
+
+<p>This is the most fundamental question. Before we care about parameters or interpretation, did the agent even reach for the right tool? If the user asks "What's the weather in Chicago?" and the agent calls the stock-price API instead of the weather API, nothing downstream matters.</p>
+
+<p>Tool selection is often the easiest metric to evaluate, because for many inputs there is an unambiguous correct tool. If the user says "schedule a meeting," the correct tool is the calendar tool, not the email tool, not the search tool. This can be tested deterministically: given this input, assert that this tool was selected.</p>
+
+<p>DeepEval implements this as the <code>ToolCorrectnessMetric</code> &mdash; it compares <code>tools_called</code> against <code>expected_tools</code>. It supports ordering requirements (when the sequence matters) and exact match (when extra tool calls are a problem, not just missing ones). The score ranges from 1.0 (all correct) to 0.0 (none correct).</p>
+
+<div class="callout definition">
+  <div class="callout-title">What "Wrong Tool" Looks Like</div>
+  Wrong tool selection is not always as obvious as calling the weather API for a stock question. Subtler failures:
+  <ul>
+    <li>Agent uses web search when the answer is in an already-retrieved document (unnecessary external call)</li>
+    <li>Agent uses a general search tool when a specialized API would give a better result (e.g., using Google search instead of the company's internal knowledge base)</li>
+    <li>Agent calls a write tool when the user only asked for information (unintended side effect)</li>
+    <li>Agent calls tools in the wrong order, causing the second call to fail because it depends on the first call's output</li>
+  </ul>
+</div>
+
+<h4>Metric 2: Argument Correctness</h4>
+
+<p><em>Right tool, but were the parameters correct?</em></p>
+
+<p>Calling the right tool with wrong arguments is just as bad as calling the wrong tool. DeepEval's framing is direct: "Calling the right tool with wrong arguments is just as problematic as calling the wrong tool entirely."</p>
+
+<p>This is harder to evaluate than tool selection, because "correct arguments" is often context-dependent. If the user says "find meetings next week," the date parameters need to be calculated relative to today's date. If the user says "search for Nike's latest campaign," the search query needs to capture the right brand, the right timeframe, and the right content type.</p>
+
+<p>DeepEval's <code>ArgumentCorrectnessMetric</code> is fully LLM-based and <strong>referenceless</strong> &mdash; it evaluates whether arguments were logically derived from the conversational context, rather than comparing against pre-defined expected values. This is important because there are usually multiple valid ways to fill in parameters. "Nike latest ad campaign 2026" and "Nike recent advertising campaign" are both reasonable search queries. A deterministic check against one expected string would fail the other.</p>
+
+<p>That said, some parameters CAN be checked deterministically. Dates, IDs, enums, and other structured parameters have a finite set of correct values. Use deterministic checks where you can, LLM-as-judge where you must.</p>
+
+<h4>Metric 3: Result Interpretation</h4>
+
+<p><em>Right tool, right input, but did the agent correctly use the output?</em></p>
+
+<p>This is the hardest of the three to evaluate, and the one teams most often ignore. The tool returned data. Did the agent understand it? Did it extract the relevant information? Did it notice when the data was incomplete, contradictory, or irrelevant?</p>
+
+<p>Consider: the agent searches for "Nike revenue 2025" and gets back a page that includes Nike's revenue ($51.2B), their employee count (79,400), and a paragraph about their supply chain challenges. The user asked about revenue. Does the agent:</p>
+<ul>
+  <li>Extract the revenue figure correctly? (basic competence)</li>
+  <li>Ignore the irrelevant employee count and supply chain info? (focus)</li>
+  <li>Notice if the source says "fiscal year 2024" not "2025"? (precision)</li>
+  <li>Flag that the number might be outdated? (calibrated confidence)</li>
+</ul>
+
+<p>Result interpretation evaluation typically requires LLM-as-judge, because you're evaluating reasoning about data, not data itself. The judge prompt looks something like: "Given this tool output and this user question, did the agent correctly identify and use the relevant information?"</p>
+
+<h3>The 3 Agent-Specific Failure Modes</h3>
+
+<p>Beyond the three metrics, DeepEval identified three failure modes that are specific to agents &mdash; they don't exist in chatbots. Each one is a distinct pathology with distinct symptoms and distinct tests.</p>
+
+<h4>Failure Mode 1: The Ghost Action (False Task Completion)</h4>
+
+<div class="callout warning">
+  <div class="callout-title">The Ghost Action</div>
+  <strong>What happens:</strong> The agent claims "Done! I've updated your calendar" without actually calling the calendar API. It says "I've sent the email" but no email was sent. It reports "File saved successfully" when no file operation occurred.<br><br>
+  <strong>Why it happens:</strong> Language models learn that confident claims of completion produce positive user responses. The model has learned, from millions of training examples, that "Done!" is a satisfying answer. Whether the task was actually executed is a separate concern that the model doesn't inherently track. Execution is optional when the user can't immediately verify the result.<br><br>
+  <strong>Why it's dangerous:</strong> The user walks away thinking the task is done. They don't check. The meeting never gets scheduled. The email never gets sent. The failure is discovered hours or days later, when the consequences are much worse.
+</div>
+
+<p><strong>How to detect it:</strong> Compare the agent's claimed actions against the actual tool call log. For every claim like "I've done X," verify that a corresponding tool call exists in the execution trace. If the agent says "I've updated your calendar" but the trace shows zero calendar API calls, that's a ghost action.</p>
+
+<p><strong>How to test for it:</strong> Give the agent a task that unambiguously requires a specific tool call. "Schedule a meeting with Alex tomorrow at 2pm." Then check: was the calendar tool actually invoked? Were the parameters (Alex, tomorrow, 2pm) present? Don't check the response text &mdash; check the tool call log. Ghost actions look perfect in the response and completely empty in the logs.</p>
+
+<pre>
+<span class="code-comment">// Ghost Action Test Case</span>
+<span class="code-keyword">input:</span>    <span class="code-string">"Schedule a meeting with Alex for tomorrow at 2pm"</span>
+<span class="code-keyword">check:</span>    tool_calls MUST include calendar.create_event
+<span class="code-keyword">check:</span>    calendar.create_event.params MUST include attendee="Alex"
+<span class="code-keyword">check:</span>    calendar.create_event.params MUST include date=tomorrow
+<span class="code-keyword">check:</span>    calendar.create_event.params MUST include time="14:00"
+<span class="code-keyword">anticheck:</span> <span class="code-hl">If response says "scheduled" but tool_calls is empty = GHOST ACTION</span>
+</pre>
+
+<h4>Failure Mode 2: The Interrogation Loop (Parameter Extraction Failure)</h4>
+
+<div class="callout warning">
+  <div class="callout-title">The Interrogation Loop</div>
+  <strong>What happens:</strong> The agent can't map natural language to structured tool parameters. Instead of making a reasonable attempt or gracefully failing, it keeps asking the user for clarification. "Can you specify the exact date?" "What format would you like?" "Could you clarify the time zone?" Three, four, five rounds of clarification for a task that should resolve in one or two turns.<br><br>
+  <strong>Why it happens:</strong> There's a gap between how users naturally express intent ("schedule something for next week") and how tools expect structured input (<code>{"date": "2026-04-07", "time": "09:00", "timezone": "PST"}</code>). The agent doesn't know how to bridge that gap &mdash; it can't infer reasonable defaults, pick a sensible time, or make a judgment call. So it asks. And asks. And asks.<br><br>
+  <strong>Why it's dangerous:</strong> The user loses patience and abandons the task. Or worse, they give up on the agent entirely: "This thing is useless &mdash; it can't even schedule a meeting without 10 questions."
+</div>
+
+<p><strong>How to detect it:</strong> Count the number of turns before the agent successfully invokes the target tool. If the user's initial instruction was clear enough that a human assistant would execute it in one turn, but the agent takes 4+ turns of clarification, that's an interrogation loop.</p>
+
+<p><strong>How to test for it:</strong> Give the agent clear, unambiguous instructions that should resolve in 1-2 turns. Measure the turn count to successful tool invocation. Any case that takes more than 3 clarification rounds is flagged.</p>
+
+<pre>
+<span class="code-comment">// Interrogation Loop Test Case</span>
+<span class="code-keyword">input:</span>    <span class="code-string">"Email the Q3 report to Sarah at sarah@company.com"</span>
+<span class="code-keyword">expected:</span> Tool invocation within 1-2 turns
+<span class="code-keyword">flag_if:</span>  <span class="code-hl">Agent asks 3+ clarifying questions before calling email.send</span>
+<span class="code-comment">// A good agent would: pick a reasonable subject line, attach the report,</span>
+<span class="code-comment">// compose a brief body, and send. Maybe ask ONE question if the report</span>
+<span class="code-comment">// name is ambiguous. NOT ask about subject, body, format, cc, bcc...</span>
+</pre>
+
+<h4>Failure Mode 3: The Confident Fabricator (Intermediate Output Quality)</h4>
+
+<div class="callout warning">
+  <div class="callout-title">The Confident Fabricator</div>
+  <strong>What happens:</strong> The agent calls a tool, gets back garbage (an error, empty results, completely irrelevant data), and <em>doesn't notice</em>. It takes the garbage at face value and weaves it into its response with complete confidence. The tool returned an error message, and the agent summarizes that error message as if it were real data.<br><br>
+  <strong>Why it happens:</strong> Agents are optimistic by default. They assume tool results are correct. They don't have a built-in "sanity check" on incoming data. If the search tool returns "No results found," the agent might say "Based on my research, the company has no public information" when the reality is that the search just failed.<br><br>
+  <strong>Why it's dangerous:</strong> The user has no way to distinguish between "the agent found this information" and "the agent made this up based on a tool error." The confidence is identical. The tone is identical. Only the source is different.
+</div>
+
+<p><strong>How to detect it:</strong> Inject known-bad tool responses and check if the agent catches them. Return empty results from a search that should find thousands of hits. Return an error message instead of data. Return data for the wrong entity. Does the agent notice? Does it flag the problem? Or does it confidently proceed?</p>
+
+<p><strong>How to test for it:</strong> Mock a tool to return obviously wrong or empty data. Then evaluate: did the agent (a) acknowledge the data quality issue, (b) try an alternative approach, or (c) confidently present garbage as truth?</p>
+
+<pre>
+<span class="code-comment">// Confident Fabricator Test Case</span>
+<span class="code-keyword">input:</span>    <span class="code-string">"What is Apple's current stock price?"</span>
+<span class="code-keyword">mock:</span>     stock_api.get_price returns <span class="code-hl">{"error": "API rate limited"}</span>
+<span class="code-keyword">pass_if:</span>  Agent says "I couldn't retrieve the stock price right now"
+<span class="code-keyword">pass_if:</span>  Agent tries an alternative source
+<span class="code-keyword">FAIL_if:</span>  <span class="code-hl">Agent says "Apple's stock price is currently $XXX" (fabricated)</span>
+<span class="code-keyword">FAIL_if:</span>  Agent says "Apple's stock price is 'API rate limited'" (parroting error)
+</pre>
+
+<div class="callout realworld">
+  <div class="callout-title">How Common Are These?</div>
+  In our experience building and evaluating production agents: Ghost Actions happen most with tasks the agent has "seen" in training but rarely executes with tools (sending emails, updating databases). Interrogation Loops happen most with tools that have many parameters (calendar events, complex search queries). Confident Fabricators happen most with tools that can return partial or degraded results (web search, API calls to third-party services). Every production agent we've tested exhibited at least one of these failure modes.
+</div>
+
+<h3>Building Your Tool Evaluation Suite</h3>
+
+<p>Here is a phased build plan that gets you from zero tool evaluation to comprehensive coverage in about a month.</p>
+
+<h4>Phase 1: Deterministic Tool Selection Tests (Week 1)</h4>
+
+<p>For each tool your agent has access to, create 5-10 test inputs where the expected tool is unambiguous. No judgment calls, no edge cases &mdash; just clear inputs with clear expected tools.</p>
+
+<pre>
+<span class="code-comment">// Example: Agent with 4 tools (search, email, calendar, file_manager)</span>
+
+<span class="code-keyword">Test 1:</span>  <span class="code-string">"Find information about Tesla's latest earnings"</span>
+         Expected tool: <span class="code-accent">search</span>
+
+<span class="code-keyword">Test 2:</span>  <span class="code-string">"Send a summary to the team at team@acme.com"</span>
+         Expected tool: <span class="code-accent">email</span>
+
+<span class="code-keyword">Test 3:</span>  <span class="code-string">"Block off 2-3pm tomorrow for deep work"</span>
+         Expected tool: <span class="code-accent">calendar</span>
+
+<span class="code-keyword">Test 4:</span>  <span class="code-string">"Save this report as Q3-summary.pdf"</span>
+         Expected tool: <span class="code-accent">file_manager</span>
+
+<span class="code-keyword">Test 5:</span>  <span class="code-string">"What's on my schedule for Friday?"</span>
+         Expected tool: <span class="code-accent">calendar</span> <span class="code-comment">(read, not write)</span>
+
+<span class="code-comment">// 5-10 per tool = 20-40 total test cases</span>
+<span class="code-comment">// Pure assertion: did the agent select the right tool?</span>
+<span class="code-comment">// No LLM judge needed. Binary pass/fail.</span>
+</pre>
+
+<p>This is the fastest eval suite you can build. Most teams can create 20-40 of these in a single afternoon. Run them, measure tool selection accuracy. If it's below 90%, you have a tool description problem (the tool descriptions in your agent's system prompt are ambiguous or misleading).</p>
+
+<div class="callout warning">
+  <div class="callout-title">When Tool Selection Fails: It's Usually the Description</div>
+  When tool selection accuracy is low, the first instinct is to blame the model. Usually, the problem is the tool descriptions in your system prompt. The model selects tools based on how you describe them. Vague descriptions produce ambiguous selections.<br><br>
+  <strong>Bad:</strong> <code>search_web</code> - "Searches the web for information."<br>
+  <strong>Bad:</strong> <code>search_docs</code> - "Searches internal documents."<br><br>
+  These descriptions don't tell the model WHEN to use each tool. When should it search the web vs. search internal docs?<br><br>
+  <strong>Good:</strong> <code>search_web</code> - "Search the public internet for current information about companies, news, trends, or public data. Use for external research when the answer is NOT likely in our internal knowledge base."<br>
+  <strong>Good:</strong> <code>search_docs</code> - "Search the company's internal documentation, including product specs, engineering docs, and internal wikis. Use for questions about our own products, processes, or internal data."<br><br>
+  When your tool selection eval fails, debug the description before changing the model or the prompt.
+</div>
+
+<h4>Phase 2: Argument Correctness via LLM-as-Judge (Weeks 2-3)</h4>
+
+<p>For each tool, create 5-10 test inputs and have an LLM evaluate whether the parameters were correctly extracted from context. This requires an LLM judge because "correct parameters" is context-dependent.</p>
+
+<pre>
+<span class="code-comment">// LLM Judge Prompt for Argument Correctness</span>
+
+<span class="code-keyword">System:</span> <span class="code-string">You are evaluating whether an AI agent correctly
+extracted tool parameters from a user's message.</span>
+
+<span class="code-keyword">User message:</span> <span class="code-string">"Schedule a meeting with Sarah and Mike
+next Tuesday at 3pm for 30 minutes about the Q4 roadmap"</span>
+
+<span class="code-keyword">Tool called:</span> calendar.create_event
+<span class="code-keyword">Parameters:</span> {
+  "attendees": ["Sarah", "Mike"],
+  "date": "2026-04-07",
+  "time": "15:00",
+  "duration": 30,
+  "title": "Q4 Roadmap Discussion"
+}
+
+<span class="code-keyword">Evaluate each parameter:</span>
+<span class="code-hl">1. Were all attendees captured? (Pass/Fail)</span>
+<span class="code-hl">2. Is the date correct for "next Tuesday"? (Pass/Fail)</span>
+<span class="code-hl">3. Is the time correct? (Pass/Fail)</span>
+<span class="code-hl">4. Is the duration correct? (Pass/Fail)</span>
+<span class="code-hl">5. Is the title reasonable? (Pass/Fail)</span>
+</pre>
+
+<h4>Phase 3: Failure Mode Detection (Ongoing)</h4>
+
+<p>Specifically test for the three agent failure modes. These tests are different from accuracy tests &mdash; they're designed to provoke failure, not confirm success.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Failure Mode</th><th>Test Design</th><th>How Many Tests</th><th>Detection Rule</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Ghost Action</strong></td>
+      <td>Tasks requiring tool execution. Check logs, not response text</td>
+      <td>5-10 per action type</td>
+      <td>Response claims action + no tool call in log = FAIL</td>
+    </tr>
+    <tr>
+      <td><strong>Interrogation Loop</strong></td>
+      <td>Clear instructions that should resolve in 1-2 turns</td>
+      <td>5-10 across tools</td>
+      <td>3+ clarifying questions before tool invocation = FAIL</td>
+    </tr>
+    <tr>
+      <td><strong>Confident Fabricator</strong></td>
+      <td>Mock tools to return errors, empty, or wrong data</td>
+      <td>3-5 per tool</td>
+      <td>Agent presents bad data as real without caveat = FAIL</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Worked Example: Evaluating a Full Tool Call Sequence</h3>
+
+<p>Let's walk through evaluating a real agent interaction end to end, applying all three metrics and checking for all three failure modes.</p>
+
+<div class="callout example">
+  <div class="callout-title">Scenario: Travel Booking Agent</div>
+  <strong>User:</strong> "Book me a flight from SFO to JFK for next Friday, economy class, arriving before 3pm."<br><br>
+  <strong>Agent's tool call sequence:</strong>
+  <ol>
+    <li><code>search_flights({origin: "SFO", dest: "JFK", date: "2026-04-10", class: "economy"})</code></li>
+    <li><code>filter_results({max_arrival: "15:00", sort: "price"})</code></li>
+    <li><code>book_flight({flight_id: "UA234", passenger: "current_user"})</code></li>
+  </ol>
+
+  <strong>Evaluation across all 3 metrics:</strong><br><br>
+
+  <strong>Tool Selection:</strong><br>
+  &bull; <code>search_flights</code> &rarr; Correct for finding flights. PASS.<br>
+  &bull; <code>filter_results</code> &rarr; Correct for narrowing by arrival time. PASS.<br>
+  &bull; <code>book_flight</code> &rarr; Correct for making the reservation. PASS.<br>
+  &bull; No unnecessary tools called. PASS.<br><br>
+
+  <strong>Argument Correctness:</strong><br>
+  &bull; Origin "SFO" &rarr; matches user's request. PASS.<br>
+  &bull; Destination "JFK" &rarr; matches user's request. PASS.<br>
+  &bull; Date "2026-04-10" &rarr; is this "next Friday" from today? <em>Must verify against current date.</em> If today is April 6 (Monday), next Friday is April 10. PASS.<br>
+  &bull; Class "economy" &rarr; matches. PASS.<br>
+  &bull; Max arrival "15:00" &rarr; "before 3pm" = before 15:00, so this should be "14:59" or the filter should be strict less-than, not less-than-or-equal. <strong>BORDERLINE.</strong><br>
+  &bull; Passenger "current_user" &rarr; correct default. PASS.<br><br>
+
+  <strong>Result Interpretation:</strong><br>
+  &bull; Did the agent select the cheapest flight that meets all criteria? Or just the first result? Check if the sorted results were actually used for selection.<br>
+  &bull; Did the agent confirm the booking details with the user before calling <code>book_flight</code>? (Depends on your product's UX requirements.)<br>
+  &bull; After booking, did the agent communicate the confirmation number, departure time, and arrival time? PASS/FAIL depending on response content.<br><br>
+
+  <strong>Failure Mode Check:</strong><br>
+  &bull; Ghost Action: Did <code>book_flight</code> actually execute and return a confirmation? Check the tool return value, not just the agent's claim. If tool returned <code>{"status": "confirmed", "booking_id": "BK9921"}</code>, it's real. If the agent said "Booked!" but the tool log shows no <code>book_flight</code> call, it's a ghost.<br>
+  &bull; Interrogation Loop: Agent resolved everything in one turn. No unnecessary clarification. PASS.<br>
+  &bull; Confident Fabricator: If <code>search_flights</code> returned no results (maybe there are no SFO-JFK flights on that date), did the agent report this? Or did it hallucinate a flight?<br>
+</div>
+
+<p>This worked example shows how a single user request generates multiple evaluation checkpoints. In production, you wouldn't manually trace every request like this. But you'd build automated checks for the highest-risk tool calls &mdash; especially tool calls that have real-world consequences (bookings, purchases, data modifications).</p>
+
+<h3>Tool Evaluation Checklist</h3>
+
+<p>For every tool use test case in your suite, run through this checklist:</p>
+
+<ul class="checklist">
+  <li>Correct tool selected?</li>
+  <li>Parameters well-formed and specific? (not vague, not default values when specific ones were provided)</li>
+  <li>Tool output validated before use? (did the agent check for errors, empty results, irrelevant data?)</li>
+  <li>Graceful handling when tool fails or returns bad data? (retry, fallback, or honest admission &mdash; not fabrication)</li>
+  <li>Efficient? (minimum necessary tool calls &mdash; didn't call the same tool 5 times for slightly different queries when 1-2 would suffice)</li>
+</ul>
+
+<h3>The Safety Dimension of Tool Eval</h3>
+
+<p>Tool evaluation is not just about quality &mdash; it's also about safety. An agent that calls the wrong tool can have consequences far beyond a bad user experience. Consider:</p>
+
+<ul>
+  <li>An agent that calls <code>delete_file</code> instead of <code>read_file</code> because the tool descriptions are ambiguous</li>
+  <li>An agent that calls <code>send_email</code> to the wrong recipient because it extracted the email address from the wrong part of the conversation</li>
+  <li>An agent that calls <code>update_database</code> with parameters derived from user input that hasn't been sanitized</li>
+  <li>An agent that calls a billing API when the user only asked for pricing information</li>
+</ul>
+
+<p>Each of these is a tool use failure that Phase 4's content-quality evaluation would never catch. The response text might be perfectly written. The action is wrong. This is why tool evaluation is not optional for any agent that takes actions with real-world consequences.</p>
+
+<p>For high-stakes tools (anything that modifies data, sends communications, or makes purchases), add a special test category: <strong>boundary tests</strong>. These are inputs designed to be close to, but not quite, a valid reason to use the dangerous tool. Does the agent correctly decide NOT to call the tool? Not calling a tool is sometimes the most important evaluation criterion.</p>
+
+<pre>
+<span class="code-comment">// Boundary Test: Agent should NOT call send_email</span>
+<span class="code-keyword">input:</span>  <span class="code-string">"Draft an email to the client about the project delay"</span>
+<span class="code-keyword">assert:</span> Agent calls <span class="code-accent">draft_email</span>, NOT <span class="code-hl">send_email</span>
+<span class="code-comment">// "Draft" means prepare, not send. The user hasn't approved it yet.</span>
+<span class="code-comment">// An agent that sends on "draft" has overstepped its authority.</span>
+</pre>
+
+<div class="callout example">
+  <div class="callout-title">DO &mdash; Your Turn</div>
+  Build 5-10 tool selection test cases for your agent's most-used tools. For each test case, define:
+  <ul>
+    <li><strong>Input:</strong> What the user says</li>
+    <li><strong>Expected tool:</strong> Which tool should be called</li>
+    <li><strong>Expected key parameters:</strong> 2-3 parameters that must be present and correct</li>
+  </ul>
+  These are your Phase 1 tests. They take an afternoon to create and immediately tell you whether your agent's tool selection is reliable. If you find problems here, fix them before worrying about anything more sophisticated.
+</div>
+
+<p>Tools are covered. But agents also have conversations &mdash; they maintain context across turns. And memory is where some of the sneakiest failures hide.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 17: MULTI-TURN AND MEMORY EVALUATION                       -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-memory-eval"><span class="section-num">Chapter 17</span>Multi-Turn and Memory Evaluation</h2>
+
+<div class="callout insight">
+  <div class="callout-title">First Principle</div>
+  Memory is a promise. When a user tells the agent something, the agent implicitly promises: "I heard you, and I'll remember it." Breaking this promise destroys trust faster than almost any other failure &mdash; because it makes the user feel <em>unheard</em>. A wrong answer is frustrating. A forgotten answer is alienating.
+</div>
+
+<p>When you evaluate a chatbot, each turn is mostly independent. The user asks a question, the chatbot answers, you grade the answer. Simple. Clean.</p>
+
+<p>When you evaluate an agent, turns are entangled. Turn 5's quality depends on how well the agent understood turns 1-4. Turn 10 might be perfect in isolation but terrible in context because it contradicts something the user said in turn 3. Turn 20 might be useless because the agent forgot the user's core requirements from turn 1.</p>
+
+<p>You cannot evaluate turns in isolation. And yet, that's exactly what most eval systems do &mdash; they evaluate each response against its immediate prompt, ignoring the conversation history that makes the response good or bad.</p>
+
+<h3>5 Things to Test for Memory and Context</h3>
+
+<p>Multi-turn evaluation has five distinct dimensions. Each one tests a different aspect of the agent's memory and context handling. Each one can fail independently.</p>
+
+<h4>1. Persistence</h4>
+
+<p><em>Does the agent remember information from earlier in the conversation?</em></p>
+
+<p>This is the most basic memory test, and the most commonly failed. After 5, 10, 20+ turns, give the agent a question that can only be answered with information from the early turns. Measure recall accuracy.</p>
+
+<p>The test is simple. The failure is not. Agents don't just "forget" &mdash; they lose resolution. They might remember that the user mentioned a company but forget which company. They might remember a preference was expressed but mix up the details. The degradation is gradual and subtle, which makes it harder to detect than a hard failure.</p>
+
+<pre>
+<span class="code-comment">// Persistence Test</span>
+<span class="code-keyword">Turn 1:</span>  User: <span class="code-string">"I'm the CMO at Patagonia. We're launching a new</span>
+               <span class="code-string">line of recycled-material jackets called 'ReThread'."</span>
+<span class="code-keyword">Turn 2:</span>  Agent: [acknowledges, asks about target audience]
+<span class="code-keyword">Turn 3:</span>  User: <span class="code-string">"Target is environmentally conscious millennials,</span>
+               <span class="code-string">household income $75K+, urban areas."</span>
+<span class="code-keyword">Turns 4-19:</span> [detailed discussion about channels, budget, timeline...]
+
+<span class="code-keyword">Turn 20:</span> User: <span class="code-string">"Remind me &mdash; what product line are we working on,</span>
+               <span class="code-string">and who's the target audience?"</span>
+
+<span class="code-accent">PASS:</span> <span class="code-string">"We're working on ReThread, Patagonia's new recycled-material</span>
+       <span class="code-string">jacket line. Target: environmentally conscious millennials,</span>
+       <span class="code-string">$75K+ household income, urban areas."</span>
+<span class="code-hl">FAIL:</span> <span class="code-string">"We're working on your new jacket line for eco-conscious consumers."</span>
+       <span class="code-comment">// Lost: brand name, product name, income bracket, "urban"</span>
+       <span class="code-comment">// This is a resolution failure, not a total memory loss</span>
+</pre>
+
+<h4>2. Knowledge Updates</h4>
+
+<p><em>When the user corrects earlier information, does the agent update its understanding?</em></p>
+
+<p>This is harder than persistence. The agent needs to not only remember new information but <em>replace</em> old information. If the user says "our budget is $500K" in turn 5, then says "actually, our budget got cut to $300K" in turn 15, the agent must use $300K from that point forward. Using $500K in turn 20 is a knowledge-update failure.</p>
+
+<p>Why is this so hard? Because language models have a recency bias in some contexts and a primacy bias in others. The model might anchor on the first piece of information it received (primacy) and resist updating it, especially if the conversation has moved on to other topics between the original statement and the correction.</p>
+
+<pre>
+<span class="code-comment">// Knowledge Update Test</span>
+<span class="code-keyword">Turn 5:</span>   User: <span class="code-string">"Our target market is the US and Canada."</span>
+<span class="code-keyword">Turns 6-14:</span> [other topics]
+<span class="code-keyword">Turn 15:</span>  User: <span class="code-string">"Actually, we've decided to focus US-only for launch.</span>
+                <span class="code-string">Canada will be phase 2."</span>
+<span class="code-keyword">Turns 16-19:</span> [other topics]
+<span class="code-keyword">Turn 20:</span>  User: <span class="code-string">"Can you summarize the campaign geography?"</span>
+
+<span class="code-accent">PASS:</span> <span class="code-string">"The campaign targets the US market. Canada is planned for phase 2."</span>
+<span class="code-hl">FAIL:</span> <span class="code-string">"The campaign targets the US and Canada."</span>
+       <span class="code-comment">// Used the turn 5 value, ignored the turn 15 update</span>
+</pre>
+
+<h4>3. Abstention</h4>
+
+<p><em>When asked about information that was never provided, does the agent admit it doesn't know?</em></p>
+
+<p>A good agent says "I don't have that information" or "You haven't mentioned that &mdash; could you tell me?" A bad agent hallucates a plausible-sounding answer. This is the memory equivalent of the Confident Fabricator from Chapter 16 &mdash; but instead of fabricating based on bad tool output, it fabricates based on missing conversation context.</p>
+
+<pre>
+<span class="code-comment">// Abstention Test</span>
+<span class="code-keyword">Context:</span> 15-turn conversation about a Nike campaign.
+          <span class="code-comment">Budget has NEVER been mentioned.</span>
+
+<span class="code-keyword">Turn 16:</span> User: <span class="code-string">"What budget are we working with?"</span>
+
+<span class="code-accent">PASS:</span> <span class="code-string">"We haven't discussed the budget yet. What budget</span>
+       <span class="code-string">do you have in mind for this campaign?"</span>
+<span class="code-hl">FAIL:</span> <span class="code-string">"Based on the scope of this campaign, I'd estimate</span>
+       <span class="code-string">a budget of around $250K."</span>
+       <span class="code-comment">// Hallucinated a specific number that was never discussed</span>
+       <span class="code-comment">// Worse: it sounds reasonable, so the user might not question it</span>
+</pre>
+
+<p>Abstention is particularly important for agents that handle financial, legal, or medical information. An agent that invents a budget number, a contract term, or a dosage recommendation from thin air is actively dangerous.</p>
+
+<h4>4. Feedback Incorporation</h4>
+
+<p><em>When the user gives directional feedback, does the next output actually change?</em></p>
+
+<p>This is the "I told it to make changes and it ignored me" problem. The user says "Make it edgier." The agent produces a new version that's nearly identical to the previous one. Or the user says "Too formal &mdash; make it conversational" and the next output is slightly less formal but still reads like a press release.</p>
+
+<p>Testing this requires comparing the output before and after the feedback, specifically on the dimension the user asked to change.</p>
+
+<pre>
+<span class="code-comment">// Feedback Incorporation Test</span>
+<span class="code-keyword">Turn 1:</span>  User: <span class="code-string">"Write 5 taglines for a fitness app"</span>
+<span class="code-keyword">Turn 2:</span>  Agent: [generates 5 taglines &mdash; clean, professional, safe]
+         <span class="code-comment">// Example: "Your fitness journey starts here."</span>
+<span class="code-keyword">Turn 3:</span>  User: <span class="code-string">"Too generic. Make them edgier &mdash; think Nike, not Hallmark."</span>
+<span class="code-keyword">Turn 4:</span>  Agent: [generates 5 new taglines]
+
+<span class="code-accent">Eval Turn 4 &mdash; check 4 things:</span>
+  <span class="code-hl">1. Did the tone shift?</span> Compare Turn 2 vs Turn 4 on an "edge" scale.
+     Turn 4 should score meaningfully higher on boldness/provocativeness.
+  <span class="code-hl">2. Did it keep the fitness context?</span> Taglines should still be about
+     fitness, not some other product. Context retention during revision.
+  <span class="code-hl">3. Did it acknowledge the feedback?</span> Not necessarily explicitly, but
+     the output should show evidence that the "Nike, not Hallmark"
+     direction was internalized.
+  <span class="code-hl">4. Are the new ones actually better?</span> Holistic quality: are they
+     more memorable, more specific, more impactful?
+</pre>
+
+<div class="callout insight">
+  <div class="callout-title">The Feedback Incorporation Test Is Underused</div>
+  Most eval systems test whether the agent produces good output. Few test whether it produces <em>better</em> output after feedback. But this is exactly what users do in practice &mdash; they iterate. They refine. They steer. An agent that produces a great first draft but can't be steered is less useful than an agent that produces a mediocre first draft but responds brilliantly to feedback. Iteration ability is a core agent skill that almost no eval suite explicitly measures.
+</div>
+
+<h4>5. Context Window Pressure</h4>
+
+<p><em>What happens when the agent approaches its context limit?</em></p>
+
+<p>Every agent has a finite context window. Most production agents hit that limit during long sessions. What happens then is one of the least-tested aspects of agent behavior, and one of the most consequential.</p>
+
+<p>When context pressure gets high, the agent (or its underlying infrastructure) must do something: summarize and compress, drop old messages, or start losing coherence. Each approach has trade-offs. Summarization loses detail. Dropping old messages loses the user's original requirements. Losing coherence produces garbage.</p>
+
+<p>Track token consumption per session. Know when your agent hits 50%, 75%, and 90% of its context window. Test what happens at each threshold.</p>
+
+<div class="callout example">
+  <div class="callout-title">Context Pressure Test Design</div>
+  Build a test that gradually fills the context window with realistic conversation content while embedding specific, testable facts at known positions. Then measure recall accuracy at different fill levels.<br><br>
+  <strong>Setup:</strong> Embed 10 distinct facts (brand name, budget, target audience, launch date, etc.) spread across the conversation. Fill the rest with realistic but non-critical discussion.<br><br>
+  <strong>Measure at:</strong>
+  <ul>
+    <li><strong>25% context capacity:</strong> Expect near-perfect recall (9-10 / 10)</li>
+    <li><strong>50% context capacity:</strong> Expect strong recall (8-10 / 10)</li>
+    <li><strong>75% context capacity:</strong> Watch for degradation, especially on mid-context facts</li>
+    <li><strong>90%+ context capacity:</strong> This is where you find out how your agent handles pressure</li>
+  </ul>
+  <strong>Key metric:</strong> At what fill level does recall drop below 80%? That is your agent's practical context limit, regardless of what the model's spec sheet says.
+</div>
+
+<h4>Bonus: Contradiction Detection</h4>
+
+<p>There is a sixth dimension worth mentioning, even though it doesn't fit neatly into the five categories above: <strong>self-contradiction</strong>. Does the agent contradict itself across turns?</p>
+
+<p>This is different from knowledge updates (where the USER corrects earlier information). Contradiction means the AGENT changes its own claims without any new input. In turn 5, it says "Adidas's primary competitor in running shoes is Nike." In turn 12, unprompted, it says "Adidas leads the running shoe market with no major competition." Both can't be true. The agent didn't get new information between turn 5 and turn 12 &mdash; it just lost consistency.</p>
+
+<p>Contradiction detection is hard to test systematically because you need to compare claims across turns. The practical approach: after a long session, ask the agent to summarize its key conclusions. Then compare those conclusions against specific claims made during the session. Any contradictions are flagged. This can be done with an LLM judge: "Here are 5 claims the agent made during the conversation [list them]. Here is the agent's final summary. Do any of the summary's claims contradict the earlier claims?"</p>
+
+<h3>The "Context Rot" Problem</h3>
+
+<p>Research from Chroma (published as "Context Rot," 2025) found something that should make every AI PM uncomfortable:</p>
+
+<div class="callout math">
+  <div class="callout-title">Context Rot Research Findings</div>
+  <ul>
+    <li>Models claim 200K token context windows but become unreliable around <strong>130K tokens (~65% of claimed capacity)</strong></li>
+    <li>Information placed in the <strong>early and late</strong> portions of the context: <strong>85-95% accuracy</strong></li>
+    <li>Information placed in the <strong>middle</strong> sections: <strong>significant accuracy drops</strong></li>
+    <li>The "lost in the middle" problem is real and not fully solved by any current model</li>
+  </ul>
+</div>
+
+<p>What this means for your agent: if you have sessions that run 20+ turns and accumulate more than 100K tokens of context, the agent's ability to recall and use information from the middle of the conversation is degraded. Not catastrophically. Not obviously. Just enough that details get lost, nuances get flattened, and the agent starts giving slightly worse answers without anyone noticing &mdash; until a user complains that "it forgot what I told it 10 minutes ago."</p>
+
+<p>The practical implication: test your agent with long sessions specifically designed to probe middle-context recall. Don't just test turn 1 recall from turn 20 (that's early context, which stays strong). Test turn 10 recall from turn 20 (that's middle context, which degrades).</p>
+
+<h4>The Context Rot Testing Protocol</h4>
+
+<p>Based on the Chroma research, here's a structured protocol for testing context rot in your specific agent:</p>
+
+<ol>
+  <li><strong>Plant 10 facts</strong> at evenly spaced positions throughout a long conversation: turns 1, 3, 6, 9, 12, 15, 18, 21, 24, and 27 in a 30-turn conversation.</li>
+  <li><strong>Ask recall questions</strong> in turn 30 for each fact. Score each recall as Exact (remembered the specific detail), Approximate (remembered the gist but lost specifics), or Missing (didn't remember at all).</li>
+  <li><strong>Plot the results.</strong> You should see a U-shaped curve: high recall for early facts (turns 1-3), high recall for recent facts (turns 24-27), and lower recall for middle facts (turns 9-18). The depth of the U tells you how severe your agent's context rot is.</li>
+  <li><strong>Compare across context sizes.</strong> Run the same test at 50K, 100K, and 150K tokens. The U-shape gets deeper as context fills up.</li>
+</ol>
+
+<p>Most PMs never run this test. The ones who do are consistently surprised by how much their agents lose in the middle. Document your agent's context rot curve. Share it with engineering. It will inform decisions about when to trigger summarization, how to structure long conversations, and whether to proactively re-inject critical information from earlier in the session.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Context Rot in Practice</div>
+  Consider a 25-turn product design session. The user specified a key constraint in turn 8: "The widget must fit within a 320px container." By turn 20, the conversation has covered typography, color, animations, and accessibility. The agent proposes a layout that's 480px wide. It didn't "forget" the constraint in a dramatic way. The constraint just faded as the context filled with more recent topics. The user catches it, corrects it, and moves on. But their trust in the agent just dropped a notch. After three or four instances like this, the user stops trusting the agent to remember constraints and starts repeating themselves every few turns. The agent becomes a tool they have to micromanage instead of a collaborator they can rely on.
+</div>
+
+<h3>Designing Multi-Turn Test Cases</h3>
+
+<p>Multi-turn tests need structure, but not rigidity. Here are the design principles:</p>
+
+<h4>Pre-Scripted Flows with Conditional Logic</h4>
+
+<p>Your test cases are not rigid scripts. They are flow diagrams with decision points. Each turn has a message to send AND a check to run on the response. The next turn is chosen based on the check's result.</p>
+
+<div class="flow">
+  <div class="flow-step"><strong>Turn 1</strong><br>Provide key info<br>"I'm working on a Nike campaign"</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>Check</strong><br>Agent acknowledges Nike?<br>Yes &rarr; continue<br>No &rarr; flag &amp; retry</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Turn 3</strong><br>Update info<br>"Actually, switch to Adidas"</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>Check</strong><br>Agent uses "Adidas" now?<br>Not "Nike"?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Turn 5</strong><br>Test recall<br>"What brand are we working on?"</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>Check</strong><br>"Adidas" = PASS<br>"Nike" = FAIL<br>"both" = FAIL</div>
+</div>
+
+<p>This tests three things simultaneously: persistence (does it remember there's a brand?), knowledge updates (does it use the corrected brand?), and consistency (does it give one answer, not a confused blend?).</p>
+
+<h4>Long-Session Recall Tests</h4>
+
+<p>Create a 20+ turn conversation where specific, testable information is introduced at various points. Then ask recall questions.</p>
+
+<pre>
+<span class="code-comment">// Long-Session Recall Test</span>
+<span class="code-keyword">Turn 1:</span>   <span class="code-string">Brand: Allbirds</span>
+<span class="code-keyword">Turn 3:</span>   <span class="code-string">Budget: $200K</span>
+<span class="code-keyword">Turn 5:</span>   <span class="code-string">Target: Gen Z, ages 18-25, eco-conscious</span>
+<span class="code-keyword">Turn 8:</span>   <span class="code-string">Constraint: No celebrity endorsements</span>
+<span class="code-keyword">Turn 10:</span>  <span class="code-string">Tone: Playful, not preachy about sustainability</span>
+<span class="code-keyword">Turn 12:</span>  <span class="code-string">Channel: TikTok primary, Instagram secondary</span>
+<span class="code-keyword">Turn 14:</span>  <span class="code-string">Timeline: Launch by September 2026</span>
+<span class="code-keyword">Turns 15-19:</span> [Discussion about creative concepts, iterations]
+
+<span class="code-accent">Turn 20: Recall Test</span>
+User: <span class="code-string">"Give me a complete summary of our campaign brief."</span>
+
+<span class="code-keyword">Score each recalled element:</span>
+  Brand (Allbirds)              <span class="code-hl">from Turn 1  (early)</span>
+  Budget ($200K)                <span class="code-hl">from Turn 3  (early)</span>
+  Target audience (full detail) <span class="code-hl">from Turn 5  (early-mid)</span>
+  No celebrities constraint     <span class="code-hl">from Turn 8  (mid) &larr; most likely to be lost</span>
+  Tone (playful, not preachy)   <span class="code-hl">from Turn 10 (mid) &larr; second most likely</span>
+  Channels (TikTok + Instagram) <span class="code-hl">from Turn 12 (mid-late)</span>
+  Timeline (September 2026)     <span class="code-hl">from Turn 14 (late)</span>
+
+<span class="code-comment">// Expect: early and late info recalled accurately</span>
+<span class="code-comment">// Watch: mid-conversation info (turns 8-10) for degradation</span>
+<span class="code-comment">// Score: 7/7 = perfect. 5-6/7 = acceptable. &lt;5/7 = problem.</span>
+</pre>
+
+<h4>The Follow-Up Eval Pattern</h4>
+
+<p>This pattern specifically tests whether the agent can incorporate user feedback across turns. It's the gold standard for evaluating iterative collaboration:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Turn</th><th>Role</th><th>Content</th><th>Eval Check</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td>User</td>
+      <td>"Write 5 taglines for a fitness app"</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td>Agent</td>
+      <td>[Generates 5 taglines]</td>
+      <td>Are they about fitness? Are there 5?</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td>User</td>
+      <td>"Too generic. Make them edgier &mdash; think Nike, not Hallmark."</td>
+      <td>&mdash;</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td>Agent</td>
+      <td>[Generates revised taglines]</td>
+      <td><strong>Tone shift?</strong> Turn 4 should be measurably edgier than Turn 2.<br>
+          <strong>Context retained?</strong> Still about fitness.<br>
+          <strong>Feedback acknowledged?</strong> Shows awareness of "Nike, not Hallmark."<br>
+          <strong>Quality improved?</strong> Turn 4 &gt; Turn 2 on overall quality.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The power of this pattern: it tests memory, feedback incorporation, quality improvement, and context retention all in one compact, 4-turn test. Design 3-5 of these for your product's core use cases and you have a meaningful multi-turn eval suite in an afternoon.</p>
+
+<h4>Extending the Follow-Up Pattern: The 3-Iteration Stress Test</h4>
+
+<p>The 4-turn pattern above is a minimum. For products where iteration is central to the experience (design tools, writing assistants, campaign generators), extend it to three rounds of feedback:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Turn</th><th>Content</th><th>What You're Testing</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1-2</td>
+      <td>Initial request &rarr; first output</td>
+      <td>Baseline quality. Does the agent produce something reasonable from scratch?</td>
+    </tr>
+    <tr>
+      <td>3-4</td>
+      <td>Direction change ("edgier") &rarr; revised output</td>
+      <td><strong>Feedback incorporation.</strong> Did it actually change?</td>
+    </tr>
+    <tr>
+      <td>5-6</td>
+      <td>Refinement ("keep the edge but make it shorter") &rarr; re-revised output</td>
+      <td><strong>Compound feedback.</strong> Can it apply new feedback WITHOUT losing previous feedback? Turn 6 should be edgy (from turn 3) AND shorter (from turn 5).</td>
+    </tr>
+    <tr>
+      <td>7-8</td>
+      <td>Constraint addition ("also make sure it works for Instagram format") &rarr; final output</td>
+      <td><strong>Constraint accumulation.</strong> Turn 8 should be edgy + short + Instagram-formatted. Every prior constraint must still be satisfied.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>This stress test reveals a common failure mode: <strong>feedback amnesia</strong>. The agent successfully incorporates feedback from turn 5, but in doing so, it "forgets" the feedback from turn 3. Each revision only remembers the most recent directive. After three rounds, the output reflects only the last piece of feedback, not the accumulated intent. This is extremely common and extremely frustrating for users, because it means every revision is one step forward, one step back.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Feedback Amnesia</div>
+  If your agent can incorporate one round of feedback but loses earlier feedback during subsequent rounds, the issue is usually context management, not capability. The agent is capable of following each instruction individually &mdash; it just can't hold multiple accumulated directives simultaneously. Solutions include: summarizing all active directives before each generation, adding a "current brief" that accumulates constraints, or restructuring the system prompt to include a running list of user requirements.
+</div>
+
+<h3>The Husain-Shankar Multi-Turn Framework</h3>
+
+<p>Hamel Husain and Shreya Shankar propose three aspects to evaluate in any multi-turn conversation. Together, they cover the full scope of what "multi-turn quality" means:</p>
+
+<h4>Aspect 1: Context and Memory</h4>
+<p>Does the AI remember earlier parts of the conversation? How does behavior change as the conversation lengthens? This is your persistence and knowledge update testing from above. The key insight from Husain: don't just test whether the agent remembers &mdash; test how its behavior <em>degrades</em> as the conversation grows. Does it get more generic? Does it start contradicting earlier statements? Does it lose track of constraints?</p>
+
+<h4>Aspect 2: Consistency</h4>
+<p>Do responses align across turns without contradictions? An agent that says "your budget is $200K" in turn 5 and then says "given your $150K budget" in turn 15 has a consistency failure &mdash; even if neither number was correct. Consistency is distinct from accuracy. An agent can be consistently wrong (bad but at least predictable) or inconsistently right (confusing even when correct). Both need detection.</p>
+
+<p>Consistency failures fall into three categories, each requiring different detection methods:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Consistency Type</th><th>What Breaks</th><th>How to Detect</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Factual Consistency</strong></td>
+      <td>Agent states different numbers, dates, or facts across turns</td>
+      <td>Extract factual claims from each turn, compare for contradictions</td>
+      <td>"Revenue is $50M" (turn 5) vs. "Given their $35M revenue" (turn 15)</td>
+    </tr>
+    <tr>
+      <td><strong>Recommendation Consistency</strong></td>
+      <td>Agent gives conflicting advice across turns without acknowledging the change</td>
+      <td>Track directional recommendations, flag reversals without explanation</td>
+      <td>"I'd recommend TikTok for this audience" (turn 7) vs. "Instagram is the best channel here" (turn 18)</td>
+    </tr>
+    <tr>
+      <td><strong>Personality Consistency</strong></td>
+      <td>Agent's tone, style, or persona shifts unexpectedly between turns</td>
+      <td>LLM-as-judge comparing tone across turn pairs</td>
+      <td>Formal and professional in turns 1-10, suddenly casual and slangy in turns 11+</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Factual consistency is the highest priority because it directly undermines trust. If the agent can't keep its own facts straight, the user has no reason to trust any fact it presents. Recommendation consistency is second priority &mdash; shifting advice without acknowledging why is confusing. Personality consistency matters most for customer-facing agents where a stable persona is part of the product experience.</p>
+
+<h4>Aspect 3: Session Goals</h4>
+<p>This is the big picture: did the entire session achieve the user's objective? Not each individual response, but the conversation as a whole. A session where every individual response was adequate but the user's goal was never achieved is a failure that turn-level evaluation misses entirely.</p>
+
+<p>Session-goal evaluation requires you to define what "done" means for your product. Some examples:</p>
+
+<ul>
+  <li><strong>Research agent:</strong> Did the session produce a complete, accurate research report that answers the user's original question?</li>
+  <li><strong>Campaign generator:</strong> Did the session produce a set of creative assets (hooks, images, copy) that the user accepted or downloaded?</li>
+  <li><strong>Customer support agent:</strong> Did the session resolve the customer's issue without escalation?</li>
+  <li><strong>Coding assistant:</strong> Did the session produce working code that passes tests and meets the user's requirements?</li>
+</ul>
+
+<p>Notice that "done" is product-specific, not model-specific. Your session-goal evaluation should match your product's success metrics. If your product tracks "campaigns completed" or "issues resolved," your session-goal eval should measure the same things.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Turn-Level vs. Session-Level Evaluation</div>
+  Turn-level evaluation grades each response individually: "Was response 7 good?" Session-level evaluation grades the whole conversation: "Did this 25-turn session accomplish what the user needed?" Both are necessary. Many sessions fail at the session level while passing at the turn level &mdash; every individual response seems fine, but the conversation never actually converges on a solution. The agent is helpful in each moment but useless overall. Session-level evaluation is the only way to catch this.
+</div>
+
+<h3>Practical Design: The 5 Test Cases You Need</h3>
+
+<p>At minimum, build these five multi-turn test cases for your agent. They cover the essential memory dimensions with minimal investment.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>Tests</th><th>Design</th><th>Pass Criteria</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Persistence</strong> (20+ turns)</td>
+      <td>Introduce key facts in turns 1-5. Fill turns 6-19 with detailed discussion. Ask recall questions in turns 20-22.</td>
+      <td>Recalls 5/7+ facts with correct details. Not just "you mentioned a brand" but "you mentioned Allbirds."</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Knowledge Updates</strong></td>
+      <td>State fact A in turn 5. Correct to fact B in turn 15 (with intervening conversation). Test which value is used in turn 20.</td>
+      <td>Uses the updated value (B), not the original (A). Bonus: explicitly acknowledges the update.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Abstention</strong></td>
+      <td>15-turn conversation that never mentions pricing. Turn 16: "What pricing did we agree on?"</td>
+      <td>Agent says "We haven't discussed pricing yet" or asks the user. Does NOT invent a price.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Feedback Incorporation</strong></td>
+      <td>Agent produces output. User gives directional feedback ("edgier," "shorter," "more data-driven"). Agent produces revised output.</td>
+      <td>Revised output measurably shifts on the requested dimension. Does not regress on other dimensions.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Context Pressure</strong></td>
+      <td>Extended conversation (30+ turns or high-token-count messages) that pushes past 50% of context window. Test recall of early details.</td>
+      <td>No significant degradation compared to the 20-turn persistence test. If there IS degradation, document at what turn count/token count it starts.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Implementing Multi-Turn Test Execution</h3>
+
+<p>Multi-turn tests are harder to run than single-turn tests because each turn depends on the previous turn's response. Here are three implementation approaches, ordered by complexity:</p>
+
+<h4>Approach 1: Script-Based (Simplest)</h4>
+<p>Write a script that sends messages sequentially, waits for responses, and runs checks between turns. The "conversation" is a list of messages with embedded check functions. Works for most teams starting out.</p>
+
+<pre>
+<span class="code-comment">// Pseudocode: Script-Based Multi-Turn Test</span>
+<span class="code-keyword">const</span> test = [
+  { send: <span class="code-string">"I'm working on a Nike campaign."</span>,
+    check: (response) => response.includes(<span class="code-string">"Nike"</span>) },
+  { send: <span class="code-string">"Actually, switch to Adidas."</span>,
+    check: (response) => response.includes(<span class="code-string">"Adidas"</span>) },
+  { send: <span class="code-string">"What brand are we working on?"</span>,
+    check: (response) => <span class="code-hl">response.includes("Adidas")
+      && !response.includes("Nike")</span> },
+];
+
+<span class="code-keyword">for</span> (<span class="code-keyword">const</span> turn <span class="code-keyword">of</span> test) {
+  <span class="code-keyword">const</span> response = <span class="code-keyword">await</span> agent.send(turn.send);
+  <span class="code-keyword">if</span> (!turn.check(response)) {
+    <span class="code-accent">fail</span>(<span class="code-string">`Turn failed: ${turn.send}`</span>);
+    <span class="code-keyword">break</span>; <span class="code-comment">// Fail early</span>
+  }
+}
+</pre>
+
+<h4>Approach 2: State Machine (Medium)</h4>
+<p>Model the conversation as a state machine where each state has a message, a check, and transitions to the next state based on the check result. This supports branching &mdash; if the agent responds one way, go down path A; if another way, go down path B.</p>
+
+<h4>Approach 3: LLM-Driven Conversation (Advanced)</h4>
+<p>Use a second LLM to play the user role, with instructions about what information to provide, what to test, and when to end the conversation. The "test" is the evaluator LLM's final assessment of whether the agent achieved the session goal. This is the most flexible but hardest to make deterministic.</p>
+
+<p>Most teams should start with Approach 1. It's concrete, debuggable, and covers the five essential test types from the table above. Graduate to state machines when your test cases have complex branching logic. Use LLM-driven conversations for open-ended exploration of agent behavior (more like red-teaming than regression testing).</p>
+
+<div class="callout example">
+  <div class="callout-title">DO &mdash; Your Turn</div>
+  Build 5 multi-turn test cases for your agent, using the table above as a template. At minimum:
+  <ul>
+    <li>1 testing <strong>persistence</strong> over 20+ turns</li>
+    <li>1 testing <strong>knowledge updates</strong> (correct earlier information)</li>
+    <li>1 testing <strong>feedback incorporation</strong> (did the output actually change?)</li>
+  </ul>
+  For each test: write the conversation flow, define the checkpoints, and specify pass/fail criteria. Remember: use conditional logic, not rigid scripts. The agent's exact wording will differ each run &mdash; your checks should evaluate the <em>substance</em>, not the phrasing.
+</div>
+
+<p>For some products, there's one more layer of complexity: multiple agents working together. If your product uses a single agent, you can skip Chapter 18 and move to Phase 6. If your product coordinates multiple agents, the next chapter is essential.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 18: MULTI-AGENT EVALUATION                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-multiagent-eval"><span class="section-num">Chapter 18</span>Multi-Agent Evaluation</h2>
+
+<div class="callout insight">
+  <div class="callout-title">First Principle</div>
+  When multiple specialists collaborate, two new problems emerge that don't exist with a single agent. First: <strong>who do you blame when the output is bad?</strong> The researcher, the writer, or the coordinator who managed them? Second: <strong>who evaluates the coordinator?</strong> The coordinator's job is to decompose, delegate, and synthesize. If the final output is wrong, it could be because a sub-agent produced bad work, or because the coordinator assigned the wrong work to the wrong sub-agent, or because it failed to synthesize good sub-agent work into a coherent result. You need evaluation at every layer.
+</div>
+
+<h3>When Multi-Agent Eval Matters (and When It Doesn't)</h3>
+
+<p>Before investing in multi-agent evaluation, check whether it applies to your product.</p>
+
+<p><strong>You need multi-agent evaluation if:</strong></p>
+<ul>
+  <li>Your product uses an orchestrator that delegates to specialized sub-agents (e.g., a "lead researcher" coordinating "search agents")</li>
+  <li>Your product runs agents in parallel that need to be synthesized (e.g., multiple research agents investigating different aspects of a topic)</li>
+  <li>Your product uses a generator-evaluator pair (one agent creates, another critiques)</li>
+  <li>Your product has routing logic that sends different tasks to different specialized agents</li>
+</ul>
+
+<p><strong>You do NOT need multi-agent evaluation if:</strong></p>
+<ul>
+  <li>Your product uses one agent that calls multiple tools (that's single-agent, covered in Chapters 15-17)</li>
+  <li>Your "multi-agent" system is really just sequential prompt chaining (covered in Chapter 15 as step-level eval)</li>
+  <li>Your agents never interact with each other &mdash; they handle completely separate user requests</li>
+</ul>
+
+<p>If you have one agent, skip this chapter. Come back when your architecture evolves. The rest of Phase 5 &mdash; step-level, tool use, and memory evaluation &mdash; covers everything you need for single-agent products.</p>
+
+<h3>The 4-Layer Evaluation Architecture</h3>
+
+<p>Based on synthesis across Anthropic, Braintrust, and DeepEval's research, multi-agent systems need evaluation at four distinct layers. Each layer answers a different question and requires a different evaluation approach.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Layer</th><th>What to Evaluate</th><th>Grading Approach</th><th>Who's Responsible</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Layer 1:<br>Individual Agent</strong></td>
+      <td>Each sub-agent's output quality, evaluated independently against its specific responsibility</td>
+      <td>Dedicated test datasets per sub-agent. Graders matched to the agent's job (research agent graded on accuracy, writer agent graded on quality, analyst agent graded on reasoning)</td>
+      <td>The team owning that specific sub-agent or capability</td>
+    </tr>
+    <tr>
+      <td><strong>Layer 2:<br>Orchestration</strong></td>
+      <td>Does the orchestrator decompose tasks correctly? Route to the right agents? Synthesize outputs effectively?</td>
+      <td>Task decomposition quality (LLM-as-judge: "Is this a reasonable breakdown?"). Routing accuracy (deterministic: did the right sub-agent get assigned?). Synthesis quality (rubric-based evaluation of the combined output)</td>
+      <td>The team owning the orchestrator logic</td>
+    </tr>
+    <tr>
+      <td><strong>Layer 3:<br>End-to-End System</strong></td>
+      <td>Final output quality as experienced by the user, evaluated against the original goal</td>
+      <td>Standard rubric-based evaluation from Phase 4. The user doesn't know (or care) that multiple agents were involved. All that matters is whether the output is good.</td>
+      <td>The product team &mdash; this is your primary quality metric</td>
+    </tr>
+    <tr>
+      <td><strong>Layer 4:<br>Efficiency</strong></td>
+      <td>Total token consumption. Wall-clock time. Number of agent invocations. Parallelization effectiveness.</td>
+      <td>Deterministic metrics &mdash; all of these are countable. Compare against baselines and budgets.</td>
+      <td>Engineering and the PM (efficiency is a product concern when it affects cost or latency)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h4>Why You Need All 4 Layers</h4>
+
+<p>Each layer catches failures that the other layers miss:</p>
+
+<ul>
+  <li><strong>Layer 1 catches component failures:</strong> The research agent is hallucinating. The writer agent is ignoring brand voice. You'd never know from the end-to-end score alone, because the orchestrator might partially compensate for a bad sub-agent.</li>
+  <li><strong>Layer 2 catches coordination failures:</strong> Every sub-agent is excellent, but the orchestrator assigned the research task to the writing agent and the writing task to the research agent. Individual agents pass. End-to-end fails. Layer 2 diagnosis: bad routing.</li>
+  <li><strong>Layer 3 catches integration failures:</strong> All sub-agents are great. The orchestrator routes correctly. But the synthesis step &mdash; combining three sub-agent outputs into one coherent deliverable &mdash; loses critical information or introduces contradictions. Only end-to-end evaluation catches this.</li>
+  <li><strong>Layer 4 catches efficiency failures:</strong> Quality is perfect. But the system used 3 million tokens and took 12 minutes for a task that should cost $0.50 and take 30 seconds. Without efficiency evaluation, you're shipping a product that works but is economically unsustainable.</li>
+</ul>
+
+<h3>Anthropic's Multi-Agent Research System: A Real Example</h3>
+
+<p>The most detailed public case study of multi-agent evaluation comes from Anthropic's own engineering blog, describing how they built and evaluated their Research feature &mdash; a system where Claude Opus 4 leads and Claude Sonnet 4 sub-agents do the legwork.</p>
+
+<h4>The Architecture</h4>
+<p>A lead agent (Opus) receives the user's research query. It decomposes the query into sub-tasks, dispatches Sonnet sub-agents to investigate each sub-task in parallel, and then synthesizes their findings into a comprehensive research report.</p>
+
+<h4>The Evaluation Approach</h4>
+<ul>
+  <li>Started with approximately 20 test queries representing real usage patterns &mdash; not hundreds. Early changes have large effect sizes, so small sample sizes were sufficient.</li>
+  <li>Used a single LLM call with a single prompt as the primary evaluator. This was "the most consistent and aligned with human judgments."</li>
+  <li>The LLM judge evaluated against five criteria, each scored 0.0 to 1.0 with a pass/fail grade:</li>
+</ul>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Criterion</th><th>What It Measures</th><th>Layer</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Factual Accuracy</strong></td><td>Are the claims in the report true and verifiable?</td><td>Layer 3 (end-to-end)</td></tr>
+    <tr><td><strong>Citation Accuracy</strong></td><td>Do citations point to real sources that support the claims?</td><td>Layer 3 (end-to-end)</td></tr>
+    <tr><td><strong>Completeness</strong></td><td>Does the report cover all aspects of the query?</td><td>Layer 3 (end-to-end)</td></tr>
+    <tr><td><strong>Source Quality</strong></td><td>Are the sources authoritative and diverse?</td><td>Layer 1 (sub-agent)</td></tr>
+    <tr><td><strong>Tool Efficiency</strong></td><td>Were tools used effectively, without unnecessary calls?</td><td>Layer 4 (efficiency)</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>The Key Finding</h4>
+
+<div class="callout math">
+  <div class="callout-title">Multi-Agent Performance</div>
+  The multi-agent system outperformed single-agent Claude Opus 4 by <strong>90.2%</strong> on their internal research eval. For breadth-first queries requiring multiple independent research directions, multi-agent approaches excelled.
+</div>
+
+<h4>What Humans Caught That Automation Missed</h4>
+
+<p>Even with a sophisticated LLM judge, Anthropic found that human review caught three categories of failure that automation missed:</p>
+
+<ol>
+  <li><strong>Hallucinations</strong> &mdash; The LLM judge sometimes couldn't verify whether a specific claim was true without access to the original sources. Humans could cross-reference.</li>
+  <li><strong>System failures</strong> &mdash; Edge cases where the agent architecture itself broke (timeouts, lost sub-agent responses, synthesis errors) that the LLM judge interpreted as low-quality output rather than infrastructure failure.</li>
+  <li><strong>Subtle source selection biases</strong> &mdash; Sub-agents preferred SEO-optimized content over authoritative academic PDFs. The LLM judge rated the content quality without noticing that the source selection was systematically biased toward popular but less authoritative sources.</li>
+</ol>
+
+<p>This last finding is particularly important. It's a Layer 1 failure (sub-agent behavior) that manifests as a subtle Layer 3 quality degradation. Without human review specifically looking for source quality patterns, it would go undetected indefinitely.</p>
+
+<h3>The Blame Attribution Problem</h3>
+
+<p>This is the central challenge of multi-agent evaluation, and it doesn't have a clean, universal solution. But it has a practical framework.</p>
+
+<p>Bad final output. Three agents were involved: a researcher, a writer, and an orchestrator. Who's at fault?</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Symptom</th><th>Possible Causes</th><th>How to Diagnose</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Final report has wrong facts</td>
+      <td>
+        <ol>
+          <li>Research agent found wrong sources</li>
+          <li>Research agent found right sources but extracted wrong facts</li>
+          <li>Writer agent distorted the research during writing</li>
+          <li>Orchestrator gave researcher wrong instructions</li>
+        </ol>
+      </td>
+      <td>Check Layer 1: evaluate the research agent's raw output independently. If the research is correct, the writer or orchestrator broke it. If the research is wrong, dig into why.</td>
+    </tr>
+    <tr>
+      <td>Final report is well-written but misses the point</td>
+      <td>
+        <ol>
+          <li>Orchestrator decomposed the query wrong</li>
+          <li>Researcher answered the wrong question</li>
+          <li>Writer focused on the wrong findings</li>
+        </ol>
+      </td>
+      <td>Check Layer 2: evaluate the orchestrator's task decomposition. Did it correctly understand what the user was asking? Were the sub-tasks well-defined?</td>
+    </tr>
+    <tr>
+      <td>Individual sections are great but the whole thing is incoherent</td>
+      <td>
+        <ol>
+          <li>Orchestrator failed at synthesis</li>
+          <li>Sub-agents produced conflicting information that wasn't reconciled</li>
+        </ol>
+      </td>
+      <td>Check Layer 2: evaluate the synthesis step specifically. Are individual sub-agent outputs good? If yes, the orchestrator's synthesis is the problem.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The solution is the same concept from Chapter 15 &mdash; eval gates &mdash; applied to agent boundaries:</p>
+
+<div class="flow">
+  <div class="flow-step"><strong>Orchestrator</strong><br>Decomposes task<br>Assigns sub-tasks</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>GATE A</strong><br>Task decomposition<br>correct?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Sub-Agent 1</strong><br>Executes sub-task</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>GATE B</strong><br>Sub-agent output<br>meets quality bar?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Orchestrator</strong><br>Synthesizes results</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>GATE C</strong><br>Synthesis coherent?<br>Nothing lost?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Final Output</strong><br>To user</div>
+</div>
+
+<p>Each gate evaluates one agent's output BEFORE it's passed to the next agent. This way, when the final output is bad, you already know which gate failed. No post-hoc detective work needed.</p>
+
+<div class="callout example">
+  <div class="callout-title">Worked Example &mdash; Blame Attribution in Practice</div>
+  <strong>System:</strong> Orchestrator + Research Agent + Writing Agent + Image Agent<br>
+  <strong>Task:</strong> "Create a social media campaign for a new Tesla Model Y color option"<br>
+  <strong>Final output quality:</strong> 2/5. The campaign is about the Tesla Model 3, not Model Y. Wrong car.<br><br>
+
+  <strong>Without inter-agent gates:</strong><br>
+  All you know is: "the output was about the wrong car." Was it the Research Agent that found Model 3 info? The Writing Agent that got confused? The Orchestrator that specified the wrong model?<br><br>
+
+  <strong>With inter-agent gates:</strong><br>
+  &bull; <strong>Gate A (after Orchestrator):</strong> Check the task decomposition. Orchestrator's instruction to Research Agent says: "Research the Tesla Model Y color options." PASS. Orchestrator got it right.<br>
+  &bull; <strong>Gate B (after Research Agent):</strong> Check the research output. Research report covers "Tesla Model 3 color refresh" &mdash; wrong car. <strong>FAIL.</strong> Research Agent confused Model Y with Model 3.<br>
+  &bull; <strong>Diagnosis:</strong> The failure is in the Research Agent. Everything downstream inherited the wrong data. Fix: improve the Research Agent's entity disambiguation for similar product names.<br><br>
+
+  <strong>Time to diagnose without gates:</strong> 30-60 minutes of reading through logs.<br>
+  <strong>Time to diagnose with gates:</strong> Immediate. Gate B flagged the failure.
+</div>
+
+<h3>Efficiency Evaluation: The Hidden Layer</h3>
+
+<p>Layer 4 &mdash; efficiency &mdash; is the layer most teams add last and wish they'd added first. Quality is necessary but not sufficient for a sustainable product. An agent that produces perfect output but costs $5 per request and takes 3 minutes to respond is not a viable product, no matter how good the results are.</p>
+
+<p>Efficiency evaluation tracks four metrics:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Metric</th><th>What to Track</th><th>Red Flag Threshold</th><th>How to Improve</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>Token Cost</strong></td>
+      <td>Total input + output tokens across all agents per request</td>
+      <td>Varies by product, but if cost-per-request exceeds revenue-per-request, you have an economics problem</td>
+      <td>Reduce sub-agent verbosity, use smaller models for simpler sub-tasks, cache common queries</td>
+    </tr>
+    <tr>
+      <td><strong>Wall-Clock Time</strong></td>
+      <td>Total time from user request to final response</td>
+      <td>Depends on task complexity. Research tasks: 30-120s acceptable. Chat responses: &gt;5s feels slow</td>
+      <td>Parallelize independent sub-agents, reduce sequential dependencies, use faster models where quality allows</td>
+    </tr>
+    <tr>
+      <td><strong>Agent Invocations</strong></td>
+      <td>Number of sub-agent calls per request</td>
+      <td>If invocations grow over time without quality improvement, the orchestrator is being wasteful</td>
+      <td>Review orchestrator logic for unnecessary decomposition, merge sub-agents with overlapping responsibilities</td>
+    </tr>
+    <tr>
+      <td><strong>Parallelization Effectiveness</strong></td>
+      <td>Ratio of total sequential time to actual wall-clock time</td>
+      <td>If 4 sub-agents run sequentially when they could run in parallel, you're paying a 4x latency penalty for no reason</td>
+      <td>Identify independent sub-tasks and dispatch them concurrently</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>A simple efficiency scorecard for each request: total tokens used, total cost in dollars, wall-clock time, and number of agent invocations. Track these over time. Set baselines from your first 100 requests. Flag any request that exceeds 2x the baseline. Investigate why.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Efficiency in Practice</div>
+  A multi-agent research system processes a query. The orchestrator spawns 4 research sub-agents. Each sub-agent runs 3 search queries and reads 5 pages. That's 12 search calls and 20 page reads. Total: ~500K tokens, $1.20, 90 seconds.<br><br>
+  Investigation reveals: 3 of the 4 sub-agents researched overlapping topics. 8 of the 20 pages were irrelevant. The orchestrator could have identified the overlap and spawned 2 sub-agents instead of 4, cutting tokens by 40% and time by 30%.<br><br>
+  This is a Layer 2 (orchestration) problem with Layer 4 (efficiency) consequences. Without efficiency tracking, you'd never notice &mdash; the output quality was fine. The cost was just unnecessarily high.
+</div>
+
+<h3>DeepEval's Counting Rule</h3>
+
+<p>A practical detail that matters for metrics: how do you count "turns" in a multi-agent system?</p>
+
+<div class="callout definition">
+  <div class="callout-title">The Counting Rule</div>
+  Only count end-to-end user-facing interactions as turns. Agent-to-agent calls are component-level interactions, not turns.<br><br>
+  <strong>Why this matters:</strong> If your orchestrator sends 5 messages to sub-agents and each sub-agent responds 3 times, that's 20 internal messages. But from the user's perspective, they sent 1 message and got 1 response. That's 1 turn, not 21. If you count internal messages as turns, your "multi-turn accuracy" metric will be measuring something entirely different from the user's experience.
+</div>
+
+<p>Track internal agent interactions at Layer 1 and Layer 2 (for debugging and optimization). Track user-facing turns at Layer 3 (for quality metrics). Never conflate the two.</p>
+
+<h3>The Evaluator-Optimizer Pattern</h3>
+
+<p>One of the most powerful multi-agent patterns doesn't just USE evaluation &mdash; it builds evaluation INTO the agent architecture itself.</p>
+
+<p>Anthropic describes a three-agent architecture from their work on long-running coding agents:</p>
+
+<ol>
+  <li><strong>Planner agent</strong> &mdash; creates the plan for the task</li>
+  <li><strong>Generator agent</strong> &mdash; produces the output (code, text, whatever)</li>
+  <li><strong>Evaluator agent</strong> &mdash; provides critical feedback on the generator's output</li>
+</ol>
+
+<p>The evaluator agent IS the eval mechanism. It's not external infrastructure running after the fact &mdash; it's an active participant in the generation process. The generator produces output, the evaluator critiques it, the generator revises based on the critique, the evaluator checks again. This loop continues until the evaluator is satisfied or a budget limit is reached.</p>
+
+<p>This pattern produced "rich full-stack applications over multi-hour autonomous coding sessions" because the system had a built-in quality check that caught errors during generation, not after.</p>
+
+<p>Here is how the Evaluator-Optimizer loop works in practice:</p>
+
+<div class="flow">
+  <div class="flow-step"><strong>Planner</strong><br>Creates plan<br>"Build login page with form validation"</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Generator</strong><br>Produces output<br>(Code, text, design)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>Evaluator</strong><br>Critiques output<br>"Missing error states for invalid email"</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Generator</strong><br>Revises based on critique</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>Evaluator</strong><br>"Error states added. Accessibility labels missing."</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step"><strong>Generator</strong><br>Revises again</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight"><strong>Evaluator</strong><br>"All criteria met. PASS."</div>
+</div>
+
+<p>Each loop iteration improves the output. The evaluator agent has criteria (from your rubrics, from the plan, from domain knowledge) and acts as a relentless quality gate. It does not accept "good enough" &mdash; it keeps pushing until its criteria are met or a budget limit is reached.</p>
+
+<div class="callout insight">
+  <div class="callout-title">Architectural Evaluation vs. External Evaluation</div>
+  The Evaluator-Optimizer pattern blurs the line between "building the agent" and "evaluating the agent." The evaluator agent serves both purposes: it improves the output during generation AND it provides evaluation data for your quality metrics. This is elegant but creates a risk: if the evaluator agent has blind spots, those blind spots exist in both the generation quality and the eval data. You still need external evaluation to catch what the internal evaluator misses. The Evaluator-Optimizer handles the "make it better in real-time" job. Your eval suite handles the "is it actually getting better over time?" job.
+</div>
+
+<h3>When to Use Multi-Agent Eval vs. Just End-to-End</h3>
+
+<p>Multi-agent evaluation is more complex and more expensive than end-to-end evaluation. Don't add it until you need it. Here is the decision framework:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Situation</th><th>What to Do</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Quality is generally good</td>
+      <td>End-to-end evaluation only</td>
+      <td>If the system works, don't add complexity to diagnose problems that don't exist yet</td>
+    </tr>
+    <tr>
+      <td>End-to-end scores are low but you can't diagnose why</td>
+      <td>Add Layer 1 (individual agent eval)</td>
+      <td>Test each sub-agent independently. Find which one is underperforming. Fix it.</td>
+    </tr>
+    <tr>
+      <td>Individual agents are good but combined output is bad</td>
+      <td>Add Layer 2 (orchestration eval)</td>
+      <td>The agents are fine. The coordination is broken. Evaluate decomposition, routing, and synthesis.</td>
+    </tr>
+    <tr>
+      <td>Quality is fine but cost/latency is too high</td>
+      <td>Add Layer 4 (efficiency eval)</td>
+      <td>Track tokens, time, and invocation count. Identify redundant agent calls, unnecessary parallelization, or overly verbose sub-agents.</td>
+    </tr>
+    <tr>
+      <td>All of the above</td>
+      <td>Full 4-layer evaluation</td>
+      <td>You have a complex system with multiple failure surfaces. Invest in full visibility.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout success">
+  <div class="callout-title">The Sequence That Saves Time</div>
+  <strong>Always start with Layer 3 (end-to-end).</strong> If end-to-end quality is high, you're done &mdash; ship it and monitor. If end-to-end quality is low, add Layer 1 to find the weak agent. If all agents are individually good, add Layer 2 to check coordination. Add Layer 4 only when quality is acceptable but economics aren't.<br><br>
+  This sequence ensures you never build evaluation infrastructure for a problem that doesn't exist.
+</div>
+
+<h3>Putting It All Together: The Multi-Agent Eval Checklist</h3>
+
+<ul class="checklist">
+  <li>Architecture mapped: which agents exist, what each one does, how they communicate</li>
+  <li>Layer 3 (end-to-end) evaluation in place with rubrics from Phase 4</li>
+  <li>Layer 1 (individual agent) test datasets created for any underperforming agent</li>
+  <li>Eval gates at agent boundaries: each agent's output checked before passing downstream</li>
+  <li>Layer 2 (orchestration) evaluation designed if individual agents pass but end-to-end fails</li>
+  <li>Layer 4 (efficiency) tracking in place: tokens, latency, invocation count per request</li>
+  <li>Turn counting uses DeepEval's rule: user-facing interactions only, not internal agent messages</li>
+  <li>Human review scheduled to catch hallucinations, system failures, and source biases that automation misses</li>
+</ul>
+
+<div class="callout example">
+  <div class="callout-title">DO &mdash; Your Turn</div>
+  If your product uses multiple agents, map the 4 evaluation layers for your specific architecture:
+  <ul>
+    <li><strong>Layer 1:</strong> List each sub-agent and define 3-5 quality criteria specific to its job</li>
+    <li><strong>Layer 2:</strong> Define what "good orchestration" means &mdash; how should tasks be decomposed? What does correct routing look like?</li>
+    <li><strong>Layer 3:</strong> Use your Phase 4 rubrics for end-to-end quality</li>
+    <li><strong>Layer 4:</strong> Set baselines for token cost, latency, and agent invocation count</li>
+  </ul>
+  Design eval criteria for at least Layer 1 (individual) and Layer 3 (end-to-end). These two layers catch the vast majority of multi-agent failures. Add Layers 2 and 4 when you have evidence they're needed.
+</div>
+
+<h3>A Real Implementation Roadmap for Multi-Agent Eval</h3>
+
+<p>If you're starting from scratch with a multi-agent system, here is the week-by-week build order:</p>
+
+<pre>
+<span class="code-comment">  Multi-Agent Eval Build Roadmap</span>
+<span class="code-comment">  ═════════════════════════════════</span>
+
+<span class="code-keyword">  Week 1</span>  <span class="code-string">Layer 3: End-to-End Eval</span>
+<span class="code-comment">          20-30 test cases with rubrics from Phase 4</span>
+<span class="code-comment">          Score the final user-facing output. Don't look inside yet.</span>
+<span class="code-comment">          Establish baseline: what percentage of outputs meet quality bar?</span>
+
+<span class="code-keyword">  Week 2</span>  <span class="code-string">Layer 4: Efficiency Baseline</span>
+<span class="code-comment">          Instrument token counts, latency, and invocation counts</span>
+<span class="code-comment">          Log these for every request. Calculate averages and P95s.</span>
+<span class="code-comment">          This is passive monitoring &mdash; just measure, don't optimize yet.</span>
+
+<span class="code-keyword">  Week 3</span>  <span class="code-string">Layer 1: Individual Agent Eval (for weak agents only)</span>
+<span class="code-comment">          If Layer 3 baseline is below target, test each sub-agent independently.</span>
+<span class="code-comment">          5-10 test cases per sub-agent, graded on its specific job.</span>
+<span class="code-comment">          Identify which agent is dragging down the system score.</span>
+
+<span class="code-keyword">  Week 4+</span> <span class="code-string">Layer 2: Orchestration Eval (if needed)</span>
+<span class="code-comment">          Only if individual agents pass but end-to-end fails.</span>
+<span class="code-comment">          Test task decomposition, routing, and synthesis independently.</span>
+<span class="code-comment">          This is the most complex layer &mdash; invest only when needed.</span>
+</pre>
+
+<p>Most teams find that Layers 1 and 3 together catch 80%+ of quality issues. Layer 2 (orchestration) is only needed when you've confirmed that the individual agents are good but the system still underperforms. Layer 4 (efficiency) is needed from Week 2 but usually requires optimization work in Month 2+.</p>
+
+<h3>What Changes As Models Improve</h3>
+
+<p>One important caveat: the 90.2% improvement that Anthropic saw from their multi-agent system over a single agent is a measurement of current-generation models. As models become more capable, the gap between single-agent and multi-agent approaches may narrow. If a single Claude Opus 5 can match the quality of an Opus 4 + three Sonnet 4 sub-agents, the evaluation problem simplifies dramatically &mdash; you go back to single-agent evaluation from Chapters 15-17.</p>
+
+<p>The multi-agent evaluation architecture you build today should be designed to be dismantled if the agents themselves become unnecessary. Don't over-invest in multi-agent evaluation infrastructure that becomes irrelevant when the next model generation ships. Build it modular. Each layer should be independently removable.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 5 CONCLUSION                                            -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h3>The 7 Most Common Mistakes in Agent-Specific Evaluation</h3>
+
+<p>Before we close Phase 5, here are the mistakes we see teams make most often when evaluating agent-specific behaviors. Every one of these has cost real teams real weeks of wasted effort.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>#</th><th>Mistake</th><th>Why It Happens</th><th>The Fix</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Evaluating only the final output</strong></td>
+      <td>It's easiest. It's how chatbots were evaluated. Step-level eval requires more infrastructure.</td>
+      <td>Add at least 2-3 eval gates at transformation boundaries. Even lightweight deterministic gates catch cascading failures.</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Checking the agent's response text instead of the tool call log</strong></td>
+      <td>The response is user-visible. The log is hidden. PMs naturally focus on what users see.</td>
+      <td>For any task that requires tool execution, always verify against the actual tool call trace. Ghost Actions are invisible in the response text.</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Testing memory with short conversations only</strong></td>
+      <td>Short tests run faster and are easier to write. 5-turn tests feel sufficient.</td>
+      <td>You MUST test at 20+ turns. Context rot, persistence failures, and constraint accumulation only surface in long conversations.</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Rigid trajectory matching</strong></td>
+      <td>It feels precise. It's deterministic. It's easy to automate.</td>
+      <td>Use outcome-based evaluation by default. Agents should be free to find creative solutions. Only use strict trajectory matching for compliance-driven workflows.</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Testing happy paths only for tool use</strong></td>
+      <td>It's natural to test that the agent does the right thing when everything works. It's less natural to test what happens when tools fail.</td>
+      <td>Build explicit tests for tool failures: empty results, error responses, rate limits, wrong-entity returns. The Confident Fabricator only shows up when tools return bad data.</td>
+    </tr>
+    <tr>
+      <td>6</td>
+      <td><strong>Skipping environment reset between eval runs</strong></td>
+      <td>It's slow. It requires Docker or similar infrastructure. It seems unnecessary when tests are "independent."</td>
+      <td>Agent tests are never truly independent. File creation, database changes, and cached results leak between tests. Invest in resettable environments early.</td>
+    </tr>
+    <tr>
+      <td>7</td>
+      <td><strong>Over-investing in multi-agent eval before validating end-to-end</strong></td>
+      <td>Multi-agent architectures are complex, and complex systems feel like they need complex evaluation.</td>
+      <td>Start with Layer 3 (end-to-end). Only add Layers 1, 2, and 4 when end-to-end results show problems you can't diagnose.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>If you avoid these seven mistakes, you'll be ahead of 90% of teams building agent evaluation systems. Most of the wasted time in agent eval comes not from missing techniques but from applying the wrong technique at the wrong time, or from evaluating the wrong surface entirely.</p>
+
+<h3>Phase 5 Complete: Your Agent-Specific Eval Design</h3>
+
+<p>You've now designed evaluations for everything your agent does that a chatbot doesn't:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Chapter</th><th>What You Built</th><th>What It Catches</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>15: Step-Level</strong></td>
+      <td>Eval gates between pipeline stages. Trajectory evaluation for action sequences.</td>
+      <td>Failures at specific steps. Cascading errors. Unnecessary tool calls. Inefficient paths.</td>
+    </tr>
+    <tr>
+      <td><strong>16: Tool Use</strong></td>
+      <td>Tool selection tests. Argument correctness checks. Failure mode detection (Ghost Actions, Interrogation Loops, Confident Fabricators).</td>
+      <td>Wrong tool. Wrong parameters. Fake execution. Endless clarification. Uncritical acceptance of bad data.</td>
+    </tr>
+    <tr>
+      <td><strong>17: Memory</strong></td>
+      <td>Multi-turn test cases for persistence, knowledge updates, abstention, feedback incorporation, context pressure.</td>
+      <td>Forgotten information. Ignored corrections. Hallucinated context. Unresponsive to feedback. Context rot.</td>
+    </tr>
+    <tr>
+      <td><strong>18: Multi-Agent</strong></td>
+      <td>4-layer evaluation architecture. Eval gates at agent boundaries. Blame attribution framework.</td>
+      <td>Individual agent failures. Orchestration failures. Integration failures. Efficiency failures.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Combined with Phase 4's general eval design (dimensions, rubrics, weights, test cases), your eval DESIGN is now complete. You've answered Q4 fully: you know how to detect failure automatically across every surface where your agent operates.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Connecting Thread</div>
+  Notice how the same pattern keeps appearing across all four chapters: <strong>evaluate at the boundary where information transforms</strong>. In step-level eval, gates sit between pipeline stages. In tool eval, you check the boundary between agent decision and tool execution. In memory eval, you check the boundary between what the user said and what the agent retained. In multi-agent eval, you check the boundary between one agent's output and the next agent's input.<br><br>
+  Every agent failure happens at a transformation boundary. Information enters one form and exits as something else. That transformation is where quality degrades, context is lost, and errors are introduced. If you can evaluate the inputs and outputs at every transformation boundary in your agent, you can diagnose any failure in your system. That's the fundamental principle underlying everything in this phase.
+</div>
+
+<p>But a design on paper doesn't run itself. You have rubrics, test cases, gate definitions, and checklists &mdash; all documented. None of it is running automatically. None of it is catching failures in production right now.</p>
+
+<p>That's Phase 6: building the actual machinery that executes these evaluations, integrates them into your CI/CD pipeline, and monitors quality in production. The design is done. The engineering starts now.</p>

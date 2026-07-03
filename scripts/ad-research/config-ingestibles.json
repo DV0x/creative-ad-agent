@@ -1,0 +1,14 @@
+{
+  "slug": "ingestibles-deep-2026-06-16",
+  "country": "IN",
+  "status": "ACTIVE",
+  "maxAds": 30,
+  "brands": [
+    { "name": "Yogabar",            "bucket": "ingestibles/snacking",       "page_id": "336994479721509" },
+    { "name": "Happilo",            "bucket": "ingestibles/snacking-nuts",  "page_id": "248776198854973" },
+    { "name": "Open Secret",        "bucket": "ingestibles/snacking",       "page_id": "102978404427556" },
+    { "name": "Blue Tokai",         "bucket": "ingestibles/functional-bev", "page_id": "271595149591920" },
+    { "name": "Anveshan",           "bucket": "ingestibles/clean-label",    "page_id": "325859228089056" },
+    { "name": "Sleepy Owl Coffee",  "bucket": "ingestibles/functional-bev" }
+  ]
+}

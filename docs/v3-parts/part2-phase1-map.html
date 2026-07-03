@@ -1,0 +1,1591 @@
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- PHASE 1: MAP YOUR AGENT                                                   -->
+<!-- Answering Q1: What is the agent supposed to DO?                           -->
+<!-- Chapters 04 - 06                                                          -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+
+<div class="phase-header" style="margin: 64px 0 48px; padding: 32px; background: var(--surface-alt); border-radius: 16px; border: 1px solid var(--border);">
+  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral); margin-bottom: 8px;">Phase 1 of 5</div>
+  <h2 style="font-size: 32px; font-weight: 800; margin: 0 0 8px; padding: 0; letter-spacing: -0.3px; line-height: 1.2;">Map Your Agent</h2>
+  <p style="font-size: 17px; color: var(--ink-light); margin: 0 0 16px;">Answering Q1: <strong style="color: var(--ink);">What is the agent supposed to DO?</strong></p>
+  <p style="font-size: 14px; color: var(--ink-muted); margin: 0;">Chapters 04 &ndash; 06 &nbsp;&bull;&nbsp; Before you can evaluate anything, you need to understand what you are evaluating.</p>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 04: DECOMPOSE YOUR AGENT'S ARCHITECTURE                           -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-decompose"><span class="section-num">Chapter 04</span>Decompose Your Agent&rsquo;s Architecture</h2>
+
+<p>Here is a first principle that applies to every system ever built, from a toaster to a spacecraft to an AI agent:</p>
+
+<div class="callout insight">
+  <div class="callout-title">First Principle</div>
+  Any system that takes input and produces output has <strong>decision points</strong>. Find those decision points. Each one is where things can go right or wrong. Each one is an evaluation surface.
+</div>
+
+<p>A toaster has one decision point: how long to heat. A car has thousands. An AI agent? It depends on the agent. But every single one of those decision points is a place where quality can succeed or fail. Your job as a PM is to find them all, map them, and then decide which ones to measure.</p>
+
+<p>This chapter is about building that map.</p>
+
+
+<!-- ── What Is a Decision Point? ── -->
+<h3>What Is a Decision Point?</h3>
+
+<p>A <strong>decision point</strong> is any moment where the agent makes a choice. Not a deterministic computation &mdash; a <em>choice</em>. A place where, given the same input, the agent might do something different on the next run. A place where it exercises judgment.</p>
+
+<p>Here are the categories of decisions that agents make:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Decision Type</th>
+      <th>What the Agent Is Choosing</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Tool selection</strong></td>
+      <td>Which tool to call, or whether to call one at all</td>
+      <td>Should I search the web, read a file, or already have enough context?</td>
+    </tr>
+    <tr>
+      <td><strong>Parameter construction</strong></td>
+      <td>What arguments to pass to the selected tool</td>
+      <td>What search query should I use? Which file path?</td>
+    </tr>
+    <tr>
+      <td><strong>Information prioritization</strong></td>
+      <td>What to keep, what to discard, what to emphasize</td>
+      <td>The brand has 12 product lines &mdash; which 3 matter for this campaign?</td>
+    </tr>
+    <tr>
+      <td><strong>Content generation</strong></td>
+      <td>What to write, in what tone, with what structure</td>
+      <td>Write a curiosity-based ad hook for Gen Z vs. a stat-based hook for CFOs</td>
+    </tr>
+    <tr>
+      <td><strong>Routing</strong></td>
+      <td>Which path to take through the workflow</td>
+      <td>Is this a simple question or does it need deep research?</td>
+    </tr>
+    <tr>
+      <td><strong>Stopping</strong></td>
+      <td>When to stop iterating and declare "done"</td>
+      <td>Is this image prompt specific enough, or should I revise it again?</td>
+    </tr>
+    <tr>
+      <td><strong>Error recovery</strong></td>
+      <td>What to do when something fails</td>
+      <td>Image generation returned an error &mdash; retry with different parameters, or skip?</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every one of these is an evaluation surface. Every one of these is where your product quality is determined.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Definition</div>
+  <strong>Evaluation surface</strong> &mdash; A point in the agent&rsquo;s execution where quality can be measured. Each decision point creates at least one evaluation surface. Some create several (you can evaluate both the <em>choice</em> and the <em>outcome</em> of the choice).
+</div>
+
+
+<!-- ── How to Find Decision Points ── -->
+<h3>How to Find Decision Points: The 10-Trace Method</h3>
+
+<p>You cannot reason your way to a complete list of decision points from first principles alone. The agent will surprise you. It will make choices you did not design and skip steps you thought were mandatory. The only reliable method is observation.</p>
+
+<p><strong>Here is the method:</strong></p>
+
+<ol>
+  <li><strong>Run the agent 10 times</strong> on representative inputs &mdash; 5 typical cases, 3 edge cases, 2 failure-prone cases.</li>
+  <li><strong>For each run, capture the full trace:</strong> every LLM call, every tool invocation, every intermediate output, every final output.</li>
+  <li><strong>Read each trace end-to-end.</strong> Do not skim. Read every token.</li>
+  <li><strong>Mark every place where the agent makes a choice.</strong> Use the decision types table above as your checklist. Every tool call is a choice. Every piece of generated content is a choice. Every "I will now do X" is a choice.</li>
+  <li><strong>Compare the 10 traces.</strong> Where do they diverge? Those divergence points are your highest-variance decision points &mdash; the places where the agent is most unpredictable.</li>
+</ol>
+
+<div class="callout warning">
+  <div class="callout-title">Common Mistake</div>
+  Do not skip step 5. PMs often trace one run, nod along, and call it done. The power of 10 traces is in the <em>comparison</em>. One trace tells you what the agent did. Ten traces tell you what the agent <em>might</em> do.
+</div>
+
+<p>After this exercise you will have a list of 10 to 50 decision points, depending on the complexity of your agent. That list is the raw material for everything that follows in this guide.</p>
+
+<div class="callout example">
+  <div class="callout-title">What This Looks Like in Practice</div>
+  <p>Say you are tracing a customer support bot. Here is what your notes might look like for one trace:</p>
+  <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7; margin-top: 8px;">
+    <strong>Trace 3 &mdash; User asks about refund for damaged item</strong><br>
+    &bull; <span style="color: var(--coral);">DECISION:</span> Agent classified as &ldquo;product quality&rdquo; not &ldquo;returns/refunds&rdquo; &mdash; wrong route<br>
+    &bull; <span style="color: var(--coral);">DECISION:</span> Searched knowledge base for &ldquo;damaged product policy&rdquo; (reasonable query)<br>
+    &bull; <span style="color: var(--coral);">DECISION:</span> Retrieved 3 articles, chose the one about manufacturer warranties (wrong choice &mdash; user wants return policy)<br>
+    &bull; <span style="color: var(--coral);">DECISION:</span> Drafted response about warranty claims instead of refund process<br>
+    &bull; <span style="color: var(--coral);">DECISION:</span> Did not escalate to human even though answer was off-topic<br>
+    <strong>Result:</strong> User asked again. Agent corrected on second attempt. 3 minutes wasted.
+  </div>
+  <p style="margin-top: 12px; margin-bottom: 0;">Five decision points in one trace. The first one (wrong classification) cascaded into all the others. Now multiply this by 10 traces and you start seeing which decision points fail consistently versus which ones were just unlucky on this run.</p>
+</div>
+
+<h4>The Divergence Method</h4>
+
+<p>Step 5 &mdash; comparing traces against each other &mdash; deserves special attention. When you line up 10 traces for similar inputs, you will see some decision points where the agent always does the same thing, and others where it does something different every time.</p>
+
+<p>The points of <strong>high divergence</strong> are your most important evaluation surfaces. They represent the decisions where the agent is most uncertain, most variable, and therefore most likely to produce inconsistent quality. A decision point with zero divergence (agent always does the same thing) either works well or fails consistently &mdash; either way, it is predictable. A decision point with high divergence is where the user experience becomes a roulette wheel.</p>
+
+<p>In practice, the highest-divergence decision points tend to be <strong>information prioritization</strong> and <strong>content generation</strong> decisions. Tool selection and parameter construction are often more consistent because they are more constrained by the available tools. But what the agent <em>does</em> with the tool results &mdash; what it emphasizes, what it ignores, how it frames the output &mdash; that is where variance lives.</p>
+
+
+<!-- ── The 5 Composable Patterns ── -->
+<h3>The Five Building Blocks of Agent Architecture</h3>
+
+<p>When you trace your 10 runs, you will notice that the decision points cluster into recognizable patterns. Anthropic, in their &ldquo;Building Effective Agents&rdquo; guide, identified five composable workflow patterns that appear across virtually all agent systems. These are not a framework you impose on your agent. They are patterns you will <em>discover</em> in your traces.</p>
+
+<p>Think of them as architectural building blocks. Most agents combine two or more of these patterns. Understanding each one tells you <em>what kind of evaluation that part of the system needs</em>.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Why Patterns Matter for Evaluation</div>
+  You do not need to memorize these patterns as academic taxonomy. They matter for a practical reason: <strong>each pattern has a different failure mode, and therefore needs a different evaluation approach.</strong> A prompt chain fails through cascade (bad input pollutes all downstream steps). A router fails through misclassification (the input goes down the wrong path). An evaluator-optimizer fails through miscalibration (the critic approves bad work or rejects good work). Knowing the pattern tells you what kind of failure to look for.
+</div>
+
+
+<!-- Pattern 1: Prompt Chaining -->
+<h4>Pattern 1: Prompt Chaining</h4>
+
+<p><strong>What it looks like:</strong> The agent does step A, takes the output, feeds it into step B, takes that output, feeds it into step C. A sequential pipeline where each link depends on the one before it.</p>
+
+<div class="flow">
+  <span class="flow-step">Research the brand</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Write ad hooks</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Generate image prompts</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Create images</span>
+</div>
+
+<p><strong>What to evaluate:</strong> Each step&rsquo;s output quality on its own, <em>and</em> how errors propagate across the chain. The defining characteristic of prompt chaining is that a mistake at step A poisons steps B, C, and D. If the research gets the brand wrong, every hook will be wrong, every image prompt will be wrong, and every image will be wrong.</p>
+
+<p><strong>Grading approach:</strong> Gate checks between steps. After each step, evaluate the output before feeding it to the next step. This lets you catch errors early instead of discovering them only at the final output.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Product Example &mdash; Creative Campaign Agent</div>
+  An ad campaign generator researches a brand, then writes 6 hooks, then generates art direction, then creates 6 images. If the research step misidentifies the target audience (say, describing a luxury skincare brand as a budget discount retailer), the hooks will target the wrong buyer, the image prompts will describe the wrong aesthetic, and the final images will look like they belong on a completely different brand&rsquo;s website. The entire downstream chain is contaminated. Gate-checking the research output alone could prevent all of those downstream failures.
+</div>
+
+
+<!-- Pattern 2: Routing -->
+<h4>Pattern 2: Routing</h4>
+
+<p><strong>What it looks like:</strong> The agent receives an input, classifies it, and sends it down one of several paths. The classification <em>is</em> the decision. Once the path is chosen, a different handler takes over.</p>
+
+<div class="flow">
+  <span class="flow-step">User query arrives</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step highlight">Classify: billing / technical / general?</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Route to specialist</span>
+</div>
+
+<p><strong>What to evaluate:</strong> Classification accuracy. Did the router send the input down the right path? This is often the simplest decision point to evaluate because you can compare the chosen route against a ground truth label.</p>
+
+<p><strong>Grading approach:</strong> Deterministic check against expected route. Build a labeled dataset of inputs with their correct routes, run the router, measure accuracy. This is one of the few agent decisions you can evaluate with a simple yes/no check.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Product Example &mdash; Customer Support Bot</div>
+  Intercom&rsquo;s AI bot classifies incoming tickets into categories: billing, technical, account access, feature request, complaint. A billing question routed to the technical team gets a confusing answer. A complaint routed to the automated FAQ handler gets a tone-deaf response. Misrouting is measurable, binary, and directly impacts user satisfaction. Many support bots achieve 90%+ routing accuracy &mdash; but that remaining 10% generates most of the negative CSAT scores.
+</div>
+
+
+<!-- Pattern 3: Parallelization -->
+<h4>Pattern 3: Parallelization</h4>
+
+<p><strong>What it looks like:</strong> The agent splits the work into multiple branches that run simultaneously, then aggregates the results. This is the &ldquo;fan out, fan in&rdquo; pattern.</p>
+
+<div class="flow">
+  <span class="flow-step">Task</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Branch A</span>
+</div>
+<div class="flow" style="margin-top: -12px;">
+  <span class="flow-step" style="visibility: hidden;">Task</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Branch B</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step highlight">Aggregate</span>
+</div>
+<div class="flow" style="margin-top: -12px;">
+  <span class="flow-step" style="visibility: hidden;">Task</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Branch C</span>
+</div>
+
+<p><strong>What to evaluate:</strong> Two separate things. First, evaluate each branch independently &mdash; did Branch A produce good results? Did Branch B? Second, evaluate the aggregation &mdash; did the agent combine the branch outputs effectively? A common failure mode is that all branches produce excellent results individually, but the aggregation step drops important information or introduces contradictions.</p>
+
+<p><strong>Grading approach:</strong> Score each branch independently, then score the synthesis. The aggregation score is often the bottleneck &mdash; individual branches can be high-quality, but the merge step introduces a new decision point: what to keep, what to discard, how to reconcile conflicts.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Product Example &mdash; Perplexity Search</div>
+  When you ask Perplexity a complex question, it searches multiple sources simultaneously. Each search returns a different perspective, different facts, different levels of reliability. The hard part is not the individual searches. The hard part is the synthesis &mdash; weaving five search results into one coherent, accurate, well-cited answer. One branch might say &ldquo;revenue was $4.2B&rdquo; while another says &ldquo;revenue was $4.8B&rdquo; (different fiscal years). The agent must decide which to use, or explain the discrepancy. That aggregation decision is the evaluation surface.
+</div>
+
+
+<!-- Pattern 4: Orchestrator-Workers -->
+<h4>Pattern 4: Orchestrator-Workers</h4>
+
+<p><strong>What it looks like:</strong> A central &ldquo;orchestrator&rdquo; agent decomposes a task into subtasks, delegates each subtask to a specialist &ldquo;worker&rdquo; agent, and then assembles the results. Unlike parallelization (where the branches are pre-defined), the orchestrator <em>decides</em> what the subtasks should be.</p>
+
+<div class="flow">
+  <span class="flow-step highlight">Orchestrator: decompose task</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Worker 1: research</span>
+</div>
+<div class="flow" style="margin-top: -12px;">
+  <span class="flow-step" style="visibility: hidden;">Orchestrator: decompose task</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Worker 2: write copy</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step highlight">Orchestrator: assemble</span>
+</div>
+<div class="flow" style="margin-top: -12px;">
+  <span class="flow-step" style="visibility: hidden;">Orchestrator: decompose task</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Worker 3: generate images</span>
+</div>
+
+<p><strong>What to evaluate:</strong> Three layers. (1) Did the orchestrator decompose the task well? (2) Did each worker produce good output for its subtask? (3) Did the orchestrator assemble the worker outputs into a coherent final product? Each layer is an independent evaluation surface.</p>
+
+<p><strong>Grading approach:</strong> Evaluate the orchestrator&rsquo;s plan, each worker&rsquo;s output, and the final assembly. Anthropic&rsquo;s own multi-agent research system (Claude Opus lead agent with Claude Sonnet sub-agents) used this exact pattern and evaluated it with an LLM judge scoring five criteria: factual accuracy, citation accuracy, completeness, source quality, and tool efficiency.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Product Example &mdash; Devin (Cognition AI)</div>
+  Devin, the AI software engineer, uses an orchestrator pattern. A planning agent reads the task (&ldquo;add dark mode support to the settings page&rdquo;), decomposes it into subtasks (find relevant files, understand the theme system, modify components, update styles, write tests), and dispatches specialized workers for each. The orchestrator must understand enough about code architecture to create a good plan. A bad plan &mdash; missing a subtask, or decomposing at the wrong granularity &mdash; causes everything downstream to fail.
+</div>
+
+
+<!-- Pattern 5: Evaluator-Optimizer -->
+<h4>Pattern 5: Evaluator-Optimizer</h4>
+
+<p><strong>What it looks like:</strong> A generator agent produces output. An evaluator agent (the &ldquo;critic&rdquo;) reviews it and provides feedback. The generator revises. This loop repeats until the evaluator is satisfied or a maximum number of iterations is reached.</p>
+
+<div class="flow">
+  <span class="flow-step">Generate draft</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step highlight">Evaluate: good enough?</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Revise draft</span>
+  <span class="flow-arrow">&circlearrowleft;</span>
+</div>
+
+<p><strong>What to evaluate:</strong> Evaluator accuracy (does it correctly identify problems?), convergence behavior (does quality actually improve with each iteration?), and final quality (is the output after N iterations better than the first draft?). A sneaky failure mode: the evaluator might be too lenient (approves bad work) or too strict (never approves, hitting the iteration cap).</p>
+
+<p><strong>Grading approach:</strong> Track the improvement curve across iterations. Plot quality scores at each iteration. If the curve is flat (no improvement) or oscillates (getting better then worse), the evaluator-optimizer loop is broken.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Product Example &mdash; Cursor (Code Generation)</div>
+  When Cursor generates a complex code change, it often includes an internal review step: generate the diff, check for syntax errors and logical inconsistencies, revise. The evaluator catches things like &ldquo;you deleted a function that&rsquo;s called elsewhere&rdquo; or &ldquo;you imported a module that doesn&rsquo;t exist.&rdquo; When the evaluator is well-calibrated, you get cleaner first-try code. When it is poorly calibrated, you get either sloppy code (lenient evaluator) or endless &ldquo;thinking...&rdquo; loops (strict evaluator).
+</div>
+
+
+<!-- ── Summary Table ── -->
+<h3>Pattern Evaluation Summary</h3>
+
+<p>Here is the complete map of what to evaluate and how, for each pattern:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Pattern</th>
+      <th>What to Evaluate</th>
+      <th>Grading Approach</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Prompt Chaining</strong></td>
+      <td>Each step&rsquo;s output quality; how errors cascade downstream</td>
+      <td>Gate checks between steps. Catch mistakes before they propagate.</td>
+    </tr>
+    <tr>
+      <td><strong>Routing</strong></td>
+      <td>Classification accuracy &mdash; did the input go down the right path?</td>
+      <td>Deterministic check against labeled ground truth.</td>
+    </tr>
+    <tr>
+      <td><strong>Parallelization</strong></td>
+      <td>Each branch independently; quality of the aggregation</td>
+      <td>Score branches independently, then score the synthesis.</td>
+    </tr>
+    <tr>
+      <td><strong>Orchestrator-Workers</strong></td>
+      <td>Task decomposition; each worker&rsquo;s output; final assembly</td>
+      <td>Evaluate plan + workers + assembly as three separate layers.</td>
+    </tr>
+    <tr>
+      <td><strong>Evaluator-Optimizer</strong></td>
+      <td>Evaluator accuracy; convergence over iterations; final quality</td>
+      <td>Track improvement curve. Quality should increase monotonically.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">Key Insight</div>
+  Most production agents are not one pattern. They are <strong>combinations</strong>. A creative campaign agent uses <em>prompt chaining</em> (research feeds hooks feeds images) with an <em>orchestrator</em> managing the overall flow. A customer support bot uses <em>routing</em> followed by <em>prompt chaining</em> within each route. When you trace your 10 runs, you will see the patterns layered on top of each other. Label each section of your trace with the pattern it belongs to. That labeling tells you which evaluation approach applies to that section.
+</div>
+
+
+<!-- ── Drawing the Blueprint ── -->
+<h3>Drawing Your Agent&rsquo;s Blueprint</h3>
+
+<p>Now take your 10 traces, your list of decision points, and your pattern labels, and draw the agent&rsquo;s architecture as a visual diagram. This is your <strong>blueprint</strong> &mdash; the artifact you will reference for the rest of this guide.</p>
+
+<p>Use four shape types:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Shape</th>
+      <th>Meaning</th>
+      <th>Example</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Rectangle</strong></td>
+      <td>A processing step (LLM call, computation)</td>
+      <td>&ldquo;Generate 6 ad hooks&rdquo;</td>
+    </tr>
+    <tr>
+      <td><strong>Diamond</strong></td>
+      <td>A decision point (agent makes a choice)</td>
+      <td>&ldquo;Is the research complete enough?&rdquo;</td>
+    </tr>
+    <tr>
+      <td><strong>Rounded rectangle</strong></td>
+      <td>A tool invocation (external call)</td>
+      <td>&ldquo;Call web search API&rdquo; or &ldquo;Call image generation API&rdquo;</td>
+    </tr>
+    <tr>
+      <td><strong>Arrow</strong></td>
+      <td>Data flow (output of one step becomes input of next)</td>
+      <td>Research report &rarr; Hook generation</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The diamonds are your evaluation surfaces. Every diamond on this diagram is a place where you could write an eval. Not every diamond <em>needs</em> an eval right now &mdash; but you should be able to point to every diamond and say &ldquo;I know this decision exists, and I have a plan for whether and when to evaluate it.&rdquo;</p>
+
+
+<!-- ── Real Blueprint Example ── -->
+<h3>Example Blueprint: An Ad Campaign Agent</h3>
+
+<p>Let&rsquo;s trace a real agent to make this concrete. Here is an AI-powered ad campaign generator that takes a brand URL and produces 6 creative ads with images:</p>
+
+<pre>
+<span class="code-comment">// The agent's architecture, traced from 10 production runs:</span>
+
+<span class="code-keyword">[INPUT]</span> User provides: brand URL + optional brief
+    <span class="code-accent">|</span>
+    <span class="code-accent">v</span>
+<span class="code-keyword">[STEP 1]</span> Research the brand <span class="code-comment">// prompt chaining begins</span>
+    <span class="code-hl">DECISION: What to search for?</span> <span class="code-comment">// tool parameter construction</span>
+    <span class="code-hl">DECISION: Which search results matter?</span> <span class="code-comment">// information prioritization</span>
+    <span class="code-hl">DECISION: Is research sufficient?</span> <span class="code-comment">// stopping decision</span>
+    <span class="code-accent">|</span>
+    <span class="code-accent">v</span>
+<span class="code-keyword">[STEP 2]</span> Write 6 ad hooks (stat, story, FOMO, curiosity, callout, contrast)
+    <span class="code-hl">DECISION: What angle for each hook type?</span> <span class="code-comment">// content generation</span>
+    <span class="code-hl">DECISION: Which research facts to use?</span> <span class="code-comment">// information prioritization</span>
+    <span class="code-hl">DECISION: Tone and voice for this brand?</span> <span class="code-comment">// content generation</span>
+    <span class="code-accent">|</span>
+    <span class="code-accent">v</span>
+<span class="code-keyword">[STEP 3]</span> Generate art direction for each hook
+    <span class="code-hl">DECISION: Which visual style?</span> <span class="code-comment">// choosing from 14 art styles</span>
+    <span class="code-hl">DECISION: What composition and color palette?</span> <span class="code-comment">// content generation</span>
+    <span class="code-accent">|</span>
+    <span class="code-accent">v</span>
+<span class="code-keyword">[STEP 4]</span> Generate 6 images via image API
+    <span class="code-hl">DECISION: Image prompt wording?</span> <span class="code-comment">// tool parameter construction</span>
+    <span class="code-hl">DECISION: Retry on failure?</span> <span class="code-comment">// error recovery</span>
+    <span class="code-accent">|</span>
+    <span class="code-accent">v</span>
+<span class="code-keyword">[OUTPUT]</span> 6 ad creatives with hooks + images
+</pre>
+
+<p>Count the diamonds: <strong>10 decision points</strong> across 4 steps. Each one is an evaluation surface. Some are high-stakes (getting the brand research wrong poisons everything downstream), and some are lower-stakes (the exact image prompt wording can be regenerated cheaply). We will prioritize them in the next chapter.</p>
+
+<p>But first, notice the pattern: this is <strong>prompt chaining</strong> (each step feeds the next) with <strong>decision points embedded at every step</strong>. That tells us the primary evaluation strategy: gate checks between steps, with special attention to error propagation from Step 1 (research) through the entire chain.</p>
+
+<h4>Identifying Combination Patterns</h4>
+
+<p>Real agents rarely use a single pattern in isolation. Here is how to spot combinations in your traces:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>If You See This in Your Trace...</th>
+      <th>It Is This Pattern</th>
+      <th>Combined With</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Step 1 output feeds directly into Step 2</td>
+      <td>Prompt Chaining</td>
+      <td>Often contains routing or parallelization within individual steps</td>
+    </tr>
+    <tr>
+      <td>An &ldquo;if/then&rdquo; branch based on input classification</td>
+      <td>Routing</td>
+      <td>The branches themselves are usually prompt chains</td>
+    </tr>
+    <tr>
+      <td>Multiple tool calls happening in the same turn for the same purpose</td>
+      <td>Parallelization</td>
+      <td>Results feed into a chaining step for synthesis</td>
+    </tr>
+    <tr>
+      <td>A central agent creating sub-tasks and dispatching them</td>
+      <td>Orchestrator-Workers</td>
+      <td>Workers may use any other pattern internally</td>
+    </tr>
+    <tr>
+      <td>The agent revising its own output multiple times before returning it</td>
+      <td>Evaluator-Optimizer</td>
+      <td>Each revision cycle is itself a prompt chain</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>For the ad campaign agent above, the architecture is primarily <strong>prompt chaining</strong> with an implicit <strong>evaluator-optimizer</strong> inside Step 1 (the agent decides whether research is &ldquo;sufficient&rdquo; and may search again). Steps 2-4 may also include internal evaluation loops if the agent reviews its own hooks or prompts before moving forward. Labeling these combination patterns in your blueprint helps you assign the right evaluation strategy to each section.</p>
+
+
+<!-- ── Grade Outcomes, Not Paths ── -->
+<h3>The Most Important Insight: Grade Outcomes, Not Paths</h3>
+
+<p>Now here is a trap that catches almost every new AI PM.</p>
+
+<p>You have your beautiful blueprint. You see the decision points. Your instinct says: &ldquo;Let me write evals that check whether the agent followed the <em>correct sequence of steps</em>.&rdquo; Tool A was called before Tool B. The search query contained the brand name. The hooks were generated in the right order.</p>
+
+<p><strong>Do not do this.</strong></p>
+
+<div class="callout warning">
+  <div class="callout-title">The Path Trap</div>
+  Anthropic&rsquo;s &ldquo;Demystifying Evals&rdquo; guide says it directly: <strong>&ldquo;Grade outcomes, not paths.&rdquo;</strong> There is a common instinct to check that agents followed very specific steps &mdash; a particular sequence of tool calls in the right order. This approach is too rigid and penalizes valid alternative solutions. The agent might take a completely different path to an equally good (or better) result. Evaluating the path instead of the outcome will cause you to fail good outputs and miss bad ones.
+</div>
+
+<p>Think about it this way. Imagine you hired a human researcher to investigate a brand. You do not care whether they checked the company&rsquo;s LinkedIn page before or after their website. You do not care whether they read the About page or the Press page first. You care about the <em>research report they hand you</em>. Is it accurate? Is it complete? Does it identify the right target audience?</p>
+
+<p>The same principle applies to agents. Your blueprint shows you <em>where</em> to evaluate. But what you evaluate <em>at each point</em> is the quality of the output, not the specific path the agent took to produce it.</p>
+
+<p>Here is a concrete example of why this matters:</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Path-Based Eval (Fragile)</div>
+    <p>&ldquo;Check that the agent called web_search exactly 3 times, then called read_page on the brand&rsquo;s About page, then called read_page on their Products page.&rdquo;</p>
+    <p style="margin-top: 12px;">Fails when the agent finds all the information in a single comprehensive search result. Fails when the brand&rsquo;s About page does not exist. Fails when the agent uses a different but equally valid research strategy.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Outcome-Based Eval (Robust)</div>
+    <p>&ldquo;Check that the research output correctly identifies the brand&rsquo;s target audience, top 3 products, competitive positioning, and brand voice.&rdquo;</p>
+    <p style="margin-top: 12px;">Passes regardless of how the agent found the information. Rewards creative research strategies. Only fails when the actual output is incomplete or wrong.</p>
+  </div>
+</div>
+
+<p>The blueprint is the map of evaluation surfaces. The outcomes at each surface are what you actually grade.</p>
+
+
+<!-- ── DO Section ── -->
+<div class="callout success">
+  <div class="callout-title">Do This Now</div>
+  <strong>Draw YOUR agent&rsquo;s blueprint.</strong>
+  <ol style="margin-top: 12px; margin-bottom: 0;">
+    <li>Run 10 traces on representative inputs (5 typical, 3 edge, 2 failure-prone).</li>
+    <li>Read each trace end-to-end. Mark every decision point.</li>
+    <li>Label each section with the Anthropic pattern it matches (chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer).</li>
+    <li>Draw the diagram: rectangles for steps, diamonds for decisions, rounded rectangles for tools, arrows for data flow.</li>
+    <li>Count your diamonds. That number is the size of your evaluation architecture.</li>
+  </ol>
+  <p style="margin-top: 12px; margin-bottom: 0;">Keep this blueprint. You will use it in every chapter that follows.</p>
+</div>
+
+<p>You have a blueprint. But a blueprint shows you <em>what the agent does</em>. It does not tell you what the <em>user</em> needs. The difference between the system and the jobs is where evaluation starts. An agent can follow its blueprint perfectly and still fail the user &mdash; because the blueprint serves the system, not the person. Let&rsquo;s close that gap.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 05: IDENTIFY THE AGENT'S JOBS AND PRIORITIZE                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-jobs"><span class="section-num">Chapter 05</span>Identify the Agent&rsquo;s Jobs and Prioritize</h2>
+
+<p>Let&rsquo;s start from a first principle again:</p>
+
+<div class="callout insight">
+  <div class="callout-title">First Principle</div>
+  A &ldquo;job&rdquo; is a promise to the user. The agent promises to do something the user would otherwise do themselves. List every promise. That is your job map.
+</div>
+
+<p>In the last chapter, you mapped the agent&rsquo;s architecture &mdash; its steps, its tools, its decision points. That map describes the <em>system</em>. But users do not think in terms of systems. They think in terms of outcomes. They do not care that the agent made 14 tool calls and 6 LLM invocations. They care that they got a good ad campaign for their brand.</p>
+
+<p>The distinction matters because it tells you <em>what to measure</em>. The architecture map tells you <em>where</em> quality can break. The job map tells you <em>what quality means to the user</em>.</p>
+
+
+<!-- ── Steps vs. Jobs ── -->
+<h3>Steps vs. Jobs: The Crucial Distinction</h3>
+
+<p>A <strong>step</strong> is something the agent does internally. A <strong>job</strong> is something the user gets.</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Steps (System Perspective)</div>
+    <p>Call web search API with brand URL</p>
+    <p>Parse HTML from 7 pages</p>
+    <p>Extract key brand attributes</p>
+    <p>Generate research summary</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Job (User Perspective)</div>
+    <p><strong>&ldquo;Understand my brand well enough to write ads for it.&rdquo;</strong></p>
+    <p style="margin-top: 16px; font-size: 13px; color: var(--ink-muted);">The user does not care about the 4 internal steps. They care about the one promise: the agent understands their brand.</p>
+  </div>
+</div>
+
+<p>Steps are components of the machine. Jobs are promises to the user. Your evals should ultimately be organized around <em>jobs</em>, even if they technically measure <em>steps</em>. Here is why: a step-level eval that does not connect to a job is measuring something that may not matter. A job-level eval that does not decompose into steps cannot tell you <em>where</em> to fix things. You need both, but jobs lead.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Metric That Did Not Matter</div>
+  A code assistant team measured &ldquo;tool call accuracy&rdquo; (did the agent call the right tool with the right parameters?) and spent weeks improving it from 82% to 91%. Meanwhile, user satisfaction did not budge. Why? Because when the agent called the wrong tool, it usually self-corrected on the next step. The <em>step</em> was failing, but the <em>job</em> (produce correct code) was still succeeding most of the time. They were optimizing a step metric that did not connect to a job outcome. If they had started with the job (&ldquo;generate correct code&rdquo;) and measured that first, they would have discovered that the real problem was not tool selection but code correctness on complex multi-file changes &mdash; a completely different issue.
+</div>
+
+<div class="callout definition">
+  <div class="callout-title">Definition</div>
+  <strong>Job map</strong> &mdash; The complete list of promises your agent makes to the user, prioritized by how often they happen, how badly failure hurts, and how many users are affected. This is your evaluation roadmap.
+</div>
+
+
+<!-- ── How to Find Jobs ── -->
+<h3>How to Find Jobs: Four Sources</h3>
+
+<p>You cannot discover all of an agent&rsquo;s jobs from the codebase alone. The codebase tells you what the agent <em>was built to do</em>. Users will tell you what they <em>expect</em> it to do. Those are not the same thing. Use all four sources:</p>
+
+<h4>Source 1: Read 30 Production Traces</h4>
+
+<p>Not for the decision points this time (you did that in Chapter 04). This time, read traces to answer: <strong>What did the user ASK the agent to do?</strong></p>
+
+<p>Look at the initial input for each trace. What was the user&rsquo;s intent? &ldquo;Make me ads for my skincare brand.&rdquo; &ldquo;Regenerate hook #3 with a different angle.&rdquo; &ldquo;Use a more playful tone.&rdquo; Each unique intent is a job. After 30 traces, you will have seen most of them.</p>
+
+<h4>Source 2: Shadow 10 User Sessions</h4>
+
+<p>Watch screen recordings or sit behind real users as they interact with the agent. Pay attention to the gap between what they <em>expect</em> to happen and what <em>actually</em> happens. A user might expect the agent to preserve their brand colors when generating images &mdash; but the agent never makes that promise. That expectation gap is an implicit job that the agent either needs to fulfill or explicitly decline.</p>
+
+<p>A critical thing to listen for: <strong>what users say out loud during the session.</strong> &ldquo;Oh, I thought it would...&rdquo; &ldquo;Wait, why did it...&rdquo; &ldquo;That is not what I meant.&rdquo; These verbal reactions are pure signal. They reveal the mental model the user has of the agent, which may be completely different from how the agent actually works. Every mismatch between the user&rsquo;s mental model and the agent&rsquo;s behavior is a job that is either missing, broken, or poorly communicated.</p>
+
+<h4>Source 3: Talk to the Engineering Team</h4>
+
+<p>Ask the people who built the agent: &ldquo;What was this designed to do?&rdquo; Engineers know about capabilities that users have not discovered yet, and about limitations that users keep bumping into. They will tell you things like: &ldquo;We built follow-up support, but nobody uses it because the UI does not make it obvious.&rdquo; That is a job that exists in the system but is invisible to users.</p>
+
+<p>Engineers will also reveal <strong>jobs that are technically impossible</strong> but that users keep expecting. &ldquo;Users want us to remember preferences across sessions, but we have no persistence layer.&rdquo; That is a job the agent cannot fulfill today but might need to fulfill eventually. Put it on the job map with a note: &ldquo;not supported yet.&rdquo; It may become your next product priority.</p>
+
+<h4>Source 4: Read Support Tickets</h4>
+
+<p>Users complain about failed promises. Every support ticket about the agent is a job that was not fulfilled. &ldquo;The images do not match my brand.&rdquo; Job: produce on-brand images. &ldquo;The agent forgot what I told it earlier.&rdquo; Job: maintain context across follow-ups. &ldquo;The hooks all sound the same.&rdquo; Job: produce diverse creative angles.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Do Not Skip Source 4</div>
+  Support tickets are the most valuable source because they tell you what users care about <em>enough to complain about</em>. Traces show you what happened. Sessions show you what users expected. Engineers show you what was built. But tickets show you what matters so much that a user took time out of their day to file a complaint. That is signal.
+</div>
+
+
+<!-- ── Example Job Maps ── -->
+<h3>Example Job Maps for Three Products</h3>
+
+<p>Let&rsquo;s map the jobs for three different agent products. Notice how the same four-source method produces very different job lists depending on the product:</p>
+
+<h4>Creative Campaign Agent</h4>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Job (Promise to User)</th>
+      <th>What "Done Well" Looks Like</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Research the brand accurately</strong></td>
+      <td>Identifies correct target audience, brand voice, key products, competitive position</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Write compelling ad hooks</strong></td>
+      <td>6 hooks, each using a different persuasion technique, on-brand, would make a real person stop scrolling</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Art-direct images</strong></td>
+      <td>Image prompts match the brand aesthetic, each image supports its hook&rsquo;s message</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Generate usable images</strong></td>
+      <td>High-quality images, no artifacts, correct aspect ratio, visually consistent campaign</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Handle follow-up direction</strong></td>
+      <td>User says &ldquo;make hook 3 more playful&rdquo; &mdash; agent remembers the campaign, modifies specifically</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h4>Customer Support Bot</h4>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Job (Promise to User)</th>
+      <th>What "Done Well" Looks Like</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Classify the issue correctly</strong></td>
+      <td>Routes to the right handler category on the first try</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Find the relevant policy</strong></td>
+      <td>Retrieves the correct policy document, not a similar-sounding but wrong one</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Draft a helpful response</strong></td>
+      <td>Answer is accurate, addresses the specific question, uses the right tone</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Escalate when needed</strong></td>
+      <td>Knows its limits; hands off to a human when the issue is beyond its scope</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Not make things worse</strong></td>
+      <td>Does not promise what the company cannot deliver, does not hallucinate policies</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h4>Code Assistant</h4>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>Job (Promise to User)</th>
+      <th>What "Done Well" Looks Like</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>1</td>
+      <td><strong>Understand the intent</strong></td>
+      <td>Correctly interprets &ldquo;add dark mode&rdquo; as a specific set of code changes, not a philosophical essay</td>
+    </tr>
+    <tr>
+      <td>2</td>
+      <td><strong>Search the codebase effectively</strong></td>
+      <td>Finds the right files, understands the existing patterns, does not miss dependencies</td>
+    </tr>
+    <tr>
+      <td>3</td>
+      <td><strong>Generate correct code</strong></td>
+      <td>Code compiles, passes tests, follows existing style conventions</td>
+    </tr>
+    <tr>
+      <td>4</td>
+      <td><strong>Explain the changes</strong></td>
+      <td>Clear description of what changed and why, at the right level of detail for the user</td>
+    </tr>
+    <tr>
+      <td>5</td>
+      <td><strong>Not break existing functionality</strong></td>
+      <td>No regressions. Existing tests still pass. No deleted code that is still referenced.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Notice that each product has about 5 jobs. This is typical. If you find 20+ jobs, you are probably listing steps, not jobs. Combine them. If you find only 1-2, you are probably too high-level. Decompose further.</p>
+
+<h4>The Litmus Test: Is This a Step or a Job?</h4>
+
+<p>When you are not sure whether something is a step or a job, apply this test: <strong>Can you explain it to a user without mentioning the agent&rsquo;s internal workings?</strong></p>
+
+<ul>
+  <li>&ldquo;Parse the JSON response from the API&rdquo; &mdash; Step. The user has no idea what JSON or APIs are, and does not care.</li>
+  <li>&ldquo;Find the right refund policy for your situation&rdquo; &mdash; Job. The user understands this and would agree that this is something they need done.</li>
+  <li>&ldquo;Embed the query using text-embedding-3-small&rdquo; &mdash; Step. Pure internal machinery.</li>
+  <li>&ldquo;Remember what you told me earlier in the conversation&rdquo; &mdash; Job. The user expects this and notices when it fails.</li>
+</ul>
+
+<p>Another useful test: <strong>Would the user file a support ticket if this failed?</strong> If yes, it is a job. If the user would not even notice it failed (because other steps compensated), it is an internal step. Steps are for your blueprint. Jobs are for your eval roadmap.</p>
+
+<div class="callout definition">
+  <div class="callout-title">The Relationship Between Jobs and Steps</div>
+  Every job is implemented by one or more steps. Every step contributes to one or more jobs. Your architecture blueprint (Chapter 04) maps the steps. Your job map (this chapter) maps the promises. Your evaluation program connects them: &ldquo;This job fails because <em>this step</em> produces bad output.&rdquo; Without both maps, you can observe failures (jobs) but not diagnose them (steps), or you can diagnose components (steps) but not know which ones matter (jobs).
+</div>
+
+
+<!-- ── The Prioritization Matrix ── -->
+<h3>The Prioritization Matrix: Which Jobs to Evaluate First</h3>
+
+<p>You have your job map. You have 5 or so jobs. You cannot build evals for all of them at once. You need a priority order. Here is how to create one, from first principles:</p>
+
+<p>Every job has three dimensions that determine how urgently it needs evaluation:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Dimension</th>
+      <th>The Question</th>
+      <th>Scale</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Frequency</strong></td>
+      <td>How often does this job run?</td>
+      <td>1 (rare) to 5 (every single use)</td>
+    </tr>
+    <tr>
+      <td><strong>Failure Severity</strong></td>
+      <td>How bad is it when this job fails?</td>
+      <td>1 (minor annoyance) to 5 (product-breaking)</td>
+    </tr>
+    <tr>
+      <td><strong>User Impact</strong></td>
+      <td>How many users are affected?</td>
+      <td>1 (niche edge case) to 5 (every user)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Multiply the three scores for each job. The result is a priority score from 1 to 125. Start evaluating the job with the highest score.</p>
+
+<div class="callout math">
+  <div class="callout-title">Priority Score Formula</div>
+  <strong>Priority = Frequency &times; Severity &times; User Impact</strong><br><br>
+  Range: 1 to 125. Higher = evaluate first.
+</div>
+
+<p>Why multiply instead of add? Because these dimensions are <em>compounding</em>, not independent. A job that is high-frequency <em>and</em> high-severity is exponentially more important than a job that is high on one dimension but low on another. Addition would make a (5, 1, 1) job score the same as a (1, 5, 1) job (both equal 7). Multiplication makes the (5, 5, 5) job score 125 while the (5, 1, 1) scores only 5, which correctly reflects the massive difference in urgency. A job that runs constantly, fails catastrophically, and affects everyone is not 3x more important than a job that runs rarely, fails mildly, and affects few users &mdash; it is 25x more important.</p>
+
+
+<!-- ── Scored Example ── -->
+<h4>Example: Prioritizing the Creative Campaign Agent&rsquo;s Jobs</h4>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Job</th>
+      <th>Frequency</th>
+      <th>Severity</th>
+      <th>Impact</th>
+      <th style="background: var(--coral-light); color: var(--coral-dark);">Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Research the brand accurately</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(poisons everything)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>125</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Write compelling ad hooks</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>4 <span style="color:var(--ink-muted);">(bad hooks = useless output)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>100</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Generate usable images</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>3 <span style="color:var(--ink-muted);">(user can regenerate)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>75</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Art-direct images</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>3 <span style="color:var(--ink-muted);">(art direction is recoverable)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>75</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Handle follow-up direction</strong></td>
+      <td>3 <span style="color:var(--ink-muted);">(~60% use it)</span></td>
+      <td>4 <span style="color:var(--ink-muted);">(frustrating when broken)</span></td>
+      <td>3 <span style="color:var(--ink-muted);">(subset of users)</span></td>
+      <td style="background: var(--coral-light);"><strong>36</strong></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The priority order is clear: <strong>research accuracy</strong> (125) first, <strong>hook quality</strong> (100) second, then <strong>images</strong> (75), then <strong>follow-ups</strong> (36).</p>
+
+<p>And notice why. Research accuracy scores highest not just because it runs every time and affects every user, but because of the <em>cascade effect</em> we identified in Chapter 04. When research fails, it does not just fail the &ldquo;research job&rdquo; &mdash; it fails every job downstream. The severity score of 5 reflects this. If the research said the brand sells budget athletic wear when it actually sells premium organic baby food, every hook will be wrong, every image will be wrong, and the user will trust the product less. There is no recovery.</p>
+
+<p>By contrast, image generation has a severity of only 3. Why? Because if an image has artifacts or does not look right, the user clicks &ldquo;regenerate.&rdquo; It is annoying, but not catastrophic. The cost of failure is low.</p>
+
+<h4>Applying This to the Customer Support Bot</h4>
+
+<p>Let&rsquo;s run the same exercise on a different product to show how the scores shift:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Job</th>
+      <th>Frequency</th>
+      <th>Severity</th>
+      <th>Impact</th>
+      <th style="background: var(--coral-light); color: var(--coral-dark);">Score</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Not make things worse</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(hallucinated policy = legal risk)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>125</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Classify the issue correctly</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>4 <span style="color:var(--ink-muted);">(wrong route = wrong answer)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>100</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Draft a helpful response</strong></td>
+      <td>5 <span style="color:var(--ink-muted);">(every use)</span></td>
+      <td>3 <span style="color:var(--ink-muted);">(user can ask again)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>75</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Find the relevant policy</strong></td>
+      <td>4 <span style="color:var(--ink-muted);">(most uses)</span></td>
+      <td>3 <span style="color:var(--ink-muted);">(wrong policy = wrong answer)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(every user)</span></td>
+      <td style="background: var(--coral-light);"><strong>60</strong></td>
+    </tr>
+    <tr>
+      <td><strong>Escalate when needed</strong></td>
+      <td>2 <span style="color:var(--ink-muted);">(~20% of cases)</span></td>
+      <td>5 <span style="color:var(--ink-muted);">(failure to escalate = angry customer)</span></td>
+      <td>3 <span style="color:var(--ink-muted);">(subset of users)</span></td>
+      <td style="background: var(--coral-light);"><strong>30</strong></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Notice the difference: for the support bot, &ldquo;not make things worse&rdquo; (a safety job) scores highest. For the creative agent, &ldquo;research accuracy&rdquo; (a quality job) scored highest. The prioritization reflects the product&rsquo;s risk profile. A support bot that hallucinating refund policies creates legal liability. A creative agent that generates a mediocre ad creates disappointment. Different products, different severity distributions, different starting points for evaluation.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Cascade Principle</div>
+  In any prompt-chaining agent, <strong>jobs earlier in the chain always have higher severity</strong> than jobs later in the chain. Early failures cascade. Late failures are contained. This is why most agent eval programs should start with the first major step &mdash; whatever produces the foundational context that everything else depends on.
+</div>
+
+
+<!-- ── DO Section ── -->
+<div class="callout success">
+  <div class="callout-title">Do This Now</div>
+  <strong>Build your job priority list.</strong>
+  <ol style="margin-top: 12px; margin-bottom: 0;">
+    <li>List your agent&rsquo;s jobs using the four sources: traces, user sessions, engineering team, support tickets.</li>
+    <li>Score each job on frequency (1-5), severity (1-5), and user impact (1-5).</li>
+    <li>Multiply the three scores for each job.</li>
+    <li>Sort by score, highest first.</li>
+    <li>The top-scored job is your first evaluation target.</li>
+  </ol>
+  <p style="margin-top: 12px; margin-bottom: 0;">Write this down. It is your evaluation roadmap for the next 4 weeks.</p>
+</div>
+
+<p>You know what your agent does and which jobs matter most. Now comes the crucial first week: immersing yourself in how the agent actually performs. Not in theory, not from the codebase, not from a demo. From real production data, real users, and real conversations with the team.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<!-- CHAPTER 06: YOUR FIRST WEEK PLAYBOOK                                      -->
+<!-- ═══════════════════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch-playbook"><span class="section-num">Chapter 06</span>Your First Week Playbook</h2>
+
+<p>You have a blueprint (Chapter 04). You have a prioritized job list (Chapter 05). You might be tempted to start building evaluation infrastructure right now &mdash; writing rubrics, setting up grading pipelines, deploying automated tests.</p>
+
+<p><strong>Do not.</strong></p>
+
+<p>Not yet. There is one more thing you need before any of that is useful: <em>observation</em>. Deep, unstructured, deliberate observation of how the agent actually behaves with real users on real inputs. Without this, you will build evals that measure the wrong things. You will write rubrics that miss the actual failure modes. You will optimize criteria that do not correspond to what users actually care about.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Husain Principle</div>
+  Hamel Husain, who taught AI evaluation to 700+ engineers and PMs (the highest-grossing course on Maven), puts it this way: <strong>&ldquo;Remove ALL friction from looking at data.&rdquo;</strong> Before you build anything, you must immerse yourself in the data. The patterns will emerge. But only if you look.
+</div>
+
+<p>This chapter is your day-by-day plan for the first five days. It is not theoretical advice. It is a literal schedule. Follow it.</p>
+
+
+<!-- ── Day 1-2 ── -->
+<h3>Days 1&ndash;2: Read 30 Production Traces End-to-End</h3>
+
+<p>Block four hours each day. No meetings during this time. Tell your team you are &ldquo;doing eval research&rdquo; and will be unavailable.</p>
+
+<h4>What Is a Trace?</h4>
+
+<p>A trace is the complete record of what happened during one agent execution. Depending on your system, this might be:</p>
+
+<ul>
+  <li>A log file showing every LLM call, every tool invocation, every response</li>
+  <li>A JSON array of messages (system prompt, user input, assistant responses, tool calls, tool results)</li>
+  <li>A visualization in a tool like LangSmith, Braintrust, or Arize Phoenix</li>
+  <li>Raw stdout from the agent process</li>
+</ul>
+
+<p>If your system does not produce traces, making traces available is your first engineering request. You cannot evaluate what you cannot observe.</p>
+
+<h4>How to Read a Trace</h4>
+
+<p>For each of the 30 traces, follow this path:</p>
+
+<div class="flow">
+  <span class="flow-step">User input</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">First tool call</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Tool result</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Agent reasoning</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">Next tool call</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step">...</span>
+  <span class="flow-arrow">&rarr;</span>
+  <span class="flow-step highlight">Final output</span>
+</div>
+
+<p>At each node in this path, ask yourself three questions:</p>
+
+<ol>
+  <li><strong>Was this step reasonable?</strong> Given what the agent knew at this point, does the choice make sense?</li>
+  <li><strong>Did quality drop here?</strong> Is the output of this step worse than the input deserved? Is something being lost, distorted, or fabricated?</li>
+  <li><strong>Would a domain expert do this differently?</strong> If you put a human in the agent&rsquo;s place at this exact point, with the same information, what would they do?</li>
+</ol>
+
+<h4>What to Look For</h4>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Signal</th>
+      <th>What It Looks Like in the Trace</th>
+      <th>What It Tells You</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Quality drops</strong></td>
+      <td>Step N&rsquo;s output is clearly worse than step N-1&rsquo;s input warranted</td>
+      <td>This step has a quality problem worth evaluating</td>
+    </tr>
+    <tr>
+      <td><strong>User abandonment</strong></td>
+      <td>User disconnects, navigates away, or regenerates mid-stream</td>
+      <td>The agent is too slow, too wrong, or too confusing at this point</td>
+    </tr>
+    <tr>
+      <td><strong>Regeneration requests</strong></td>
+      <td>User asks the agent to redo something it just did</td>
+      <td>Quality did not meet user expectations for this job</td>
+    </tr>
+    <tr>
+      <td><strong>Wasted work</strong></td>
+      <td>Agent calls tools whose results are never used, or researches topics that do not appear in the output</td>
+      <td>Inefficiency that increases cost and latency without improving quality</td>
+    </tr>
+    <tr>
+      <td><strong>Error cascades</strong></td>
+      <td>An early mistake propagates through multiple downstream steps</td>
+      <td>Validates your cascade hypothesis from Chapter 05&rsquo;s prioritization</td>
+    </tr>
+    <tr>
+      <td><strong>Surprising successes</strong></td>
+      <td>The agent takes an unexpected path but produces excellent results</td>
+      <td>Reinforces &ldquo;grade outcomes, not paths&rdquo; &mdash; this path should not be penalized</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h4>How to Take Notes</h4>
+
+<p>Take <strong>freeform notes</strong>. Do not use a template. Do not categorize yet. Just write down every observation as it comes to you. &ldquo;Trace 7: research was excellent but the hooks all sounded identical.&rdquo; &ldquo;Trace 12: agent searched for the wrong company &mdash; there are two brands with similar names.&rdquo; &ldquo;Trace 19: user asked for a warmer tone, agent made it colder somehow.&rdquo;</p>
+
+<p>This is the qualitative research methodology that Husain calls <strong>&ldquo;open coding&rdquo;</strong> &mdash; a well-established technique from grounded theory research. You observe without predetermined categories, and let the patterns emerge from the data. You will categorize later (that is Phase 2). For now, just observe.</p>
+
+<div class="callout example">
+  <div class="callout-title">Sample Notes from Day 1 (Creative Campaign Agent)</div>
+  <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;">
+    <strong>Trace 1</strong> (Nike competitor, sportswear): Research solid. Hooks good but #4 (FOMO) feels generic. Images OK but all look like stock photos.<br>
+    <strong>Trace 2</strong> (Small candle brand): Research grabbed wrong company &mdash; found a candle manufacturer, not the artisan brand. Everything downstream wrong. User abandoned after seeing hooks.<br>
+    <strong>Trace 3</strong> (SaaS product): Research OK. Hooks are all about features, none about outcomes. Images are abstract gradients &mdash; no clear connection to the product.<br>
+    <strong>Trace 4</strong> (Luxury skincare): Research was thorough. Hooks excellent. But images look cheap &mdash; wrong aesthetic for luxury brand. User regenerated images 3x.<br>
+    <strong>Trace 5</strong> (Restaurant chain): Good overall! One hook (#2, story hook) referenced a founding story that does not exist. Hallucination.
+  </div>
+</div>
+
+<p>Five traces, five different observations. Already you can see patterns forming: research accuracy is critical (Trace 2), image aesthetic matching is a recurring issue (Traces 1, 4), and hallucination is a risk (Trace 5). These observations, after 30 traces, will become your failure taxonomy.</p>
+
+<h4>Why 30 Traces? Why Not 10 or 100?</h4>
+
+<p>The number 30 comes from qualitative research methodology. Husain and Shankar, drawing from grounded theory, found that domain experts typically reach <strong>theoretical saturation</strong> &mdash; the point where new traces stop revealing new failure modes &mdash; somewhere between 20 and 50 traces. Thirty is the practical sweet spot:</p>
+
+<ul>
+  <li><strong>10 traces</strong> is too few. You will see the most common patterns but miss important edge cases. Your failure taxonomy will be incomplete.</li>
+  <li><strong>30 traces</strong> covers the common cases, the uncommon-but-important cases, and at least a few genuine edge cases. Most PMs report that traces 25-30 rarely reveal new failure types.</li>
+  <li><strong>100 traces</strong> is overkill for the first pass. You are not writing a research paper. You are building intuition. Thirty traces gives you enough to move forward. You will see more traces over time as you operate the eval system.</li>
+</ul>
+
+<p>If you reach trace 30 and are still discovering entirely new failure modes with every trace, keep going. If traces 25-30 feel like repetitions of patterns you already noted, you have enough. Trust the saturation signal.</p>
+
+<div class="callout warning">
+  <div class="callout-title">Resist the Urge to Fix</div>
+  You will see problems in these traces that you immediately know how to fix. A better prompt here, a guardrail there. <strong>Write them down, but do not act on them yet.</strong> Premature fixes address symptoms, not root causes. You are gathering evidence. The fixes come after you have the full picture.
+</div>
+
+
+<h4>Selecting Your 30 Traces</h4>
+
+<p>Not all traces are equally informative. Do not just grab the 30 most recent. Curate a sample that covers the full range of your agent&rsquo;s behavior:</p>
+
+<ul>
+  <li><strong>10 &ldquo;normal&rdquo; traces:</strong> Typical inputs, typical outcomes. These show you the baseline experience for the average user. Select these at random from your most common use case.</li>
+  <li><strong>10 &ldquo;varied&rdquo; traces:</strong> Different input types, different user intents, different levels of complexity. If your agent handles multiple domains (simple questions and complex research), make sure both are represented.</li>
+  <li><strong>5 &ldquo;failure&rdquo; traces:</strong> Traces where something went wrong &mdash; the user abandoned, regenerated, or complained. These are the most informative traces because they show you the failure modes directly. If you have support tickets, match them to their traces.</li>
+  <li><strong>5 &ldquo;excellent&rdquo; traces:</strong> Traces where the output was especially good. These are valuable because they show you what &ldquo;great&rdquo; looks like &mdash; you need to understand excellence to define it in a rubric later.</li>
+</ul>
+
+<p>This stratified sample ensures you see the full quality spectrum, not just the middle. If you only look at average traces, you will miss both the failure patterns (which tell you what to fix) and the excellence patterns (which tell you what to protect).</p>
+
+
+<h4>Set Up a Simple Trace Viewer</h4>
+
+<p>If reading traces means SSHing into a server and parsing JSON files, you will do it once and never again. The Husain principle applies here: <strong>remove all friction from looking at data.</strong></p>
+
+<p>The easiest path, in order of effort:</p>
+
+<ol>
+  <li><strong>If your agent logs to a tracing platform</strong> (LangSmith, Braintrust, Arize Phoenix, etc.): Use their UI. You are done. This is the ideal state.</li>
+  <li><strong>If your agent logs to files or a database:</strong> Write a simple script that pulls the last N traces and formats them readably in the terminal or a local HTML file. This script should take less than an hour to write. It will pay for itself a hundred times over.</li>
+  <li><strong>If your agent has no logging at all:</strong> This is your first engineering request. You need, at minimum: the input, every tool call and its result, and the final output. Stored somewhere queryable. Without this, everything else in this guide is academic.</li>
+</ol>
+
+
+<!-- ── Day 3 ── -->
+<h3>Day 3: Shadow 10 Real User Sessions</h3>
+
+<p>Traces tell you what happened. Sessions tell you <em>how it felt</em>.</p>
+
+<p>The difference is essential. A trace might show that the agent completed successfully in 4 minutes. But if you watch the user during those 4 minutes, you see them fidgeting, switching tabs, checking their phone. They were not impressed by the 4-minute completion. They were bored and frustrated by the 4-minute wait. The trace said &ldquo;success.&rdquo; The user said &ldquo;too slow.&rdquo;</p>
+
+<h4>How to Shadow</h4>
+
+<p>Choose one of these methods, depending on what your team has available:</p>
+
+<ul>
+  <li><strong>Session recordings</strong> (FullStory, Hotjar, LogRocket): Watch 10 recordings of real users interacting with the agent. Best for async observation when you cannot schedule live sessions.</li>
+  <li><strong>Live shadowing:</strong> Sit next to a user (or share their screen remotely) and watch them use the agent. Ask them to think aloud. Best for understanding expectations, because you can ask &ldquo;what did you expect to happen here?&rdquo;</li>
+  <li><strong>Dogfooding:</strong> Use the agent yourself as if you were a real user. Best when you have no user recordings yet. Not as good as watching real users, but infinitely better than not observing at all.</li>
+</ul>
+
+<h4>What to Record</h4>
+
+<p>For each session, write down:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th style="width: 50%;">What You Observed</th>
+      <th style="width: 50%;">Why It Matters</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>What the user expected to happen</td>
+      <td>Defines &ldquo;good&rdquo; from the user&rsquo;s perspective</td>
+    </tr>
+    <tr>
+      <td>What actually happened</td>
+      <td>Defines the current state of quality</td>
+    </tr>
+    <tr>
+      <td>The <strong>gap</strong> between expected and actual</td>
+      <td><strong>This gap is where your evals will live.</strong> Every eval measures whether this gap is closing.</td>
+    </tr>
+    <tr>
+      <td>Moments of delight (user says &ldquo;wow&rdquo;, leans in, shares with someone)</td>
+      <td>Tells you what to protect. Do not regress on what already works well.</td>
+    </tr>
+    <tr>
+      <td>Moments of frustration (user sighs, regenerates, abandons)</td>
+      <td>Tells you what to fix. These are your highest-priority eval targets.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">The Gap Is the Eval</div>
+  The gap between what the user expected and what the agent delivered is <em>precisely</em> what your evals should measure. If the user expected on-brand luxury images and got stock-photo-looking images, your eval should measure &ldquo;brand aesthetic alignment.&rdquo; If the user expected the agent to remember their previous feedback and it started from scratch, your eval should measure &ldquo;context retention across follow-ups.&rdquo; The gap defines the eval. Every time.
+</div>
+
+<h4>Common Gaps You Will Discover</h4>
+
+<p>After shadowing dozens of AI product sessions across multiple products, certain expectation gaps appear again and again. Here are the ones that show up most frequently:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>User Expectation</th>
+      <th>Common Agent Reality</th>
+      <th>The Gap (Potential Eval)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>&ldquo;It remembers what I said earlier&rdquo;</td>
+      <td>Context window fills up; earlier instructions get lost</td>
+      <td>Context retention over long conversations</td>
+    </tr>
+    <tr>
+      <td>&ldquo;It understands my brand / my business&rdquo;</td>
+      <td>Surface-level research; misses nuance of positioning</td>
+      <td>Depth and accuracy of brand understanding</td>
+    </tr>
+    <tr>
+      <td>&ldquo;It should know when it does not know&rdquo;</td>
+      <td>Confident answers even when uncertain; hallucinations</td>
+      <td>Calibration &mdash; does confidence match actual correctness?</td>
+    </tr>
+    <tr>
+      <td>&ldquo;It should be fast&rdquo;</td>
+      <td>Multi-step agents can take minutes for complex tasks</td>
+      <td>Latency relative to user expectations (varies by task complexity)</td>
+    </tr>
+    <tr>
+      <td>&ldquo;It should improve when I give feedback&rdquo;</td>
+      <td>Follow-ups sometimes make things worse or ignore the feedback</td>
+      <td>Follow-up quality &mdash; did the revision address the specific feedback?</td>
+    </tr>
+    <tr>
+      <td>&ldquo;It should be consistent&rdquo;</td>
+      <td>Same input produces wildly different quality across runs</td>
+      <td>Output variance &mdash; standard deviation of quality scores</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>You do not need to shadow sessions to discover these gaps. But shadowing reveals which gaps matter <em>most for your specific users</em>. Maybe your users do not care about speed (they are willing to wait for quality). Maybe consistency matters more than peak quality. Only observation tells you.</p>
+
+
+<!-- ── Day 4 ── -->
+<h3>Day 4: Talk to the Engineering Team</h3>
+
+<p>Now you have 30 traces of observations and 10 sessions of user insights. You know what the agent does (from traces) and what users want (from sessions). The engineers will fill in the third piece: what the agent was <em>supposed to do</em>, and where it is known to fall short.</p>
+
+<h4>The Questions to Ask</h4>
+
+<p>Schedule 30&ndash;60 minutes with the engineers who built or maintain the agent. Ask these questions in this order:</p>
+
+<ol>
+  <li>
+    <strong>&ldquo;What are the known quality problems?&rdquo;</strong>
+    <p style="color: var(--ink-light); font-size: 14px; margin-top: 4px;">Engineers always know. They have a mental list of things they wish were better. This question gives them permission to share it. Write everything down, even if it sounds minor.</p>
+  </li>
+  <li>
+    <strong>&ldquo;What is the most common user complaint?&rdquo;</strong>
+    <p style="color: var(--ink-light); font-size: 14px; margin-top: 4px;">Cross-reference this with what you found in the support tickets (Source 4 from Chapter 05). If the engineers say &ldquo;image quality&rdquo; and the tickets say &ldquo;image quality,&rdquo; that is strong signal. If they disagree, explore why.</p>
+  </li>
+  <li>
+    <strong>&ldquo;Where does the agent struggle most?&rdquo;</strong>
+    <p style="color: var(--ink-light); font-size: 14px; margin-top: 4px;">Different from &ldquo;known quality problems.&rdquo; This question asks about the difficult cases &mdash; the edge cases, the unusual inputs, the adversarial users. Engineers know which inputs make the agent break down.</p>
+  </li>
+  <li>
+    <strong>&ldquo;What would you fix if you had a week?&rdquo;</strong>
+    <p style="color: var(--ink-light); font-size: 14px; margin-top: 4px;">This reveals priorities. The answer tells you what the engineering team considers the highest-impact improvement. Compare it to your prioritized job list from Chapter 05. Are they aligned?</p>
+  </li>
+  <li>
+    <strong>&ldquo;Have you tried to measure quality before? What happened?&rdquo;</strong>
+    <p style="color: var(--ink-light); font-size: 14px; margin-top: 4px;">Reveals past eval attempts, why they failed, and what institutional knowledge already exists. Maybe they tried LLM-as-judge and it did not align with human judgment. Maybe they built a test suite but stopped maintaining it. Learn from their experience.</p>
+  </li>
+  <li>
+    <strong>&ldquo;Are there parts of the system that nobody monitors?&rdquo;</strong>
+    <p style="color: var(--ink-light); font-size: 14px; margin-top: 4px;">The most dangerous failures are the ones nobody is watching. This question surfaces blind spots &mdash; the &ldquo;it probably works&rdquo; assumptions that may be quietly failing.</p>
+  </li>
+</ol>
+
+<h4>How to Get Honest Answers</h4>
+
+<p>Engineers will be more candid if you approach this as collaboration, not audit. Frame the conversation around <em>their</em> frustrations, not your evaluation agenda. &ldquo;What annoys you about the agent&rsquo;s behavior?&rdquo; gets better answers than &ldquo;What are the quality problems I should be measuring?&rdquo; The first question invites them to share their experience. The second implies they should have been measuring and were not.</p>
+
+<p>Also: do not treat this as a one-time interview. The best AI PMs have a standing weekly or biweekly check-in with the engineering team specifically about agent quality. The first conversation surfaces the known issues. The ongoing conversations surface the emerging issues, the regressions, and the surprises.</p>
+
+<h4>Map Their Answers to Your Blueprint</h4>
+
+<p>After the conversation, go back to the blueprint you drew in Chapter 04. For each problem the engineers identified, find the decision point on the blueprint where that problem originates. This gives you a <em>blueprint annotated with known issues</em> &mdash; the decision points that are confirmed failure surfaces, not just theoretical ones.</p>
+
+<div class="callout example">
+  <div class="callout-title">Example: Annotated Blueprint (Creative Campaign Agent)</div>
+  <div style="font-family: 'JetBrains Mono', monospace; font-size: 13px; line-height: 1.7;">
+    <span class="code-keyword">[STEP 1]</span> Research the brand<br>
+    &nbsp;&nbsp;<span style="color: var(--danger);">[ENG]</span> &ldquo;Sometimes grabs wrong company when name is ambiguous&rdquo;<br>
+    &nbsp;&nbsp;<span style="color: var(--danger);">[ENG]</span> &ldquo;Research quality varies wildly &mdash; sometimes thorough, sometimes shallow&rdquo;<br>
+    &nbsp;&nbsp;<span style="color: var(--warning);">[USER]</span> Trace 2: Wrong company grabbed. Trace 14: Shallow research on niche brand.<br><br>
+
+    <span class="code-keyword">[STEP 2]</span> Write 6 ad hooks<br>
+    &nbsp;&nbsp;<span style="color: var(--danger);">[ENG]</span> &ldquo;Hooks can sound generic &mdash; not enough brand differentiation&rdquo;<br>
+    &nbsp;&nbsp;<span style="color: var(--warning);">[USER]</span> Trace 3: Feature-focused, no outcomes. Trace 5: Hallucinated founding story.<br><br>
+
+    <span class="code-keyword">[STEP 3]</span> Art direction<br>
+    &nbsp;&nbsp;<span style="color: var(--danger);">[ENG]</span> &ldquo;Hard to match brand aesthetic without explicit style guide&rdquo;<br><br>
+
+    <span class="code-keyword">[STEP 4]</span> Image generation<br>
+    &nbsp;&nbsp;<span style="color: var(--danger);">[ENG]</span> &ldquo;Would fix image-text alignment if had a week&rdquo;<br>
+    &nbsp;&nbsp;<span style="color: var(--warning);">[USER]</span> Trace 1: Stock photo look. Trace 4: Wrong aesthetic for luxury brand.
+  </div>
+</div>
+
+<p>Now you have something powerful: a blueprint annotated with three types of evidence &mdash; your trace observations, your user session observations, and the engineering team&rsquo;s institutional knowledge. These three sources triangulate the real problems.</p>
+
+<div class="callout insight">
+  <div class="callout-title">Triangulation Is the Point</div>
+  Any one source can mislead you. Traces can make a rare problem look common if your sample was unlucky. User sessions can over-index on vocal users while quiet majority users have different issues. Engineers can have blind spots about problems they have normalized. But when all three sources point to the same problem &mdash; you saw it in the traces, users complained about it, and engineers confirmed it &mdash; you have high-confidence signal. Start there.
+</div>
+
+<h4>What If the Sources Disagree?</h4>
+
+<p>Sometimes they will. Engineers might say &ldquo;image quality is our biggest problem,&rdquo; but you saw users happily accepting images while complaining about the hooks. When sources disagree, dig into why:</p>
+
+<ul>
+  <li><strong>Engineers see technical quality, users see fitness for purpose.</strong> The images might be technically imperfect (wrong shadows, artifacts) but acceptable for social media ads. Meanwhile, the hooks are technically well-written but miss the brand&rsquo;s positioning entirely. Engineers notice image defects. Users notice the wrong message.</li>
+  <li><strong>Traces show what happened, not what mattered.</strong> You might see 15 traces where tool calls failed and retried. That looks like a big problem in traces. But the retry was transparent to the user, who saw the final result without knowing about the failure. Trace-visible problems are not always user-visible problems.</li>
+  <li><strong>Support tickets over-index on recent issues.</strong> If a regression shipped last week, all the recent tickets might be about that regression, masking deeper structural problems that users have given up reporting.</li>
+</ul>
+
+<p>Disagreements are valuable data. They tell you that your understanding is incomplete and point you to where you need to investigate further.</p>
+
+
+<!-- ── Day 5 ── -->
+<h3>Day 5: Write the State of Quality Document</h3>
+
+<p>Today, you synthesize everything from the week into a single, short document. This document has three purposes:</p>
+
+<ol>
+  <li><strong>Crystallize your own understanding.</strong> Writing forces clarity. If you cannot explain the quality situation in one page, you do not understand it well enough yet.</li>
+  <li><strong>Create alignment.</strong> Share this document with the engineering team, your manager, and any stakeholders. Everyone should be looking at the same picture of quality.</li>
+  <li><strong>Set the starting point.</strong> This is your &ldquo;before&rdquo; snapshot. When you run evals in Phase 2 and make improvements in Phase 3, you will compare against this baseline.</li>
+</ol>
+
+<h4>The Template</h4>
+
+<p>One page. Use this exact structure:</p>
+
+<pre>
+<span class="code-keyword">STATE OF QUALITY</span>
+<span class="code-comment">Product: [Name]</span>
+<span class="code-comment">Date: [Today]</span>
+<span class="code-comment">Author: [You]</span>
+<span class="code-comment">Based on: 30 traces, 10 user sessions, engineering interviews</span>
+
+<span class="code-keyword">TOP 3 JOBS</span> <span class="code-comment">(from Chapter 05 prioritization)</span>
+<span class="code-string">1. [Job name] — Priority score: [X] — Estimated quality: [1-5 gut feel]</span>
+<span class="code-string">2. [Job name] — Priority score: [X] — Estimated quality: [1-5 gut feel]</span>
+<span class="code-string">3. [Job name] — Priority score: [X] — Estimated quality: [1-5 gut feel]</span>
+
+<span class="code-keyword">TOP 5 OBSERVED FAILURES</span>
+<span class="code-string">1. [Description] — Seen in [X] of 30 traces — Severity: [high/medium/low]</span>
+<span class="code-string">2. [Description] — Seen in [X] of 30 traces — Severity: [high/medium/low]</span>
+<span class="code-string">3. [Description] — Seen in [X] of 30 traces — Severity: [high/medium/low]</span>
+<span class="code-string">4. [Description] — Seen in [X] of 30 traces — Severity: [high/medium/low]</span>
+<span class="code-string">5. [Description] — Seen in [X] of 30 traces — Severity: [high/medium/low]</span>
+
+<span class="code-keyword">BIGGEST RISK</span>
+<span class="code-accent">[One sentence: What is the worst thing that could happen to a user?]</span>
+
+<span class="code-keyword">RECOMMENDED FIRST EVAL TARGET</span>
+<span class="code-accent">[The job + specific failure mode you will build your first eval around]</span>
+
+<span class="code-keyword">OPEN QUESTIONS</span>
+<span class="code-comment">- [Things you could not determine this week]</span>
+<span class="code-comment">- [Areas where you need more data]</span>
+</pre>
+
+<h4>Example: Completed State of Quality</h4>
+
+<div class="callout example">
+  <div class="callout-title">Example &mdash; Creative Campaign Agent State of Quality</div>
+  <div style="font-size: 14px; line-height: 1.7;">
+    <strong>Product:</strong> Creative Campaign Agent<br>
+    <strong>Date:</strong> March 31, 2026<br>
+    <strong>Based on:</strong> 30 traces, 10 user sessions, 2 engineer interviews<br><br>
+
+    <strong>TOP 3 JOBS</strong><br>
+    1. Research brand accurately &mdash; Priority: 125 &mdash; Quality: <strong style="color: var(--warning);">2.5/5</strong> (high variance; great on well-known brands, poor on niche/ambiguous brands)<br>
+    2. Write compelling hooks &mdash; Priority: 100 &mdash; Quality: <strong style="color: #6AB04C;">3.5/5</strong> (usually solid, but tend toward generic when research is weak)<br>
+    3. Generate on-brand images &mdash; Priority: 75 &mdash; Quality: <strong style="color: var(--warning);">2/5</strong> (frequent aesthetic mismatch, stock-photo feel for premium brands)<br><br>
+
+    <strong>TOP 5 OBSERVED FAILURES</strong><br>
+    1. Wrong company researched (ambiguous brand name) &mdash; 4/30 traces &mdash; Severity: high<br>
+    2. Image aesthetic does not match brand positioning (luxury brand gets budget look) &mdash; 9/30 traces &mdash; Severity: medium<br>
+    3. Hooks sound generic / not differentiated from competitors &mdash; 7/30 traces &mdash; Severity: medium<br>
+    4. Hallucinated facts in hooks (founding story, statistics) &mdash; 3/30 traces &mdash; Severity: high<br>
+    5. Follow-up ignores previous context &mdash; 2/10 follow-up traces &mdash; Severity: medium<br><br>
+
+    <strong>BIGGEST RISK:</strong> Agent confidently produces a full campaign about the wrong company, user does not notice until they show it to their client. Brand damage.<br><br>
+
+    <strong>RECOMMENDED FIRST EVAL:</strong> Research accuracy &mdash; specifically, &ldquo;did the agent identify the correct company and its actual products/positioning?&rdquo;<br><br>
+
+    <strong>OPEN QUESTIONS:</strong><br>
+    &bull; How well does research handle brands with no English web presence?<br>
+    &bull; Is image quality limited by the image model, or by the prompts we generate?<br>
+    &bull; Do users actually care about hook variety, or would 6 versions of their favorite hook type be better?
+  </div>
+</div>
+
+<p>This document is not a work of art. It is not meant to be polished. It is meant to be <em>honest</em>. The gut-feel quality scores are explicitly rough estimates &mdash; they will be replaced by real eval scores in Phase 2. The failure counts are from a small sample &mdash; they will be validated with larger datasets. But right now, this document gives everyone on the team a shared understanding of where quality stands.</p>
+
+
+<h4>Share It</h4>
+
+<p>Send this document to:</p>
+<ul>
+  <li>The engineering team (they will validate or correct your observations)</li>
+  <li>Your manager (they need to know the quality baseline before you propose investments)</li>
+  <li>Any PM or designer who touches the product (alignment prevents parallel work from conflicting)</li>
+</ul>
+
+<p>The sharing is not a formality. It serves a concrete function: it creates <strong>alignment before you build anything</strong>. When you come back in two weeks with a proposal to build evals, nobody will be surprised by the problems you are solving. They already agreed those problems exist.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">What Happens When You Skip Alignment</div>
+  Here is a scenario that plays out at real companies: The PM spends three weeks building an eval suite for &ldquo;response factual accuracy.&rdquo; They present the results to the team. The engineering lead says: &ldquo;We already know accuracy is a problem. We needed you to figure out whether the <em>tone</em> is right &mdash; that is what users keep escalating about.&rdquo; Three weeks wasted, not because the eval was bad, but because it measured the wrong thing. The State of Quality document prevents this by forcing the conversation <em>before</em> the build.
+</div>
+
+<h4>The Quality Scores Will Feel Wrong</h4>
+
+<p>When you assign gut-feel scores of 1-5 to each job, you will second-guess yourself. &ldquo;Is research really a 2.5? Maybe it is a 3. Or maybe a 2.&rdquo; This discomfort is normal and healthy. The point of gut-feel scores is not precision &mdash; it is <strong>direction</strong>. You are saying: &ldquo;Research quality is somewhere in the mediocre range. We will get a real number from evals in Phase 2.&rdquo;</p>
+
+<p>The gut-feel score has two jobs: (1) force you to commit to a position rather than hedging with &ldquo;it varies,&rdquo; and (2) serve as a baseline that your future evals will either confirm or correct. Both of these work perfectly well even if the number is off by a full point.</p>
+
+
+<!-- ── The Anti-Pattern Warning ── -->
+<h3>The Anti-Pattern: Skipping Observation</h3>
+
+<div class="callout warning">
+  <div class="callout-title">Do Not Skip This Week</div>
+  This week is <strong>not optional</strong>. PMs who skip observation and jump straight to building eval infrastructure measure the wrong things with expensive precision. They build beautiful dashboards that track metrics nobody cares about. They write rubrics that miss the actual failure modes. They optimize for scores that do not correlate with user satisfaction.<br><br>
+  How do you know if you skipped this step? You find yourself asking: &ldquo;What should I measure?&rdquo; If you have to ask, you have not observed enough. After 30 traces and 10 sessions, the answer will be obvious. The data tells you what to measure. You just have to look at it.
+</div>
+
+<p>There is a second anti-pattern worth naming: <strong>the dashboard trap</strong>. This is when a PM inherits an existing eval dashboard &mdash; maybe the previous PM built it, maybe an engineer set it up &mdash; and starts optimizing whatever metrics are already being tracked, without ever questioning whether those are the right metrics. The dashboard says &ldquo;average response time: 2.3s&rdquo; and &ldquo;tool call success rate: 94%,&rdquo; so the PM works on making those numbers better. But maybe response time does not matter to users (they are willing to wait for quality), and the 94% tool call success rate hides the fact that the 6% failure rate is concentrated on the most important use case. Inherited metrics are hypotheses, not truths. Validate them against your observation week before accepting them.</p>
+
+
+<!-- ── Week Summary ── -->
+<h3>The Week at a Glance</h3>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Day</th>
+      <th>Activity</th>
+      <th>Time</th>
+      <th>Output</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>1</strong></td>
+      <td>Read 15 production traces, take freeform notes</td>
+      <td>4 hrs</td>
+      <td>15 annotated traces with observations</td>
+    </tr>
+    <tr>
+      <td><strong>2</strong></td>
+      <td>Read 15 more traces, start noticing patterns</td>
+      <td>4 hrs</td>
+      <td>30 annotated traces, emerging pattern list</td>
+    </tr>
+    <tr>
+      <td><strong>3</strong></td>
+      <td>Shadow 10 user sessions, note expectation gaps</td>
+      <td>3&ndash;5 hrs</td>
+      <td>10 session notes with expected vs. actual</td>
+    </tr>
+    <tr>
+      <td><strong>4</strong></td>
+      <td>Interview 1&ndash;2 engineers, map answers to blueprint</td>
+      <td>1&ndash;2 hrs</td>
+      <td>Annotated blueprint with engineering insights</td>
+    </tr>
+    <tr>
+      <td><strong>5</strong></td>
+      <td>Write and share State of Quality document</td>
+      <td>2&ndash;3 hrs</td>
+      <td>1-page quality baseline, shared with team</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Total time: about 15&ndash;18 hours across the week. This is not extra work on top of your job. <strong>This is the job.</strong> Understanding your product&rsquo;s quality is the core responsibility of an AI PM. Everything else &mdash; roadmaps, stakeholder management, feature specs &mdash; is downstream of this understanding.</p>
+
+<h4>What If You Do Not Have Production Data Yet?</h4>
+
+<p>If your agent is pre-launch and you have no production traces, no user sessions, and no support tickets, adapt the playbook:</p>
+
+<ul>
+  <li><strong>Days 1-2:</strong> Generate 30 traces yourself using synthetic but realistic inputs. Cover the range of inputs you expect in production. If you are building a creative campaign agent, use 10 well-known brands, 10 small/niche brands, and 10 edge cases (brands with ambiguous names, non-English brands, brands with minimal web presence).</li>
+  <li><strong>Day 3:</strong> Run a beta session with 5-10 internal users or beta testers. Give them real tasks, not toy examples. &ldquo;Create an ad campaign for your favorite local restaurant&rdquo; is better than &ldquo;Create an ad campaign for Nike&rdquo; because it tests the agent on inputs the team has not optimized for.</li>
+  <li><strong>Day 4:</strong> Same as above &mdash; the engineering team always knows the weak spots, even pre-launch.</li>
+  <li><strong>Day 5:</strong> Same as above, but label your quality scores as &ldquo;pre-launch estimates.&rdquo; They will be revised after real users start using the product.</li>
+</ul>
+
+<p>The pre-launch version of this playbook is less informative (synthetic traces lack the diversity of real user behavior) but infinitely better than skipping it entirely. The failure modes you discover in synthetic traces are real failure modes &mdash; you are just less confident about their frequency in production.</p>
+
+
+<!-- ── DO Section ── -->
+<div class="callout success">
+  <div class="callout-title">Do This Now</div>
+  <strong>Complete the 5-day playbook.</strong>
+  <ul class="checklist" style="margin-bottom: 0;">
+    <li>Days 1&ndash;2: Read 30 production traces end-to-end. Take freeform notes. No categorization yet.</li>
+    <li>Day 3: Shadow 10 user sessions. Record the gap between expected and actual behavior.</li>
+    <li>Day 4: Interview the engineering team. Map their answers to your blueprint.</li>
+    <li>Day 5: Write the State of Quality document. Share it with your team.</li>
+  </ul>
+  <p style="margin-top: 16px; margin-bottom: 0;">Your State of Quality document is the starting point for everything that follows.</p>
+</div>
+
+
+<!-- ── Phase Transition ── -->
+<h3>What Comes Next</h3>
+
+<p>You have spent a week observing. You have a blueprint of the agent&rsquo;s architecture. You have a prioritized list of jobs. You have 30 traces of notes, 10 sessions of user insights, and a shared State of Quality document. You have <em>intuitions</em> about what is wrong.</p>
+
+<p>But intuitions are not evals. You noticed that research quality &ldquo;varies wildly.&rdquo; What does that mean, precisely? How wildly? What percentage of runs are bad? What exactly makes a research output &ldquo;bad&rdquo;? What distinguishes a good hook from a generic one?</p>
+
+<p>Those intuitions need to be converted into <strong>structured failure categories</strong> with <strong>clear definitions</strong> and <strong>measurable criteria</strong>. That conversion &mdash; from qualitative observation to quantitative measurement &mdash; is the core skill of AI product evaluation.</p>
+
+<p>That is Phase 2: answering Q2 &mdash; <em>how does your agent actually fail?</em></p>
+
+
+<!-- ── Phase 1 Summary ── -->
+<h3>Phase 1 Summary: What You Have Built</h3>
+
+<p>Let&rsquo;s take stock of what you now have, because it is more than it might seem:</p>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th>Artifact</th>
+      <th>From Chapter</th>
+      <th>What It Gives You</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Agent blueprint</strong></td>
+      <td>04</td>
+      <td>Every decision point mapped &mdash; you know <em>where</em> quality lives</td>
+    </tr>
+    <tr>
+      <td><strong>Pattern labels</strong></td>
+      <td>04</td>
+      <td>Each section labeled with its architectural pattern &mdash; you know <em>how</em> to evaluate it</td>
+    </tr>
+    <tr>
+      <td><strong>Job map</strong></td>
+      <td>05</td>
+      <td>Every promise to the user listed &mdash; you know <em>what</em> to evaluate</td>
+    </tr>
+    <tr>
+      <td><strong>Priority scores</strong></td>
+      <td>05</td>
+      <td>Jobs ranked by importance &mdash; you know <em>which order</em> to evaluate in</td>
+    </tr>
+    <tr>
+      <td><strong>30 trace observations</strong></td>
+      <td>06</td>
+      <td>Raw evidence of actual behavior &mdash; you know <em>what happens</em> in practice</td>
+    </tr>
+    <tr>
+      <td><strong>10 session gap notes</strong></td>
+      <td>06</td>
+      <td>User expectations vs. reality &mdash; you know <em>what matters</em> to users</td>
+    </tr>
+    <tr>
+      <td><strong>Engineering insights</strong></td>
+      <td>06</td>
+      <td>Known issues and blind spots &mdash; you know <em>what the team knows</em></td>
+    </tr>
+    <tr>
+      <td><strong>State of Quality document</strong></td>
+      <td>06</td>
+      <td>Shared baseline with the team &mdash; everyone is <em>aligned</em> on where things stand</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>These eight artifacts are the foundation for everything that follows. They answer Q1 completely: you know what the agent does, how it works, what it promises to users, which promises matter most, and what the current quality baseline looks like. You did not guess any of this. You observed it.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Phase 1 Mindset Shift</div>
+  Before Phase 1, most PMs think about evaluation as &ldquo;testing the AI.&rdquo; After Phase 1, they think about evaluation as <strong>&ldquo;understanding the product.&rdquo;</strong> That shift matters because it changes what you build. If you are &ldquo;testing the AI,&rdquo; you build a test suite and check boxes. If you are &ldquo;understanding the product,&rdquo; you build a measurement system that guides every product decision. The first mindset produces compliance. The second produces quality. Phase 1 is where that shift happens.
+</div>
+
+<p>Now it is time to turn observation into measurement.</p>

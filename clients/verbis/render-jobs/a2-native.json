@@ -1,0 +1,12 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "a2-deadline-native",
+      "refs": ["assets/logo/verbis-logo-horizontal.png"],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass. It must look like a REAL amateur phone photo someone snapped on their desk — NOT a polished AI or agency design.\n\nSCENE (real photograph, candid): a real wooden desk next to a window with soft natural daylight and genuine soft shadows, a slight camera grain, shallow depth of field, a little everyday clutter — unstaged and lived-in. On the desk: a university ADMISSION OFFER LETTER (realistic printed paper with a faint university crest, partially readable), a navy Indian PASSPORT, a small desk CALENDAR with '11 JULY' circled in red pen, a pen, and a half-full coffee mug. AVOID at all costs: glossy 3D render, floating objects, perfect symmetry, slick gradients, vector-clean shapes, over-saturation, studio-perfect lighting.\n\nTEXT (simple and casual, like a real social ad — NOT heavy beveled poster type): near the top over a subtle soft light scrim, a bold dark-charcoal headline: 'Your offer letter is ready. One number is holding it hostage: 79.' Below it a small line: 'LIVE 4-hour PTE Masterclass · Sat 11 July'. Near the bottom, a simple flat gold (#FBBD29) button with dark text: 'Claim my seat  →  ₹589', and a small struck-through '₹2,999' beside it.\n\nReproduce the provided VERBIS EDU logo (reference image) SMALL in the top-left corner, exactly as given — do not redraw or restyle it.\n\nOverall: warm, real, authentic phone-photo look. Let the natural desk colours lead; gold only as a small accent. All text crisp and correctly spelled."
+    }
+  ]
+}

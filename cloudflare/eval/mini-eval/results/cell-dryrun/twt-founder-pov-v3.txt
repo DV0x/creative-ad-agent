@@ -1,0 +1,11 @@
+Create a direct-response ad creative for Meta (Instagram / Facebook feed): a single vertical 4:5 static image that stops the scroll and earns a click. It must look NATIVE to the feed — a real founder's own post — not a polished brand ad. This is a founder-POV ad: the founder speaks straight to camera and shows the real product.
+
+SCENE — a real, slightly soft front-camera phone selfie-video still (native UGC, filmed by the founder himself, not a studio shot). A man in his early 30s (the founder), warm and direct, caught mid-sentence looking into the phone's front camera. He is showing what's actually inside the product: in one hand he holds a scoop heaped with rich brown cocoa whey protein powder lifted toward the camera; the burgundy pouch and a freshly made cocoa shake in a clear glass sit on the counter in front of him. His own lived-in kitchen behind him — a kettle, a mug, a half-open cupboard, softly out of focus. Soft natural window light from the left; real skin texture, a faint phone-camera softness, true shadows — not retouched.
+
+PRODUCT — reproduce the pouch 100% identical to the reference image: its exact burgundy colorway, the "The Whole Truth" wordmark, and every printed label and detail exactly as on the real pouch. Do not redesign, recolor, or restyle it. IMPORTANT: the red "Bestseller" ribbon and the round gold "Trustified" badge in the reference are WEBSITE OVERLAYS, not printed on the pouch — do NOT render them on the pack.
+
+TEXT — one clean grid, every element aligned to the same left and right margins (about 7% of the width), nothing crooked:
+- Caption, LEFT-aligned, in the lower third, in the phone's plain white system UI font (auto-caption look), at most three lines: "I read the back of a 'health' bar and couldn't pronounce half of it. So we made protein with nothing to hide."
+- One bottom row on a single shared baseline, same margins: on the left, a small plain white name tag in the same font, "Shashank Mehta · Founder, The Whole Truth"; on the right, a small burgundy rounded CTA pill with white text, "See what's inside →".
+
+Overall: a scroll-stopping, feed-native direct-response ad that reads as a real person talking honestly while showing the actual product — authentic, unpolished, cleanly aligned. Vertical 4:5.

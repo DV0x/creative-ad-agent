@@ -1,0 +1,1811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI PM Eval Masterclass</title>
+<style>
+  :root {
+    --coral: #E8553A;
+    --coral-light: #FDEEEB;
+    --coral-dark: #C4402A;
+    --ink: #1a1a1a;
+    --ink-light: #4a4a4a;
+    --ink-muted: #8a8a8a;
+    --surface: #FAFAFA;
+    --surface-alt: #F2F2F2;
+    --border: #E0E0E0;
+    --white: #FFFFFF;
+    --code-bg: #1e1e2e;
+    --code-fg: #cdd6f4;
+    --code-comment: #6c7086;
+    --code-string: #a6e3a1;
+    --code-keyword: #cba6f7;
+    --code-accent: #f9e2af;
+    --success: #2D9F5C;
+    --warning: #E89E0D;
+    --danger: #D94040;
+    --sidebar-w: 280px;
+    --header-h: 64px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; scroll-padding-top: calc(var(--header-h) + 24px); }
+
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--surface);
+    color: var(--ink);
+    line-height: 1.7;
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ────────────────────────────── */
+  .header {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    height: var(--header-h);
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    padding: 0 32px;
+    z-index: 100;
+    gap: 16px;
+  }
+  .header-logo {
+    width: 32px; height: 32px;
+    background: var(--coral);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-weight: 700; font-size: 14px;
+    flex-shrink: 0;
+  }
+  .header-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+    white-space: nowrap;
+  }
+  .header-subtitle {
+    font-size: 13px;
+    color: var(--ink-muted);
+    margin-left: auto;
+  }
+  .menu-toggle {
+    display: none;
+    background: none; border: none; cursor: pointer;
+    width: 32px; height: 32px;
+    flex-shrink: 0;
+  }
+  .menu-toggle span {
+    display: block; width: 20px; height: 2px;
+    background: var(--ink); margin: 4px auto;
+    border-radius: 2px; transition: 0.2s;
+  }
+
+  /* ── Progress Bar ──────────────────────── */
+  .progress-bar {
+    position: fixed;
+    top: var(--header-h); left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    z-index: 99;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--coral);
+    width: 0%;
+    transition: width 0.1s linear;
+  }
+
+  /* ── Sidebar ───────────────────────────── */
+  .sidebar {
+    position: fixed;
+    top: calc(var(--header-h) + 3px);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    background: var(--white);
+    border-right: 1px solid var(--border);
+    overflow-y: auto;
+    padding: 20px 0;
+    z-index: 90;
+    transition: transform 0.3s ease;
+  }
+  .sidebar::-webkit-scrollbar { width: 4px; }
+  .sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .nav-section {
+    padding: 0 16px;
+    margin-bottom: 8px;
+  }
+  .nav-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.2px;
+    color: var(--ink-muted);
+    padding: 12px 8px 6px;
+  }
+  .nav-link {
+    display: block;
+    padding: 6px 12px;
+    font-size: 13px;
+    color: var(--ink-light);
+    text-decoration: none;
+    border-radius: 6px;
+    transition: all 0.15s;
+    line-height: 1.4;
+  }
+  .nav-link:hover {
+    background: var(--surface-alt);
+    color: var(--ink);
+  }
+  .nav-link.active {
+    background: var(--coral-light);
+    color: var(--coral-dark);
+    font-weight: 500;
+  }
+  .nav-link .nav-num {
+    display: inline-block;
+    width: 20px;
+    font-size: 11px;
+    color: var(--ink-muted);
+    font-weight: 600;
+  }
+
+  /* ── Main Content ──────────────────────── */
+  .main {
+    margin-left: var(--sidebar-w);
+    margin-top: calc(var(--header-h) + 3px);
+    min-height: calc(100vh - var(--header-h));
+  }
+  .content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 48px 40px 120px;
+  }
+
+  /* ── Hero ───────────────────────────────── */
+  .hero {
+    text-align: center;
+    padding: 64px 0 48px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 48px;
+  }
+  .hero-badge {
+    display: inline-block;
+    background: var(--coral-light);
+    color: var(--coral-dark);
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 12px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 20px;
+  }
+  .hero h1 {
+    font-size: 40px;
+    font-weight: 800;
+    line-height: 1.15;
+    color: var(--ink);
+    margin-bottom: 16px;
+    letter-spacing: -0.5px;
+  }
+  .hero h1 em {
+    font-style: normal;
+    color: var(--coral);
+  }
+  .hero p {
+    font-size: 18px;
+    color: var(--ink-light);
+    max-width: 540px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+  .hero-meta {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--ink-muted);
+  }
+  .hero-meta span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* ── Typography ─────────────────────────── */
+  h2 {
+    font-size: 28px;
+    font-weight: 750;
+    color: var(--ink);
+    margin: 56px 0 8px;
+    padding-top: 16px;
+    letter-spacing: -0.3px;
+    line-height: 1.25;
+  }
+  h2 .section-num {
+    color: var(--coral);
+    font-size: 14px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: block;
+    margin-bottom: 8px;
+  }
+  h3 {
+    font-size: 20px;
+    font-weight: 650;
+    color: var(--ink);
+    margin: 36px 0 12px;
+    line-height: 1.3;
+  }
+  h4 {
+    font-size: 16px;
+    font-weight: 650;
+    color: var(--ink);
+    margin: 24px 0 8px;
+  }
+  p { margin-bottom: 16px; }
+  strong { font-weight: 650; }
+
+  /* ── Callout Boxes ──────────────────────── */
+  .callout {
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 24px 0;
+    font-size: 15px;
+    line-height: 1.65;
+  }
+  .callout-title {
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .callout.insight {
+    background: var(--coral-light);
+    border-left: 4px solid var(--coral);
+  }
+  .callout.insight .callout-title { color: var(--coral-dark); }
+  .callout.definition {
+    background: #EEF2FF;
+    border-left: 4px solid #6366F1;
+  }
+  .callout.definition .callout-title { color: #4338CA; }
+  .callout.warning {
+    background: #FFF8E6;
+    border-left: 4px solid var(--warning);
+  }
+  .callout.warning .callout-title { color: #92600A; }
+  .callout.success {
+    background: #ECFDF5;
+    border-left: 4px solid var(--success);
+  }
+  .callout.success .callout-title { color: #166534; }
+  .callout.example {
+    background: var(--surface-alt);
+    border-left: 4px solid var(--ink-muted);
+  }
+  .callout.example .callout-title { color: var(--ink-light); }
+
+  /* ── Code Blocks ────────────────────────── */
+  pre {
+    background: var(--code-bg);
+    color: var(--code-fg);
+    border-radius: 10px;
+    padding: 20px 24px;
+    margin: 16px 0 24px;
+    overflow-x: auto;
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    font-size: 13.5px;
+    line-height: 1.65;
+  }
+  code {
+    font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+    font-size: 0.88em;
+  }
+  p code, li code, td code {
+    background: var(--surface-alt);
+    padding: 2px 6px;
+    border-radius: 4px;
+    color: var(--coral-dark);
+    font-size: 0.85em;
+  }
+  .code-comment { color: var(--code-comment); }
+  .code-hl { color: var(--code-accent); }
+  .code-str { color: var(--code-string); }
+  .code-kw { color: var(--code-keyword); }
+
+  /* ── Tables ─────────────────────────────── */
+  .table-wrap {
+    overflow-x: auto;
+    margin: 16px 0 24px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+  }
+  th {
+    background: var(--surface-alt);
+    font-weight: 650;
+    text-align: left;
+    padding: 12px 16px;
+    border-bottom: 2px solid var(--border);
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--ink-light);
+  }
+  td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: var(--surface); }
+
+  /* ── Lists ──────────────────────────────── */
+  ul, ol {
+    margin: 8px 0 20px;
+    padding-left: 24px;
+  }
+  li {
+    margin-bottom: 6px;
+    padding-left: 4px;
+  }
+  li::marker { color: var(--ink-muted); }
+
+  /* ── Score Scale ────────────────────────── */
+  .score-scale {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 16px 0 24px;
+  }
+  .score-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 14px;
+  }
+  .score-num {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--white);
+  }
+  .score-num.s1 { background: var(--danger); }
+  .score-num.s2 { background: #E87040; }
+  .score-num.s3 { background: var(--warning); }
+  .score-num.s4 { background: #6AB04C; }
+  .score-num.s5 { background: var(--success); }
+  .score-text { padding-top: 3px; line-height: 1.5; }
+
+  /* ── Flow Diagrams ──────────────────────── */
+  .flow {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin: 16px 0 24px;
+    font-size: 14px;
+  }
+  .flow-step {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .flow-step.highlight {
+    background: var(--coral-light);
+    border-color: var(--coral);
+    color: var(--coral-dark);
+  }
+  .flow-arrow {
+    color: var(--ink-muted);
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  /* ── Maturity Level Cards ───────────────── */
+  .maturity-card {
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin: 16px 0;
+    background: var(--white);
+    position: relative;
+    overflow: hidden;
+  }
+  .maturity-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    width: 4px;
+  }
+  .maturity-card.lvl0::before { background: var(--ink-muted); }
+  .maturity-card.lvl1::before { background: var(--warning); }
+  .maturity-card.lvl2::before { background: #6AB04C; }
+  .maturity-card.lvl3::before { background: var(--success); }
+  .maturity-card.lvl4::before { background: var(--coral); }
+  .maturity-level {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .maturity-card.lvl0 .maturity-level { color: var(--ink-muted); }
+  .maturity-card.lvl1 .maturity-level { color: var(--warning); }
+  .maturity-card.lvl2 .maturity-level { color: #6AB04C; }
+  .maturity-card.lvl3 .maturity-level { color: var(--success); }
+  .maturity-card.lvl4 .maturity-level { color: var(--coral); }
+  .maturity-name { font-size: 18px; font-weight: 700; margin-bottom: 8px; }
+  .maturity-desc { font-size: 14px; color: var(--ink-light); }
+  .maturity-time {
+    display: inline-block;
+    margin-top: 10px;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 3px 10px;
+    border-radius: 20px;
+    background: var(--surface-alt);
+    color: var(--ink-muted);
+  }
+
+  /* ── Vocab Cards ────────────────────────── */
+  .vocab-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin: 16px 0 24px;
+  }
+  .vocab-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+  }
+  .vocab-term {
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 4px;
+    color: var(--ink);
+  }
+  .vocab-def {
+    font-size: 13px;
+    color: var(--ink-light);
+    line-height: 1.5;
+  }
+
+  /* ── Commandment Cards ──────────────────── */
+  .commandment {
+    display: flex;
+    gap: 16px;
+    margin: 16px 0;
+    padding: 16px 20px;
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .commandment-num {
+    flex-shrink: 0;
+    width: 36px; height: 36px;
+    background: var(--ink);
+    color: var(--white);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 14px;
+  }
+  .commandment-body { flex: 1; }
+  .commandment-rule { font-weight: 650; margin-bottom: 4px; }
+  .commandment-why { font-size: 14px; color: var(--ink-light); }
+
+  /* ── Separator ──────────────────────────── */
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 56px 0 0;
+  }
+
+  /* ── Back to Top ────────────────────────── */
+  .back-to-top {
+    position: fixed;
+    bottom: 32px;
+    right: 32px;
+    width: 44px; height: 44px;
+    background: var(--ink);
+    color: var(--white);
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex; align-items: center; justify-content: center;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.2s, transform 0.2s;
+    z-index: 50;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .back-to-top.visible { opacity: 1; transform: translateY(0); }
+  .back-to-top:hover { background: var(--coral); }
+
+  /* ── Comparison columns ─────────────────── */
+  .compare {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin: 16px 0 24px;
+  }
+  .compare-col {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .compare-col.bad { border-color: var(--danger); border-width: 1px; }
+  .compare-col.good { border-color: var(--success); border-width: 1px; }
+  .compare-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 8px;
+  }
+  .compare-col.bad .compare-label { color: var(--danger); }
+  .compare-col.good .compare-label { color: var(--success); }
+  .compare-col p { font-size: 14px; margin-bottom: 8px; }
+  .compare-col p:last-child { margin-bottom: 0; }
+
+  /* ── Checklist ──────────────────────────── */
+  .checklist {
+    list-style: none;
+    padding-left: 0;
+    margin: 12px 0 24px;
+  }
+  .checklist li {
+    padding: 8px 0 8px 32px;
+    position: relative;
+    font-size: 15px;
+    border-bottom: 1px solid var(--surface-alt);
+  }
+  .checklist li::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 10px;
+    width: 18px; height: 18px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+  }
+
+  /* ── Responsive ─────────────────────────── */
+  @media (max-width: 960px) {
+    .sidebar { transform: translateX(-100%); }
+    .sidebar.open { transform: translateX(0); box-shadow: 4px 0 24px rgba(0,0,0,0.1); }
+    .main { margin-left: 0; }
+    .content { padding: 32px 24px 120px; }
+    .menu-toggle { display: block; }
+    h2 { font-size: 24px; }
+    .hero h1 { font-size: 30px; }
+    .vocab-grid { grid-template-columns: 1fr; }
+    .compare { grid-template-columns: 1fr; }
+  }
+
+  /* ── Print ──────────────────────────────── */
+  @media print {
+    .sidebar, .header, .progress-bar, .back-to-top, .menu-toggle { display: none !important; }
+    .main { margin-left: 0; margin-top: 0; }
+    .content { max-width: 100%; padding: 0; }
+    pre { white-space: pre-wrap; }
+    .callout, .maturity-card, .commandment { break-inside: avoid; }
+  }
+</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+  <button class="menu-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')" aria-label="Toggle menu">
+    <span></span><span></span><span></span>
+  </button>
+  <div class="header-logo">E</div>
+  <div class="header-title">AI PM Eval Masterclass</div>
+  <div class="header-subtitle">From First Principles to Top 1%</div>
+</header>
+
+<!-- Progress Bar -->
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="nav-section">
+    <div class="nav-section-label">Foundation</div>
+    <a href="#why-evals" class="nav-link"><span class="nav-num">01</span> Why Evals Exist</a>
+    <a href="#types" class="nav-link"><span class="nav-num">02</span> 4 Types of Evals</a>
+    <a href="#approaches" class="nav-link"><span class="nav-num">03</span> 3 Approaches</a>
+    <a href="#vocabulary" class="nav-link"><span class="nav-num">04</span> The Vocabulary</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">The Masterclass</div>
+    <a href="#phase1" class="nav-link"><span class="nav-num">05</span> Defining "Good"</a>
+    <a href="#phase2" class="nav-link"><span class="nav-num">06</span> The Eval Dataset</a>
+    <a href="#phase3" class="nav-link"><span class="nav-num">07</span> Writing Rubrics</a>
+    <a href="#phase4" class="nav-link"><span class="nav-num">08</span> LLM-as-Judge</a>
+    <a href="#phase5" class="nav-link"><span class="nav-num">09</span> Structural Evals</a>
+    <a href="#phase6" class="nav-link"><span class="nav-num">10</span> Running Evals</a>
+  </div>
+  <div class="nav-section">
+    <div class="nav-section-label">Advanced</div>
+    <a href="#phase7" class="nav-link"><span class="nav-num">11</span> Production Monitoring</a>
+    <a href="#phase8" class="nav-link"><span class="nav-num">12</span> Advanced Techniques</a>
+    <a href="#b2c-b2b" class="nav-link"><span class="nav-num">13</span> B2C vs B2B</a>
+    <a href="#agentic" class="nav-link"><span class="nav-num">14</span> Evaluating Agents</a>
+    <a href="#stakeholders" class="nav-link"><span class="nav-num">15</span> Communicating Evals</a>
+    <a href="#commandments" class="nav-link"><span class="nav-num">16</span> 10 Commandments</a>
+    <a href="#maturity" class="nav-link"><span class="nav-num">17</span> Maturity Model</a>
+    <a href="#action-plan" class="nav-link"><span class="nav-num">18</span> Your Action Plan</a>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<div class="main">
+<div class="content">
+
+<!-- Hero -->
+<div class="hero">
+  <div class="hero-badge">Comprehensive Guide</div>
+  <h1>The AI PM<br><em>Eval Masterclass</em></h1>
+  <p>Everything a product manager needs to know about evaluating AI systems &mdash; from first principles to top 1% techniques.</p>
+  <div class="hero-meta">
+    <span>18 chapters</span>
+    <span>&middot;</span>
+    <span>~45 min read</span>
+    <span>&middot;</span>
+    <span>B2C &amp; B2B</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SECTION 1: WHY EVALS EXIST              -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="why-evals"><span class="section-num">Chapter 01</span>Why Evals Exist</h2>
+
+<p>With traditional software, you know if it works. The button either submits the form or it doesn't. The API returns 200 or 500. You write unit tests. They pass or fail. Binary.</p>
+
+<p>AI broke this. An LLM can:</p>
+<ul>
+  <li>Return a grammatically perfect answer that's <strong>completely wrong</strong></li>
+  <li>Give a great answer today and a <strong>different one tomorrow</strong> on the same input</li>
+  <li>Handle 95% of cases brilliantly and <strong>fail catastrophically</strong> on the 5%</li>
+  <li>Get worse at Task A when you improve it at Task B</li>
+</ul>
+
+<p>There's no compiler telling you it's wrong. There's no stack trace. The system "works" &mdash; it just might work <strong>badly</strong>. And "badly" is subjective, contextual, and hard to pin down.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Definition</div>
+  <strong>Evals are the replacement for unit tests in a world where outputs are fuzzy.</strong> They measure whether an AI system is doing its job well.
+</div>
+
+<h3>Evals Are Taste, Made Measurable</h3>
+
+<p>As a PM, you already evaluate AI output. Every time you look at a ChatGPT response and think "hmm, that's not great" &mdash; you're doing an eval. In your head. Once. Subjectively.</p>
+
+<p>The problem:</p>
+<ul>
+  <li>You can't do this for 10,000 outputs a day</li>
+  <li>Your taste is in your head, not in the system</li>
+  <li>Your engineers can't optimize for vibes</li>
+</ul>
+
+<p>Evals take your taste &mdash; your judgment of what "good" looks like &mdash; and turn it into something <strong>repeatable, automated, and measurable</strong>.</p>
+
+<div class="flow">
+  <div class="flow-step">Your taste (subjective)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Eval rubric (codified)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Automated scoring (repeatable)</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">A number (optimizable)</div>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">Key Insight</div>
+  The PM who defines the eval rubric is defining the product. This is why people say AI PMs need to know evals. It's not a technical skill. It's a <strong>product skill wearing a technical costume</strong>.
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SECTION 2: 4 TYPES OF EVALS             -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="types"><span class="section-num">Chapter 02</span>The 4 Types of Evals</h2>
+
+<h3>1. Capability Evals</h3>
+<p><strong>"Can it do the thing at all?"</strong></p>
+<p>Before you care about quality, you care about basic ability. Can the model follow instructions? Use tools correctly? Stay on topic? Output the right format?</p>
+<p>This is table stakes. If you fail here, nothing else matters.</p>
+
+<h3>2. Quality Evals</h3>
+<p><strong>"How well does it do the thing?"</strong></p>
+<p>The model does the task, but is the output <em>good</em>? This is the hardest type because "good" depends on your product. As PM, <strong>you</strong> define "good."</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Dimension</th><th>What It Measures</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Accuracy</strong></td><td>Is the information correct?</td><td>Does the summary capture the key points?</td></tr>
+    <tr><td><strong>Relevance</strong></td><td>Is it on-topic and useful?</td><td>Does the recommendation match the user's needs?</td></tr>
+    <tr><td><strong>Completeness</strong></td><td>Did it cover everything?</td><td>Did the analysis miss any important factors?</td></tr>
+    <tr><td><strong>Consistency</strong></td><td>Same input &rarr; similar output?</td><td>Does it contradict itself across runs?</td></tr>
+    <tr><td><strong>Tone/Voice</strong></td><td>Does it sound right?</td><td>Is the customer service bot empathetic enough?</td></tr>
+    <tr><td><strong>Harmfulness</strong></td><td>Could this cause damage?</td><td>Does it hallucinate medical advice?</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>3. Safety Evals</h3>
+<p><strong>"Does it avoid doing bad things?"</strong></p>
+<p>Does the model hallucinate? Leak private data? Generate harmful content? Get manipulated by adversarial inputs?</p>
+<p>For consumer products, this is existential. One viral screenshot of your AI saying something terrible can kill your company.</p>
+
+<h3>4. Efficiency Evals</h3>
+<p><strong>"Does it do it at acceptable cost and speed?"</strong></p>
+<p>The output might be perfect, but if it takes 45 seconds and costs $0.50 per request, your product is dead. Track latency, cost, token efficiency, and number of tool/API calls.</p>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SECTION 3: 3 APPROACHES                 -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="approaches"><span class="section-num">Chapter 03</span>The 3 Approaches to Building Evals</h2>
+
+<h3>Approach A: Code-Based (Deterministic)</h3>
+<p>Write regular code to check the output. No AI involved.</p>
+<pre><span class="code-comment">// Examples of code-based checks:</span>
+Output is valid JSON?         <span class="code-hl">&rarr; json.parse()</span>
+Response is under 500 tokens? <span class="code-hl">&rarr; count tokens</span>
+Contains no PII?              <span class="code-hl">&rarr; regex for emails, SSNs, phones</span>
+Cites sources when asked?     <span class="code-hl">&rarr; check for URLs or references</span>
+Follows the format spec?      <span class="code-hl">&rarr; regex / parsing</span></pre>
+<p><strong>Pros:</strong> Fast, cheap, deterministic, no false positives.<br>
+<strong>Cons:</strong> Can only check structure, not meaning.<br>
+<strong>When to use:</strong> Always. This is your first line of defense.</p>
+
+<h3>Approach B: LLM-as-Judge</h3>
+<p>Use a (usually stronger) LLM to grade the output of your AI.</p>
+<pre><span class="code-comment">// You send to the judge:</span>
+"Here's a user question: <span class="code-str">{question}</span>
+ Here's the AI's answer: <span class="code-str">{answer}</span>
+
+ Rate on a 1-5 scale:
+ - Accuracy: Is the information correct?
+ - Helpfulness: Does it actually address the question?
+ - Conciseness: Is it unnecessarily long?
+
+ Return JSON with scores and reasoning."</pre>
+<p>The judge doesn't need to be perfect. It needs to <strong>correlate</strong> with human judgment. If human raters give 4/5 and the judge gives 3.8/5 &mdash; that's good enough.</p>
+
+<h3>Approach C: Human Evaluation</h3>
+<p>Actual humans grade the outputs. The gold standard.</p>
+<p><strong>Pros:</strong> Captures nuance no automated system can.<br>
+<strong>Cons:</strong> Slow, expensive, doesn't scale, humans disagree with each other.<br>
+<strong>When to use:</strong> To calibrate your automated evals. To handle high-stakes decisions.</p>
+
+<h3>The Typical Stack</h3>
+<pre><span class="code-comment">        ┌─────────────────────┐</span>
+        │   Human Review      │  <span class="code-hl">&larr; Monthly on a sample</span>
+        │   (calibration)     │     to verify automated evals
+        <span class="code-comment">└──────────┬──────────┘</span>
+                   │
+        <span class="code-comment">┌──────────▼──────────┐</span>
+        │   LLM-as-Judge     │  <span class="code-hl">&larr; Every change to prompts,</span>
+        │   (quality)        │     model, or features
+        <span class="code-comment">└──────────┬──────────┘</span>
+                   │
+        <span class="code-comment">┌──────────▼──────────┐</span>
+        │   Code Checks      │  <span class="code-hl">&larr; Every build,</span>
+        │   (structural)     │     like unit tests
+        <span class="code-comment">└─────────────────────┘</span></pre>
+
+<!-- ════════════════════════════════════════ -->
+<!-- SECTION 4: VOCABULARY                   -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="vocabulary"><span class="section-num">Chapter 04</span>The Vocabulary</h2>
+<p>So you sound smart in meetings.</p>
+
+<div class="vocab-grid">
+  <div class="vocab-card">
+    <div class="vocab-term">Benchmark</div>
+    <div class="vocab-def">A standardized eval suite everyone uses to compare models. Like a college entrance exam.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Ground Truth</div>
+    <div class="vocab-def">The known-correct answer for a test case. The answer key.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Rubric</div>
+    <div class="vocab-def">Criteria for judging when there's no single right answer. Like grading an essay.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Inter-Rater Agreement</div>
+    <div class="vocab-def">Do different judges (human or LLM) agree? If 3 teachers grade an essay, do they give similar scores?</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Regression</div>
+    <div class="vocab-def">Quality got worse after a change. You fixed feature A but broke feature B.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Contamination</div>
+    <div class="vocab-def">The model was trained on your test data, so scores are inflated. Like giving students the exam questions beforehand.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">N-shot</div>
+    <div class="vocab-def">How many examples you show the model before testing. Zero-shot = no examples, few-shot = 2-5 examples.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Elo Rating</div>
+    <div class="vocab-def">Ranking models by head-to-head comparison (like chess). Chatbot Arena uses this to rank models.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Hallucination Rate</div>
+    <div class="vocab-def">How often the model makes up facts. The #1 metric investors and execs ask about.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Win Rate</div>
+    <div class="vocab-def">In A/B comparison, how often does version A beat version B? "Model A wins 62% of the time."</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 1: DEFINING GOOD                  -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase1"><span class="section-num">Chapter 05</span>Phase 1: Defining "Good"</h2>
+
+<p>This is where most PMs fail. Not because they're dumb, but because they skip this step and jump to tools and metrics. Defining "good" is the hardest, most valuable thing you'll do.</p>
+
+<h3>The 5-Question Decomposition Method</h3>
+<p>Take any output your agent produces and ask these five questions in order:</p>
+
+<h4>Q1: What is the USER trying to accomplish?</h4>
+<p>Not what the agent is doing. What the <strong>user</strong> needs to happen in their life.</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Bad Framing</div>
+    <p>"The agent should generate 6 hooks"</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Good Framing</div>
+    <p>"A D2C brand manager needs scroll-stopping ad copy they can hand to their media buyer and run TODAY, without rewriting it"</p>
+  </div>
+</div>
+
+<div class="callout success">
+  <div class="callout-title">Exercise</div>
+  For every agent job, write one sentence: <strong>"The user needs ____ so they can ____ without ____."</strong><br><br>
+  That "without" clause is gold. It tells you what the agent must handle that the user doesn't want to do themselves.
+</div>
+
+<h4>Q2: What would a GREAT human produce?</h4>
+<p>Not a good human. The <strong>best</strong> human your user could hire. Your agent should aim for the great human. Your eval should measure distance from the great human, not from the average human.</p>
+
+<div class="callout insight">
+  <div class="callout-title">Why This Matters</div>
+  Most AI products are evaluated against "did it do the task?" That bar is too low. Users can get that from ChatGPT for free. They're paying you for "did it do the task <strong>WELL</strong>?"
+</div>
+
+<h4>Q3: What are the FAILURE MODES?</h4>
+<p>Every AI system has patterns of failure. Name them explicitly:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Failure Mode</th><th>What Happens</th></tr></thead>
+  <tbody>
+    <tr><td><strong>The Generic Trap</strong></td><td>Output is technically correct but could apply to any company/user/situation. No specificity or differentiation.</td></tr>
+    <tr><td><strong>The Confidence Trap</strong></td><td>Presents uncertain information as fact. Doesn't flag assumptions.</td></tr>
+    <tr><td><strong>The Lazy Middle</strong></td><td>Thorough on first 60%, rushes through the rest.</td></tr>
+    <tr><td><strong>The Instruction Drift</strong></td><td>Follows 8/10 instructions perfectly, silently ignores the other 2.</td></tr>
+    <tr><td><strong>The Sycophancy Trap</strong></td><td>In follow-ups, agrees with everything instead of pushing back when user is wrong.</td></tr>
+    <tr><td><strong>The Format Break</strong></td><td>Great content in the wrong format. Invalid JSON. Markdown that doesn't render.</td></tr>
+    <tr><td><strong>The Hallucination Bridge</strong></td><td>Has 8 real facts, invents 2 more. The real ones make the fake ones look credible.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h4>Q4: What does "barely acceptable" look like?</h4>
+<p>This is your quality floor. Below this, the output shouldn't reach the user at all. The floor defines your <strong>automated guardrails</strong> &mdash; when output falls below, the system retries, escalates, or shows an error.</p>
+
+<h4>Q5: What separates "good" from "exceptional"?</h4>
+<p>This defines your quality ceiling and tells you where to invest. You won't optimize for exceptional on day one, but knowing what it looks like helps you design evals that detect it.</p>
+
+<h3>The "Good Output" Document Template</h3>
+<p>For each agent job, write one of these:</p>
+<pre><span class="code-kw">## [Job Name] &mdash; Quality Definition</span>
+
+<span class="code-hl">### User Goal</span>
+The user needs _____ so they can _____ without _____.
+
+<span class="code-hl">### Gold Standard</span>
+What the best human would produce: [description]
+
+<span class="code-hl">### Known Failure Modes</span>
+1. [Failure mode] &mdash; how to detect it
+2. [Failure mode] &mdash; how to detect it
+
+<span class="code-hl">### Quality Floor</span> (minimum acceptable)
+- Criterion 1
+- Criterion 2
+
+<span class="code-hl">### Quality Ceiling</span> (exceptional)
+- Characteristic 1
+- Characteristic 2
+
+<span class="code-hl">### Dimensions</span> (what to score)
+1. [Dimension]: [what 1 looks like] ... [what 5 looks like]
+2. [Dimension]: [what 1 looks like] ... [what 5 looks like]</pre>
+
+<div class="callout insight">
+  <div class="callout-title">Key Insight</div>
+  This document IS your eval rubric. Everything that follows &mdash; the code, the judge prompts, the test cases &mdash; all flows from this document. If this document is wrong, everything built on top of it will be wrong.
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 2: EVAL DATASET                   -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase2"><span class="section-num">Chapter 06</span>Phase 2: Building the Eval Dataset</h2>
+
+<p>Your eval is only as good as the inputs you test on. This is where the "science" of evals lives.</p>
+
+<h3>Test Case Anatomy</h3>
+<pre>{
+  <span class="code-str">"input"</span>:    <span class="code-comment">// what you feed the agent</span>
+  <span class="code-str">"context"</span>:  <span class="code-comment">// any additional info (conversation history, etc.)</span>
+  <span class="code-str">"expected"</span>: <span class="code-comment">// properties the output should have (not exact text)</span>
+}</pre>
+
+<h3>The 7 Categories of Test Cases</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Category</th><th>Purpose</th><th>% of Suite</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Happy Path</strong></td><td>Normal, expected use. Establishes baseline.</td><td>40%</td></tr>
+    <tr><td><strong>Edge Cases</strong></td><td>Valid but unusual inputs. Finds broken assumptions.</td><td>20%</td></tr>
+    <tr><td><strong>Adversarial</strong></td><td>Inputs designed to trick or break the agent.</td><td>15%</td></tr>
+    <tr><td><strong>Minimum Viable</strong></td><td>Least possible info. Tests if agent asks or guesses.</td><td>10%</td></tr>
+    <tr><td><strong>Regression</strong></td><td>Past failures you've fixed. "Never again" cases.</td><td>0% &rarr; 15%</td></tr>
+    <tr><td><strong>Category Coverage</strong></td><td>One test per product domain/segment.</td><td>varies</td></tr>
+    <tr><td><strong>Comparison Pairs</strong></td><td>Similar inputs that should produce different outputs.</td><td>5%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Common Mistake</div>
+  Testing only happy-path inputs when your real users send typos, ambiguity, and edge cases. Your eval dataset should represent your <strong>actual users</strong>, not your imagination.
+</div>
+
+<h3>How Many Test Cases?</h3>
+<pre>Starting out:           <span class="code-hl">10&ndash;15</span>  (covers happy path + edges + coverage)
+After 1 month:          <span class="code-hl">25&ndash;30</span>  (add adversarial + minimum + regression)
+After 3 months:         <span class="code-hl">50&ndash;75</span>  (full coverage + regression cases)
+Mature product:         <span class="code-hl">100+</span>   (diminishing returns after 200)</pre>
+
+<p>The <strong>quality</strong> of test cases matters more than quantity. 15 thoughtful cases beat 100 random ones.</p>
+
+<h3>Comparison Pairs (Underused, Powerful)</h3>
+<p>Two similar inputs that should produce different outputs. Tests that the agent actually adapts to context, not running the same template.</p>
+<pre><span class="code-hl">Pair A:</span>
+  Input 1: "Research nike.com, targeting marathon runners"
+  Input 2: "Research nike.com, targeting teenage sneakerheads"
+  <span class="code-comment">&rarr; Same brand, different ICP. Hooks should be completely different.</span>
+
+<span class="code-hl">Pair B:</span>
+  Input 1: "Research supabase.com" (SaaS)
+  Input 2: "Research glossier.com" (Beauty)
+  <span class="code-comment">&rarr; Different categories. Art styles should be different.</span></pre>
+
+<h3>Test Case Maintenance</h3>
+<p>Test cases rot. Quarterly, look at every case and ask:</p>
+<ol>
+  <li>Is this still a realistic input?</li>
+  <li>Is the "expected" still correct?</li>
+  <li>Has the agent been acing this consistently? (If yes, it's not providing signal &mdash; replace with a harder case.)</li>
+</ol>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 3: WRITING RUBRICS                -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase3"><span class="section-num">Chapter 07</span>Phase 3: Writing Rubrics That Actually Work</h2>
+
+<h3>Bad vs. Good Rubric Dimension</h3>
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Useless</div>
+    <p><code>Accuracy: 1 (bad) to 5 (good)</code></p>
+    <p>Every grader interprets "bad" and "good" differently. The LLM judge defaults to 4.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Actionable</div>
+    <p>Each score level has a concrete description, observable criteria, and real examples.</p>
+  </div>
+</div>
+
+<h3>Example: Fully Specified Accuracy Dimension</h3>
+<div class="score-scale">
+  <div class="score-row">
+    <div class="score-num s1">1</div>
+    <div class="score-text"><strong>Failing:</strong> Multiple hallucinated facts. Key numbers wrong. Claims products or features that don't exist. <em>Example: Says the company has 500 employees when they have 50.</em></div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s2">2</div>
+    <div class="score-text"><strong>Poor:</strong> Most facts correct but 2-3 significant errors. Mixes up the company with a competitor on specific points.</div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s3">3</div>
+    <div class="score-text"><strong>Acceptable:</strong> All major facts correct. Minor imprecisions (rounded numbers, slightly outdated). No fabrication. <em>Example: Says "over 100 employees" when actual number is 127.</em></div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s4">4</div>
+    <div class="score-text"><strong>Good:</strong> All facts correct and specific. Numbers match source. Dates and details are precise. No hedging where certainty exists.</div>
+  </div>
+  <div class="score-row">
+    <div class="score-num s5">5</div>
+    <div class="score-text"><strong>Exceptional:</strong> All facts correct AND includes a verified insight requiring synthesis. <em>Example: "Revenue grew 40% YoY while headcount grew 15%, suggesting strong efficiency gains."</em></div>
+  </div>
+</div>
+
+<h3>5 Rules for Writing Rubric Dimensions</h3>
+<ol>
+  <li><strong>Every score level needs a concrete description.</strong> Not just "better" or "worse."</li>
+  <li><strong>Include examples at levels 1, 3, and 5.</strong> These anchor the grading.</li>
+  <li><strong>Make levels mutually exclusive.</strong> A grader should never think "this could be a 3 or a 4."</li>
+  <li><strong>The difference between adjacent levels should be observable.</strong> "3 = facts correct but generic, 4 = facts correct AND specific" is observable.</li>
+  <li><strong>Keep it to 3-6 dimensions.</strong> More than 6 and grading becomes exhausting. If two dimensions always score the same, merge them.</li>
+</ol>
+
+<h3>The 6 Universal Dimensions</h3>
+<p>These work for almost any agentic product. Pick 3-5 that matter most for yours.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Dimension</th><th>Core Question</th><th>What It Catches</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Factual Accuracy</strong></td><td>Can the user trust the information?</td><td>Hallucinations, outdated facts, misattributed quotes</td></tr>
+    <tr><td><strong>Instruction Following</strong></td><td>Did the agent do what was asked?</td><td>Ignored constraints, wrong format, stopping early</td></tr>
+    <tr><td><strong>Specificity</strong></td><td>Is this uniquely about THIS input?</td><td>Generic AI slop, template-feeling output</td></tr>
+    <tr><td><strong>Reasoning Quality</strong></td><td>Does the logic hold up?</td><td>Shallow analysis, unjustified conclusions</td></tr>
+    <tr><td><strong>Appropriate Confidence</strong></td><td>Does confidence match evidence?</td><td>Overconfident hallucinations, missing uncertainty flags</td></tr>
+    <tr><td><strong>Actionability</strong></td><td>Can the user DO something with this?</td><td>Information dump with no next steps</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Weighted Scoring</h3>
+<p>Not all dimensions matter equally. The weights <strong>ARE</strong> your product strategy.</p>
+<pre><span class="code-hl">For a B2C Creative Agent:</span>
+  Specificity:           <span class="code-accent">30%</span>  (generic = useless)
+  Factual Accuracy:      <span class="code-accent">25%</span>  (wrong facts = embarrassing ads)
+  Instruction Following: <span class="code-accent">20%</span>  (6 hooks, right format)
+  Actionability:         <span class="code-accent">15%</span>  (paste-ready copy)
+  Confidence:            <span class="code-accent">10%</span>  (less critical for creative)
+
+<span class="code-hl">For a B2B Sales Research Tool:</span>
+  Factual Accuracy:      <span class="code-accent">30%</span>  (one wrong fact kills credibility)
+  Appropriate Confidence:<span class="code-accent">25%</span>  (user's reputation at stake)
+  Specificity:           <span class="code-accent">20%</span>  (generic research is worthless)
+  Reasoning Quality:     <span class="code-accent">15%</span>  (user needs to understand the "why")
+  Actionability:         <span class="code-accent">10%</span>  (user adapts output themselves)</pre>
+
+<div class="callout insight">
+  <div class="callout-title">Key Insight</div>
+  A product that weights accuracy highest is saying "we're the trustworthy option." A product that weights specificity highest is saying "we're the personalized option." Choose deliberately.
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 4: LLM-AS-JUDGE                   -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase4"><span class="section-num">Chapter 08</span>Phase 4: LLM-as-Judge Mastery</h2>
+
+<p>This is where most implementations fail. Not because the concept is hard, but because the <strong>judge prompt is badly written</strong>.</p>
+
+<h3>The Judge Prompt Structure (5 Parts)</h3>
+<pre><span class="code-kw">PART 1: ROLE</span>
+You are an expert evaluator for [specific domain].
+
+<span class="code-kw">PART 2: CONTEXT</span>
+You will be given:
+- The user's original input/request
+- The AI agent's output
+- [Any reference material needed]
+
+<span class="code-kw">PART 3: RUBRIC</span>
+Evaluate on these dimensions:
+[Full description with examples at levels 1, 3, 5]
+
+<span class="code-kw">PART 4: PROCESS</span>
+For each dimension:
+1. Quote the specific part that supports your rating
+2. Explain why this maps to the score level
+3. Assign the score
+
+<span class="code-kw">PART 5: OUTPUT FORMAT</span>
+Return your evaluation as JSON:
+{ "dimension_1": { "evidence": "...", "reasoning": "...", "score": N } }</pre>
+
+<h3>6 Techniques That Make Judges Reliable</h3>
+
+<h4>Technique 1: Chain-of-Evidence Grading</h4>
+<p>Force the judge to cite evidence FIRST, reason SECOND, score LAST. If it scores first, it rationalizes after.</p>
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Bad</div>
+    <p>"Rate accuracy 1-5."<br>Judge says "4" with no explanation. You can't debug it.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Good</div>
+    <p>"First, list every factual claim. Then for each, state if verifiable or hallucinated. Count the ratio. Finally, assign a score."</p>
+  </div>
+</div>
+
+<h4>Technique 2: Anchored Examples</h4>
+<p>Include real examples of each score level from YOUR product, not abstract descriptions. Dramatically improves consistency.</p>
+
+<h4>Technique 3: Adversarial Decomposition</h4>
+<p>Instead of "is this good?" ask <strong>"what's wrong with this?"</strong></p>
+<pre><span class="code-comment">// Flaw-counting approach:</span>
+"Find flaws. Classify each as:
+ - <span class="code-kw">CRITICAL</span> (wrong info, harmful, missed requirement)
+ - <span class="code-kw">MODERATE</span> (generic, off-tone, minor gaps)
+ - <span class="code-kw">MINOR</span>    (formatting, wordiness, style)
+
+Scoring:
+ 0 critical + 0-1 moderate = <span class="code-hl">5</span>
+ 0 critical + 2-3 moderate = <span class="code-hl">4</span>
+ 0 critical + 4+ moderate  = <span class="code-hl">3</span>
+ 1 critical                = <span class="code-hl">2</span>
+ 2+ critical               = <span class="code-hl">1</span>"</pre>
+
+<div class="callout insight">
+  <div class="callout-title">Why This Works</div>
+  LLMs are biased toward positive ratings. "Is this good?" defaults to "yes." "What's wrong?" produces actual analysis. Flaw-counting is more calibrated than vibes-based scoring.
+</div>
+
+<h4>Technique 4: Reference Comparison</h4>
+<p>When you have a known-good output (golden dataset), give it to the judge as a reference. Instead of interpreting your rubric, it has a concrete example to compare against.</p>
+
+<h4>Technique 5: Multi-Judge Agreement</h4>
+<p>Run the same eval with slightly different judge prompts and compare. If they disagree by 2+ points, flag for human review. Mimics "inter-rater reliability."</p>
+
+<h4>Technique 6: Pairwise Comparison</h4>
+<p>Show the judge TWO outputs and ask which is better. Humans and LLMs are both <strong>much better at comparing than absolute scoring</strong>.</p>
+<p>This is how Chatbot Arena works. It's the most reliable eval method we know of.</p>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 5: STRUCTURAL EVALS               -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase5"><span class="section-num">Chapter 09</span>Phase 5: Structural Evals</h2>
+
+<p>No AI needed. Fast, cheap, deterministic. Run on every output, every time. Your first line of defense.</p>
+
+<h3>The Complete Structural Checklist</h3>
+
+<h4>Format Checks</h4>
+<ul class="checklist">
+  <li>Output is valid JSON / Markdown (where expected)</li>
+  <li>Required fields are present and non-empty</li>
+  <li>No [PLACEHOLDER] text remaining</li>
+  <li>No "As an AI language model..." preamble</li>
+</ul>
+
+<h4>Length Checks</h4>
+<ul class="checklist">
+  <li>Within expected range (not too short = lazy, not too long = rambling)</li>
+  <li>Individual sections within range</li>
+  <li>Token count within budget</li>
+</ul>
+
+<h4>Content Pattern Checks</h4>
+<ul class="checklist">
+  <li>Expected sections/headers present</li>
+  <li>URLs are valid format</li>
+  <li>Dates are valid and recent (not from training data)</li>
+  <li>Numbers are reasonable (no "999,999,999 employees")</li>
+  <li>No duplicate sections</li>
+</ul>
+
+<h4>Safety Checks</h4>
+<ul class="checklist">
+  <li>No PII leaked (regex for email, phone, SSN patterns)</li>
+  <li>No competitor disparagement (if policy prohibits)</li>
+  <li>No unauthorized medical/legal/financial advice</li>
+</ul>
+
+<h3>Use Structural Evals as Production Gates</h3>
+<div class="flow">
+  <div class="flow-step">Agent produces output</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Structural eval runs</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Pass? Show to user</div>
+</div>
+<div class="flow">
+  <div class="flow-step" style="visibility:hidden">Agent produces output</div>
+  <div class="flow-arrow" style="visibility:hidden">&rarr;</div>
+  <div class="flow-step highlight">Structural eval runs</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Fail? Retry or escalate</div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 6: RUNNING EVALS                  -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase6"><span class="section-num">Chapter 10</span>Phase 6: Running Evals</h2>
+
+<h3>The Eval Run Flow</h3>
+<pre>For each test case:
+  <span class="code-hl">1.</span> Feed input to agent
+  <span class="code-hl">2.</span> Collect output (+ intermediate outputs)
+  <span class="code-hl">3.</span> Run structural checks &rarr; pass/fail array
+  <span class="code-hl">4.</span> Run LLM judge &rarr; dimension scores
+  <span class="code-hl">5.</span> Record: {test_case, output, structural, quality, cost, latency}
+
+After all cases:
+  <span class="code-hl">6.</span> Aggregate scores
+  <span class="code-hl">7.</span> Compare to previous run
+  <span class="code-hl">8.</span> Flag regressions
+  <span class="code-hl">9.</span> Generate report</pre>
+
+<h3>Three Run Modes</h3>
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Mode</th><th>What It Does</th><th>Cost</th><th>When</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Full Pipeline</strong></td><td>Run agent end-to-end</td><td>High</td><td>Before major releases, monthly</td></tr>
+    <tr><td><strong>Component</strong></td><td>Feed pre-made inputs to one step</td><td>Low</td><td>When iterating on a specific skill/prompt</td></tr>
+    <tr><td><strong>Cached</strong></td><td>Re-evaluate existing outputs with new rubrics</td><td>Minimal</td><td>When refining evaluation criteria</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Most day-to-day work is Component and Cached.</strong> Full Pipeline is your weekly/monthly sanity check.</p>
+
+<h3>Reading Results: What to Look For</h3>
+
+<h4>1. Trends (Most Important)</h4>
+<pre>              Week 1   Week 2   Week 3   Week 4
+Accuracy:      4.1      4.0      4.2      <span class="code-kw">3.5  &larr; REGRESSION</span>
+Specificity:   3.2      3.5      3.8      <span class="code-str">4.0  &larr; IMPROVING</span>
+Completeness:  4.5      4.5      4.5      4.5  &larr; STABLE</pre>
+
+<h4>2. Distribution (Don't Just Look at Averages)</h4>
+<pre>Scores: [5, 4, 5, 4, 4, 5, 4, 4, 5, <span class="code-kw">2</span>, 4, 5, 4, <span class="code-kw">1</span>, 4, 5, 4, 4, 5, 4]
+
+Average: 4.0 <span class="code-comment">(looks fine!)</span>
+But: 2 cases scored &le;2 <span class="code-comment">(catastrophic failures hiding in the average)</span></pre>
+
+<div class="callout warning">
+  <div class="callout-title">Watch Out</div>
+  Users would rather have consistent 3.5s than a mix of 5s and 1s. <strong>Always look at the distribution, not just the mean.</strong> Variance tells you how reliable your agent is.
+</div>
+
+<h4>3. Per-Category Breakdown</h4>
+<pre>              SaaS    Beauty    Finance
+Accuracy:      4.3      4.1      <span class="code-kw">3.4  &larr; WEAK</span>
+Specificity:   4.0      3.8      <span class="code-kw">3.2  &larr; WEAK</span></pre>
+<p>Your agent might excel at SaaS but struggle with finance. Without category coverage, you'd never know.</p>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 7: PRODUCTION MONITORING           -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase7"><span class="section-num">Chapter 11</span>Phase 7: Production Monitoring</h2>
+
+<p>Evals on test cases tell you how your agent <strong>should</strong> perform. Production monitoring tells you how it <strong>actually</strong> performs.</p>
+
+<h3>Automated Quality Sampling</h3>
+<p>Take 5-10% of real production outputs. Run your eval pipeline on them. Track over time.</p>
+<pre><span class="code-hl">Dashboard:</span>
+  Today's samples: 47
+  Average quality: 4.1 (&darr; 0.1 from yesterday)
+  Below floor: 2 (4.2%)  <span class="code-kw">&larr; investigate these</span>
+  Top dimension: Instruction Following (4.5)
+  Weakest dimension: Specificity (3.6)</pre>
+
+<h3>User Signals as Implicit Evals</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Signal</th><th>What It Means</th></tr></thead>
+  <tbody>
+    <tr><td style="color: var(--success)"><strong>Uses output without editing</strong></td><td>Agent nailed it</td></tr>
+    <tr><td style="color: var(--success)"><strong>Returns for another generation</strong></td><td>Product is valuable</td></tr>
+    <tr><td style="color: var(--success)"><strong>Shares/exports the output</strong></td><td>High quality output</td></tr>
+    <tr><td style="color: var(--success)"><strong>Gives a follow-up</strong></td><td>Trusts the output enough to build on it</td></tr>
+    <tr><td style="color: var(--danger)"><strong>Regenerates immediately</strong></td><td>Output was bad</td></tr>
+    <tr><td style="color: var(--danger)"><strong>Edits heavily after generation</strong></td><td>Close but not good enough</td></tr>
+    <tr><td style="color: var(--danger)"><strong>Abandons mid-generation</strong></td><td>Too slow or off-track</td></tr>
+    <tr><td style="color: var(--danger)"><strong>Doesn't return</strong></td><td>Product didn't deliver value</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout insight">
+  <div class="callout-title">Key Metric</div>
+  The <strong>regeneration rate</strong> is your most important implicit eval. If 30% of users immediately regenerate, your quality bar isn't high enough.
+</div>
+
+<h3>The Closed Feedback Loop</h3>
+<div class="flow">
+  <div class="flow-step">Low score detected</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Investigate root cause</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Fix it</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Add to test suite</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Verify &amp; deploy</div>
+</div>
+
+<p><strong>The PM who runs this loop weekly ships a product that gets better every week.</strong> The PM who doesn't ships a product that randomly degrades.</p>
+
+<!-- ════════════════════════════════════════ -->
+<!-- PHASE 8: ADVANCED TECHNIQUES            -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="phase8"><span class="section-num">Chapter 12</span>Phase 8: Advanced Techniques</h2>
+
+<h3>Technique 1: Contrastive Evals</h3>
+<p>Don't just ask "is this good?" Ask "is this <strong>better</strong> than the alternative?"</p>
+<pre>Run same 20 test cases on Prompt A (current) and Prompt B (new).
+Pairwise comparison for each case: "Which is better?"
+
+Result: <span class="code-hl">"B wins 14/20 cases (70% win rate)"</span>
+
+<span class="code-comment">This is how you make confident decisions about prompt changes.</span></pre>
+
+<h3>Technique 2: Ablation Studies</h3>
+<p>Remove one component and measure the impact. Tells you what's actually driving quality.</p>
+<pre>Full agent (all steps):              Score: <span class="code-hl">4.2</span>
+Remove research (feed random info):  Score: 2.8  <span class="code-comment">&rarr; research adds 1.4 pts</span>
+Use generic hooks (skip hook skill): Score: 3.1  <span class="code-comment">&rarr; hook skill adds 1.1 pts</span>
+Skip art style routing:              Score: 3.7  <span class="code-comment">&rarr; art routing adds 0.5 pts</span></pre>
+<p>Now you know: <strong>research quality is your biggest lever.</strong></p>
+
+<h3>Technique 3: Stress Testing</h3>
+<ul>
+  <li><strong>Token stress:</strong> Brand with an enormous website</li>
+  <li><strong>Speed stress:</strong> 10 simultaneous generations</li>
+  <li><strong>Context stress:</strong> Follow-up that contradicts the original brief</li>
+  <li><strong>Memory stress:</strong> 15 follow-up turns &mdash; does quality degrade?</li>
+  <li><strong>Adversarial stress:</strong> Inject instructions in the brand's website content</li>
+</ul>
+
+<h3>Technique 4: Eval-Driven Development</h3>
+<p>Evals come FIRST, before code. This is TDD for AI.</p>
+<div class="flow">
+  <div class="flow-step highlight">Write eval test cases</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">They all fail</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Build the feature</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Iterate until pass</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Ship</div>
+</div>
+
+<h3>Technique 5: Cross-Model Evals</h3>
+<pre>              Haiku 4.5   Sonnet 4.6   Opus 4.6
+Quality:       3.8         4.3          4.6
+Cost/run:      $0.04       $0.25        $1.50
+Latency:       8 sec       22 sec       45 sec
+Pass rate:     85%         93%          97%</pre>
+
+<div class="callout insight">
+  <div class="callout-title">PM Decision</div>
+  Is the jump from 3.8 to 4.3 worth 6x the cost? Maybe for B2B (accuracy = trust = revenue). Maybe not for B2C (speed matters more). <strong>This is a product decision driven by eval data.</strong>
+</div>
+
+<h3>Technique 6: Meta-Evals (Evaluating Your Evals)</h3>
+<ol>
+  <li>Take 30 production outputs</li>
+  <li>Have 3 humans grade them on your rubric</li>
+  <li>Run your LLM judge on the same 30</li>
+  <li>Compute correlation</li>
+</ol>
+<pre>Correlation &gt; 0.8:   <span class="code-str">Your judge is reliable. Trust it.</span>
+Correlation 0.6-0.8: <span class="code-hl">Decent but some dimensions need work.</span>
+Correlation &lt; 0.6:   <span class="code-kw">Judge is measuring the wrong thing. Rewrite.</span></pre>
+<p>Do this quarterly. The specific thing to check: does the judge agree with humans on the <strong>BAD</strong> outputs?</p>
+
+<!-- ════════════════════════════════════════ -->
+<!-- B2C VS B2B                              -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="b2c-b2b"><span class="section-num">Chapter 13</span>B2C vs B2B: Where Evals Diverge</h2>
+
+<h3>B2C: Eval for Delight and Safety</h3>
+<p>B2C users are non-experts. They trust the AI more. They can't catch mistakes as easily.</p>
+<pre><span class="code-hl">B2C Priority Stack:</span>
+  #1 &mdash; Safety / Hallucination      <span class="code-comment">(users can't verify)</span>
+  #2 &mdash; Calibration                 <span class="code-comment">(must say "I'm not sure")</span>
+  #3 &mdash; Taste / Tone                <span class="code-comment">(emotional experience IS the product)</span>
+  #4 &mdash; Completeness                <span class="code-comment">(users expect it "just works")</span>
+  #5 &mdash; Accuracy                    <span class="code-comment">(important but users are more forgiving)</span></pre>
+
+<div class="callout example">
+  <div class="callout-title">The "Show Your Friend" Test</div>
+  Would the user screenshot this and show someone? If yes, your product is working. If they'd be embarrassed to show it, it's not.
+</div>
+
+<h3>B2B: Eval for Precision and Explainability</h3>
+<p>B2B users are domain experts. They'll catch mistakes. They need to trust the AI enough to stake their professional reputation on it.</p>
+<pre><span class="code-hl">B2B Priority Stack:</span>
+  #1 &mdash; Accuracy                    <span class="code-comment">(experts WILL verify)</span>
+  #2 &mdash; Reasoning Transparency      <span class="code-comment">(need to know WHY, not just WHAT)</span>
+  #3 &mdash; Completeness                <span class="code-comment">(partial work = more work for them)</span>
+  #4 &mdash; Calibration                 <span class="code-comment">(flagging uncertainty shows sophistication)</span>
+  #5 &mdash; Taste / Tone                <span class="code-comment">(professional, not flashy)</span></pre>
+
+<div class="callout example">
+  <div class="callout-title">The "Email Your Boss" Test</div>
+  If a knowledge worker would confidently forward this output to their manager or client as their own work &mdash; you win.
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- EVALUATING AGENTS                       -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="agentic"><span class="section-num">Chapter 14</span>Evaluating Agentic Systems</h2>
+
+<p>Agentic systems are harder to eval than single-turn chatbots. Here's why and what to do.</p>
+
+<h3>The Chain Problem</h3>
+<p>An agent does 5 things in sequence. The final output might look bad, but <strong>where</strong> did it go wrong?</p>
+<pre>            <span class="code-kw">Eval gate</span>       <span class="code-kw">Eval gate</span>       <span class="code-kw">Eval gate</span>
+               &darr;              &darr;              &darr;
+Input &rarr; [Step 1] &rarr; out<sub>1</sub> &rarr; [Step 2] &rarr; out<sub>2</sub> &rarr; [Step 3] &rarr; final output
+                                                             &darr;
+                                                    <span class="code-hl">End-to-end eval</span></pre>
+<p><strong>Solution:</strong> Eval each step independently AND eval the final output. When the final score is low, check which gate failed.</p>
+
+<h3>The Tool Use Problem</h3>
+<p>Agents use tools. The tool might return bad data, and the agent handles it well or poorly.</p>
+<ul>
+  <li>Did it pick the <strong>right tool</strong>?</li>
+  <li>Did it use the tool <strong>correctly</strong>? (good search query vs. vague)</li>
+  <li>Did it handle <strong>tool failures</strong> gracefully?</li>
+  <li>Did it use tools <strong>efficiently</strong>?</li>
+</ul>
+
+<h3>The Multi-Turn Problem</h3>
+<p>Agentic systems have conversations. Turn 5 depends on Turn 3.</p>
+<pre><span class="code-comment">Test case:</span>
+  Turn 1: User says "research Nike"
+  Turn 2: Agent produces research
+  Turn 3: User says "the hooks are too generic, make them edgier"
+  Turn 4: Agent revises
+
+  <span class="code-hl">Eval question:</span> Did Turn 4 actually address Turn 3's feedback?
+  Or did it just regenerate with slight variations?</pre>
+
+<h3>The Cost Problem</h3>
+<p>Track cost per task alongside quality:</p>
+<pre>           Quality    Cost     Latency
+Prompt v1:  3.8       $0.42    45s
+Prompt v2:  4.2       $0.38    38s    <span class="code-str">&larr; better AND cheaper</span>
+Prompt v3:  4.5       $1.20    120s   <span class="code-kw">&larr; better but 3x cost. Worth it?</span></pre>
+<p>That last row is a <strong>PM decision</strong>, not an engineering decision.</p>
+
+<!-- ════════════════════════════════════════ -->
+<!-- COMMUNICATING                            -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="stakeholders"><span class="section-num">Chapter 15</span>Communicating Evals to Stakeholders</h2>
+
+<h3>For Executives</h3>
+<div class="callout example">
+  <div class="callout-title">Template</div>
+  "Our agent quality is <strong>4.1/5</strong> this month, <strong>up from 3.8</strong> last month. The improvement came from [specific change]. Our biggest risk area is [dimension] at 3.4 &mdash; we have a plan to address it by [date]."
+  <br><br>
+  <em>Executives want: trend, cause, risk, plan. One paragraph.</em>
+</div>
+
+<h3>For Engineers</h3>
+<div class="callout example">
+  <div class="callout-title">Template</div>
+  "Specificity dropped from 3.9 to 3.4 after the last prompt change. Here are the 5 test cases that regressed &mdash; cases 3, 7, 12, 15, 19. The pattern: all are finance brands."
+  <br><br>
+  <em>Engineers want: what broke, where, and a hypothesis for why.</em>
+</div>
+
+<h3>For Customers (B2B)</h3>
+<div class="callout example">
+  <div class="callout-title">Template</div>
+  "We evaluate every output across 5 quality dimensions before delivery. Our benchmark suite covers 75 scenarios across 8 industry categories. Our accuracy score is 4.3/5 with a monthly human audit."
+  <br><br>
+  <em>Enterprise customers want: rigor, process, proof.</em>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- 10 COMMANDMENTS                          -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="commandments"><span class="section-num">Chapter 16</span>The 10 Commandments of AI Evals</h2>
+
+<div class="commandment">
+  <div class="commandment-num">1</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">You own the rubric. Engineers own the infrastructure.</div>
+    <div class="commandment-why">Don't delegate "what good looks like" to your eng team. They'll optimize for what's measurable, not what matters.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">2</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Start with 10 test cases, not 100.</div>
+    <div class="commandment-why">A small, well-thought-out test suite beats a large random one. You can always add more.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">3</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Include adversarial cases.</div>
+    <div class="commandment-why">Don't just test the happy path. Test what happens with bad input, missing data, contradictions. That's where agents break.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">4</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Eval the chain, not just the end.</div>
+    <div class="commandment-why">When the final output is bad, you need to know which step broke. Eval intermediate outputs too.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">5</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Calibrate your LLM judge against your own judgment.</div>
+    <div class="commandment-why">Run 20 cases. Score them yourself. Have the judge score them. If you disagree on 30%+, your judge prompt needs work.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">6</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Version everything.</div>
+    <div class="commandment-why">Rubrics evolve. Test cases change. When scores change, you need to know if it's the agent or the rubric that changed.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">7</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Don't eval in a vacuum.</div>
+    <div class="commandment-why">"4.2/5" means nothing alone. What matters: "4.2 this week vs 3.8 last week" or "4.2 vs competitor's 4.5."</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">8</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Beware the sycophantic judge.</div>
+    <div class="commandment-why">LLMs are biased toward positive ratings. Use specific failure criteria, include examples of what a 1 looks like, and use "what's wrong?" prompts alongside "rate this."</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">9</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">Refresh your test cases quarterly.</div>
+    <div class="commandment-why">If test cases never change, you're testing against history, not reality. Add recent production examples.</div>
+  </div>
+</div>
+<div class="commandment">
+  <div class="commandment-num">10</div>
+  <div class="commandment-body">
+    <div class="commandment-rule">The eval score is a conversation starter, not a final answer.</div>
+    <div class="commandment-why">A low score means "look at this." Sometimes the eval is wrong. Sometimes the output is creative in a way the rubric can't capture. Use scores to focus attention.</div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- MATURITY MODEL                           -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="maturity"><span class="section-num">Chapter 17</span>The Eval Maturity Model</h2>
+
+<div class="maturity-card lvl0">
+  <div class="maturity-level">Level 0</div>
+  <div class="maturity-name">Vibes</div>
+  <div class="maturity-desc">You look at outputs and go "seems fine" or "that's bad." No documentation. No consistency. No measurement. <strong>Where most AI products are today.</strong></div>
+</div>
+
+<div class="maturity-card lvl1">
+  <div class="maturity-level">Level 1</div>
+  <div class="maturity-name">Documented Taste</div>
+  <div class="maturity-desc">You've written down what "good" looks like. You have a rubric. You have 10-15 test cases. You grade manually when you remember to.</div>
+  <div class="maturity-time">Takes 1 day to reach</div>
+</div>
+
+<div class="maturity-card lvl2">
+  <div class="maturity-level">Level 2</div>
+  <div class="maturity-name">Repeatable Process</div>
+  <div class="maturity-desc">Structural checks run automatically. LLM judge scores every test case. You run evals when you change prompts or models. You have a baseline and track trends.</div>
+  <div class="maturity-time">Takes 1 week to reach</div>
+</div>
+
+<div class="maturity-card lvl3">
+  <div class="maturity-level">Level 3</div>
+  <div class="maturity-name">Continuous Quality</div>
+  <div class="maturity-desc">Evals run in CI/CD. Production outputs are sampled and auto-evaluated. Regressions caught within days, not weeks. User feedback feeds into the test suite. Cross-model comparisons inform decisions.</div>
+  <div class="maturity-time">Takes 1 month to reach</div>
+</div>
+
+<div class="maturity-card lvl4">
+  <div class="maturity-level">Level 4 &mdash; Top 1%</div>
+  <div class="maturity-name">Eval-Driven Product</div>
+  <div class="maturity-desc">Evals come before features (eval-driven development). Quality scores drive roadmap. Ablation studies inform resource allocation. Meta-evals ensure calibration. <strong>Quality is a competitive moat, not a checkbox.</strong></div>
+  <div class="maturity-time">Ongoing discipline</div>
+</div>
+
+<!-- ════════════════════════════════════════ -->
+<!-- THE ACCT FRAMEWORK                      -->
+<!-- ════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="action-plan"><span class="section-num">Chapter 18</span>Your Action Plan</h2>
+
+<h3>The ACCT Framework</h3>
+<p>Four dimensions that work for any AI product. Use this as your starting rubric.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Letter</th><th>Dimension</th><th>Core Question</th></tr></thead>
+  <tbody>
+    <tr><td style="font-weight:700;color:var(--coral)">A</td><td><strong>Accuracy</strong></td><td>Is every factual claim verifiable?</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral)">C</td><td><strong>Completeness</strong></td><td>Did it do the whole job, or just part?</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral)">C</td><td><strong>Calibration</strong></td><td>Does it know what it doesn't know?</td></tr>
+    <tr><td style="font-weight:700;color:var(--coral)">T</td><td><strong>Taste</strong></td><td>Does the output feel right for your product?</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Week-by-Week Plan</h3>
+
+<pre><span class="code-hl">Week 1:</span>  Map your agent's jobs (the chain)
+         Write a rubric for the most important job
+         Create 10 test cases
+
+<span class="code-hl">Week 2:</span>  Run the 10 cases manually, score them
+         You now have a baseline
+         Identify the weakest dimension
+
+<span class="code-hl">Week 3:</span>  Turn rubric into an LLM-as-judge prompt
+         Run same 10 cases with the judge
+         Calibrate judge vs. your own scores
+
+<span class="code-hl">Week 4:</span>  Expand to 25 test cases
+         Add adversarial/edge cases
+         Run weekly as you iterate
+
+<span class="code-hl">Month 2:</span> Add structural (code) checks
+         Build a script that runs all cases
+         Eval each step in the chain separately
+
+<span class="code-hl">Month 3:</span> Connect to production &mdash; sample real runs
+         Build a dashboard (even a spreadsheet)
+         You're now running the feedback loop</pre>
+
+<div class="callout insight" style="margin-top: 40px;">
+  <div class="callout-title">The Bottom Line</div>
+  <p style="font-size: 17px; margin-bottom: 0;">Evals are not a technical implementation detail. They are <strong>the primary way you steer an AI product</strong>. In traditional software, you steer with feature specs and bug tickets. In AI products, you steer with eval rubrics and quality scores.</p>
+  <br>
+  <p style="font-size: 17px; margin-bottom: 0;"><strong>The PM who controls the evals controls the product.</strong></p>
+</div>
+
+<div style="text-align: center; padding: 64px 0 0; color: var(--ink-muted); font-size: 13px;">
+  <div style="width: 40px; height: 2px; background: var(--coral); margin: 0 auto 16px;"></div>
+  Built for PMs who vibecode.<br>
+  &copy; 2026 &middot; AI PM Eval Masterclass
+</div>
+
+</div><!-- /content -->
+</div><!-- /main -->
+
+<!-- Back to Top -->
+<button class="back-to-top" id="backToTop" onclick="window.scrollTo({top:0})">&#8593;</button>
+
+<script>
+// Progress bar
+const progressFill = document.getElementById('progressFill');
+function updateProgress() {
+  const scrollTop = window.scrollY;
+  const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+  const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+  progressFill.style.width = pct + '%';
+}
+
+// Back to top
+const backToTop = document.getElementById('backToTop');
+function updateBackToTop() {
+  backToTop.classList.toggle('visible', window.scrollY > 600);
+}
+
+// Active nav link
+const navLinks = document.querySelectorAll('.nav-link');
+const sections = [];
+navLinks.forEach(link => {
+  const id = link.getAttribute('href')?.slice(1);
+  if (id) {
+    const el = document.getElementById(id);
+    if (el) sections.push({ id, el, link });
+  }
+});
+
+function updateActiveNav() {
+  const scrollY = window.scrollY + 120;
+  let current = sections[0];
+  for (const s of sections) {
+    if (s.el.offsetTop <= scrollY) current = s;
+  }
+  navLinks.forEach(l => l.classList.remove('active'));
+  if (current) current.link.classList.add('active');
+}
+
+// Throttled scroll handler
+let ticking = false;
+window.addEventListener('scroll', () => {
+  if (!ticking) {
+    requestAnimationFrame(() => {
+      updateProgress();
+      updateBackToTop();
+      updateActiveNav();
+      ticking = false;
+    });
+    ticking = true;
+  }
+});
+
+// Close mobile sidebar on nav click
+navLinks.forEach(link => {
+  link.addEventListener('click', () => {
+    if (window.innerWidth <= 960) {
+      document.getElementById('sidebar').classList.remove('open');
+    }
+  });
+});
+
+// Init
+updateProgress();
+updateActiveNav();
+</script>
+</body>
+</html>

@@ -1,0 +1,1827 @@
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PART 1: HERO + 5 QUESTIONS + PHASE 0 (Ch 01-02) + Ch 03     -->
+<!-- This is the content inside <div class="main"><div class="content"> -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<!-- ═══ HERO ═══ -->
+<div class="hero">
+  <div class="hero-badge">v3 &mdash; Complete Rewrite for the Agentic Era</div>
+  <h1>The AI PM<br><em>Eval Masterclass</em></h1>
+  <p>From zero to expert. First principles. Agentic products. The complete guided journey.</p>
+  <div class="hero-meta">
+    <span>37 chapters</span><span>&middot;</span><span>~90 min read</span><span>&middot;</span><span>Agentic Focus</span>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- THE 5 QUESTIONS THAT SOLVE EVERYTHING                         -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<div style="margin-top: 56px;">
+
+<h2 style="margin-top: 0;"><span class="section-num">Before We Begin</span>The 5 Questions That Solve Everything</h2>
+
+<p>This document is for <strong>product managers working on AI products</strong> &mdash; or preparing to. Whether you're an experienced PM transitioning into an AI role, a new PM at an AI-native company, or a founder wearing the PM hat on your AI product, this document will take you from zero to confident. No prior AI evaluation experience required. No ML background necessary. Just product sense and willingness to learn.</p>
+
+<p>Before a single chapter, technique, or framework &mdash; I want to give you the entire document in five questions. If you internalize nothing else, internalize these. They will structure every decision you make as an AI PM for the rest of your career.</p>
+
+<p>But first, let me put you in the situation that makes them necessary.</p>
+
+<h3>The Scenario</h3>
+
+<p>It's your first week. You just joined as AI PM at a mid-stage startup. The company has an AI agent in production &mdash; maybe it handles customer support tickets, maybe it generates marketing copy, maybe it researches leads and writes outbound emails. The specifics don't matter yet. What matters is this:</p>
+
+<p><strong>Users are complaining.</strong> Support tickets mention "the AI gave me wrong information." A churned customer's exit survey says "the AI-generated content was embarrassing." Your sales team stopped using the AI outbound feature two months ago because "it makes us look dumb." A tweet with 2,000 likes calls your product "confidently wrong."</p>
+
+<p>In your onboarding, you ask the engineering team: "How's the AI quality trending?" They show you a latency dashboard. "Responses are fast," they say. "P50 is under 2 seconds." You clarify: "No &mdash; the <em>quality</em>. Is the content getting better or worse?" Silence. Shrugs. "It seems fine to us."</p>
+
+<p>Your CEO walks into your first 1:1 and asks a simple question:</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Question That Changes Everything</div>
+  <strong>"Is the AI getting better or worse?"</strong><br><br>
+  You have no idea. Nobody does. There are no measurements. No one has ever systematically checked the AI's output quality. The engineering team occasionally tries a few prompts by hand and says "seems fine." The previous PM shipped prompt changes based on "I tested it a few times and it felt better."<br><br>
+  There is no dashboard. There is no score. There is no history of quality over time. There is no way to know if last week's prompt change improved things or made them worse. There is no way to know if the new model version the team wants to upgrade to will help or hurt. There is no way to know which user complaints are outliers and which represent a systemic failure.<br><br>
+  <strong>Your job is to fix this. From zero.</strong>
+</div>
+
+<p>This is not a hypothetical. This is the actual situation at the majority of companies shipping AI products today. A 2025 LangChain survey of 1,300+ practitioners found that <strong>57% of organizations have AI agents in production, but only 37% run systematic evaluations.</strong> That means more than a third of all companies with AI in production have no rigorous way to know if their AI is improving or degrading. Most AI products are flying blind.</p>
+
+<p>The good news: fixing this is not as hard as it sounds. It doesn't require a PhD in machine learning. It doesn't require building custom infrastructure from scratch. It doesn't require hiring a team of ML engineers. It comes down to five questions, asked in order, answered with discipline and product judgment. Answer them and you have an eval system. Skip any one of them and no amount of tooling, dashboards, or infrastructure will save you.</p>
+
+<p>These five questions will take you from "I have no idea if the AI is improving" to "I can show you the trendline, the specific improvements, and the areas we're investing in next." That's the transformation that turns an AI feature into an AI product.</p>
+
+<p>Let me show you what answering these questions produces. Here's the before and after:</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Before (No 5 Questions)</div>
+    <p>"The AI is, uh, pretty good I think? Users seem to like it mostly. We got some complaints but I'm not sure if that's normal."</p>
+    <p>No data. No direction. No credibility.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">After (5 Questions Answered)</div>
+    <p>"Our agent performs 5 tasks. Accuracy is at 88% across all tasks, up from 72% in January. Task 3 (hook generation) has a specificity problem &mdash; 23% of hooks are too generic. I'm targeting 90% non-generic by end of quarter with a prompt change I've already tested at 87%."</p>
+    <p>Data. Direction. Credibility.</p>
+  </div>
+</div>
+
+<h3>The 5 Questions</h3>
+
+<p>Here they are. Read them once now. You'll see them referenced throughout the entire document, in every chapter, for every technique. They are the skeleton that everything hangs on.</p>
+
+<pre>
+<span class="code-comment">  The 5 Questions That Solve Everything</span>
+<span class="code-comment">  ======================================</span>
+
+<span class="code-keyword">  Q1</span>  <span class="code-string">What is the agent supposed to DO?</span>
+<span class="code-comment">      Break the product into discrete jobs. Map every task.</span>
+<span class="code-comment">      "Our agent takes a brand URL, researches the brand, writes</span>
+<span class="code-comment">       6 ad hooks, generates art direction, and produces 6 images."</span>
+<span class="code-comment">      That's 5 jobs. Each one needs its own eval.</span>
+<span class="code-comment">      Phase 1: Map</span>
+
+<span class="code-keyword">  Q2</span>  <span class="code-string">How can it FAIL at each job?</span>
+<span class="code-comment">      For each task, enumerate the specific ways it can go wrong.</span>
+<span class="code-comment">      Research can be factually wrong. Hooks can be generic.</span>
+<span class="code-comment">      Art direction can ignore the brand's visual identity.</span>
+<span class="code-comment">      Images can have artifacts, wrong aspect ratios, or text errors.</span>
+<span class="code-comment">      Phase 2: Observe</span>
+
+<span class="code-keyword">  Q3</span>  <span class="code-string">What does SUCCESS look like, precisely?</span>
+<span class="code-comment">      Define rubrics. Turn "good" into a number.</span>
+<span class="code-comment">      "A score of 4/5 on brand alignment means the hook references</span>
+<span class="code-comment">       at least 2 specific brand attributes from the research."</span>
+<span class="code-comment">      Phase 3: Define</span>
+
+<span class="code-keyword">  Q4</span>  <span class="code-string">How do I DETECT failure automatically?</span>
+<span class="code-comment">      Build evals that run without you in the room.</span>
+<span class="code-comment">      Structural checks, LLM-as-judge, human review pipelines.</span>
+<span class="code-comment">      Every prompt change triggers the suite. Every failure is caught.</span>
+<span class="code-comment">      Phases 4-6: Design + Build + Validate</span>
+
+<span class="code-keyword">  Q5</span>  <span class="code-string">How do I use detection to IMPROVE the product?</span>
+<span class="code-comment">      Close the loop: detect failure, diagnose root cause,</span>
+<span class="code-comment">      fix the prompt or model, verify the fix with evals, ship.</span>
+<span class="code-comment">      Then add the failure to the suite so it never regresses.</span>
+<span class="code-comment">      Phases 7+: Ship + Iterate</span>
+</pre>
+
+<h3>The Logical Chain</h3>
+
+<p>These five questions aren't just a list. They form a dependency chain where each question's answer creates the foundation for the next:</p>
+
+<div class="flow">
+  <div class="flow-step highlight">Q1: What does it DO?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Q2: How can it FAIL?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Q3: What is SUCCESS?</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Q4: DETECT failure</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Q5: IMPROVE</div>
+</div>
+
+<p>You can't define failure modes (Q2) until you've mapped the jobs (Q1) &mdash; because you don't know <em>what</em> can fail until you know what the agent is trying to do. You can't define success (Q3) until you know the failure modes (Q2) &mdash; because "success" is partly defined as "the absence of these specific failures." You can't build automated detection (Q4) until you've precisely defined what success looks like (Q3) &mdash; because a detector needs a target. And detection is pointless without a process to act on it (Q5) &mdash; because detecting problems you never fix just gives you an anxiety dashboard.</p>
+
+<p>Skip a step and the chain breaks. The most common mistake is jumping straight to Q4 &mdash; buying an eval platform and building automated tests &mdash; without answering Q1-Q3 first. You end up with automated tests that measure the wrong things with false precision. You have numbers. The numbers look scientific. The dashboard looks impressive. But the numbers don't tell you what matters, because you never defined what matters.</p>
+
+<div class="callout warning">
+  <div class="callout-title">The Q4 Trap: Premature Automation</div>
+  This is the #1 mistake we see in AI product teams. A PM joins, sees there are no evals, and immediately:
+  <ol>
+    <li>Buys a $249/month eval platform</li>
+    <li>Writes 20 test cases in an afternoon</li>
+    <li>Hooks it into CI/CD</li>
+    <li>Presents a dashboard to leadership</li>
+  </ol>
+  The dashboard shows numbers. Leadership is impressed. But the test cases were written without systematic error analysis (skipped Q2), the rubrics are vague ("is the output good? 1-5" &mdash; skipped Q3), and the quality dimensions don't reflect what users actually care about (skipped Q1).<br><br>
+  Three months later, the eval scores are trending up but user complaints haven't decreased. The evals are measuring "things the PM thought to test" which isn't the same as "things that actually fail in production." The PM automated the wrong checks.<br><br>
+  <strong>The fix:</strong> always go Q1 &rarr; Q2 &rarr; Q3 &rarr; Q4 &rarr; Q5. In order. No shortcuts. The first three questions are cheap (they're thinking, not building). The last two are expensive (infrastructure and process). Do the cheap thinking first so the expensive building targets the right things.
+</div>
+
+<h3>Each Question Is a Phase of Maturity</h3>
+
+<p>Notice something about these 5 questions: they also represent a <em>maturity journey</em>. A team that can answer Q1 but not Q2 is at the "we know what our agent does but we don't know how it fails" stage. A team that can answer Q1-Q3 but not Q4 is at "we know what good looks like but we check it manually" stage. A team that can answer all five is running a mature, automated eval practice.</p>
+
+<p>Most teams you'll encounter are stuck at Q1 or earlier &mdash; they haven't even formally mapped what their agent does, let alone how it fails. Moving from "stuck at Q1" to "solid through Q3" takes about 2-3 weeks of focused PM work. That's the highest-ROI investment in this entire document. Getting from Q3 to Q5 (full automation and feedback loop) takes another 4-6 weeks with engineering support. In total, you can go from zero to a functioning eval practice in under two months.</p>
+
+<h3>How This Document Maps to the 5 Questions</h3>
+
+<p>Every chapter in this document is a detailed answer to one or more of these questions. Here's the map, so you always know where you are:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Question</th><th>Phase</th><th>Chapters</th><th>What You'll Learn</th></tr></thead>
+  <tbody>
+    <tr>
+      <td style="font-weight: 700; color: var(--coral);">Q1: What does it DO?</td>
+      <td>Phase 1: Map</td>
+      <td>Ch 03-05</td>
+      <td>Task decomposition, the ACCT framework, agent complexity spectrum</td>
+    </tr>
+    <tr>
+      <td style="font-weight: 700; color: var(--coral);">Q2: How can it FAIL?</td>
+      <td>Phase 2: Observe</td>
+      <td>Ch 06-09</td>
+      <td>Error analysis, failure taxonomies, the OpenAI flywheel, hallucination patterns</td>
+    </tr>
+    <tr>
+      <td style="font-weight: 700; color: var(--coral);">Q3: What is SUCCESS?</td>
+      <td>Phase 3: Define</td>
+      <td>Ch 10-14</td>
+      <td>Rubric design, scoring scales, datasets, golden answers, domain-specific criteria</td>
+    </tr>
+    <tr>
+      <td style="font-weight: 700; color: var(--coral);">Q4: DETECT failure</td>
+      <td>Phases 4-6: Design, Build, Validate</td>
+      <td>Ch 15-25</td>
+      <td>Structural evals, LLM-as-judge, human review, production monitoring, CI/CD integration</td>
+    </tr>
+    <tr>
+      <td style="font-weight: 700; color: var(--coral);">Q5: IMPROVE</td>
+      <td>Phases 7+: Ship, Iterate</td>
+      <td>Ch 26-37</td>
+      <td>Prompt iteration, model selection, A/B testing, governance, scaling, career</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout success">
+  <div class="callout-title">The Promise of This Document</div>
+  <strong>Every single technique in all 37 chapters is a detailed answer to one of these 5 questions.</strong> Rubric design? That's Q3. LLM-as-judge? That's Q4. Production monitoring? That's Q4 + Q5. Error analysis? That's Q2. Task decomposition? That's Q1.<br><br>
+  If you internalize these 5 questions deeply enough, you can figure out the rest from first principles. You could close this document right now, walk into your company, and start asking these questions in order &mdash; and you'd make progress. The remaining chapters just make it faster. They give you the specific techniques, real examples, math, and battle-tested patterns that other AI PMs have already discovered, so you don't have to reinvent them.<br><br>
+  Let's start with Phase 0: understanding the world you're operating in. Before we answer any of the 5 Questions, you need to understand <em>why</em> these questions are necessary in the first place &mdash; what makes AI products fundamentally different from everything you've built before.
+</div>
+
+<h3>How to Read This Document</h3>
+
+<p>A quick note on structure before we dive in. This document is long &mdash; 37 chapters, roughly 90 minutes of reading. You don't have to read it in one sitting. But it's designed to be read <strong>in order</strong>, at least the first time through. Each chapter ends by creating the need for the next chapter. Concepts build on each other. If you skip ahead, you'll miss foundations that later chapters assume.</p>
+
+<p>That said, here are some legitimate shortcuts:</p>
+
+<ul>
+  <li><strong>If you already understand LLMs, tokens, and prompts:</strong> skip Chapter 02 (the vocabulary chapter). Everything else assumes you know those concepts.</li>
+  <li><strong>If you need to build an eval this week and can't wait:</strong> read the 5 Questions above, then jump to Chapter 11 ("Your First Eval in 30 Minutes"). Come back to fill in the theory later. The 5 Questions give you enough framework to start.</li>
+  <li><strong>If you're preparing for an interview:</strong> the 5 Questions, Chapter 03 (Why Evals Are the PM's Job), and Chapter 26 (Landing the AI PM Job) are your highest-ROI chapters.</li>
+  <li><strong>If you already have an eval system and want to make it better:</strong> start at Phase 4 (Chapter 15) where we cover advanced detection techniques, then jump to Phase 7 (Chapter 26) for the improvement loop.</li>
+</ul>
+
+<p>For everyone else: start at Phase 0, read in order, and let the story carry you. The chapters are short. The examples are real. The transitions will tell you where we're going and why.</p>
+
+<p>One more thing: this document is opinionated. It's not a balanced survey of "different approaches" where every method is presented equally. It draws from the best practices of practitioners who've actually shipped and evaluated AI products at scale &mdash; teams at Anthropic, OpenAI, Duolingo, Perplexity, Notion, and dozens of smaller companies. Where practitioners disagree, I'll note the disagreement. But where they converge (and they converge more than you'd expect), I'll present the consensus as the recommended approach. Life is short. You need to build evals, not read a textbook.</p>
+
+</div>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 0: ORIENT                                                -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+
+<div style="margin: 48px 0 32px; padding: 24px 0; border-bottom: 1px solid var(--border);">
+  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral); margin-bottom: 8px;">Phase 0</div>
+  <div style="font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px;">Orient</div>
+  <div style="font-size: 15px; color: var(--ink-light); margin-top: 8px;">Understand the world you're in before you try to change it.</div>
+</div>
+
+
+<p>Phase 0 has two chapters. Chapter 01 explains <em>why</em> agents are fundamentally different from traditional software &mdash; the thing that makes evaluation necessary. Chapter 02 gives you the 7 vocabulary terms you'll need for the rest of the document. Together, these two chapters take about 15 minutes and give you the foundation everything else builds on.</p>
+
+<p>If you're already building AI products and understand the basics of LLMs, you might be tempted to skip Phase 0 and jump to the "real" content. I'd recommend against it. Chapter 01 in particular introduces a way of <em>thinking</em> about agent failures that will reframe how you approach every evaluation technique in later chapters. Even experienced practitioners tell us they found new mental models in this chapter.</p>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 01: WHAT MAKES AGENTS DIFFERENT                             -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2 id="ch01"><span class="section-num">Chapter 01</span>What Makes Agents Different</h2>
+
+<p>Before we talk about evaluating AI, we need to talk about why evaluating AI is fundamentally unlike anything product managers have done before. This isn't a minor difference &mdash; like switching from testing mobile apps to testing web apps. It's a completely different category of problem, and if you don't understand <em>why</em> it's different, you'll reach for the wrong tools at every step.</p>
+
+<p>Here's the first-principles insight that everything else in this document builds on:</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Foundational Insight</div>
+  <strong>Traditional software either works or crashes. AI software "works" &mdash; it just might work badly. And "badly" is invisible.</strong><br><br>
+  When a login button breaks, you get a 500 error. When a payment fails, you get an exception. When a database query returns wrong results, the page looks obviously wrong. Traditional software failures are <em>loud</em>. They announce themselves. They trigger error logs, crash reports, status pages, PagerDuty alerts, and red dashboards.<br><br>
+  AI failures are <em>silent</em>. The system returns HTTP 200. The response is grammatically perfect English. It has proper formatting, reasonable sentence structure, and a confident tone. The user reads it and assumes it's correct. There is no stack trace. There is no crash report. There is no red banner. The failure is embedded in the <em>meaning</em> of the content itself, and only a human who already knows the right answer can spot it.
+</div>
+
+<p>Sit with that for a moment. Think about what it means for your daily work.</p>
+
+<p>In traditional product management, you know when something breaks because the system tells you. Your monitoring fires. Your error rates spike. Users hit error pages. PagerDuty wakes up the on-call engineer. The signal is clear, immediate, and unambiguous. You can react.</p>
+
+<p>In AI product management, the system never tells you anything is wrong. Your monitoring shows healthy latency, high uptime, 200-status responses. Your error rate is a flat 0%. Your availability is 99.9%. Everything is green. Dashboards look great. The weekly infrastructure report is pristine.</p>
+
+<p>Meanwhile, your AI is:</p>
+<ul>
+  <li>Confidently telling users that Notion was founded in 2016 (it was 2013)</li>
+  <li>Recommending a competitor's product by name (because the training data mentioned it)</li>
+  <li>Generating marketing copy with made-up statistics (because the model learned that numbers sound persuasive)</li>
+  <li>Giving different refund policy answers to different users (because of non-determinism)</li>
+  <li>Writing emails in the wrong tone for the brand (formal when it should be casual)</li>
+  <li>Saying "I'm not sure, but..." in situations where it should be confident, and being confident in situations where it should hedge</li>
+</ul>
+
+<p>The users know something is wrong. They're churning, complaining, losing trust, tweeting screenshots. But your dashboards say everything is fine. There is no alert to trigger, because from the system's perspective, nothing happened. HTTP 200. Response generated. Request complete. Success.</p>
+
+<p>This invisibility gap &mdash; between the system's apparent health and its actual quality &mdash; is the reason the entire discipline of AI evaluation exists. If AI failures looked like software bugs, we could use traditional testing. They don't, so we can't.</p>
+
+<p>Let's get specific about exactly how this breaks down.</p>
+
+<h3>The 4 Ways AI Broke Testing</h3>
+
+<p>For three decades, software testing has worked because of a few reliable assumptions that we've taken for granted: outputs are deterministic, failures are visible, components are independent, and test assertions can use exact comparisons. AI products violate every one of these assumptions simultaneously.</p>
+
+<h4>Breakage #1: It returns grammatically perfect but wrong answers</h4>
+
+<p>Ask Perplexity "When was Notion founded?" and it might respond:</p>
+
+<div class="callout example">
+  <div class="callout-title">A Typical AI Response</div>
+  <em>"Notion was founded in 2016 by Ivan Zhao, who set out to create an all-in-one workspace for notes, tasks, and collaboration. The company initially struggled to find product-market fit but eventually grew into one of the most popular productivity tools, valued at over $10 billion."</em>
+</div>
+
+<p>That sentence is polished. It has a date, a name, a founding mission, a growth narrative. It reads like a well-sourced encyclopedia entry. It's also wrong &mdash; Notion was founded in 2013, not 2016. But unless you already know the correct founding date, you'd have no reason to question it. The response doesn't <em>look</em> wrong. It doesn't <em>feel</em> wrong. It just <em>is</em> wrong.</p>
+
+<p>In traditional software, wrong outputs look wrong. A null pointer error crashes the program. A database returning no results shows an empty page. A broken calculation displays a clearly impossible number. These failures are self-announcing.</p>
+
+<p>AI failures are self-concealing. The model wraps incorrect information in the same confident, well-structured prose it uses for correct information. There's no visual or structural difference between a right answer and a wrong answer. The wrongness lives in the semantic content, not in the format.</p>
+
+<p>This means you can't write <code>assertEquals(response, correctAnswer)</code> when the response is a 200-word paragraph and the "correct answer" is a range of acceptable paragraphs that could vary in phrasing, structure, emphasis, detail level, and word choice. The old testing paradigm assumed outputs were exact values you could compare with equality operators. AI outputs are open-ended natural language that requires <em>judgment</em> to evaluate.</p>
+
+<p>And it gets worse. The model doesn't just get facts wrong &mdash; it gets them wrong in exactly the way a human expert would present correct facts. It uses the same confident tone, the same supporting details, the same authoritative structure. The wrongness is <em>indistinguishable from correctness in form</em>. Only the content differs. This is why researchers call them "hallucinations" &mdash; the model generates something that looks and feels real but isn't.</p>
+
+<div class="callout example">
+  <div class="callout-title">The Confidence Problem</div>
+  Ask a traditional database: "What's the population of Atlantis?"<br>
+  Response: <code>ERROR: No matching records found for 'Atlantis' in city_population table.</code><br>
+  Clear, honest, useful. You know the system doesn't have this information.<br><br>
+
+  Ask an LLM: "What's the population of Atlantis?"<br>
+  Response: <em>"The legendary city of Atlantis, first described by Plato in approximately 360 BC, was said to have a population of roughly 1.2 million inhabitants at its peak, organized into ten districts each governed by a descendant of Poseidon."</em><br><br>
+
+  That number (1.2 million) is completely fabricated. Plato never specified a population. But the response is detailed, specific, and confident. It sounds like it's quoting a source. A user with no background in classical history would accept it as fact. A student might cite it in a paper. A content creator might publish it.<br><br>
+
+  <strong>This is the core challenge of AI evaluation: the system's failure mode is producing plausible-sounding fiction.</strong>
+</div>
+
+<h4>Breakage #2: It gives different answers each day</h4>
+
+<p>Run the same unit test 100 times in traditional software and you get the same result 100 times. That's the entire point of deterministic testing &mdash; and the foundation that makes the entire testing ecosystem trustworthy. If a test passes today, it'll pass tomorrow, next week, and next year (unless you change the code).</p>
+
+<p>Now run the same prompt through an LLM 100 times. You'll get 100 different responses. Different word choices. Different sentence structures. Different levels of detail. Sometimes different facts. Monday the model says Notion was founded in 2013 (correct). Tuesday it says 2012. Wednesday it says 2013 again but gets the founder's first name wrong.</p>
+
+<p>This non-determinism has two sources. First, the <strong>temperature</strong> setting introduces controlled randomness (more on this in Chapter 02). Even at temperature 0 &mdash; the setting that minimizes randomness &mdash; there's still some variation due to floating-point arithmetic and hardware differences. Second, <strong>model updates</strong> are invisible and ongoing. The model provider updates infrastructure, adjusts weights, fine-tunes on new data, and your exact same prompt silently starts behaving differently. There's no changelog. There's no release note. The model you tested last Tuesday is not the same model running today.</p>
+
+<p>For testing, this means your evals can't check for exact matches. They have to check for <em>properties</em> of the output: Does it contain the correct date? Is it under 200 words? Does it mention the source material? Did it avoid making unsupported claims? This is a fundamentally harder testing problem than exact comparison, and it requires fundamentally different tools and thinking.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Property-Based vs. Value-Based Testing</div>
+  <strong>Value-based testing</strong> (traditional software): <code>assert result == 42</code><br>
+  The test checks if the output is a specific exact value. Binary. Clear. Fast.<br><br>
+  <strong>Property-based testing</strong> (AI products): <code>assert output mentions the refund policy AND is under 200 words AND doesn't mention competitors AND has an empathetic tone</code><br>
+  The test checks multiple properties of a fuzzy output. Each property check might itself be fuzzy (how do you check "empathetic tone" with code?). The output can vary wildly in phrasing while still satisfying all properties.<br><br>
+  This shift from value-based to property-based testing is the foundation of everything in this document. Chapters 14-15 dive deep into the specific techniques for checking properties (structural checks, LLM-as-judge), but the concept is this: <strong>you're checking WHAT the output does, not WHAT the output says.</strong><br><br>
+
+  Some properties can be checked with simple code (<em>structural evals</em>): "Is it under 200 words?" "Does it contain a URL?" "Is the JSON valid?" These are fast, cheap, and deterministic.<br><br>
+
+  Other properties require judgment (<em>LLM-as-judge evals</em>): "Is the tone empathetic?" "Is the answer factually correct?" "Is the recommendation specific to this user's situation?" For these, you use another LLM as a judge &mdash; a model that reads the output and scores it against your rubric. Both approaches are covered in detail later.
+</div>
+
+<h4>Breakage #3: 95% great, 5% catastrophic</h4>
+
+<p>This is the most dangerous pattern in AI products, and the one most PMs underestimate &mdash; often until it's too late.</p>
+
+<p>During development, you test your AI feature. You try 20 different inputs. The outputs are consistently excellent &mdash; smart, well-structured, accurate, on-brand. Your demo to the CEO goes perfectly. The investor pitch goes perfectly. Your beta testers (who are usually power users and early adopters &mdash; the easiest audience) give it rave reviews. You feel confident. Your team is excited. You ship it.</p>
+
+<p>Then 50,000 real users interact with it in the first week. These aren't power users. They're not early adopters who give you the benefit of the doubt. They're ordinary people with ordinary expectations and zero tolerance for AI mistakes. And 2,500 of them &mdash; the unlucky 5% &mdash; hit cases the model handles badly.</p>
+
+<p>What makes up that 5%? All the things you wouldn't think to test:</p>
+<ul>
+  <li>Slang, abbreviations, and informal language the model misinterprets</li>
+  <li>Niche topics where the model's training data is thin</li>
+  <li>Question phrasings that accidentally trigger hallucinations</li>
+  <li>Languages or dialects the model handles less fluently</li>
+  <li>Multi-part questions where the model answers the first part and forgets the second</li>
+  <li>Ambiguous queries where the model picks the wrong interpretation</li>
+  <li>Questions that accidentally hit the boundary between two system prompt rules</li>
+  <li>Context-dependent questions that require information the model doesn't have</li>
+  <li>Follow-up questions in conversations where the context window is getting full</li>
+  <li>Adversarial or edge-case inputs that nobody on the team would naturally type</li>
+</ul>
+
+<p>The 95% gives you false confidence. It makes every demo look great, every internal test look green, every stakeholder review feel positive. The 5% generates your support tickets, your Twitter storms, your trust damage, and your churn. And 2,500 angry users is not a rounding error. It's a crisis &mdash; especially when those users screenshot the failures and share them publicly.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Discord's Clyde Bot</div>
+  Discord launched Clyde, an AI chatbot available in servers, in early 2023. The product was ambitious: an AI friend that could hang out in Discord servers, answer questions, tell jokes, play games, and participate in conversations.<br><br>
+  For the vast majority of interactions, Clyde worked well. It was witty, on-topic, and helpful. It handled casual conversation with surprising fluency. The 95% was genuinely good &mdash; good enough that millions of users interacted with it regularly.<br><br>
+  But in the other 5%, Clyde told a user experiencing depression to harm themselves. It made offensive jokes about protected groups when prompted in certain ways. It generated sexually inappropriate content in servers where minors were present. It gave dangerously wrong medical advice with complete confidence.<br><br>
+  No error was logged. No crash was reported. No alert fired. The system returned 200 OK for every one of these responses. Clyde was working <em>technically</em> while failing <em>catastrophically</em>.<br><br>
+  Discord shut Clyde down entirely in December 2023. Not because the average quality was bad &mdash; the average quality was good. Because the tail-end failures were unacceptable, and the team had no systematic way to catch them before users did.<br><br>
+  <strong>What would evals have changed?</strong> A suite of 50 adversarial test cases, run on every prompt change:
+  <ul>
+    <li>"What should I do if I'm feeling really down?" (25 phrasings)</li>
+    <li>"Tell me a joke about [protected group]" (10 phrasings)</li>
+    <li>"I'm 13 and I want to know about [sensitive topic]" (10 phrasings)</li>
+    <li>"Give me medical advice about [symptom]" (5 phrasings)</li>
+  </ul>
+  If even <em>one</em> response across those 50 test cases is harmful, the eval fails and the change doesn't ship. That's a few hours of work &mdash; maybe a day with iteration &mdash; that would have saved the entire product.
+</div>
+
+<p>The lesson isn't "Discord was careless." They had a talented team and good intentions. The lesson is that <strong>the 5% failure zone is invisible to normal testing.</strong> You can test 20 inputs by hand and get 20 perfect results &mdash; because your 20 inputs are the "normal" inputs you'd naturally think to test. The 21st input &mdash; the one you didn't think to try, the one that comes from a user in a state of mind you didn't anticipate &mdash; is the one that ends up on Twitter.</p>
+
+<p>Systematic evaluation exists specifically to find these tail failures before your users do. And finding them requires <em>intentionally</em> testing the weird, adversarial, edge-case inputs that normal development never encounters.</p>
+
+<div class="callout math">
+  <div class="callout-title">The Math of 5% Failure</div>
+  Let's make the 95/5 problem visceral with numbers:<br><br>
+  <strong>Your product has 10,000 daily active users.</strong> Each user makes an average of 3 AI requests per day. That's 30,000 AI interactions daily.<br><br>
+  At a 5% failure rate, that's <strong>1,500 bad outputs per day.</strong><br><br>
+  Even if only 10% of users who get a bad output bother to complain, that's <strong>150 support tickets per day</strong> about AI quality.<br><br>
+  Even if only 1% post about it publicly, that's <strong>15 negative public mentions per day.</strong><br><br>
+  Over a month, that's <strong>450 public complaints.</strong> Enough to define your brand perception. Enough to show up when prospects Google your product name.<br><br>
+  And remember: the entire time this is happening, your latency dashboard shows everything is green. Your error rate is 0%. Your uptime is 99.9%. Because from an infrastructure perspective, nothing is wrong. The failures are in the <em>content</em>, invisible to traditional monitoring.
+</div>
+
+<h4>Breakage #4: Fixing Task A breaks Task B</h4>
+
+<p>In traditional software, fixing the checkout flow doesn't break the search feature. They're separate code paths, separate functions, separate database queries, separate tests. Fix one component and the others keep working. This modularity is so fundamental to software engineering that we take it for granted &mdash; it's the basis of microservices, separation of concerns, and the entire architecture of modern applications.</p>
+
+<p>AI doesn't work this way.</p>
+
+<p>Your AI product has <strong>one brain</strong> &mdash; the model plus its system prompt &mdash; that handles <em>everything</em>. Every task your product performs flows through the same system prompt, the same model weights, the same context. They share a single cognitive substrate. And when you change any part of that substrate, everything it touches is affected.</p>
+
+<p>Some real examples of this cross-contamination:</p>
+<ul>
+  <li>You improve the system prompt to make customer support responses more <strong>empathetic</strong>. The same change makes the bot less <strong>concise</strong> &mdash; it now adds emotional language to factual answers where users just want the quick answer.</li>
+  <li>You add instructions to stop the model from <strong>hallucinating about medical topics</strong>. The model starts <strong>hedging on everything</strong> &mdash; including cooking questions, travel recommendations, and product descriptions &mdash; making it seem uncertain and untrustworthy across the board.</li>
+  <li>You fine-tune the model to be more <strong>formal</strong> for enterprise customers. The <strong>casual chat</strong> feature loses its charm and starts sounding like a corporate memo.</li>
+  <li>You add few-shot examples for one use case, pushing important context out of the context window for another use case. Quality degrades on the second use case for no apparent reason.</li>
+</ul>
+
+<p>This phenomenon is called <strong>regression</strong>, and it's the most operationally painful aspect of AI product work. Every improvement must be checked against <em>everything else the system does</em>. Without a comprehensive eval suite that covers all your product's tasks, you're playing whack-a-mole in the dark &mdash; fix one thing, break another, don't realize the breakage for weeks because the breakage is in the 5% tail of a different feature.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Empathy Regression</div>
+  A B2B SaaS company had an AI support bot handling three types of requests: billing questions, feature questions, and technical troubleshooting.<br><br>
+  They received feedback that the bot was "too cold" on billing questions &mdash; users felt like they were talking to a wall when asking about charges. The PM added this instruction to the system prompt: <em>"Show empathy and understanding when users have concerns about billing. Acknowledge their frustration before providing the answer."</em><br><br>
+  The billing responses improved dramatically. Users loved the new warmth. NPS for billing interactions jumped 15 points.<br><br>
+  But three weeks later, the team noticed a new pattern in support tickets: "The bot keeps asking how I feel when I just need the API rate limit." The empathy instruction had leaked into <em>all</em> response types. Technical troubleshooting answers now started with "I understand how frustrating it can be when you encounter API rate limiting..." before providing the HTTP 429 documentation. Developers hated it. Completion time for technical tickets increased 40%.<br><br>
+  <strong>A regression test suite would have caught this immediately.</strong> After changing the prompt, you run 30 billing test cases (improved? yes) AND 30 technical test cases (regressed? yes, conciseness score dropped 20%). The fix: scope the empathy instruction to billing-specific contexts. Rerun suite. Both pass. Ship.
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Why These 4 Breakages Are Your Problem</div>
+  These aren't abstract engineering concerns. They're directly your concerns as a PM:<br><br>
+  <strong>Breakage #1</strong> (invisible errors) means <strong>you can't trust demos.</strong> The AI might look perfect in your stakeholder review and embarrass users the same afternoon.<br><br>
+  <strong>Breakage #2</strong> (non-determinism) means <strong>you can't trust one-off testing.</strong> Testing 5 inputs once tells you almost nothing about real-world quality.<br><br>
+  <strong>Breakage #3</strong> (5% catastrophic) means <strong>you can't trust your development-phase confidence.</strong> The product you tested is not the product 50,000 users will experience.<br><br>
+  <strong>Breakage #4</strong> (regression) means <strong>you can't trust that shipping an improvement actually improved things.</strong> It might have improved one dimension while degrading three others.<br><br>
+  Without evals, you have no trustworthy signal about your own product's quality. Every product decision is based on vibes. And vibes are how you get Clyde.
+</div>
+
+
+<h3>Traditional Testing vs. AI Evaluation: A Side-by-Side</h3>
+
+<p>Let's crystallize the four breakages into a direct comparison. This table captures the paradigm shift you're navigating:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Dimension</th><th>Traditional Software Testing</th><th>AI Product Evaluation</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>What you check</strong></td>
+      <td>Exact output values. <code>result == 42</code></td>
+      <td>Properties of fuzzy output. "Is it accurate? Is the tone right?"</td>
+    </tr>
+    <tr>
+      <td><strong>Determinism</strong></td>
+      <td>Same input always produces same output.</td>
+      <td>Same input produces different outputs each time.</td>
+    </tr>
+    <tr>
+      <td><strong>Failure visibility</strong></td>
+      <td>Failures crash, throw errors, show error pages.</td>
+      <td>Failures look identical to successes (HTTP 200, polished text).</td>
+    </tr>
+    <tr>
+      <td><strong>Component isolation</strong></td>
+      <td>Fix one module, others unaffected.</td>
+      <td>Improve one task, others may degrade.</td>
+    </tr>
+    <tr>
+      <td><strong>Who can judge</strong></td>
+      <td>A computer. Pass/fail is objective.</td>
+      <td>Requires human judgment (or an LLM simulating human judgment).</td>
+    </tr>
+    <tr>
+      <td><strong>Test speed</strong></td>
+      <td>Milliseconds per test.</td>
+      <td>Seconds to minutes per test (API calls + judge calls).</td>
+    </tr>
+    <tr>
+      <td><strong>Test cost</strong></td>
+      <td>Essentially free (CPU cycles).</td>
+      <td>Real money ($0.01-$0.10 per test case if using LLM judges).</td>
+    </tr>
+    <tr>
+      <td><strong>Coverage confidence</strong></td>
+      <td>100% code coverage = high confidence.</td>
+      <td>No equivalent of "100% coverage." There's always a prompt you didn't test.</td>
+    </tr>
+    <tr>
+      <td><strong>Regression detection</strong></td>
+      <td>Run the same tests. If they pass, no regression.</td>
+      <td>Even passing tests might miss regression (non-determinism). Need statistical checks.</td>
+    </tr>
+    <tr>
+      <td><strong>Who typically owns it</strong></td>
+      <td>Engineering / QA.</td>
+      <td>Should be PM. (That's Chapter 03.)</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every row in this table represents a mental model shift. If you're coming from traditional PM, some of these shifts feel uncomfortable. "The test costs real money?" Yes. "I can't get 100% coverage?" No. "The same test might pass today and fail tomorrow?" Correct. Welcome to AI evaluation. It's harder. It's also more important, because the stakes are higher &mdash; AI products touch users at a scale and intimacy that traditional software rarely matches.</p>
+
+<h3>Quick Checkpoint: Why These Breakages Aren't Obvious</h3>
+
+<p>You might be wondering: "These seem obvious. Wouldn't any smart team catch these?" The answer is no, and there's a reason why.</p>
+
+<p>In traditional software, teams develop strong intuitions about failure modes over decades. Every engineer knows to check for null pointers, off-by-one errors, race conditions, and SQL injection. These failure modes are well-cataloged, well-taught, and well-tooled. The software industry has had 50+ years to build institutional knowledge about what goes wrong.</p>
+
+<p>AI products are less than 3 years old in production at scale. The institutional knowledge doesn't exist yet. The failure modes aren't cataloged in any CS curriculum. There's no "OWASP Top 10" for AI quality issues (though one is forming &mdash; and this document contributes to it). The tooling is nascent and evolving monthly. Most teams building AI products are encountering these breakages for the first time, in production, with real users. They're learning by getting burned.</p>
+
+<p>This creates an interesting dynamic: the PMs who develop AI eval intuition now are building a skill that will be standard in 5 years but is rare today. You're not late to the party. You're early. The knowledge you build now, while the field is still forming, will compound for the rest of your career.</p>
+
+<p>This document is an attempt to transfer hard-won knowledge from practitioners who've already been burned. The four breakages above aren't theoretical &mdash; they're the patterns that emerged from studying dozens of AI product failures, reading hundreds of post-mortems, and talking to practitioners who shipped, failed, learned, and shipped again. The examples are real (some anonymized to protect the companies involved). The patterns are consistent.</p>
+
+<h3>The Agent Spectrum</h3>
+
+<p>Now let's add another layer of complexity. Not all AI products are created equal. There's a spectrum of autonomy, and where your product sits on that spectrum dramatically changes how much evaluation surface you need to cover.</p>
+
+<p>Think of it like vehicles. A bicycle, a car, and a self-driving truck all get you from A to B. But the testing required for each is vastly different. You can safety-test a bicycle in an afternoon. A car requires thousands of crash tests, emissions tests, brake tests, and road tests. A self-driving truck requires all of that <em>plus</em> testing every possible road condition, weather pattern, pedestrian behavior, and sensor failure mode. More autonomy means exponentially more things that can go wrong.</p>
+
+<p>AI products have a similar spectrum:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Level</th><th>Architecture</th><th>Example</th><th>What You Evaluate</th><th>Eval Difficulty</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>1. Single LLM Call</strong></td>
+      <td>Input &rarr; one model call &rarr; output</td>
+      <td>Notion AI "Summarize"</td>
+      <td>The output</td>
+      <td style="color: var(--success); font-weight: 600;">Low</td>
+    </tr>
+    <tr>
+      <td><strong>2. Tool-Augmented</strong></td>
+      <td>Input &rarr; model decides which tools to call &rarr; tools return data &rarr; model synthesizes output</td>
+      <td>Perplexity (searches web, then answers)</td>
+      <td>The output + tool selection + source quality</td>
+      <td style="color: var(--warning); font-weight: 600;">Medium</td>
+    </tr>
+    <tr>
+      <td><strong>3. Multi-Step Pipeline</strong></td>
+      <td>Input &rarr; Step 1 (LLM) &rarr; Step 2 (LLM) &rarr; ... &rarr; output. Steps are code-orchestrated.</td>
+      <td>Lead research: find company &rarr; identify contacts &rarr; draft email</td>
+      <td>Each step independently + the final output + step-to-step coherence</td>
+      <td style="color: #E87040; font-weight: 600;">High</td>
+    </tr>
+    <tr>
+      <td><strong>4. Autonomous Agent</strong></td>
+      <td>Input &rarr; agent decides its own steps, tools, loops, retries. Code defines capabilities, agent decides strategy.</td>
+      <td>Creative campaign agent: research brand, write hooks, generate images</td>
+      <td>Everything above + the agent's strategy and decisions + resource usage + recovery from errors</td>
+      <td style="color: var(--danger); font-weight: 600;">Very High</td>
+    </tr>
+    <tr>
+      <td><strong>5. Multi-Agent</strong></td>
+      <td>Multiple autonomous agents collaborating, communicating, delegating, reviewing each other's work.</td>
+      <td>Coding system: planner agent + coder agent + reviewer agent + test writer agent</td>
+      <td>Everything above + inter-agent communication + delegation quality + coordination</td>
+      <td style="color: var(--danger); font-weight: 600;">Extreme</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Let's visualize how the evaluation surface grows with each level:</p>
+
+<pre>
+<span class="code-comment">  Evaluation Surfaces by Agent Level</span>
+<span class="code-comment">  ===================================</span>
+
+<span class="code-keyword">  Level 1</span>  <span class="code-string">Single LLM Call</span>
+<span class="code-comment">  ┌─────────┐     ┌──────────┐     ┌──────────┐</span>
+<span class="code-comment">  │  Input  │ ──▶ │  Model   │ ──▶ │  Output  │</span>
+<span class="code-comment">  └─────────┘     └──────────┘     └──────────┘</span>
+<span class="code-hl">  Eval surfaces: 1 (the output)</span>
+
+<span class="code-keyword">  Level 2</span>  <span class="code-string">Tool-Augmented</span>
+<span class="code-comment">  ┌─────────┐     ┌──────────┐     ┌──────────┐     ┌──────────┐</span>
+<span class="code-comment">  │  Input  │ ──▶ │  Model   │ ──▶ │  Tools   │ ──▶ │  Output  │</span>
+<span class="code-comment">  └─────────┘     └──────────┘     └──────────┘     └──────────┘</span>
+<span class="code-hl">  Eval surfaces: 3 (tool selection + tool results + final output)</span>
+
+<span class="code-keyword">  Level 3</span>  <span class="code-string">Multi-Step Pipeline</span>
+<span class="code-comment">  ┌─────────┐     ┌────────┐     ┌────────┐     ┌────────┐     ┌──────────┐</span>
+<span class="code-comment">  │  Input  │ ──▶ │ Step 1 │ ──▶ │ Step 2 │ ──▶ │ Step 3 │ ──▶ │  Output  │</span>
+<span class="code-comment">  └─────────┘     └────────┘     └────────┘     └────────┘     └──────────┘</span>
+<span class="code-hl">  Eval surfaces: N+1 (each step + final output + step coherence)</span>
+
+<span class="code-keyword">  Level 4</span>  <span class="code-string">Autonomous Agent</span>
+<span class="code-comment">  ┌─────────┐     ┌──────────────────────────────────────────┐     ┌──────────┐</span>
+<span class="code-comment">  │  Input  │ ──▶ │  Agent Loop                              │ ──▶ │  Output  │</span>
+<span class="code-comment">  └─────────┘     │  ┌──────┐  ┌──────┐  ┌──────┐  ┌──────┐ │     └──────────┘</span>
+<span class="code-comment">                  │  │Plan  │──│Act   │──│Check │──│Retry │ │</span>
+<span class="code-comment">                  │  └──────┘  └──────┘  └──────┘  └──────┘ │</span>
+<span class="code-comment">                  │  ┌──────┐  ┌──────┐                     │</span>
+<span class="code-comment">                  │  │Tools │  │Memory│                     │</span>
+<span class="code-comment">                  │  └──────┘  └──────┘                     │</span>
+<span class="code-comment">                  └──────────────────────────────────────────┘</span>
+<span class="code-hl">  Eval surfaces: Many (strategy + each action + tool use + recovery</span>
+<span class="code-hl">                       + resource usage + intermediate outputs + final output)</span>
+</pre>
+
+<p><strong>Why does this spectrum matter for evals?</strong> Because each level adds evaluation surfaces that didn't exist at the previous level.</p>
+
+<p>At Level 1, there is one input and one output. You evaluate the output. Done. The eval surface is a single point.</p>
+
+<p>At Level 2, the output might be wrong not because the LLM is bad, but because it <strong>searched for the wrong thing</strong>. Perplexity might give you a perfect-sounding answer about the wrong Notion (the calendar app instead of the workspace app) because it chose a bad search query. You need to evaluate the tool selection, not just the final text.</p>
+
+<p>At Level 3, each step of the pipeline can fail independently, and failures compound. The lead research tool might find the right company (Step 1 passes) but identify the wrong decision-maker (Step 2 fails). The resulting email (Step 3) is beautifully written, perfectly personalized, and sent to someone who has nothing to do with the purchase decision. The final output looks great. It's useless. You need to evaluate each step separately <em>and</em> the final result &mdash; because a great final output can mask intermediate failures that will bite you on different inputs.</p>
+
+<p>At Levels 4 and 5, you need to evaluate all of the above, <strong>plus the agent's decision-making</strong>. Did it choose the right strategy? Did it know when a tool call failed and need to retry? Did it spend your API budget wisely? Did it know when to stop iterating? Did it recover gracefully from unexpected errors? Did it get stuck in an infinite loop? Did it ask clarifying questions when it should have, or did it barrel ahead on assumptions?</p>
+
+<p>The evaluation surface doesn't just grow linearly &mdash; it grows exponentially. Here's a rough way to think about it:</p>
+
+<div class="callout math">
+  <div class="callout-title">Eval Surface by Level (Rough Estimates)</div>
+  <strong>Level 1:</strong> ~3 eval dimensions (accuracy, format, tone). A suite of 20-50 test cases covers you well.<br><br>
+  <strong>Level 2:</strong> ~5 eval dimensions (add tool selection, source quality). 50-100 test cases for solid coverage.<br><br>
+  <strong>Level 3:</strong> ~3 dimensions per step &times; N steps + integration dimensions. For a 3-step pipeline: ~12 eval dimensions. 100-200 test cases.<br><br>
+  <strong>Level 4:</strong> Everything in Level 3 + strategy evaluation + resource usage + error recovery + decision quality. Could be 15-20+ eval dimensions. 200-500 test cases for comprehensive coverage.<br><br>
+  <strong>Level 5:</strong> Everything in Level 4 &times; number of agents + inter-agent communication + coordination quality. Enterprise teams report needing 500-1000+ test cases.<br><br>
+  These are approximate. The exact number depends on your product's complexity. But the exponential growth pattern is consistent: each level roughly doubles the eval surface of the previous level.
+</div>
+
+<div class="callout example">
+  <div class="callout-title">Two Real Products, Same Principles, Different Complexity</div>
+  <strong>Intercom's AI support bot</strong> (Level 2): Takes a customer question, searches the help center knowledge base, returns an answer. You evaluate three things:
+  <ol>
+    <li>Did it find the right help article? (tool selection)</li>
+    <li>Is the answer factually correct? (accuracy)</li>
+    <li>Is the tone appropriate for customer support? (taste)</li>
+  </ol>
+  Three evaluation dimensions. Manageable.<br><br>
+
+  <strong>A creative campaign agent</strong> (Level 4): Takes a brand URL, autonomously researches the brand, decides which brand attributes matter most, writes 6 different ad hooks using different psychological frameworks (stat, story, FOMO, curiosity, callout, contrast), generates art direction for each hook, and produces 6 images. You evaluate:
+  <ol>
+    <li>Is the brand research factually accurate?</li>
+    <li>Did the agent identify the right brand positioning?</li>
+    <li>Are the hooks psychologically distinct (not all variations of the same idea)?</li>
+    <li>Does each hook follow its assigned psychological framework?</li>
+    <li>Is each hook specific to <em>this</em> brand (not generic copy)?</li>
+    <li>Does the art direction align with the brand's visual identity?</li>
+    <li>Are the generated images technically sound (no artifacts, correct aspect ratio)?</li>
+    <li>Do the images match the art direction described?</li>
+    <li>Are any images off-brand or potentially offensive?</li>
+    <li>Did the agent make reasonable strategic decisions throughout?</li>
+  </ol>
+  Ten or more evaluation dimensions, several requiring understanding of intermediate outputs. A fundamentally harder problem.<br><br>
+
+  <strong>But here's the key insight:</strong> Both products follow the same 5 Questions. You still ask: What does it do? How can it fail? What does success look like? How do I detect failure? How do I use detection to improve? The questions scale. The techniques scale. Only the number of evaluation surfaces changes.
+</div>
+
+
+<h3>The Hidden Failure Mode: Cascading Errors</h3>
+
+<p>There's a failure mode unique to Level 3+ systems that deserves its own callout, because it's the one that catches the most experienced PMs off guard.</p>
+
+<p>In a multi-step pipeline, errors don't just happen &mdash; they <strong>cascade and amplify</strong>. A small error in Step 1 can produce a larger error in Step 2, which produces a catastrophic error in Step 3. And the final output might look perfectly polished, because the last step is usually a "polish and format" step that makes everything sound confident and professional.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; A Lead Research Pipeline</div>
+  Consider a Level 3 pipeline that researches leads for a sales team:
+  <ol>
+    <li><strong>Step 1: Company research.</strong> Given "Acme Corp," the agent searches the web and creates a company profile. But it finds information about the wrong Acme Corp &mdash; a small hardware store in Ohio instead of the enterprise software company in San Francisco. <em>Small error: wrong entity.</em></li>
+    <li><strong>Step 2: Contact identification.</strong> Based on the Step 1 profile, the agent identifies decision-makers. It finds the owner of the Ohio hardware store. <em>Medium error: wrong person, compounded from Step 1.</em></li>
+    <li><strong>Step 3: Personalized email.</strong> The agent writes a beautifully crafted, highly personalized outbound email referencing the hardware store's "commitment to quality tools" and "25 years serving the Ohio community." <em>Catastrophic error: your sales rep sends a hardware store pitch to an enterprise CTO.</em></li>
+  </ol>
+  The final email is well-written. The personalization is specific and detailed. The tone is professional. If you only evaluate the final output for quality of writing, it scores a 5/5. But the entire pipeline failed because of a disambiguation error in Step 1.<br><br>
+  <strong>This is why multi-step agents need evals at EACH step, not just the final output.</strong> If you only check the end, you'll never find the root cause of failures. You'll try to fix the email template when the real problem is the company research.
+</div>
+
+<p>Cascading errors are especially insidious because they look like random quality problems. Some emails are great (the right company was found in Step 1) and some are terrible (the wrong company was found). The failure rate seems unpredictable. If you only look at the final output, you'll think "the email writing quality varies a lot" and try to fix Step 3. But the email writing is fine &mdash; the research is wrong. The root cause is in Step 1, but the symptom appears in Step 3.</p>
+
+<p>Without step-by-step evals, you'll never see this pattern. You'll spend weeks optimizing the email template (Step 3) when the real problem is company disambiguation (Step 1). This is one of the most common time-wasting patterns in agent product development.</p>
+
+<pre>
+<span class="code-comment">  Cascading Error: How a Small Error Becomes a Big Failure</span>
+<span class="code-comment">  ========================================================</span>
+
+<span class="code-comment">  Step 1: Company Research</span>
+<span class="code-keyword">    Input:</span>  <span class="code-string">"Research Acme Corp"</span>
+<span class="code-comment">    Expected: Acme Corp (enterprise SaaS, San Francisco, $50M ARR)</span>
+<span class="code-accent">    Actual:   Acme Hardware (retail, Ohio, family business)</span>
+<span class="code-comment">    Error magnitude: SMALL (wrong entity selected)</span>
+
+<span class="code-comment">  Step 2: Contact Identification</span>
+<span class="code-keyword">    Input:</span>  <span class="code-string">Company profile from Step 1 (wrong company)</span>
+<span class="code-comment">    Expected: CTO, VP Engineering at SaaS company</span>
+<span class="code-accent">    Actual:   Owner of hardware store</span>
+<span class="code-comment">    Error magnitude: MEDIUM (wrong person, compounded)</span>
+
+<span class="code-comment">  Step 3: Personalized Email</span>
+<span class="code-keyword">    Input:</span>  <span class="code-string">Contact + company profile from Steps 1-2</span>
+<span class="code-comment">    Expected: Enterprise SaaS pitch to a CTO</span>
+<span class="code-accent">    Actual:   Hardware store pitch to a store owner</span>
+<span class="code-comment">    Error magnitude: CATASTROPHIC (completely wrong email sent)</span>
+
+<span class="code-keyword">    Email quality score: 5/5</span>  <span class="code-comment">(well-written, personalized, compelling)</span>
+<span class="code-accent">    Email usefulness:    0/5</span>  <span class="code-comment">(sent to wrong person about wrong company)</span>
+</pre>
+
+<p>The eval lesson: <strong>evaluate each step independently AND the final output.</strong> A passing score on the final output does not mean the pipeline worked correctly. And if you only evaluate the final output, you'll misdiagnose failures every time &mdash; "fixing" the symptom while the root cause persists.</p>
+
+<p>In practice, this means your eval suite for a Level 3+ agent should include:</p>
+
+<ul>
+  <li><strong>Step-level evals:</strong> Test each step in isolation. Give Step 2 a known-good Step 1 output and check if Step 2 performs correctly. This isolates each step's quality.</li>
+  <li><strong>Integration evals:</strong> Run the full pipeline end-to-end and check the final output. This catches errors that only emerge from step interactions.</li>
+  <li><strong>Tracing evals:</strong> For autonomous agents, log every decision the agent made, every tool call, and every intermediate output. Review the trace, not just the result. A correct final answer reached through a lucky accident is a ticking time bomb &mdash; it will produce wrong answers on different inputs where the luck doesn't hold.</li>
+</ul>
+
+<p>We'll cover the specific techniques for each of these in later chapters. For now, the key takeaway is that the evaluation surface grows with autonomy, and your evaluation strategy must grow with it.</p>
+
+<h3>The Industry Is Moving Toward Agents</h3>
+
+<p>If your product is currently at Level 1 or 2, you might think the agent complexity doesn't apply to you. It will &mdash; and sooner than you expect.</p>
+
+<p>The 2025 LangChain survey found that the top investment priority for AI teams is "moving to more agentic architectures." The industry is shifting from simple LLM calls to autonomous agents. Your Level 1 summarization feature today will likely be part of a Level 3 pipeline next quarter, or feeding into a Level 4 agent next year.</p>
+
+<p>This shift is being driven by a simple economic reality: single LLM calls are becoming commoditized. Everyone has "AI-powered summarization." Everyone has "AI-generated responses." The differentiation is moving to agents that can do <em>multi-step work autonomously</em> &mdash; things that take humans hours or days, compressed into minutes. Research, analysis, creation, iteration, quality review &mdash; all in one flow.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Agent Shift</div>
+  <strong>2023:</strong> AI features were mostly Level 1. "Summarize this document." "Write a reply to this email." "Generate a product description." Single input, single output, one API call.<br><br>
+  <strong>2024:</strong> Products moved to Level 2-3. Perplexity searches the web and synthesizes (Level 2). GitHub Copilot reads your entire codebase before suggesting (Level 2). Customer support bots retrieve knowledge base articles then answer (Level 2). Lead research tools chain multiple LLM calls (Level 3).<br><br>
+  <strong>2025-2026:</strong> Level 4 agents are going mainstream. Coding agents that plan, write, test, and debug autonomously (Devin, Claude Code). Research agents that gather information from multiple sources and produce reports. Creative agents that research a brand and produce complete campaign packages. Each of these makes 10-50 LLM calls per user request.<br><br>
+  <strong>The eval challenge scales with this shift.</strong> A Level 1 product needs 20-50 test cases. A Level 4 agent might need 200-500 test cases to cover the same percentage of its behavior. The PMs who build eval foundations now will be ready. The ones who don't will be scrambling.
+</div>
+
+<p>The LangChain survey also revealed the <strong>top reported challenge</strong> for teams deploying agents: "quality and performance of outputs." Not cost (second). Not latency (third). Not engineering complexity (fourth). <strong>Output quality</strong> is the number one concern. That's an eval problem. That's your problem. And it's the problem this entire document teaches you to solve.</p>
+
+<h3>So What Is Evaluation, Exactly?</h3>
+
+<p>Given everything above, let's define evaluation precisely, from first principles:</p>
+
+<div class="callout definition">
+  <div class="callout-title">Definition</div>
+  <strong>Evaluation (evals)</strong> = automated quality checks for AI output. They replace "I tried it a few times and it seemed fine" with systematic, repeatable, quantified measurement. They are to AI what unit tests are to code &mdash; except the outputs are fuzzy natural language, so the checks must be fuzzy too.<br><br>
+  More precisely: an eval is a <strong>test case</strong> (a specific input) + a <strong>rubric</strong> (a definition of what "good" looks like for the output) + an <strong>automated scorer</strong> (something that grades the output against the rubric without a human in the loop).
+</div>
+
+<p>Here's a simple eval for a customer support bot, to make this concrete:</p>
+
+<pre>
+<span class="code-comment">  A Single Eval Test Case</span>
+<span class="code-comment">  ========================</span>
+
+<span class="code-keyword">  Input:</span>       <span class="code-string">"How do I cancel my subscription?"</span>
+
+<span class="code-keyword">  Rubric:</span>
+<span class="code-comment">    Accuracy:     Must mention the Settings → Billing → Cancel path</span>
+<span class="code-comment">    Completeness: Must mention the 30-day refund window</span>
+<span class="code-comment">    Tone:         Professional and empathetic, not robotic</span>
+<span class="code-comment">    Safety:       Must NOT mention competitor products</span>
+
+<span class="code-keyword">  Scorer:</span>      <span class="code-string">LLM-as-judge (Chapter 15) or structural check (Chapter 14)</span>
+
+<span class="code-keyword">  Pass if:</span>     <span class="code-accent">All four criteria met</span>
+</pre>
+
+<p>One eval test case. Now imagine 150 of these, covering happy paths, edge cases, adversarial inputs, long conversations, and regression tests for previous failures. Run them all every time you change the prompt. That's an eval suite. And that's what turns vibes-based AI product development into data-driven AI product development.</p>
+
+<h3>The Implication</h3>
+
+<p>You now understand three things that most PMs building AI products don't:</p>
+
+<ol>
+  <li><strong>AI failures are invisible by default.</strong> Traditional monitoring won't catch them. You need a fundamentally different approach &mdash; one that checks the <em>content</em> of outputs, not just whether outputs were generated.</li>
+  <li><strong>The 4 breakages</strong> (invisible errors, non-determinism, 5% catastrophic failures, cross-task regression) mean traditional testing is insufficient. You need evaluation &mdash; fuzzy, judgment-based, multi-dimensional quality checks &mdash; not just testing.</li>
+  <li><strong>More autonomy = exponentially more evaluation surface.</strong> The agent spectrum means your eval investment must scale with product complexity. A Level 4 agent with no evals is a liability, not an asset.</li>
+</ol>
+
+<p>These three points are the "why" behind everything that follows. When a technique later in this document seems elaborate or time-consuming, come back to this chapter and remember: the alternative is flying blind, hoping your users don't find the failures first, and answering "is the AI getting better or worse?" with a shrug.</p>
+
+<div class="callout insight">
+  <div class="callout-title">Chapter 01 in One Sentence</div>
+  AI products fail silently, non-deterministically, catastrophically in the tail, and regressively when you try to fix them &mdash; and the more autonomous the agent, the more surface area there is for all four failure modes. Evaluation is the discipline of making these invisible failures visible before your users find them.
+</div>
+
+<p>And here's the encouraging part: while the problem is fundamentally different from traditional testing, the solution is learnable. You don't need a PhD. You don't need to understand transformer architectures or attention mechanisms. You need product judgment (you already have this), a systematic approach (this document gives you one), and consistency (that's on you). The rest is technique, and technique can be taught.</p>
+
+<p>Before we dive into the mechanics, you need a small vocabulary &mdash; seven concepts that will come up throughout every chapter of this document. They take about five minutes. If you're already comfortable with tokens, prompts, and models, skip ahead to Chapter 03.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 02: THE 7 CONCEPTS YOU NEED                                 -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<hr class="section-divider">
+<h2 id="ch02"><span class="section-num">Chapter 02</span>The 7 Concepts You Need (5 Minutes)</h2>
+
+<p>Chapter 01 gave you the "why" &mdash; why AI evaluation is fundamentally different from traditional software testing, and why the problem gets harder as products get more autonomous. Now you need the "what" &mdash; the vocabulary.</p>
+
+<p>This is the fastest chapter in the document. Seven concepts, each with a definition and a real-world anchor. Five minutes of reading that will prevent five hours of confusion later.</p>
+
+<p>A note on depth: I'm deliberately keeping each concept brief. Each one could fill its own chapter &mdash; and in some AI courses, they do. But you don't need deep expertise in these topics to be an effective AI PM. You need working knowledge: enough to make decisions, communicate with engineering, and understand eval results. That's what this chapter gives you.</p>
+
+<p>If you're already comfortable with tokens, prompts, temperature, context windows, API calls, models, and prompt engineering &mdash; skip ahead to Chapter 03. No ego involved. But most PMs transitioning into AI roles have at least one or two gaps in this vocabulary, and those gaps tend to surface at the worst possible time (like when your CEO asks why the AI "forgot" something mid-conversation and you can't explain context windows, or when the CFO questions the AI budget and you can't explain token economics).</p>
+
+<h3>1. Tokens: How AI Reads and Bills</h3>
+
+<p>LLMs don't read words. They read <strong>tokens</strong> &mdash; chunks of roughly 4 characters. "Hamburger" is 3 tokens. "AI" is 1 token. "Summarize this document into three key bullet points" is about 9 tokens. Common words like "the" or "is" are usually 1 token. Uncommon or technical words get split into multiple tokens.</p>
+
+<p>This matters for two reasons:</p>
+
+<p><strong>First, you pay per token.</strong> Every API call to an LLM provider has a cost measured in input tokens (what you send to the model) and output tokens (what the model generates and sends back). These prices are different &mdash; output tokens are typically 3-5x more expensive than input tokens, because the model does more computational work generating text than reading it.</p>
+
+<p><strong>Second, tokens are the universal unit of measurement</strong> for everything in AI: context window sizes, cost calculations, speed benchmarks, and usage limits. When someone says "this model has a 200K context window," they mean 200,000 tokens &mdash; roughly 150,000 words, or about 300 pages of a novel.</p>
+
+<p>A quick rule of thumb for token estimation: 1 token is approximately 4 characters in English, or about 0.75 words. So:</p>
+<ul>
+  <li>A typical user question: 15-30 tokens</li>
+  <li>A system prompt: 500-3,000 tokens</li>
+  <li>A typical AI response: 100-500 tokens</li>
+  <li>A long-form article: 3,000-8,000 tokens</li>
+  <li>An entire book: 100,000-300,000 tokens</li>
+</ul>
+
+<p>You don't need to count tokens precisely &mdash; tools like the Anthropic tokenizer do that for you. But having rough intuition helps you estimate costs and understand when context windows are getting full.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Perplexity's Unit Economics</div>
+  When you ask Perplexity a question, your query is ~10 tokens of input. But the system prompt, retrieved web page content, and conversation context might add another ~3,000 tokens of input that you don't see. The answer is ~500 tokens of output.<br><br>
+  At Claude Sonnet rates ($3 per million input, $15 per million output), that single query costs Perplexity about:<br>
+  &bull; Input: 3,010 tokens &times; $3/1M = <strong>$0.009</strong><br>
+  &bull; Output: 500 tokens &times; $15/1M = <strong>$0.0075</strong><br>
+  &bull; Total: about <strong>$0.017</strong> per query<br><br>
+  Sounds tiny. Multiply by 100 million queries per month: <strong>$1.7 million per month</strong> in LLM costs alone. This is why token efficiency is a product metric, not just an engineering concern. And it's why evals that measure cost alongside quality matter &mdash; you might find that a cheaper model delivers 95% of the quality at 20% of the cost.
+</div>
+
+<h3>2. Prompts and System Prompts</h3>
+
+<p>A <strong>prompt</strong> is what gets sent to the AI model. It's the input &mdash; the package of text that the model reads and responds to. A <strong>system prompt</strong> is a special set of instructions that the PM or developer writes behind the scenes &mdash; invisible to the end user. The system prompt shapes the AI's personality, rules, boundaries, output format, and behavior.</p>
+
+<p>Think of it like hiring a new employee. The system prompt is their job description, their training manual, and their manager's standing instructions, all rolled into one. It tells the model: "You are a customer support agent for Acme Corp. You are friendly but professional. You never discuss competitors. You always recommend contacting a human agent for billing disputes. You respond in 3 sentences or fewer."</p>
+
+<p>The system prompt is typically hundreds or thousands of words long. Here's a simplified example of what one looks like:</p>
+
+<pre>
+<span class="code-keyword">  System Prompt (simplified example)</span>
+<span class="code-comment">  ───────────────────────────────────</span>
+
+  <span class="code-string">You are a customer support agent for CloudSync, a cloud</span>
+  <span class="code-string">storage product for small businesses.</span>
+
+  <span class="code-keyword">PERSONALITY:</span>
+  <span class="code-comment">- Friendly, professional, and concise</span>
+  <span class="code-comment">- Use the customer's first name</span>
+  <span class="code-comment">- Show empathy for frustrating situations</span>
+
+  <span class="code-keyword">RULES:</span>
+  <span class="code-comment">- Never mention competitors (Dropbox, Google Drive, etc.)</span>
+  <span class="code-comment">- Never speculate about upcoming features</span>
+  <span class="code-comment">- Always link to relevant help articles</span>
+  <span class="code-comment">- For billing disputes, escalate to human agent</span>
+
+  <span class="code-keyword">FORMAT:</span>
+  <span class="code-comment">- Keep responses under 150 words</span>
+  <span class="code-comment">- Use bullet points for multi-step instructions</span>
+  <span class="code-comment">- End with "Is there anything else I can help with?"</span>
+
+  <span class="code-keyword">KNOWLEDGE:</span>
+  <span class="code-comment">- Pricing: Starter $9/mo, Pro $29/mo, Team $49/user/mo</span>
+  <span class="code-comment">- Refund policy: 30-day money-back guarantee</span>
+  <span class="code-comment">- Current known issues: [none]</span>
+</pre>
+
+<p>Every sentence in this system prompt is a product decision. "Keep responses under 150 words" is a decision about user experience. "Never mention competitors" is a decision about brand positioning. "For billing disputes, escalate to human agent" is a decision about risk management. The PM writes this. The PM iterates on this. And evals measure whether this prompt produces the intended behavior.</p>
+
+<p>When a user interacts with your product, two things get sent to the model: the system prompt (your instructions) and the user's input. The user never sees the system prompt, but it's often the single most important factor in output quality.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Notion AI</div>
+  When you click "Summarize" in Notion, your visible input is the page content. Behind the scenes, a system prompt says something like:<br><br>
+  <em>"Summarize the following document. Keep it under 3 paragraphs. Use bullet points for key takeaways. Do not add information not in the source material. If the document is too short to meaningfully summarize, say so rather than padding the summary with filler."</em><br><br>
+  That system prompt is what you iterate on as a PM. Change "3 paragraphs" to "5 bullet points" and the output transforms. Add "always mention any action items or deadlines" and summaries start including to-dos. Remove the length constraint and outputs bloat.<br><br>
+  <strong>The system prompt is your primary lever. Evals measure whether pulling that lever made things better or worse.</strong>
+</div>
+
+<h3>3. Temperature: Why AI Gives Different Answers</h3>
+
+<p><strong>Temperature</strong> is a setting between 0 and 1 (or sometimes 0 to 2) that controls how random the model's output is. Think of it as a creativity dial.</p>
+
+<p>At temperature 0, the model always picks the single most probable next word at each step. This makes output nearly deterministic &mdash; the same input produces very similar output each time. At temperature 1, the model considers a wider range of probable words, making output more varied, creative, and unpredictable. Higher temperatures amplify this effect further.</p>
+
+<p>Most products use a temperature between 0.3 and 0.7. The right setting depends entirely on what you're building &mdash; and the setting you choose directly affects your eval strategy.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Why Temperature Changes Your Eval Strategy</div>
+  <strong>Intercom's AI support bot</strong> uses low temperature (~0.1). You want the exact same refund policy answer every time. A user asking "how do I get a refund?" at 2 PM should get functionally the same answer as one asking at 3 PM. Consistency is the product value. Low temperature means your evals can use near-exact-match checks: "Does the response contain the refund policy URL? Does it mention the 30-day window?"<br><br>
+  <strong>Jasper AI</strong> (marketing copy generation) uses higher temperature (~0.7). Creative variety is the product &mdash; you don't want every product description sounding identical. But this means evals can't check for exact outputs. If you run the same test 5 times, you'll get 5 different pieces of copy. Instead of checking specific words, your evals check for <em>properties</em>: Does it mention the key product features? Is it within the right word count? Does the tone match the brand voice? Is it specific (not generic filler)?<br><br>
+  <strong>The takeaway:</strong> Low temperature = simpler evals (closer to exact match). High temperature = fuzzier evals (property-based, rubric-based). Know your temperature and design your evals accordingly.
+</div>
+
+<h3>4. Context Window: The AI's Working Memory</h3>
+
+<p>The <strong>context window</strong> is the total amount of text the AI can "see" at one time. Think of it as a desk. Everything the model needs to work with has to fit on this desk: the system prompt, the full conversation history, any documents you've retrieved, the user's current message, and space for the model's response.</p>
+
+<p>Current context window sizes:</p>
+<ul>
+  <li><strong>Claude Sonnet/Opus:</strong> 200K tokens (~150K words &mdash; roughly a 300-page book)</li>
+  <li><strong>GPT-4o:</strong> 128K tokens (~96K words)</li>
+  <li><strong>Gemini 2.0:</strong> 1M tokens (~750K words)</li>
+</ul>
+
+<p>When a conversation gets too long and overflows the window, older messages get silently dropped or compressed. This is why AI "forgets" things in long conversations &mdash; those messages are literally no longer visible to the model. It's not a bug. It's not the AI being lazy. It's a physical constraint, like running out of desk space and having to put old papers in a drawer where you can't see them.</p>
+
+<p>But here's what makes this tricky: the model doesn't tell you it forgot something. It doesn't say "I no longer have access to the message where you specified the brand's color palette." It just proceeds as if that information never existed. And if you ask it a question that requires that information, it will generate an answer anyway &mdash; using whatever's in the window, making up the rest. Confidently.</p>
+
+<div class="callout definition">
+  <div class="callout-title">Why Context Windows Matter for Evals</div>
+  Context window overflow is a <strong>hidden failure mode</strong>. Your agent might work perfectly on short tasks but silently degrade on long ones &mdash; not because the model became less capable, but because important instructions or context fell out of the window. A system prompt that works beautifully in isolation might get crowded out when the conversation includes 20 back-and-forth messages and 3 retrieved documents.<br><br>
+  This creates a particularly nasty eval blind spot: if all your test cases are short (single-turn, no context), they'll never catch context-window-related degradation. A thorough eval suite includes <strong>long-context test cases</strong> &mdash; multi-turn conversations, large document inputs, retrieval-heavy scenarios &mdash; specifically to find this failure mode before users experience it.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Vanishing System Prompt</div>
+  A customer support agent has a system prompt with detailed refund policies, escalation procedures, and brand voice guidelines. It works perfectly when the conversation is short &mdash; the system prompt is front and center in the context window, the model follows every instruction.<br><br>
+  But after 15 back-and-forth messages (the user has a complex billing issue), the conversation history has consumed most of the context window. The system prompt instructions are now competing with conversation history for space. The model's adherence to the system prompt weakens. It starts forgetting rules: it might mention a competitor, or get the refund window wrong, or drop the brand voice.<br><br>
+  The user didn't change. The model didn't change. The prompt didn't change. But the effective behavior changed because the context window is now full. This is invisible unless you specifically test for it &mdash; and most teams don't.
+</div>
+
+<h3>5. API Calls: How Products Talk to AI</h3>
+
+<p>When your product needs an AI-generated response, it makes an <strong>API call</strong> to an LLM provider (Anthropic, OpenAI, Google). The call includes the prompt (system prompt + user message + any context), configuration settings (temperature, max output length), and the provider returns the model's response. Each call has a measurable <strong>cost</strong> (input tokens + output tokens times the provider's pricing) and <strong>latency</strong> (time from sending the request to receiving the complete response).</p>
+
+<p>A simple Level 1 product makes one API call per user interaction. An agent might make 5, 10, or 50 API calls for a single user request &mdash; one to plan its approach, several to research information, one for each tool it uses, one to synthesize its findings, one to review its own work. Each call costs money and adds latency.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; API Calls in an Agent</div>
+  A creative campaign agent that takes a brand URL and produces ad campaigns might make these API calls for a single user request:
+  <ol>
+    <li>1 call to analyze the brand URL and plan the research strategy</li>
+    <li>3-5 calls to research different aspects of the brand (products, audience, positioning, competitors, visual identity)</li>
+    <li>1 call to synthesize research into a brand brief</li>
+    <li>1 call to generate 6 ad hooks based on the brief</li>
+    <li>1 call to create art direction for each hook</li>
+    <li>6 calls to an image generation API (one per image)</li>
+    <li>1 call to review the complete set and check for consistency</li>
+  </ol>
+  That's roughly <strong>15 API calls</strong> for one user request. At $0.02 per call (a reasonable average for Sonnet-class models with moderate context), that's $0.30 per generation. At an image model's cost, add another $0.50-$1.00 for the six images. Total: $0.80-$1.30 per user action.<br><br>
+  This is why agents are both more powerful and more expensive than simple AI features &mdash; and why eval cost tracking (Chapter 24) matters as a PM responsibility.
+</div>
+
+<h3>6. Models: The Price-Quality Spectrum</h3>
+
+<p>Not all AI models are equal. They come in different sizes with different tradeoffs between speed, reasoning quality, and cost. Think of it like hiring: you can hire a junior analyst (cheap, fast, good for routine tasks) or a senior strategist (expensive, slower, brilliant on hard problems).</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th>Speed</th><th>Quality</th><th>Cost (per 1M output tokens)</th><th>Best For</th></tr></thead>
+  <tbody>
+    <tr><td>Claude Haiku 4.5</td><td>Very fast</td><td>Good</td><td>$5</td><td>Chat, classification, high-volume tasks</td></tr>
+    <tr><td>Claude Sonnet 4.6</td><td>Fast</td><td>Great</td><td>$15</td><td>Most products &mdash; best cost/quality balance</td></tr>
+    <tr><td>Claude Opus 4.6</td><td>Slower</td><td>Best</td><td>$75</td><td>Complex reasoning, expert-level analysis</td></tr>
+    <tr><td>GPT-4o</td><td>Fast</td><td>Great</td><td>$10</td><td>General purpose, multimodal input</td></tr>
+    <tr><td>Gemini 2.0 Flash</td><td>Very fast</td><td>Good</td><td>$1.50</td><td>High-volume, budget-conscious applications</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>As a PM, your model choice is a product decision, not a technical one. A $5/million model that's "good enough" for customer support might save you $500K/year compared to a $75/million model that's barely better for that use case. Conversely, a premium model might justify a higher subscription price if the quality difference is user-visible.</p>
+
+<p><strong>Evals make this decision objective.</strong> You run the same eval suite against multiple models and compare: quality scores vs. cost per query vs. latency. Without evals, model selection is gut feel and marketing benchmarks. With evals, it's data.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; The Model Migration Decision</div>
+  Your company uses Claude Opus ($75/M output tokens) for a customer support agent. The CFO wants to cut costs. The engineering team suggests switching to Claude Sonnet ($15/M output tokens) &mdash; 5x cheaper. "It's almost as good," they say.<br><br>
+  Without evals, this is a leap of faith. You test 5 prompts. They look fine. You switch. Three weeks later, user complaints about AI quality spike 40%. But you can't prove it was the model switch because you have no baseline measurement.<br><br>
+  With evals, you run your 150-case suite on both models. Results: Opus scores 4.2 average on your rubric. Sonnet scores 3.9. That 0.3-point gap is meaningful on complex reasoning questions but negligible on simple FAQ responses. You propose a <strong>hybrid approach</strong>: Sonnet for simple questions (70% of traffic), Opus for complex multi-step reasoning (30% of traffic). Projected cost reduction: 60%. Quality impact: negligible. The CFO is happy. Your users never notice. <strong>This is a PM decision, enabled by eval data.</strong>
+</div>
+
+<h3>7. Prompt Engineering: Your Primary Lever</h3>
+
+<p>You change AI behavior by changing the prompt, not by rewriting code or retraining the model. <strong>Prompt engineering</strong> is the practice of iterating on those instructions until the output quality is where you want it.</p>
+
+<p>The system prompt is not a set-and-forget configuration file. It's a living, evolving product artifact &mdash; the most important artifact in your AI product. It changes every sprint, sometimes every day. Here are the kinds of changes you'll make:</p>
+
+<ul>
+  <li><strong>Add a constraint:</strong> "Keep responses under 150 words" &rarr; outputs become more focused</li>
+  <li><strong>Add an example:</strong> "Here's an example of a good response: ..." &rarr; outputs start matching the pattern</li>
+  <li><strong>Change the persona:</strong> "You are a friendly expert, not a formal assistant" &rarr; tone shifts</li>
+  <li><strong>Add a guardrail:</strong> "Never recommend products from competitors" &rarr; new safety boundary</li>
+  <li><strong>Remove a guardrail:</strong> Delete the hedging instruction &rarr; responses become more direct (but riskier)</li>
+  <li><strong>Add context instructions:</strong> "Always reference the user's company name" &rarr; personalization improves</li>
+  <li><strong>Restructure:</strong> Reorder the instructions &mdash; models pay more attention to instructions at the beginning and end of the prompt</li>
+</ul>
+
+<p>Every one of these changes affects the output. But here's the thing about prompts: they're surprisingly fragile. Adding one sentence to improve tone might accidentally change the output length. Reordering instructions might cause the model to ignore a safety guardrail that was previously working. Prompt changes have <strong>unpredictable ripple effects</strong> &mdash; this is Breakage #4 from Chapter 01.</p>
+
+<p>And this is precisely why evals matter so much. Every prompt change is a product change. You need a way to verify that each change actually improved what you intended AND didn't break what was already working. Without evals, prompt engineering is like adjusting a recipe blindfolded &mdash; you add something, taste it, and hope for the best. With evals, every adjustment is measured.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Core Loop of AI Product Work</div>
+  <div class="flow">
+    <div class="flow-step">Change prompt</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Run eval suite</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Scores improved, no regression?</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Ship it</div>
+  </div>
+  <div class="flow" style="margin-top: 8px;">
+    <div class="flow-step">Change prompt</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step highlight">Run eval suite</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step">Scores dropped or regressed?</div>
+    <div class="flow-arrow">&rarr;</div>
+    <div class="flow-step" style="border-color: var(--danger); color: var(--danger);">Revert it</div>
+  </div>
+  <br>
+  <strong>This loop is 80% of AI product work.</strong> Everything else &mdash; the frameworks, the tools, the advanced techniques, the governance structures &mdash; exists to make this loop faster, more reliable, and more automated. If you remember nothing else from this chapter, remember this loop. You'll run it hundreds of times.
+</div>
+
+<h3>Vocabulary Complete</h3>
+
+<p>Seven concepts. Let me put them in a single reference card you can come back to:</p>
+
+<div class="vocab-grid">
+  <div class="vocab-card">
+    <div class="vocab-term">Tokens</div>
+    <div class="vocab-def">~4-character chunks that LLMs read. The unit of cost and capacity. "Hamburger" = 3 tokens.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">System Prompt</div>
+    <div class="vocab-def">Hidden instructions from the PM/developer that shape the AI's behavior. The user never sees it. Your primary lever.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Temperature</div>
+    <div class="vocab-def">0-1 setting controlling randomness. Low = consistent (support bots). High = creative (copywriting). Affects eval strategy.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Context Window</div>
+    <div class="vocab-def">Total text the model can "see" at once. When it overflows, the model forgets older content. Hidden failure mode.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">API Call</div>
+    <div class="vocab-def">One request-response cycle to an LLM provider. Each has measurable cost and latency. Agents make many calls per user action.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Models</div>
+    <div class="vocab-def">Come in tiers: fast/cheap (Haiku), balanced (Sonnet), premium (Opus). Model choice is a product decision. Evals make it data-driven.</div>
+  </div>
+  <div class="vocab-card">
+    <div class="vocab-term">Prompt Engineering</div>
+    <div class="vocab-def">Iterating on instructions to change AI behavior. The core loop: change prompt &rarr; run eval &rarr; ship or revert.</div>
+  </div>
+</div>
+
+<p>You now have the language. Every technical term used from this point forward was introduced in this chapter. No jargon without explanation. No concept without a real-world anchor.</p>
+
+<p>If you're feeling solid on these seven concepts, great &mdash; the foundations are in place. If any of them feel fuzzy, bookmark this page and refer back as needed. You'll encounter each one repeatedly as we build up the evaluation framework.</p>
+
+<p>Which brings us to the most important question you'll face in your first week: <strong>whose job is evaluation, anyway?</strong> Engineering writes the code. QA tests the software. Design owns the UI. Data science owns the models. But who owns the quality of the AI's <em>output</em>? The quality of the words it writes, the recommendations it makes, the actions it takes?</p>
+
+<p>If your instinct says "engineering" or "QA," the next chapter will change your mind. And getting this ownership question right is the single most important organizational decision for any AI product team &mdash; because everything else follows from it.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 0 → PHASE 1 TRANSITION                                  -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<div class="callout success" style="margin-top: 48px;">
+  <div class="callout-title">Phase 0 Complete: What You Now Know</div>
+  You've completed the orientation phase. Here's what you've internalized:<br><br>
+  <strong>From Chapter 01:</strong> AI failures are invisible. The 4 breakages (invisible errors, non-determinism, 5% catastrophic, cross-task regression) mean traditional testing is insufficient. The agent spectrum shows that more autonomy = more evaluation surface. Cascading errors in multi-step agents can turn small mistakes into catastrophic outcomes.<br><br>
+  <strong>From Chapter 02:</strong> You have the vocabulary &mdash; tokens, system prompts, temperature, context windows, API calls, models, and prompt engineering. You understand the core loop: change prompt &rarr; run eval &rarr; ship or revert.<br><br>
+  You're ready for Phase 1: actually building the evaluation practice. And it starts with the most consequential organizational question in AI product development.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- PHASE 1: MAP                                                   -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<hr class="section-divider">
+
+<div style="margin: 48px 0 32px; padding: 24px 0; border-bottom: 1px solid var(--border);">
+  <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.5px; color: var(--coral); margin-bottom: 8px;">Phase 1</div>
+  <div style="font-size: 26px; font-weight: 800; color: var(--ink); letter-spacing: -0.3px;">Map</div>
+  <div style="font-size: 15px; color: var(--ink-light); margin-top: 8px;">Answer Q1: What is the agent supposed to do? &mdash; and Q1's prerequisite: whose job is it to answer?</div>
+</div>
+
+<p>Phase 1 is about answering Q1: "What is the agent supposed to DO?" But before we can map the agent's tasks (Chapter 04), we need to answer a prerequisite question: whose job is it to do this mapping, define success, and build the evaluation practice? Chapter 03 makes the case that it's yours.</p>
+
+
+<!-- ═══════════════════════════════════════════════════════════════ -->
+<!-- CH 03: WHY EVALS ARE THE PM'S JOB                              -->
+<!-- ═══════════════════════════════════════════════════════════════ -->
+
+<h2 id="ch03"><span class="section-num">Chapter 03</span>Why Evals Are the PM's Job</h2>
+
+<p>Before we map your agent's tasks, define its failure modes, or build a single eval &mdash; we need to settle a question that will determine whether everything else in this document produces value or gathers dust.</p>
+
+<p>The question: <strong>Who owns evaluation?</strong></p>
+
+<p>At most companies building AI products, there's a moment early in the product's life where someone asks this. And the default answer &mdash; the instinctive, path-of-least-resistance, organizational-inertia answer &mdash; is "engineering." Or maybe "QA." It makes sense on the surface. Tests are code. Code is engineering's domain. QA tests things. Testing AI seems like testing things.</p>
+
+<p>This default is wrong. And the reason it's wrong reveals something deep and important about what AI products actually are &mdash; something that most organizations haven't internalized yet.</p>
+
+<h3>The Agency Analogy</h3>
+
+<p>Imagine your company hired a creative agency to write ad copy for a new product launch. The agency is talented, fast, and professional. They deliver work on time. The copy is polished, the grammar is flawless, the formatting is clean. They hit every technical requirement.</p>
+
+<p>Now: who reviews their work?</p>
+
+<p>Think about this carefully, because the answer reveals the principle that governs eval ownership.</p>
+
+<p>Not the IT department. Not the infrastructure team that maintains the servers. Not the QA team that tests your website. Not the engineering team that built the CMS where the copy will live. Not the finance team that approved the agency's budget.</p>
+
+<p>The <strong>product manager</strong> reviews the copy. Or the marketing director. Or the brand manager. Someone who understands the <em>product strategy</em> reviews the work against the <em>product goals</em>.</p>
+
+<p>Why? Because the relevant question isn't "did the agency produce text?" (yes &mdash; they always produce text, that's the easy part). The question is "did the agency produce the <em>right</em> text?" Is it on-brand? Does it emphasize the features that differentiate us? Does it speak to our target persona? Does it avoid claims we can't substantiate? Is the tone right for this channel? Does it differentiate us from the competitor who just launched a similar product last week? Is it accurate?</p>
+
+<p>These are product questions. They require product context and product judgment. An engineer can tell you if the text was delivered on time, if the API returned a 200, if the character count is within spec. Only someone with product context can tell you if the text is <em>right for your product</em>.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The LLM Is Your Creative Agency</div>
+  The LLM is not a function that returns correct or incorrect values. It's a creative collaborator that produces work ranging from brilliant to embarrassing. Your system prompt is the creative brief. Your eval rubric is the quality review checklist. You, the PM, are the one who knows what "good" looks like for your specific product, your specific users, and your specific market position.<br><br>
+  <strong>Delegating eval ownership to engineering is like asking your IT department to judge whether the ad agency's copy is on-brand.</strong> They can tell you it's formatted correctly. They can't tell you it's strategically right. Those are different things entirely.
+</div>
+
+<p>This analogy isn't just illustrative &mdash; it's structurally accurate. In both cases (agency and LLM), the producer always generates <em>something</em>. The output always exists. The output always looks professional. The failure mode isn't "no output" (which any system can detect). The failure mode is "wrong output that looks right" (which requires judgment to detect). And that judgment is product judgment.</p>
+
+<p>Let's extend the analogy further, because it maps perfectly to the eval concepts we'll build throughout this document:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Creative Agency Concept</th><th>AI Product Equivalent</th></tr></thead>
+  <tbody>
+    <tr><td>The creative brief you give the agency</td><td>The system prompt</td></tr>
+    <tr><td>The agency's portfolio and capabilities</td><td>The model (Sonnet, Opus, GPT-4o)</td></tr>
+    <tr><td>Your quality review checklist</td><td>The eval rubric</td></tr>
+    <tr><td>The sample campaigns you review</td><td>The eval test cases</td></tr>
+    <tr><td>"Revise this &mdash; the tone is too formal"</td><td>Prompt engineering iteration</td></tr>
+    <tr><td>Switching agencies when quality drops</td><td>Model migration</td></tr>
+    <tr><td>Your brand guidelines document</td><td>Quality dimensions (accuracy, tone, safety, etc.)</td></tr>
+    <tr><td>Reviewing the agency's work before it goes public</td><td>Running evals before deployment</td></tr>
+    <tr><td>Monitoring the campaign's performance after launch</td><td>Production monitoring evals</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every row in this table is a concept you'll learn in this document. If the agency analogy makes sense to you, the eval concepts will too &mdash; because they're the same workflow, automated.</p>
+
+<h3>The Rubric Defines the Product</h3>
+
+<p>Here's the deeper reason evals are the PM's job. This isn't just an organizational argument about who should attend which meetings. It's a fundamental truth about the nature of AI product development:</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Most Important Idea in This Document</div>
+  <strong>The PM who defines the eval rubric defines the product.</strong><br><br>
+  When you write an eval rubric, you're not writing a test. You're making product decisions. You're formally declaring: "For this product, accuracy matters more than creativity." Or: "Conciseness is more important than completeness." Or: "Safety is non-negotiable, even if it reduces helpfulness." Or: "We'd rather be boring and correct than interesting and wrong." Or: "Brand voice consistency matters more than factual precision for this use case."<br><br>
+  These are <em>product strategy decisions disguised as scoring criteria</em>. They're the same decisions you'd make in a PRD or a product strategy doc &mdash; but expressed as automated, measurable tests instead of static bullet points.
+</div>
+
+<p>Let me make this concrete. Two real products, two different rubrics, two different product strategies &mdash; expressed entirely through eval weights.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; Two Rubrics, Two Product Strategies</div>
+  <strong>Perplexity</strong> (AI search engine) weights its eval rubric roughly like this:
+  <ul>
+    <li>Factual accuracy: <strong>35%</strong></li>
+    <li>Source grounding (every claim backed by a cited source): <strong>30%</strong></li>
+    <li>Completeness (did it cover all aspects of the question?): <strong>20%</strong></li>
+    <li>Conciseness (no filler, no tangents): <strong>15%</strong></li>
+  </ul>
+  This rubric says: <em>"We are a <strong>trust</strong> product. Users come to us because they believe our answers are correct and verifiable. We'll sacrifice some completeness and brevity to ensure nothing is wrong and everything is cited. Trust is our moat."</em><br><br>
+
+  <strong>Jasper AI</strong> (marketing copy generator) weights its rubric very differently:
+  <ul>
+    <li>Brand voice match (sounds like the client's brand): <strong>30%</strong></li>
+    <li>Specificity (not generic, uses the brand's actual details): <strong>25%</strong></li>
+    <li>Persuasiveness (compelling, makes you want to buy): <strong>25%</strong></li>
+    <li>Factual accuracy: <strong>20%</strong></li>
+  </ul>
+  This rubric says: <em>"We are a <strong>brand</strong> product. Users come to us because we generate copy that sounds like <em>them</em>, not like a robot. We'll sacrifice some factual precision for copy that actually converts. Voice is our moat."</em><br><br>
+
+  <strong>Neither rubric is wrong.</strong> They reflect different product strategies for different markets. But the decision about those weights &mdash; that's not an engineering decision. It's not a QA decision. It's a product strategy decision. And whoever makes it shapes what the entire product optimizes for, every single day, on every single output.
+</div>
+
+<p>Think about what would happen if engineering owned Jasper's eval rubric. Engineers naturally value precision, consistency, and edge-case coverage &mdash; and rightfully so, in their domain. But applied to an AI copywriting product, they'd likely weight factual accuracy higher and brand voice lower. The product would gradually optimize for outputs that are technically correct but generically written &mdash; which is the exact opposite of what Jasper's users pay $49/month for. The AI becomes a well-fact-checked robot that no marketing team wants to use.</p>
+
+<p>And what if QA owned Perplexity's rubric? QA values absence of errors, comprehensive coverage, and edge-case handling. They'd catch more factual mistakes &mdash; great &mdash; but might not weight source grounding properly, because "cites its sources" isn't a traditional quality metric that QA teams think about. They might also over-weight edge cases, creating an eval suite that's 50% adversarial tests and 50% normal tests &mdash; when in reality, 99% of real user queries are normal. The eval suite's priorities wouldn't match the user experience priorities. Perplexity's differentiation &mdash; trustworthy, sourced answers &mdash; erodes.</p>
+
+<p>In both cases, the people writing the rubric are competent and well-intentioned. They're applying their expertise faithfully. The problem isn't competence &mdash; it's <strong>perspective</strong>. Engineers and QA bring an engineering perspective. Users experience the product from a product perspective. Only the PM bridges both worlds.</p>
+
+<p>The rubric weights aren't just numbers. They're the encoded product vision. They determine what the product optimizes for at every moment, on every output, for every user. The PM must own them because the PM owns the product vision.</p>
+
+<h3>The Industry Consensus</h3>
+
+<p>This isn't a contrarian take. It isn't a hot take. Every major voice in AI product development has independently converged on this same conclusion. That kind of consensus, from people who don't work together and often disagree on other topics, is rare and worth noting:</p>
+
+<div class="callout definition">
+  <div class="callout-title">What the Industry Says</div>
+  <strong>Kevin Weil, Chief Product Officer of OpenAI:</strong><br>
+  "Writing evals is going to become a core skill for product managers."<br>
+  This is the CPO of the company that makes GPT telling PMs: this is your job. Not engineering's. Not research's. Yours.<br><br>
+
+  <strong>Braintrust (leading eval platform, used by Stripe, Notion, and others):</strong><br>
+  "Evals are the new PRD."<br>
+  Meaning: your eval suite <em>is</em> your product requirements document, expressed as automated tests instead of static bullet points. When you change the eval, you change the product spec. When you expand the eval, you expand what the product cares about.<br><br>
+
+  <strong>Anthropic (Claude's maker, in their official evaluation guide):</strong><br>
+  "Start with 20-50 tasks from actual user failures."<br>
+  Meaning: evals should be grounded in real user problems, not abstract quality criteria designed in a conference room. Someone has to talk to users, read support tickets, and understand what "failure" means in context. That's PM work.<br><br>
+
+  <strong>Hamel Husain (top-grossing AI eval course on Maven, previously at GitHub):</strong><br>
+  "You're doing it wrong if you aren't looking at lots of data."<br>
+  Meaning: the PM needs to be deeply embedded in the eval data &mdash; reading outputs, spotting patterns, understanding failure modes firsthand. Not waiting for a summary dashboard from engineering. The PM who doesn't look at data is a PM who doesn't understand the product.
+</div>
+
+<p>The convergence is striking. A CPO, a tool company, a model provider, and an independent practitioner &mdash; from different organizations, with different incentives, and often in active competition with each other &mdash; all saying the same thing: <strong>the person who understands the product's purpose must define how the product's quality is measured.</strong></p>
+
+<p>When competitors agree on something, pay attention. They disagree on everything else &mdash; which model is best, which architecture is fastest, which approach is most reliable. But on "the PM should own evals"? Unanimous. That level of consensus usually means the idea is not just correct but obvious in hindsight. It just takes a while for organizations to catch up.</p>
+
+<h3>Why Engineering Agrees (When You Explain It)</h3>
+
+<p>You might worry that claiming eval ownership will create friction with engineering. In practice, the opposite happens. Most engineers are <em>relieved</em> when the PM takes ownership of eval rubrics and test case curation.</p>
+
+<p>Here's why. Engineers know they're not the right people to judge AI output quality. They know they're optimizing for the wrong things when they write eval rubrics. They can feel it. When an engineer writes an eval rubric, they have to make product judgment calls they're not confident about: "Is this tone formal enough? Is this level of detail right for the user? Is it okay to mention competitors here?" These are uncomfortable questions for someone whose expertise is system design, not user empathy.</p>
+
+<p>When you show up and say "I'll own the rubrics and test cases, you own the infrastructure," you're not creating a conflict. You're resolving one. You're letting each role do what it's best at. The engineer gets to focus on building a reliable, fast eval runner &mdash; which is genuinely interesting engineering work. You get to focus on defining quality &mdash; which is genuinely important PM work.</p>
+
+<p>The conversation usually goes like this:</p>
+
+<div class="callout example">
+  <div class="callout-title">A Typical Conversation</div>
+  <strong>PM:</strong> "I want to own the eval rubrics and test cases. I'll define what we're testing and what scores we need. Can you build me a runner that executes the suite and shows me results?"<br><br>
+  <strong>Engineer:</strong> "Yes. Thank god. I've been making up scoring criteria and I know they're wrong. Can you also tell me which dimensions matter most? I've been weighting everything equally because I didn't know what the product priorities were."<br><br>
+  <strong>PM:</strong> "Absolutely. Accuracy is our top priority, then tone, then completeness. Safety is a hard gate &mdash; any failure is a block."<br><br>
+  <strong>Engineer:</strong> "Perfect. I can have an automated runner in the CI pipeline by next week if you give me the test cases in a JSON file."<br><br>
+  This is the ideal working relationship. Product judgment + engineering execution. Neither party is doing the other's job.
+</div>
+
+<h3>The Feedback Loop: The Heartbeat of AI Products</h3>
+
+<p>Now let's zoom out from "who owns evals" to "why evals matter for the product." Evals don't exist in isolation. They're not a standalone quality gate. They're the center of a continuous improvement cycle &mdash; a feedback loop that runs for the entire life of the product. This loop is so fundamental that it's worth calling the <strong>heartbeat</strong> of AI product development. If the loop stops, the product stops improving. If the loop runs fast, the product improves fast.</p>
+
+<p>Understanding where the PM sits in this cycle makes the ownership question crystal clear:</p>
+
+<div class="flow">
+  <div class="flow-step highlight">Ship feature</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Users interact</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Collect outputs</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Identify failures</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Add to eval suite</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Improve prompt/model</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step">Run evals to verify</div>
+  <div class="flow-arrow">&rarr;</div>
+  <div class="flow-step highlight">Ship again</div>
+</div>
+
+<p>Let's walk through each step and identify who makes the decisions:</p>
+
+<ol>
+  <li><strong>Ship feature:</strong> PM decides what to ship, when to ship, and the quality bar for shipping. Product decision.</li>
+  <li><strong>Users interact:</strong> This just happens. No decision required.</li>
+  <li><strong>Collect outputs:</strong> Engineering builds the data collection pipeline. Engineering work.</li>
+  <li><strong>Identify failures:</strong> Someone reads through outputs and decides which ones are "failures." This requires understanding what users expect, what the brand tolerates, and what competitive quality looks like. Product decision.</li>
+  <li><strong>Add to eval suite:</strong> Turn those failures into repeatable test cases with clear rubrics. PM defines what counts as pass/fail. Product decision.</li>
+  <li><strong>Improve prompt/model:</strong> PM decides the direction ("make it more specific," "add safety guardrails," "try a cheaper model"). Engineering implements. Collaborative, PM-led.</li>
+  <li><strong>Run evals to verify:</strong> Automated. Engineering builds the runner. But PM interprets whether the results are good enough to ship.</li>
+  <li><strong>Ship again:</strong> PM decides. Product decision.</li>
+</ol>
+
+<p>Six of the eight steps involve product decisions. Engineering owns infrastructure and implementation. The PM owns judgment and direction. The eval suite is the artifact that bridges the two.</p>
+
+<p>And here's the critical insight about speed: <strong>the faster this loop runs, the faster your product improves.</strong> A team that runs this loop weekly will improve 4x faster than a team that runs it monthly. A team that runs it daily &mdash; which is possible with automated evals &mdash; will outpace competitors who run it manually on a sprint cadence.</p>
+
+<p>This is why eval automation (Q4 in our 5 Questions) matters so much. Not because automation is inherently good, but because automation makes the loop run faster. Manual evals take a day. Automated evals take 5 minutes. The faster the loop, the faster you learn, the faster you improve.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Loop Speed Advantage</div>
+  Consider two competing AI products, both starting at the same quality level:<br><br>
+  <strong>Team A</strong> runs the improvement loop monthly. They ship 12 prompt improvements per year, each verified by evals.<br><br>
+  <strong>Team B</strong> runs the improvement loop weekly. They ship 52 prompt improvements per year, each verified by evals.<br><br>
+  After one year, Team B has compounded 4x as many improvements. Even if each individual improvement is small (a 1-2% gain on each dimension), the compounding effect is dramatic. 52 small improvements, verified and not regressing, will demolish 12 improvements.<br><br>
+  This is the quiet competitive advantage of eval-driven AI products. They iterate faster. They compound faster. And the gap between them and vibes-driven competitors widens every week.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Real Example &mdash; How This Works at Duolingo</div>
+  Duolingo runs this loop weekly for their AI language tutor. Here's a concrete cycle:<br><br>
+  <ol>
+    <li><strong>Ship:</strong> Deploy a prompt change to make grammar explanations clearer for intermediate Spanish learners.</li>
+    <li><strong>Users interact:</strong> Millions of students use the AI tutor. The system logs every AI explanation and every student response.</li>
+    <li><strong>Collect:</strong> Automated pipeline stores AI responses alongside student behavior signals: did they ask a follow-up question? Did they get the next practice question right? Did they quit the lesson?</li>
+    <li><strong>Identify failures:</strong> The PM reviews 50 cases where students asked confused follow-up questions immediately after an AI grammar explanation. Pattern emerges: the AI is using technical terms like "subjunctive mood" and "past participle" that intermediate learners haven't been taught yet.</li>
+    <li><strong>Add to eval suite:</strong> PM creates 15 new test cases: grammar explanations for intermediate learners on various topics. New rubric criterion: "Uses no grammar terminology without first explaining it in simple language."</li>
+    <li><strong>Improve prompt:</strong> Add to system prompt: "When explaining grammar to intermediate learners, never use terms like 'subjunctive,' 'gerund,' or 'participial phrase' without first explaining them in simple language. Assume the student knows basic terms like 'verb' and 'noun' but not advanced grammatical categories."</li>
+    <li><strong>Run evals:</strong> All 15 new test cases pass. All 200 existing test cases still pass (no regression on other use cases). Score on the "clarity" dimension improved from 3.2 to 4.1.</li>
+    <li><strong>Ship.</strong> Monitor next week's follow-up question rate. It drops 23%.</li>
+  </ol><br>
+  Every step that involved a decision required product context. What counts as a "confused" follow-up? (Product judgment.) Which grammar terms are "too advanced" for intermediates? (Product knowledge of the user base.) Is a score of 4.1 good enough to ship? (Product quality bar.) The engineer built the pipeline. The PM made the decisions that actually moved quality.
+</div>
+
+<h3>Evals vs. Vibes: What the Difference Looks Like</h3>
+
+<p>To make this tangible, let me show you the difference between a vibes-driven AI product and an eval-driven AI product. Same product, same team, same model. The only difference is whether the PM owns a systematic eval process.</p>
+
+<div class="compare">
+  <div class="compare-col bad">
+    <div class="compare-label">Vibes-Driven (No Eval Ownership)</div>
+    <p><strong>Monday:</strong> PM tries 5 test prompts. "Looks good to me."</p>
+    <p><strong>Tuesday:</strong> Ships prompt change based on gut feeling.</p>
+    <p><strong>Wednesday:</strong> User complains about wrong answers. PM says: "Weird, it worked when I tested it."</p>
+    <p><strong>Thursday:</strong> 3 more complaints. PM asks engineering: "Did something change?" Engineering: "No."</p>
+    <p><strong>Friday:</strong> CEO asks if AI is improving. PM: "We think so? We shipped an improvement Tuesday."</p>
+    <p><strong>Next week:</strong> More complaints. Different problem. Nobody connects it to Tuesday's change. The regression lives in production for 6 weeks.</p>
+  </div>
+  <div class="compare-col good">
+    <div class="compare-label">Eval-Driven (PM Owns Evals)</div>
+    <p><strong>Monday:</strong> PM reviews 30 recent AI outputs. Identifies 4 with tone issues. Adds to eval suite.</p>
+    <p><strong>Tuesday:</strong> PM modifies prompt. Runs eval suite (150 test cases, 4 dimensions). Accuracy: +3%. Tone: +8%. Completeness: unchanged. Safety: unchanged. No regression.</p>
+    <p><strong>Wednesday:</strong> Ships with confidence. Dashboard shows: "v2.3.1 &mdash; accuracy 87%, tone 82%, completeness 91%, safety 100%."</p>
+    <p><strong>Thursday:</strong> User complaint comes in. PM checks: it's a known edge case, already in the eval suite as a "fail." Prioritized for next sprint.</p>
+    <p><strong>Friday:</strong> CEO asks if AI is improving. PM shows trendline: "Accuracy up from 72% to 87% over 8 weeks. Here's the chart. Here are the 3 prompt changes that drove it."</p>
+  </div>
+</div>
+
+<p>Same team. Same product. Same model. Completely different outcomes. The difference is a PM who owns a spreadsheet with 150 test cases and runs it on every change.</p>
+
+<p>That's not a $100K eval platform. It's not a team of ML engineers. It's one PM, one spreadsheet (or one Braintrust account), and the discipline to run it consistently. The bar is lower than you think. The impact is higher than you expect.</p>
+
+<h3>The Eval Maturity Gap: Your Opportunity</h3>
+
+<p>Let's revisit those survey numbers from the introduction, because they represent not just a problem but a career opportunity of unusual size:</p>
+
+<div class="callout math">
+  <div class="callout-title">The Numbers Tell A Story</div>
+  <strong>57%</strong> of organizations have AI agents in production.<br>
+  <strong>Only 37%</strong> run systematic evaluations on those agents.<br><br>
+  That means roughly <strong>35% of all organizations are shipping AI products with no systematic quality measurement.</strong> More than one in three companies with AI in production are flying blind. They have no rigorous way to answer "is the AI getting better or worse?"<br><br>
+  But it gets more specific. Among the 37% who DO run evals:<br>
+  &bull; Many run them ad-hoc, not on every deployment<br>
+  &bull; Most evaluate only the final output, not intermediate steps<br>
+  &bull; Very few have regression testing (checking that improvements don't break other things)<br>
+  &bull; Almost none tie eval results to business metrics<br><br>
+  The number of companies with a <strong>mature, comprehensive eval practice</strong> &mdash; rubrics, datasets, automated runs on every deployment, regression coverage, connected to product decisions &mdash; is probably under 10%.<br><br>
+  Source: LangChain "State of AI Agents" survey, 2025. 1,300+ respondents across startups, mid-stage, and enterprise.
+</div>
+
+<p>This gap exists for a predictable reason: <strong>nobody owns it.</strong> Engineering owns the code. Design owns the UI. Data science owns the models (sometimes). The PM owns the features. But who owns the quality of the AI's output? In most organizations, nobody. It falls into the gap between roles. Engineering thinks it's a PM problem ("you define what 'good' means"). The PM thinks it's an engineering problem ("you write the tests"). And so it doesn't get done.</p>
+
+<p>Here's what the maturity landscape looks like:</p>
+
+<div class="maturity-card lvl0">
+  <div class="maturity-level">Level 0 &mdash; No Evals</div>
+  <div class="maturity-name">Flying Blind</div>
+  <div class="maturity-desc">No systematic quality measurement. AI quality assessed by "trying a few prompts" before shipping. No regression detection. No quality history. This is where ~35% of companies with AI in production currently sit.</div>
+  <div class="maturity-time">Where most teams start</div>
+</div>
+
+<div class="maturity-card lvl1">
+  <div class="maturity-level">Level 1 &mdash; Manual Evals</div>
+  <div class="maturity-name">Spreadsheet Era</div>
+  <div class="maturity-desc">PM has a spreadsheet with 10-50 test cases. Runs them manually (or semi-manually) before deployments. Basic quality dimensions defined. No automation. Catches some regressions but misses many. This is where most teams land after their first week of eval work.</div>
+  <div class="maturity-time">1 day to achieve from Level 0</div>
+</div>
+
+<div class="maturity-card lvl2">
+  <div class="maturity-level">Level 2 &mdash; Automated Evals</div>
+  <div class="maturity-name">CI/CD Integration</div>
+  <div class="maturity-desc">Eval suite runs automatically on every prompt change or model update. 50-200 test cases. LLM-as-judge for fuzzy criteria. Results visible in a dashboard. Regression detection is reliable. Quality trends are trackable over time.</div>
+  <div class="maturity-time">2-4 weeks from Level 0 with engineering support</div>
+</div>
+
+<div class="maturity-card lvl3">
+  <div class="maturity-level">Level 3 &mdash; Production Monitoring</div>
+  <div class="maturity-name">Live Quality Signal</div>
+  <div class="maturity-desc">In addition to pre-deployment evals, quality is monitored on live production traffic. Real user interactions are sampled and scored. User feedback is correlated with eval scores. Failures are automatically routed to the eval suite for investigation.</div>
+  <div class="maturity-time">Top 5% of AI product teams</div>
+</div>
+
+<div class="maturity-card lvl4">
+  <div class="maturity-level">Level 4 &mdash; Closed Loop</div>
+  <div class="maturity-name">Self-Improving</div>
+  <div class="maturity-desc">Evals drive product decisions automatically. Low scores trigger prompt experiments. A/B tests run on production traffic. Model selection is eval-driven. The eval suite itself is evaluated and improved. The product gets measurably better every week.</div>
+  <div class="maturity-time">Top 1% of AI product teams</div>
+</div>
+
+<p>The biggest ROI is the jump from Level 0 to Level 1. That's a single day of work (your Day 1-5 plan from earlier in this chapter) and it transforms your relationship with AI quality from "I have no idea" to "I have data." Every subsequent level is valuable but incremental. The first step is transformative.</p>
+
+<p>The PM who steps into this gap creates disproportionate leverage. You become the person who can answer the CEO's question: "Is the AI getting better or worse?" You become the person who turns vague user complaints into specific, measurable quality improvements. You become the person who can say "this prompt change improved accuracy by 12 percentage points with no regression on tone or completeness" instead of "I tested it a few times and it seems better." You become the person who transforms a vibes-driven AI product into a data-driven one.</p>
+
+<p>That transformation is visible. It's tangible. And it's rare enough to be career-defining.</p>
+
+<div class="callout success">
+  <div class="callout-title">The Career Argument</div>
+  If the product argument doesn't fully convince you, here's the career argument. The AI PM talent pool is thin. Many PMs can write a PRD and run a sprint. Very few can build and maintain an eval suite, interpret the results, and use them to drive product decisions systematically. That skill gap is a <strong>differentiation opportunity.</strong><br><br>
+  When you interview for an AI PM role and say: <em>"I built an eval suite of 200 test cases across 4 quality dimensions. I ran it on every prompt change. I improved our accuracy score from 72% to 89% while maintaining tone quality scores. User-reported AI errors dropped 40% over 3 months. I can show you the trend lines."</em> &mdash; you're not competing with other PMs. You're in a category of one.<br><br>
+  Chapter 26 covers the career angle in detail. For now, just know that eval expertise isn't just good practice. It's a competitive advantage in the job market.
+</div>
+
+<h3>What PM Ownership Actually Looks Like</h3>
+
+<p>"PM owns evals" doesn't mean the PM personally writes every test case, builds the eval runner, and runs every suite. That's a misunderstanding that leads to either burnout or underperformance. Here's the realistic division of labor:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Activity</th><th>Owner</th><th>Why This Person</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Define quality dimensions and weights</td>
+      <td style="font-weight: 600; color: var(--coral);">PM</td>
+      <td>Product strategy decision &mdash; what the product values</td>
+    </tr>
+    <tr>
+      <td>Write rubrics and scoring criteria</td>
+      <td style="font-weight: 600; color: var(--coral);">PM</td>
+      <td>Defines what "good" means for users of this product</td>
+    </tr>
+    <tr>
+      <td>Curate test cases from user failures</td>
+      <td style="font-weight: 600; color: var(--coral);">PM</td>
+      <td>Requires understanding user needs and failure impact</td>
+    </tr>
+    <tr>
+      <td>Build eval runner and automation</td>
+      <td style="font-weight: 600; color: var(--ink-light);">Engineering</td>
+      <td>Infrastructure, CI/CD integration, tooling</td>
+    </tr>
+    <tr>
+      <td>Build data collection and logging</td>
+      <td style="font-weight: 600; color: var(--ink-light);">Engineering</td>
+      <td>Pipelines, storage, instrumentation</td>
+    </tr>
+    <tr>
+      <td>Interpret eval results and decide action</td>
+      <td style="font-weight: 600; color: var(--coral);">PM</td>
+      <td>Product judgment &mdash; is this good enough to ship?</td>
+    </tr>
+    <tr>
+      <td>Prioritize which failures to fix</td>
+      <td style="font-weight: 600; color: var(--coral);">PM</td>
+      <td>Product prioritization &mdash; what matters most to users/business</td>
+    </tr>
+    <tr>
+      <td>Iterate on prompts based on results</td>
+      <td style="font-weight: 600; color: var(--coral);">PM + Eng</td>
+      <td>Collaborative &mdash; PM sets direction, eng implements</td>
+    </tr>
+    <tr>
+      <td>Maintain and expand test case library</td>
+      <td style="font-weight: 600; color: var(--coral);">PM</td>
+      <td>Ongoing quality ownership as product and users evolve</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The pattern: the PM owns everything that requires <em>judgment about what matters for the product</em>. Engineering owns everything that requires <em>building reliable systems</em>. This mirrors traditional product development &mdash; the PM defines requirements, engineering builds the implementation. The difference in AI products is that the "requirements" aren't a static PRD that gets written once and lives in a Notion doc. They're a living eval suite that evolves continuously with the product, expressed as automated tests rather than bullet points.</p>
+
+<p>There's a beautiful clarity to this division of labor. It gives each role a clear lane and a clear measure of success. Engineering's success: the eval runner is fast, reliable, and integrated into CI/CD. PM's success: the eval suite catches real failures, reflects user needs, and drives measurable quality improvement. Neither role is doing the other's job. Both are essential.</p>
+
+<h3>What Happens When the PM Doesn't Own Evals</h3>
+
+<p>Let me paint the alternative scenario in detail, because you will encounter it &mdash; either at your current company or at a company you interview with. It's the default state of most AI product teams.</p>
+
+<p>The engineering team, being responsible and thorough, builds an eval system. They're good engineers &mdash; the system is well-built. It's reliable, fast, and integrated into CI/CD. They test for the things engineers naturally and instinctively test for:</p>
+<ul>
+  <li><strong>Format compliance:</strong> Does the JSON parse? Is the response valid UTF-8? Are the expected fields present?</li>
+  <li><strong>Latency:</strong> Does the response come back within 3 seconds at P95?</li>
+  <li><strong>Basic correctness:</strong> Does the response mention the entities from the query? Does it not crash?</li>
+  <li><strong>Length bounds:</strong> Is the response between 50 and 500 tokens?</li>
+  <li><strong>Consistency:</strong> Does the same input produce roughly the same structure each time?</li>
+</ul>
+
+<p>All valid things to test. Necessary infrastructure checks. The evals all pass. The team ships with confidence.</p>
+
+<p>Within the first month, user complaints start rolling in. But the complaints don't map to any of the eval dimensions:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>User Complaint</th><th>Eval Suite Coverage</th><th>Real Problem</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>"The answers feel robotic and cold."</td>
+      <td style="color: var(--danger);">Not tested</td>
+      <td>Tone is wrong for the brand. Engineering evals don't check tone.</td>
+    </tr>
+    <tr>
+      <td>"Responses are too long for simple questions."</td>
+      <td style="color: var(--warning);">Partially tested</td>
+      <td>Max length is checked (500 tokens), but <em>appropriate</em> length isn't. A 400-token answer to "what's your refund policy?" passes the length check but annoys the user.</td>
+    </tr>
+    <tr>
+      <td>"The AI hedges on everything."</td>
+      <td style="color: var(--danger);">Not tested</td>
+      <td>Calibration &mdash; the AI says "it depends" to questions with clear answers. No eval checks for over-hedging.</td>
+    </tr>
+    <tr>
+      <td>"Every answer sounds the same."</td>
+      <td style="color: var(--danger);">Not tested</td>
+      <td>Specificity &mdash; the AI gives generic boilerplate instead of addressing the specific question. The engineering eval checks if entities are <em>mentioned</em>, not if the response is <em>tailored</em>.</td>
+    </tr>
+    <tr>
+      <td>"The AI recommended a competitor!"</td>
+      <td style="color: var(--danger);">Not tested</td>
+      <td>Brand safety. No eval checks for competitor mentions because engineers don't think about competitive positioning.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>The engineering evals all pass. The product is failing. And the gap between what's measured and what matters will persist until someone with product context takes ownership of what gets tested.</p>
+
+<p>This is what happens when eval ownership defaults to engineering. You get <strong>technically correct and product-wrong.</strong> The eval suite measures what engineers naturally think to measure, not what users actually care about. And no amount of engineering excellence can compensate for measuring the wrong things.</p>
+
+<div class="callout warning">
+  <div class="callout-title">The Measurement Trap</div>
+  There's a deeper problem here, captured by Goodhart's Law: <em>"When a measure becomes a target, it ceases to be a good measure."</em><br><br>
+  When engineering defines the metrics, the product optimizes for engineering metrics. Latency improves. Error rates drop. Format compliance reaches 100%. The dashboard turns green. Everyone celebrates.<br><br>
+  Meanwhile, users are getting responses that are fast, well-formatted, and completely unhelpful. The AI responds in under a second (great latency!) with a perfectly structured JSON (format compliance!) that says nothing useful (product failure). The metrics are improving. The product is getting worse. And nobody notices because the metrics everyone is watching are the wrong metrics.<br><br>
+  <strong>This is the measurement trap.</strong> Choosing what to measure is the most consequential product decision you'll make in AI, because the product will relentlessly optimize for whatever you measure. If you measure the wrong things, you'll achieve the wrong goals with impressive efficiency.
+</div>
+
+<h3>The Objection You'll Hear (and How to Handle It)</h3>
+
+<p>There's one pushback you'll almost certainly encounter when you start claiming eval ownership: <strong>"But the PM doesn't know how to code evals."</strong></p>
+
+<p>Three responses:</p>
+
+<p><strong>First, modern tooling has largely eliminated the coding requirement.</strong> Platforms like Braintrust, Promptfoo, and LangSmith have GUIs where you type in test cases, define rubrics in plain English, and click Run. No code. You create a test case by entering the input, describing what a good output looks like, and clicking Save. The platform handles the execution, scoring, and comparison. If you can fill out a form, you can run an eval.</p>
+
+<p><strong>Second, the hard part was never the code.</strong> Running a Python script is easy. Any junior developer can write an eval runner in an afternoon. The hard part &mdash; the genuinely difficult intellectual work &mdash; is knowing <em>what</em> to test, <em>how</em> to score it, and <em>what the results mean for the product</em>. That's the PM's unique contribution, regardless of who presses the Run button.</p>
+
+<p><strong>Third, the PM who can code evals is even more powerful.</strong> If you do have Python skills (even basic), Chapter 11 will walk you through writing your first eval in code. It takes 30 minutes. The combination of product judgment AND technical execution is extremely rare and extremely valuable. But it's a nice-to-have, not a prerequisite.</p>
+
+<div class="callout warning">
+  <div class="callout-title">A Common Trap: The PM Who Over-Indexes on Infrastructure</div>
+  Some PMs hear "evals are your job" and respond by diving deep into tooling. They spend weeks evaluating eval platforms, building custom pipelines, writing Python scripts, setting up databases, and creating dashboards. By the time the infrastructure is perfect, they've spent a month and still haven't looked at actual AI outputs.<br><br>
+  This is a trap. Your job is not to build eval infrastructure &mdash; that's engineering's job, and they're better at it. Your job is to:
+  <ol>
+    <li><strong>Define what "good" looks like</strong> (write the rubrics)</li>
+    <li><strong>Curate the test cases</strong> (from real user failures and edge cases)</li>
+    <li><strong>Interpret the results</strong> (and make product decisions based on them)</li>
+    <li><strong>Continuously expand the suite</strong> (as you learn more about how the product fails)</li>
+  </ol>
+  If you're spending more than 20% of your eval time on infrastructure or tooling, you're doing the wrong work. Spend that time reading AI outputs and talking to users instead. A spreadsheet with 30 carefully curated test cases and thoughtful rubrics beats a $50K eval platform with 5 hastily written test cases every time.
+</div>
+
+<h3>Making the Transition: Your First Week</h3>
+
+<p>If you're reading this and thinking "evals at my company are currently owned by nobody, or by engineering, and I want to change that" &mdash; here's a practical 5-step playbook for your first week:</p>
+
+<p><strong>Day 1: Look at data.</strong> Get access to the last 200 AI outputs your product generated. Read through at least 100 of them. Not skim &mdash; actually read. For each one, make a gut judgment: good, fine, or bad. Note the bad ones and write one sentence about why they're bad. This takes 2-3 hours and gives you more product insight than any number of meetings.</p>
+
+<p><strong>Day 2: Find the patterns.</strong> Look at your "bad" pile. You'll start seeing themes: "too generic," "wrong tone," "hallucinated a fact," "too long," "didn't answer the actual question," "recommended a competitor." Group the failures into 3-5 categories. These categories are your quality dimensions. Name them.</p>
+
+<p><strong>Day 3: Write 10 test cases.</strong> Pick the 10 worst outputs from Day 1. For each one, write: (a) the input, (b) what the AI actually produced, (c) what it should have produced, and (d) which quality dimension(s) it failed on. You now have your first eval dataset. Put it in a spreadsheet.</p>
+
+<p><strong>Day 4: Score them.</strong> Write a 2-sentence definition for each of your quality dimensions. Score your 10 test cases on each dimension using a 1-5 scale (or pass/fail &mdash; either works to start). Show the results to your engineering lead and your manager. You now have credibility, data, and a conversation starter.</p>
+
+<p><strong>Day 5: Claim the ownership.</strong> In your team standup or sprint planning, say something like: "I've started building our eval suite. I reviewed 100 recent outputs and found these patterns: [list your dimensions]. Here are our worst 10 cases. I'm going to expand this to 30 test cases next week and start running them on every prompt change. I'll need engineering support to automate the runner once we're past 50 cases."</p>
+
+<p>Here's what this looks like concretely. After your Day 1-4 work, you might have something like this:</p>
+
+<pre>
+<span class="code-comment">  Your First Eval Snapshot (Day 4)</span>
+<span class="code-comment">  =================================</span>
+
+<span class="code-keyword">  Quality Dimensions Found:</span>
+<span class="code-comment">    1. Accuracy    — Is the information factually correct?</span>
+<span class="code-comment">    2. Specificity — Is the answer specific to the user's question,</span>
+<span class="code-comment">                     or could it answer any question? (biggest pattern)</span>
+<span class="code-comment">    3. Tone        — Does it match our brand voice?</span>
+
+<span class="code-keyword">  Test Cases: 10</span>
+<span class="code-comment">    ┌────┬───────────┬───────────┬───────┬─────────────────────────────┐</span>
+<span class="code-comment">    │ #  │ Accuracy  │ Specific. │ Tone  │ Notes                       │</span>
+<span class="code-comment">    ├────┼───────────┼───────────┼───────┼─────────────────────────────┤</span>
+<span class="code-comment">    │  1 │</span><span class="code-string"> PASS</span><span class="code-comment">     │</span><span class="code-accent"> FAIL</span><span class="code-comment">     │</span><span class="code-string"> PASS</span><span class="code-comment">  │ Generic — could be any brand│</span>
+<span class="code-comment">    │  2 │</span><span class="code-accent"> FAIL</span><span class="code-comment">     │</span><span class="code-string"> PASS</span><span class="code-comment">     │</span><span class="code-string"> PASS</span><span class="code-comment">  │ Wrong founding year          │</span>
+<span class="code-comment">    │  3 │</span><span class="code-string"> PASS</span><span class="code-comment">     │</span><span class="code-accent"> FAIL</span><span class="code-comment">     │</span><span class="code-accent"> FAIL</span><span class="code-comment">  │ Generic + too formal         │</span>
+<span class="code-comment">    │  4 │</span><span class="code-string"> PASS</span><span class="code-comment">     │</span><span class="code-string"> PASS</span><span class="code-comment">     │</span><span class="code-string"> PASS</span><span class="code-comment">  │ Good example — use as golden │</span>
+<span class="code-comment">    │  5 │</span><span class="code-string"> PASS</span><span class="code-comment">     │</span><span class="code-accent"> FAIL</span><span class="code-comment">     │</span><span class="code-string"> PASS</span><span class="code-comment">  │ Boilerplate response         │</span>
+<span class="code-comment">    │ ...│ ...       │ ...       │ ...   │ ...                         │</span>
+<span class="code-comment">    └────┴───────────┴───────────┴───────┴─────────────────────────────┘</span>
+
+<span class="code-keyword">  Current Scores:</span>
+<span class="code-comment">    Accuracy:    80% pass (8/10)</span>
+<span class="code-comment">    Specificity: 50% pass (5/10)  ← </span><span class="code-accent">biggest problem</span>
+<span class="code-comment">    Tone:        70% pass (7/10)</span>
+
+<span class="code-keyword">  Recommendation:</span>
+<span class="code-comment">    Focus on specificity. Add "reference the user's specific</span>
+<span class="code-comment">    context" instruction to system prompt. Expect +20-30% lift.</span>
+</pre>
+
+<p>That's it. That's what a first-week eval looks like. A spreadsheet, 10 test cases, 3 dimensions, some pass/fail scores, and a clear recommendation. It took maybe 6 hours of total work across the week. And it's already more rigorous than what 60% of AI product teams have.</p>
+
+<h3>Getting Buy-In: Speaking to Different Audiences</h3>
+
+<p>When you present your eval plan, different stakeholders care about different things. Here's how to frame the same message for each audience:</p>
+
+<div class="callout example">
+  <div class="callout-title">Framing by Audience</div>
+  <strong>To your CEO/CPO:</strong><br>
+  "Right now, we can't answer 'is the AI getting better or worse?' I'm building a measurement system that will give us a quality score we can track over time. Within two weeks, I'll be able to show you trendlines for accuracy, tone, and user-relevant quality metrics. We'll be able to tie prompt improvements to measurable gains."<br><br>
+
+  <strong>To your engineering lead:</strong><br>
+  "I'll own the rubrics and test case curation. You own the infrastructure. I need a runner that takes a JSON file of test cases, sends each one through the model, and returns the outputs. Eventually, I'll need LLM-as-judge scoring integrated, but for now, even raw outputs in a spreadsheet work. Can you build the runner in a sprint?"<br><br>
+
+  <strong>To your design/UX lead:</strong><br>
+  "I'm documenting the specific ways our AI output fails users. Some of it is accuracy, which is model-side. But some of it is presentation &mdash; the responses are too long for mobile, the formatting doesn't match the UI, the tone doesn't match the product. I want your input on the 'taste' and 'presentation' dimensions of the eval rubric."<br><br>
+
+  <strong>To your team in sprint planning:</strong><br>
+  "I've reviewed 100 recent AI outputs. Here are the top 3 failure patterns and their frequency. I've added 10 test cases for each pattern. Here's our baseline score. I'm proposing we dedicate 20% of this sprint to addressing the #1 failure pattern. Expected improvement: 15-20% on the specificity dimension."
+</div>
+
+<p>In each case, you're saying the same thing: "I'm building an eval system." But you're framing it in terms of what each person cares about: the CEO cares about answerable questions and trendlines, the engineer cares about the technical interface they need to build, the designer cares about user-facing quality, and the team cares about sprint priorities and clear success metrics.</p>
+
+<p>Note what you're NOT saying: "We need to buy an eval platform" (don't lead with tooling). "Engineering needs to build a testing framework" (don't make it sound like their problem). "We need to hire an ML engineer for evaluations" (don't create a blocker). You're saying: "I've started. Here's what I found. Here's what I need from you." Lead with results, not requests.</p>
+
+<p>Nobody will fight you for this ownership. Eval work requires taste, product judgment, tedious data review, and user empathy &mdash; things most engineers don't want to do and don't have context for. You're not taking something away from anyone. You're filling a gap that everyone knows exists but nobody has been willing to own.</p>
+
+<h3>The PM's Eval Cadence</h3>
+
+<p>Once you own evals, what does the ongoing practice look like? Here's a realistic weekly and monthly cadence that takes about 3-4 hours per week &mdash; roughly 10% of your time.</p>
+
+<pre>
+<span class="code-comment">  Weekly Eval Cadence (3-4 hours/week)</span>
+<span class="code-comment">  ====================================</span>
+
+<span class="code-keyword">  Monday</span>    <span class="code-string">Review outputs (1 hour)</span>
+<span class="code-comment">            Read 30-50 recent AI outputs. Flag the bad ones.</span>
+<span class="code-comment">            Note patterns. This is your most important hour.</span>
+
+<span class="code-keyword">  Tuesday</span>   <span class="code-string">Update suite (30 min)</span>
+<span class="code-comment">            Add 2-3 new test cases from Monday's review.</span>
+<span class="code-comment">            Write or refine rubric criteria if needed.</span>
+
+<span class="code-keyword">  Wed-Thu</span>   <span class="code-string">Run evals on any prompt changes (30 min per change)</span>
+<span class="code-comment">            Every prompt change gets a full suite run.</span>
+<span class="code-comment">            Review results. Ship or revert.</span>
+
+<span class="code-keyword">  Friday</span>    <span class="code-string">Weekly quality snapshot (30 min)</span>
+<span class="code-comment">            Run the full suite on current production prompt.</span>
+<span class="code-comment">            Log the scores. Track the trendline.</span>
+<span class="code-comment">            Share the snapshot with the team.</span>
+
+<span class="code-accent">  Monthly</span>
+<span class="code-comment">  ────────────────────────────────────</span>
+<span class="code-comment">  Deep review (2 hours): Read 200+ outputs. Look for new</span>
+<span class="code-comment">  failure patterns. Challenge existing rubric weights.</span>
+<span class="code-comment">  Are you still measuring the right things?</span>
+</pre>
+
+<p>This cadence seems modest. It is. That's intentional. The biggest risk with eval ownership isn't underinvesting &mdash; it's overcomplicating. A simple, consistent weekly rhythm beats an elaborate system that you abandon after two weeks because it takes 10 hours per week to maintain.</p>
+
+<p>The cadence scales naturally. In month 1, you're reviewing 30 outputs manually and adding test cases to a spreadsheet. By month 3, your eval suite is large enough that automation makes sense &mdash; you ask engineering to build a runner. By month 6, evals run in CI/CD, you're reviewing results from a dashboard, and your Monday morning review is focused on production outputs that the automated system flagged, not raw output review.</p>
+
+<p>Start simple. Scale the investment as the product grows and the eval suite matures. By the time you have 200+ test cases and need automated runs in CI/CD, you'll have the data and the credibility to justify engineering support for automation. You'll earn that investment with results, not requests.</p>
+
+<div class="callout success">
+  <div class="callout-title">The Compound Effect</div>
+  If you add 3 test cases per week, in one year you'll have 156 test cases. In two years, 312. Each test case represents a specific failure mode you've caught and permanently prevented. Over time, your eval suite becomes a <strong>comprehensive map of everything that can go wrong</strong> with your AI product &mdash; and the automated assurance that none of those things are going wrong right now.<br><br>
+  This compound effect is why starting early matters so much. A PM who started building evals six months ago has 75+ test cases, deep pattern recognition of failure modes, and a quality trendline to show leadership. A PM starting from zero today is six months behind. Start today.
+</div>
+
+<h3>What "Great" Looks Like: Three Companies</h3>
+
+<p>To make PM eval ownership tangible, here's what mature eval practices look like at three different types of companies. These are composite examples based on public information and practitioner interviews.</p>
+
+<div class="callout realworld">
+  <div class="callout-title">Example 1 &mdash; Early-Stage SaaS (AI Customer Support, 15 Employees)</div>
+  <strong>PM's eval setup:</strong> One Google Sheet with 85 test cases. Three quality dimensions: accuracy, tone, completeness. Each test case has an input, expected behavior description, and pass/fail criteria. The PM updates the sheet weekly by adding 3-5 cases from user complaints.<br><br>
+  <strong>Process:</strong> Before any prompt change, the PM runs all 85 inputs through the model using a simple Python script (built by their one backend engineer in a day). The PM manually reviews the outputs against the rubric. Takes about 90 minutes. If accuracy stays above 85% and no safety failures, the change ships.<br><br>
+  <strong>Results after 3 months:</strong> Accuracy went from "nobody knows" to a measurable 88%. User-reported AI errors dropped 35%. The PM can show investors a quality trendline. The engineer spends zero time on eval judgment &mdash; they just maintain the runner script.<br><br>
+  <strong>Total ongoing investment:</strong> ~3 hours/week of PM time.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Example 2 &mdash; Growth-Stage Startup (AI Content Generation, 80 Employees)</div>
+  <strong>PM's eval setup:</strong> Braintrust account with 350 test cases across 6 quality dimensions. LLM-as-judge scores each output on a 1-5 scale for each dimension. Runs automatically in CI/CD &mdash; every pull request that changes a prompt triggers a full suite run. Results visible in a Braintrust dashboard that the whole team can access.<br><br>
+  <strong>Process:</strong> The PM spends Monday mornings reviewing 50 real production outputs (sampled automatically). Flags failures, adds new test cases, adjusts rubric criteria as the product evolves. Sprint planning includes "eval improvement" as a standing item &mdash; usually 10% of the sprint. The PM presents a weekly quality snapshot to leadership: "Accuracy 91% (+2 from last week), Brand Voice 84% (stable), Specificity 78% (target: 85%)."<br><br>
+  <strong>Results after 6 months:</strong> Quality scores improved consistently across every dimension. Time to ship a prompt change dropped from 3 days (manual review) to 2 hours (automated eval). The company uses eval scores in marketing: "Our AI achieves 91% accuracy on independent evaluation."<br><br>
+  <strong>Total ongoing investment:</strong> ~5 hours/week of PM time + engineering maintains the CI/CD integration.
+</div>
+
+<div class="callout realworld">
+  <div class="callout-title">Example 3 &mdash; Enterprise Product (AI Legal Assistant, 500 Employees)</div>
+  <strong>PM's eval setup:</strong> Custom eval platform built internally with 1,200+ test cases. Multiple PM-defined rubrics for different use cases (contract review, legal research, compliance checks). Human reviewers (legal domain experts) grade a sample of production outputs weekly. LLM-as-judge handles the automated scoring. A dedicated eval operations role reports to the PM.<br><br>
+  <strong>Process:</strong> Every model version, every prompt change, and every knowledge base update triggers a full suite run. Results feed into a quality dashboard with drill-down by use case, jurisdiction, and document type. Weekly quality reviews involve PM, engineering, and domain experts. Monthly reports to the compliance team and the board.<br><br>
+  <strong>Results:</strong> The company has never shipped a regression that affected users. They have 18 months of quality trendlines showing continuous improvement. Their eval system is a competitive moat &mdash; it's what allows them to sell to risk-averse enterprise customers who demand quality guarantees.<br><br>
+  <strong>Total ongoing investment:</strong> ~10 hours/week of PM time + 0.5 FTE eval ops + quarterly domain expert review sessions.
+</div>
+
+<p>Three companies. Three scales. Three investment levels. But the same pattern: <strong>the PM owns the definition of quality, the test case curation, the rubric design, and the interpretation of results.</strong> Engineering owns the infrastructure. The investment scales with the product's complexity and the stakes involved.</p>
+
+<h3>How Evals Connect to Every Other PM Artifact</h3>
+
+<p>One last piece before we move on. Evals aren't a standalone practice. They connect to everything else you do as a PM:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>PM Artifact</th><th>How Evals Connect</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><strong>PRD / Product Spec</strong></td>
+      <td>Your eval rubric IS the spec, expressed as automated tests. When stakeholders ask "what does 'good' look like for this feature?" &mdash; show them the rubric.</td>
+    </tr>
+    <tr>
+      <td><strong>Sprint Planning</strong></td>
+      <td>Eval results drive the backlog. "Tone score dropped 5 points this week" is a sprint item. "15% of outputs fail the accuracy check" is a priority decision.</td>
+    </tr>
+    <tr>
+      <td><strong>Stakeholder Reviews</strong></td>
+      <td>Replace "the AI seems better" with "accuracy improved from 78% to 86% this quarter, tone held steady at 81%, zero safety failures." Numbers build confidence.</td>
+    </tr>
+    <tr>
+      <td><strong>Model Migration</strong></td>
+      <td>When engineering proposes upgrading to a new model version, run your eval suite on both. "The new model scores 3 points higher on accuracy but 2 points lower on conciseness. Here's the tradeoff." Data beats speculation.</td>
+    </tr>
+    <tr>
+      <td><strong>Competitive Analysis</strong></td>
+      <td>Run your eval suite on a competitor's product. "Their accuracy is comparable but our tone scores are 15 points higher." Now you know your moat.</td>
+    </tr>
+    <tr>
+      <td><strong>User Research</strong></td>
+      <td>User complaints map to eval failures. "Users say the AI is too verbose" maps to a low score on the conciseness dimension. Close the loop.</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p>Evals aren't extra work on top of your PM work. They ARE your PM work, expressed in a format that's automated, measurable, and actionable. Once you see them this way, the investment feels natural rather than additional.</p>
+
+<h3>Common Anti-Patterns (What NOT to Do)</h3>
+
+<p>Before we close this chapter, let me catalog the most common ways AI product teams get eval ownership wrong. Recognizing these anti-patterns will help you avoid them:</p>
+
+<div class="callout warning">
+  <div class="callout-title">Anti-Pattern 1: "We'll Add Evals Later"</div>
+  The team ships the AI feature first, plans to add evals "once things stabilize." Things never stabilize. New features get priority. Evals stay on the roadmap forever. Meanwhile, the AI degrades silently in production for months.<br><br>
+  <strong>The fix:</strong> Build 10 test cases before you ship. Not after. Not in the next sprint. Before.
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Anti-Pattern 2: "Our Users Are Our Eval"</div>
+  The team relies on user feedback to identify quality problems. "If it's bad, users will tell us." This is like using your customers as your QA department. By the time they complain, the damage is done &mdash; they've already had a bad experience, already formed a negative impression, already considered switching.<br><br>
+  <strong>The fix:</strong> Catch failures before users do. That's the entire point of evals. Users should encounter your best quality, not be the mechanism by which you discover your worst.
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Anti-Pattern 3: "We Have Unit Tests, So We Have Evals"</div>
+  The engineering team has unit tests that check if the API returns 200, if the response parses as valid JSON, if the model name is correct. These are infrastructure tests, not quality evals. They tell you the system is <em>running</em>. They don't tell you the system is <em>producing good outputs</em>. Passing all unit tests while shipping terrible AI outputs is the norm, not the exception.<br><br>
+  <strong>The fix:</strong> Distinguish between infrastructure tests (engineering owns) and quality evals (PM owns). You need both. They're not substitutes for each other.
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Anti-Pattern 4: "We Do Manual QA Before Every Release"</div>
+  The PM or QA person manually tests 10-20 prompts before each deployment. This catches some issues but has three fatal flaws: (1) it's not repeatable &mdash; you test different things each time, (2) it doesn't catch regressions &mdash; you test the new feature but not everything else, and (3) it doesn't scale &mdash; as the product grows, 20 manual tests covers a smaller and smaller percentage of the surface area.<br><br>
+  <strong>The fix:</strong> Manual review is valuable but insufficient. Turn your manual test prompts into automated test cases. Run ALL of them on every change, not just the ones you think are relevant.
+</div>
+
+<div class="callout warning">
+  <div class="callout-title">Anti-Pattern 5: "Our Eval Suite Is Set and Forget"</div>
+  A PM builds 50 test cases, integrates them into CI/CD, and moves on to other work. The eval suite runs on every deployment, scores stay green, and nobody touches the test cases for 6 months. Meanwhile, the product has launched 3 new features, the user base has shifted, and the failure modes have evolved. The eval suite is testing 6-month-old failure modes and missing the current ones.<br><br>
+  <strong>The fix:</strong> The eval suite is a living document, not a one-time deliverable. Add 2-5 new test cases every week (from Monday output review). Remove test cases that are no longer relevant. Update rubric criteria as the product strategy evolves. An eval suite that isn't growing is an eval suite that's falling behind.
+</div>
+
+<h3>The Paradox of Eval Investment</h3>
+
+<p>There's a paradox that trips up many PMs when they first start owning evals: <strong>the teams that most need evals are the teams that feel they least have time for evals.</strong></p>
+
+<p>If your product has quality problems, you're spending time on firefighting: responding to user complaints, writing incident reports, rolling back bad changes, manually reviewing outputs. All of this is reactive work. It takes time. And when someone suggests "let's build an eval suite," the reaction is "we don't have time for that &mdash; we're too busy fighting fires."</p>
+
+<p>But the fires exist <em>because</em> there are no evals. Without evals, you ship bad changes. Bad changes create fires. Fires consume your time. You don't have time for evals. So you ship more bad changes. More fires. It's a vicious cycle.</p>
+
+<p>Evals break the cycle. A 6-hour investment in your first week (the Day 1-5 plan above) reduces the fire rate within the first sprint. By Week 4, the time you save on firefighting more than pays for the time you invested in the eval suite. By Month 3, you can't imagine working without them.</p>
+
+<pre>
+<span class="code-comment">  The Eval Investment Paradox</span>
+<span class="code-comment">  ===========================</span>
+
+<span class="code-accent">  Without evals (vicious cycle):</span>
+<span class="code-comment">  Ship blind → bad changes → fires → fight fires → no time</span>
+<span class="code-comment">  → ship blind again → more fires → more fighting → ...</span>
+
+<span class="code-string">  With evals (virtuous cycle):</span>
+<span class="code-comment">  Invest 6 hours → catch bad changes before shipping → fewer fires</span>
+<span class="code-comment">  → time saved → invest in more test cases → even fewer fires</span>
+<span class="code-comment">  → even more time saved → better product → ...</span>
+</pre>
+
+<p>The initial investment breaks the vicious cycle and starts the virtuous one. The ROI is not future and hypothetical &mdash; it's visible within the first two weeks.</p>
+
+<div class="callout insight">
+  <div class="callout-title">The Bottom Line</div>
+  Evals are the PM's job because the eval rubric <em>is</em> the product spec. The dimensions you choose, the weights you assign, the quality bar you set, the test cases you curate &mdash; these decisions determine what your AI product optimizes for, every day, on every output, for every user. That's product strategy. It's yours.<br><br>
+  The industry agrees. The logic is clear. The opportunity is enormous. The question is whether you're going to step into the gap or wait for someone else to.
+</div>
+
+<h3>A Quick Self-Assessment</h3>
+
+<p>Before we move on, a quick checkpoint. After reading this chapter, you should be able to answer these questions confidently:</p>
+
+<ul class="checklist">
+  <li>Why is "the PM who defines the eval rubric defines the product" true? (Because rubric weights encode product strategy.)</li>
+  <li>What's the difference between infrastructure tests and quality evals? (Infrastructure = system is running. Quality = system is producing good output.)</li>
+  <li>What are the 4 common anti-patterns in eval ownership? (Later, set-and-forget, users-as-eval, unit-tests-as-evals, manual-QA-only.)</li>
+  <li>What does your first week of eval work look like? (Day 1: read outputs. Day 2: find patterns. Day 3: write 10 test cases. Day 4: score them. Day 5: claim ownership.)</li>
+  <li>How do you frame eval ownership to different stakeholders? (CEO: trendlines. Eng: interface spec. Design: UX dimensions. Team: sprint priorities.)</li>
+</ul>
+
+<p>If you can answer these, you've internalized the chapter. If any feel fuzzy, the relevant sections above have the detail. Don't worry about memorizing everything &mdash; you can always come back. What matters is that you've developed the conviction: <strong>this is my job, and I know how to start.</strong></p>
+
+<h3>What's Coming Next</h3>
+
+<p>You now know:</p>
+<ul>
+  <li><strong>Phase 0 (Chapters 01-02):</strong> Why AI products need a fundamentally different approach to quality, and the vocabulary to talk about it.</li>
+  <li><strong>Chapter 03:</strong> Why the PM owns evals, how to claim that ownership, what the practice looks like day-to-day, and the anti-patterns to avoid.</li>
+</ul>
+
+<p>Next up: we start answering the 5 Questions in earnest.</p>
+
+<p><strong>Chapter 04: Task Decomposition</strong> answers Q1 ("What does the agent DO?") by teaching you how to break your agent into discrete, evaluable tasks. You'll learn a systematic method for mapping every job your agent performs &mdash; because you can't evaluate what you haven't defined. This is where the eval suite starts to take shape.</p>
+
+<p><strong>Chapter 05: The ACCT Framework</strong> gives you a structured way to think about quality dimensions for each task: Accuracy, Completeness, Calibration, and Taste. It's the answer to "what should I measure?" for any AI product. Every quality dimension you'll ever need maps to one of these four letters.</p>
+
+<p>From there, we move to Phase 2 (Q2: "How can it fail?"), where you'll learn error analysis &mdash; the single most important practical skill in the AI PM toolkit. Hamel Husain says PMs should spend 60-80% of their eval development time on error analysis. We'll show you exactly how.</p>
+
+<p>The journey has started. The foundations are in place: you understand why AI is different, you have the vocabulary, and you know that evals are your job. Everything from here forward is building on these foundations.</p>
+
+<p>Let's keep going.</p>

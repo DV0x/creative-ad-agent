@@ -1,0 +1,24 @@
+Create a 4:5 social ad image for The Whole Truth (a premium, honest Indian protein brand). The whole image is built around ONE real artifact: a screenshot of a genuine 5-star Amazon.in customer review of this product, with the brand's product as the listing photo and a small brand CTA added at the bottom. It must look like a real phone screenshot of the Amazon shopping app — honest, plain, functional — NOT a designed "testimonial card," NOT polished, NOT AI-gloss.
+
+OVERALL LOOK — a real Amazon.in app screenshot:
+- Clean white app background, the real Amazon shopping-app layout and fonts, slightly plain and functional. A real screenshot, a little imperfect — not a designed graphic.
+
+TOP — THE PRODUCT (bound to the reference image, keep it exact):
+- The product shown as the Amazon listing photo, on a clean WHITE background (Amazon listing style — replace the reference's pink background with white).
+- The Whole Truth "light cocoa" whey protein: deep burgundy / maroon matte stand-up pouch, the white stacked "The Whole Truth" wordmark, the white "Cleanest, lightest whey protein. Ever." line, the "24g protein per scoop" panel, the small green vegetarian mark, the gold-circle "Trustified" seal. Match the burgundy colorway, the wordmark, and the Trustified seal to the reference exactly. No red "Bestseller" ribbon.
+
+MIDDLE — THE REVIEW BLOCK (every element specific, like the real Amazon UI):
+- A row of 5 filled orange Amazon-style stars.
+- Bold review title (this is the VERBATIM review — use exactly this, nothing added): "No bloating at all."
+- A small grey line under it: "Reviewed in India on 12 March 2026"
+- "Verified Purchase" in Amazon's small orange-brown text, with a small check mark.
+- The reviewer: a small grey circle avatar and the name "Rohan K."
+- Keep the review SHORT and real — a genuine short 5-star review. Do NOT invent extra body text, extra claims, or a "helpful" count.
+
+BOTTOM — THE BRAND CTA (clearly the brand's add-on, not part of Amazon):
+- A burgundy rounded pill button with white text: "Try it"
+- Small, plain, confident — obviously laid on top by the brand, separate from the Amazon screenshot.
+
+FEEL: the brand sharing one real customer review — a true screenshot, plain and credible. Native, not designed.
+
+DO NOT: a designed "testimonial card" look · a polished studio background · golden or warm grading · the product floating in a colored void · fake exaggerated stars that don't look like Amazon's · invented review body text or made-up claims · a second review from a different platform · an invented "X people found this helpful" count · stock smiling faces · an "as seen in" press-logo bar.

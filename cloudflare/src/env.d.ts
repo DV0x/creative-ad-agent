@@ -48,4 +48,8 @@ export interface Env {
   SENTRY_DSN?: string;
   SENTRY_ENVIRONMENT?: string;
   SENTRY_RELEASE?: string;
+
+  // PostHog — server-side capture (var in wrangler.jsonc; public project key, same as client bundle)
+  POSTHOG_KEY?: string;
+  POSTHOG_HOST?: string;
 }

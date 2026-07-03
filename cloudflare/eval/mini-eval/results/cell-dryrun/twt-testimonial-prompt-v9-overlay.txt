@@ -1,0 +1,17 @@
+Edit this image. KEEP the kitchen scene and the protein pouch exactly as they are — the same real kitchen counter, the same burgundy "The Whole Truth" pouch (wordmark, 24g panel, gold Trustified seal), the same shaker glass with the chocolate shake, the same natural daylight. Do NOT change the product or the scene.
+
+REMOVE: the white caption bar and ALL the text currently at the top of the image. Clear that area back to the kitchen photo behind it.
+
+ADD: ONE horizontal review-screenshot card, composited onto the photo like a real Amazon review screenshot someone pinned on top. Place it across the LOWER-MIDDLE of the image, overlapping the counter. It must look like a genuine screenshot card, not a designed graphic:
+- A clean white rounded card with a soft realistic drop shadow, sitting on top of the photo (clearly a separate pinned element).
+- A row of 5 filled orange Amazon-style stars.
+- Bold review text (verbatim — use exactly this, nothing added): "No bloating at all."
+- A smaller grey line below: "Verified Purchase · Amazon.in"
+- A small grey circle avatar with the reviewer name "Rohan K."
+- Keep it short and real — NO invented body text, NO made-up claims, NO fake "helpful" count.
+
+A small burgundy "Try it ->" pill in the bottom-right corner — the brand's CTA, clearly the brand's add-on.
+
+FEEL: a real customer's kitchen photo with a real review screenshot pinned on it — honest, native, a brand sharing genuine proof. NOT a designed poster, NOT AI-gloss.
+
+DO NOT: a second review · a review from any other platform · invented review text · fake stars that don't look like Amazon's · a glossy studio look · changing the product or the kitchen · golden / warm grading.

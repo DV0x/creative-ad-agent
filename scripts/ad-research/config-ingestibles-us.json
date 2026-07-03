@@ -1,0 +1,14 @@
+{
+  "slug": "ingestibles-us-deep-2026-06-16",
+  "country": "US",
+  "status": "ACTIVE",
+  "maxAds": 30,
+  "brands": [
+    { "name": "RXBAR",            "bucket": "snacking/protein-bar",     "page_id": "320396954740959" },
+    { "name": "Magic Spoon",      "bucket": "functional-cereal",        "page_id": "1978160732305312" },
+    { "name": "OLIPOP",           "bucket": "functional-bev/soda",      "page_id": "162352551085006" },
+    { "name": "Poppi",            "bucket": "functional-bev/soda",      "page_id": "101077004856501" },
+    { "name": "Athletic Greens",  "bucket": "supplements/greens",       "page_id": "183869772601" },
+    { "name": "Liquid IV",        "bucket": "functional-bev/hydration", "page_id": "609555915738248" }
+  ]
+}

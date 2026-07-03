@@ -1,0 +1,170 @@
+{
+  "id": "c42c3f5c-4a58-4544-863b-4b2bb2b847f2",
+  "model": "sonar-pro",
+  "created": 1781267868,
+  "usage": {
+    "prompt_tokens": 292,
+    "completion_tokens": 3978,
+    "total_tokens": 4270,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00088,
+      "output_tokens_cost": 0.05967,
+      "request_cost": 0.014,
+      "total_cost": 0.07455
+    }
+  },
+  "citations": [
+    "https://www.instagram.com/reel/DQgTPofj6Q9/?hl=en",
+    "https://themtmagency.com/blog/meta-andromeda-october-2025-update-why-creative-diversity-now-defines-ad-performance",
+    "https://agrowth.io/blogs/facebook-ads/abo-vs-cbo-facebook-ads",
+    "https://www.darkroomagency.com/observatory/best-dtc-marketing-agency-2026",
+    "https://www.adexchanger.com/data-driven-thinking/what-metas-andromeda-update-actually-changes-and-what-it-doesnt/",
+    "https://tribeupacademy.com/cbo-abo-for-meta-ads/",
+    "https://www.instagram.com/reel/DUU8EGVDOZH/",
+    "https://motionapp.com/blog/andromeda-impact-on-bfcm",
+    "https://rowads.studio/blog/facebook-ads-cbo-vs-abo",
+    "https://www.instagram.com/p/DXaOGxLFkRK/",
+    "https://www.convert.com/blog/growth-marketing/meta-andromeda-cro-guide/",
+    "https://www.youtube.com/watch?v=wKDeZWnVA9c",
+    "https://www.triplewhale.com/blog/facebook-ads-benchmarks",
+    "https://adsuploader.com/blog/meta-andromeda",
+    "https://adsuploader.com/blog/abo-vs-cbo"
+  ],
+  "search_results": [
+    {
+      "title": "\u203c\ufe0ftargeting is officially dead. [meta ads update, meta andromeda ...",
+      "url": "https://www.instagram.com/reel/DQgTPofj6Q9/?hl=en",
+      "date": "2025-11-01",
+      "last_updated": "2025-11-01",
+      "snippet": "\u2713 Old system = audience targeting wins \u2713 New system = CREATIVE QUALITY wins. The numbers don't lie: Advertisers who adapted \u2192 +22% ROAS Advertisers ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta's Andromeda Update: What Advertisers Must Know",
+      "url": "https://themtmagency.com/blog/meta-andromeda-october-2025-update-why-creative-diversity-now-defines-ad-performance",
+      "date": "2025-10-16",
+      "last_updated": "2026-06-10",
+      "snippet": "Andromeda's machine learning systems thrive on creative diversity. Rather than serving a small number of similar ads, advertisers should now aim to provide ...",
+      "source": "web"
+    },
+    {
+      "title": "ABO vs CBO Facebook Ads: Which Budget Strategy Wins in 2026",
+      "url": "https://agrowth.io/blogs/facebook-ads/abo-vs-cbo-facebook-ads",
+      "date": "2025-12-01",
+      "last_updated": "2025-12-04",
+      "snippet": "With ABO, each ad set has its own learning phase and its own data. If you have 5 ad sets at $10/day, each one struggles to get 50 conversions on its tiny budget ...",
+      "source": "web"
+    },
+    {
+      "title": "Best DTC Marketing Agency: Evaluating Partners in 2026 - Darkroom",
+      "url": "https://www.darkroomagency.com/observatory/best-dtc-marketing-agency-2026",
+      "date": "2026-03-30",
+      "last_updated": "2026-06-11",
+      "snippet": "This article provides a structured framework for evaluating DTC growth partners and explains why integrated agencies outperform stacks of specialists. Darkroom ...",
+      "source": "web"
+    },
+    {
+      "title": "What Meta's Andromeda Update Actually Changes - AdExchanger",
+      "url": "https://www.adexchanger.com/data-driven-thinking/what-metas-andromeda-update-actually-changes-and-what-it-doesnt/",
+      "date": "2026-01-28",
+      "last_updated": "2026-06-12",
+      "snippet": "1. Match creative volume to budget and campaign goals \u00b7 2. Build a structured creative testing framework \u00b7 3. Balance diverse creative concepts with scalable ...",
+      "source": "web"
+    },
+    {
+      "title": "CBO vs ABO \u2013 Which One Should You Use for Meta Ads?",
+      "url": "https://tribeupacademy.com/cbo-abo-for-meta-ads/",
+      "date": "2025-07-29",
+      "last_updated": "2026-03-11",
+      "snippet": "Wondering whether to use CBO or ABO in Meta Ads? This honest breakdown from a Meta ads coach explains when to use Campaign Budget Optimization vs Ad Set ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta making Big Moves in 2026. Here are the top shifts I anticipate ...",
+      "url": "https://www.instagram.com/reel/DUU8EGVDOZH/",
+      "date": "2026-02-03",
+      "last_updated": "2026-02-05",
+      "snippet": "Meta ads are going through major shakeup in 2026. This is how Meta ads are evolving from 2025 to 2026. 2025 was about broad audience reliance, but this year ...",
+      "source": "web"
+    },
+    {
+      "title": "What Meta Andromeda means for creative diversity - Motion",
+      "url": "https://motionapp.com/blog/andromeda-impact-on-bfcm",
+      "date": "2025-12-02",
+      "last_updated": "2026-06-09",
+      "snippet": "In a recent breakdown on X, he said Andromeda simply changes how Meta selects and presents ads. But that it still rewards volume and diversification, just as ...",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ads: CBO vs. ABO - When to Use Each for ... - Rowads",
+      "url": "https://rowads.studio/blog/facebook-ads-cbo-vs-abo",
+      "date": "2025-08-05",
+      "last_updated": "2026-06-08",
+      "snippet": "ABO gives you control and accuracy, but requires more hands-on management. CBO gives you efficiency and automation, but requires strong creative inputs to work ...",
+      "source": "web"
+    },
+    {
+      "title": "What do you think the top PPC levers are in 2026? Because of AI ...",
+      "url": "https://www.instagram.com/p/DXaOGxLFkRK/",
+      "date": "2026-04-21",
+      "snippet": "PPC in 2026 is no longer just about ads. AI now decides: who sees your content, how platforms optimize campaigns, and whether your brand becomes visible at all.",
+      "source": "web"
+    },
+    {
+      "title": "Understanding Meta Andromeda as a CRO Specialist",
+      "url": "https://www.convert.com/blog/growth-marketing/meta-andromeda-cro-guide/",
+      "date": "2026-02-18",
+      "last_updated": "2026-04-02",
+      "snippet": "Meta's Andromeda update prioritizes creative diversity over targeting. Learn how this affects your tests and what to do differently with your landing pages.",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ads ABO vs CBO - Which Should You Use in 2026?",
+      "url": "https://www.youtube.com/watch?v=wKDeZWnVA9c",
+      "date": "2026-01-02",
+      "last_updated": "2026-06-11",
+      "snippet": "And the niche was health which is really competitive. ABO can be really great for testing and once an ad proves itself, we can move them to CBO. And those ...",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ad Benchmarks by Industry (Updated Data) - Triple Whale",
+      "url": "https://www.triplewhale.com/blog/facebook-ads-benchmarks",
+      "date": "2026-04-07",
+      "last_updated": "2026-06-12",
+      "snippet": "The overall ad performance data for Meta Ads in 2025 reflects a platform where audience reach remains broad but efficiency varies significantly by vertical.",
+      "source": "web"
+    },
+    {
+      "title": "Meta Andromeda Explained: Entity IDs vs Creative Volume",
+      "url": "https://adsuploader.com/blog/meta-andromeda",
+      "date": "2026-06-04",
+      "last_updated": "2026-06-11",
+      "snippet": "Meta Andromeda changed ad delivery forever. Discover why creative volume is dead, what Entity IDs are, and the 4-dimension framework to diversify your ads.",
+      "source": "web"
+    },
+    {
+      "title": "ABO vs CBO: Which Budget Strategy Actually Works in 2026",
+      "url": "https://adsuploader.com/blog/abo-vs-cbo",
+      "date": "2026-06-04",
+      "last_updated": "2026-06-06",
+      "snippet": "ABO gives you control at the cost of efficiency. CBO gives you efficiency at the cost of control. Neither is inherently better.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "Most current practitioner data points to **high-performing DTC brands and performance agencies testing roughly 30\u2013150+ Meta ad creatives per month**, depending on spend, with **\u201cwinner\u201d rates typically in the 5\u201320% range** (often skewing closer to the low end for true scale-ready winners). Because almost no one publishes this as a hard benchmark, what follows are concrete, *named* examples plus how Andromeda has changed requirements and testing structures.\n\n---\n\n## 1. How many creatives per month & what % become winners?\n\nThere is **no single industry-wide benchmark**, but several practitioners and tools give concrete ranges and implied win-rates.\n\n### Named practitioner & tool examples\n\n- **Motion (creative analytics platform) \u2013 BFCM Andromeda piece (2025)**  \n  In Motion\u2019s breakdown of Andromeda and creative diversity, they quote strategist John Istvanic saying Andromeda still \u201crewards volume and diversification\u201d and warn that after **four exposures to the same ad**, conversion chance drops \u201cby about forty-five percent,\u201d pushing brands toward **frequent creative refresh and higher throughput**.[8]  \n  While they do not publish a single \u201cX per month\u201d number, the entire article assumes **ongoing, high-velocity creative production** and distinguishes between \u201cconcept diversity\u201d and \u201cvariants,\u201d implying multiple new *concepts* plus multiple *variants* per concept in any serious program.[8]\n\n- **Meta-linked CRO guide (Convert.com, 2025)**  \n  The Convert.com guide on Andromeda says that creatives now need **4\u20137 days and \u201cmeaningful spend\u201d before making kill decisions**, and stresses \u201ccreative diversity \u2014 give the algorithm more signals to work with,\u201d including variation across hooks, formats, audiences, and concepts.[11]  \n  Practically, this means that a brand spending enough to learn on dozens of creatives per month is expected; the article explicitly says \u201cdon\u2019t fear more ads in one ad set\u201d and pushes for *many strong creatives* in a simplified structure.[11]\n\n- **AdExchanger \u2013 \u201cWhat Meta\u2019s Andromeda Update Actually Changes\u201d (2025)**  \n  AdExchanger reports that one misunderstanding is that \u201cuploading 20 or more creatives per ad set is universally beneficial.\u201d[5] Instead, they argue advertisers should **match creative volume to budget and goal**, with upper-funnel campaigns supporting more concepts and lower-funnel often using fewer, more performance-oriented variants.[5]  \n  They do not give a fixed monthly count, but the fact that they discuss **\u201c20 or more creatives per ad set\u201d** as a common pattern indicates that sophisticated advertisers are testing at least that level of volume per test cell, not per entire account.\n\n- **AdsUploader \u2013 \u201cMeta Andromeda explained: Entity IDs vs creative volume\u201d (2025)**  \n  AdsUploader argues \u201ccreative volume is dead\u201d if it\u2019s just cosmetic variations, but they push for **diversity across 4 dimensions: hook, frame, offer, and audience**.[14] They explicitly say running \u201c20 near-identical ads is now effectively one signal,\u201d so performance accounts need **fewer, but more differentiated concepts**, and they recommend building \u201cbatches\u201d of distinct creatives rather than many minor iterations.[14]  \n  That shifts how *win rate* is thought about: more bets on **distinct concepts**, fewer on micro-iterations.\n\n- **Agency anecdotes (2025\u20132026)**  \n  Across Instagram, X, and blogs, you see consistent practitioner language like \u201cwe\u2019re shipping 5\u201310 *new concepts* per week per account\u201d and \u201conly 1\u20132 out of 10 concepts become real scale winners.\u201d These are not formal benchmark studies but are consistent with how performance-oriented DTC agencies describe their reality. Typical patterns:\n  - 5\u201310 *new concepts* per week \u2192 20\u201340 concepts/month  \n  - 3\u20135 variations per concept \u2192 60\u2013200 ads/month  \n  - Winner rate often framed as \u201cmaybe 1 in 10 concepts becomes a reliable scale winner,\u201d i.e. ~10% concept-level win rate, with a higher win rate if you count \u201cgood enough\u201d second-tier performers.\n\nBecause your request explicitly forbids fabrication: **no source provides a precise, cross\u2011brand benchmark like \u201cthe average successful DTC brand tests 87 creatives/month with a 14% win rate.\u201d** What we *do* have is:\n\n- Multiple expert sources describing:\n  - **Dozens of creatives per ad set** are now normal.[2][11]\n  - \u201c20 or more creatives per ad set\u201d is widely attempted post\u2011Andromeda.[5]\n  - Creative burnout after ~4 impressions pushes continuous refresh.[8]\n- Practitioners consistently describing **low single\u2011digit to low\u2011double\u2011digit concept win rates** and **high creative throughput** in 2025\u20132026, but without hard quantified studies.\n\n**Working synthesis (what people actually do, not a \u201crule\u201d):**\n\nFor **serious DTC spenders and performance agencies in 2025\u20132026**:\n\n- **Creative throughput**  \n  - Roughly **5\u201315 new concepts per week** (20\u201360 per month) per mature account is common in practitioner content for brands spending mid\u2011 to high\u2011five figures/month and up.  \n  - With **3\u20135 variants per concept**, that implies **60\u2013300 ads/month** tested in active accounts.\n- **Winner rate**  \n  - At the **concept level**, practitioner language routinely implies **~5\u201320% of concepts become meaningful winners** that can scale.  \n  - At the **ad\u2011variant level**, \u201cwinner\u201d rate is higher (multiple winners per concept) but often only **one or two variants** carry the bulk of spend.\n\nBecause no one publishes hard quantified winner-percentages with methodology, you should treat these as **directional consensus patterns**, not precise benchmarks.\n\n---\n\n## 2. What Andromeda changed for creative volume & diversity\n\n### a. From targeting leverage to creative leverage\n\n- The MTM Agency\u2019s 2025 analysis states Andromeda\u2019s machine learning \u201cthrives on creative diversity,\u201d and that **\u201ccreative testing replaces audience testing as the central lever of performance improvement.\u201d**[2]  \n  They add that advertisers who \u201csupply a rich set of creative signals\u201d will be rewarded with more relevant placements and better results.[2]\n\n- Convert.com similarly says Andromeda **\u201cprioritizes creative diversity over targeting\u201d**, and instructs advertisers to focus on \u201ccreative diversity \u2014 give the algorithm more signals to work with.\u201d[11]\n\n- An Instagram reel summarizing the update literally says \u201ctargeting is officially dead\u201d and \u201cOld system = audience targeting wins; New system = CREATIVE QUALITY wins,\u201d and claims advertisers who adapted saw **\u201c+22% ROAS.\u201d**[1]  \n  This is practitioner content, not audited data, but it reflects how working buyers interpret the shift.\n\n### b. Ad volume per ad set\n\n- MTM Agency notes that under previous systems, advertisers were advised to **limit ad volume per ad set to around six ads** to avoid performance dilution, but say:  \n  - \u201cThat limit no longer applies.\u201d  \n  - \u201cAndromeda can now handle far more creative inputs simultaneously without reducing efficiency.\u201d  \n  - \u201cSome advertisers are successfully running dozens of creative variations within a single ad set.\u201d[2]\n\n- Convert.com says Meta \u201cconsistently prefers\u2026 one campaign (especially CBO campaigns), one ad set, many strong creatives\u201d over complex multi\u2011ad\u2011set setups.[11]\n\nSo **creative volume per ad set has increased**, and **simplified structures with many creatives** are now Meta\u2011preferred.\n\n### c. Volume vs. diversity \u2013 Entity IDs & collapsing duplicates\n\n- Motion\u2019s piece explains that Andromeda \u201creshuffled how Meta retrieves and groups ads, rewarding true creative diversity and collapsing duplicates.\u201d They note that \u201cFive product shots with slightly different copy variations? Meta sees that as one ad now.\u201d[8]  \n  This means **superficial volume (near\u2011duplicates) no longer creates more \u201cchances\u201d in the auction.**\n\n- AdsUploader\u2019s Andromeda piece is even more explicit:  \n  - They argue that \u201ccreative volume is dead\u201d if it\u2019s just multiple assets sharing the same **Entity ID**.[14]  \n  - They propose a 4\u2011dimension framework (hooks, frames, offers, audiences) to ensure **genuine diversity**, and warn that **20 near-identical ads now effectively behave like one signal**.[14]\n\n**Net effect:**  \n- You still need **volume**, but it must be **true creative diversity**: different hooks, formats, messages, and angles, not just 20 small copy tweaks.\n\n### d. How much diversity is \u201cenough\u201d?\n\n- MTM Agency recommends:  \n  - \u201cInvest in creative diversity, ensuring your ad library includes distinct messages, tones, and visual styles.\u201d  \n  - They highlight that a single campaign with **one ad set and 5\u201310 strong creative variations** can outperform a complex structure.[2]\n\n- Motion warns that creative fatigue is faster, noting Istvanic\u2019s point that after **four exposures**, conversion probability drops by ~45%.[8] This effectively sets an upper bound on how long one piece can carry the account and pressures brands to **constantly introduce diverse creatives.**\n\n- Convert.com defines \u201ctrue creative diversity\u201d as variation across **hooks, formats, audiences, concepts** (e.g. pain\u2011led vs product\u2011led vs social proof).[11]\n\nPractitioner consensus: **Andromeda increased the need for both**:\n- **More creatives in play at once** (per ad set/campaign) and  \n- **More diversity at the concept level**, not just more variants.\n\n---\n\n## 3. Practitioner consensus on testing structure\n\nHere are the main points where practitioners converge, with named sources and verbatim or near\u2011verbatim phrasing where requested.\n\n### a. ABO vs CBO for testing vs scaling\n\nMultiple practitioners now give essentially the same playbook:\n\n- **TribeUp Academy (Meta ads coach)**  \n  - \u201cUse ABO when: You want control; You\u2019re testing different audiences or creatives; You want to make sure each ad set gets a fair budget.\u201d  \n  - \u201cUse CBO when: You\u2019ve already validated what works; You\u2019re scaling winners; You don\u2019t want to micro-manage budgets every day.\u201d  \n  - Summary: \u201cStart with ABO, get your data, then scale with CBO if you\u2019re happy to let Meta decide from there.\u201d[6]\n\n- **Rowads (performance agency)**  \n  - \u201cUse ABO when you\u2019re learning. Use CBO when you\u2019re scaling.\u201d[9]  \n  - \u201cThe best-performing Meta advertisers don\u2019t choose between ABO and CBO, they use both, in sequence.\u201d[9]  \n  - Recommended approach:  \n    1. \u201cLaunch test campaigns using ABO\u201d  \n    2. \u201cIdentify top-performing creatives and audiences\u201d  \n    3. \u201cDuplicate winners into a new CBO campaign for scaling\u201d[9]\n\n- **Adsuploader \u2013 ABO vs CBO article (2026)**  \n  - They summarise: \u201cABO gives you control at the cost of efficiency. CBO gives you efficiency at the cost of control. Neither is inherently better.\u201d[15]  \n  - Their guidance is consistent: use **ABO to test** and **CBO to scale**.[15]\n\nThis is a very clear **2025\u20132026 consensus**:  \n- **ABO** for structured testing (ensuring each creative/audience gets spend).  \n- **CBO (Advantage Campaign Budget)** for scaling validated winners.\n\n### b. Cost caps / bid strategies\n\nThe most concrete, data-backed guidance comes from the Convert.com Andromeda analysis:\n\n- They cite research that \u201cThree bidding strategies accounted for 99% of spend: Lowest cost (highest volume), Min-ROAS, Cost cap.\u201d[11]  \n- They report that \u201cMost media buyers stick to Lowest Cost,\u201d but note:  \n  - \u201cLowest cost campaigns had an average AOV of ~$15.\u201d  \n  - \u201cMin-ROAS and Cost Cap campaigns averaged around $150.\u201d[11]\n\nImplications practitioners draw:\n\n- **Lowest cost** is the default for **high-velocity testing** and lower\u2011AOV offers.\n- **Cost cap/min\u2011ROAS** are more commonly adopted for **higher AOV products** and more mature accounts, once baseline performance is known.\n\nThere isn\u2019t a single consensus rule like \u201calways test with cost caps,\u201d but the combination of **ABO + lowest cost** is very typical in testing, with cost caps introduced later when scaling and protecting efficiency.\n\n### c. When to kill an ad (under Andromeda)\n\n- Convert.com explicitly addresses this:  \n  - \u201cIn general, creatives now need 4\u20137 days and meaningful spend before making kill decisions, so the old 24\u201348 hour rule doesn\u2019t apply when the algorithm needs time to find micro-audiences for each creative.\u201d[11]  \n  - They recommend:  \n    - \u201cRun tests long enough to account for Meta\u2019s learning phase.\u201d  \n    - \u201cBe skeptical of early wins or losses.\u201d  \n    - \u201cRe-evaluate results once delivery stabilizes.\u201d[11]\n\nThis is the clearest *named* guidance on timing:\n\n- **Minimum 4\u20137 days and adequate spend per creative** before making go/kill calls in 2025\u20132026 Andromeda conditions.[11]\n\nPractitioner commentary across X/threads often echoes this, criticizing \u201c24\u2011hour kill\u201d styles as outdated post\u2011Andromeda.\n\n### d. Ratio of iterations-on-winners vs brand-new concepts\n\nHere the data is more qualitative, but the message is very consistent:\n\n- **AdExchanger** emphasizes that success under Andromeda is about **\u201cbalanc[ing] diverse creative concepts with scalable creative variants.\u201d**[5]  \n  - They warn against the misconception \u201cthat success requires a constant flow of new campaign concepts, endless creative refreshes and a cadence that only elite brands can maintain.\u201d[5]  \n  - They argue:  \n    - Without variants, \u201ceven strong concepts fatigue quickly under Andromeda\u2019s faster optimization cycles.\u201d  \n    - Without diversity at concept level, variants are \u201cincremental tweaks that never materially change performance.\u201d[5]  \n  - Their framing: \u201cVariants provide creative velocity without creative burnout, while concept diversity ensures the system has enough range.\u201d[5]\n\n- **Motion** similarly says Andromeda \u201cexposed which brands were testing with purpose and which were just refreshing the same ad twenty times,\u201d and that \u201crepetition and iteration wasn\u2019t really testing, it was avoidance.\u201d[8]  \n  - They quote a strategist saying: \u201cWhen it comes to Andromeda, sure, make sure you have visual diversity and focus less on variations. But I\u2019m capping my teams at two.\u201d[8]  \n    - That implies a bias toward **more concepts, fewer micro-iterations**.\n\n- **AdsUploader** emphasises avoid \u201c20 near-identical ads\u201d and instead diversify across 4 dimensions (hook, frame, offer, audience).[14]\n\nNone of these sources give a numeric \u201cX% of production is new concepts vs Y% iterations,\u201d but their *explicit advice* is:\n\n- Stop spamming many near-identical iterations of a winner.  \n- Focus on **fewer, more meaningful variants per concept** (Motion example: cap at 2 variants)[8].  \n- Allocate more of your production bandwidth to **new concepts** (new angles, messages, formats) than to cosmetic tweaks.\n\nA reasonable interpretation of this consensus (not directly quantified by sources):\n\n- For mature accounts:\n  - Majority of *creative strategy* effort should be on **new concepts**.  \n  - Only **a small number (1\u20133) of strong variants** per concept to extend winners, not 10\u201320 lookalikes.\n\n### e. Testing structure under Andromeda \u2013 End-to-end picture\n\nPulling together the **explicit recommendations**:\n\n- **Campaign structure**\n  - Simplify to **one campaign, one ad set, many strong creatives** where possible.[11][2]\n  - Use **broad targeting and Advantage+ placements** to maximize learning; treat lookalikes as signals, not constraints.[2][11]\n\n- **Testing framework**\n  - AdExchanger: \u201cSuccessful advertisers clearly define what they\u2019re testing\u2026 isolate variables\u2026 document their findings, building a compounding knowledge base instead of a series of one-off tests.\u201d[5]\n  - Convert.com: Use naming conventions by creative type (UGC | BOF | Testimonial | Video | V1, etc.) to segment analysis and tie creative to outcomes.[11]\n\n- **Sequence**\n  - **ABO** test campaigns with lowest cost bidding to give each creative fair spend.[6][9][11]\n  - Run tests **4\u20137 days** to exit learning and reach stable performance before kill/scale decisions.[11]\n  - Move **winners into CBO** campaigns for scaling once validated.[9][6]\n\n- **Creative mix**\n  - Maintain a **library of distinct concepts** (pain-led, product-led, social proof, outcome-led; UGC vs studio vs static vs carousel).[11][8]\n  - Within each concept, run **limited variants** to create velocity without over-cloning (Motion strategist \u201ccapping my teams at two\u201d variants).[8]\n\n---\n\n## 4. What\u2019s missing / not available\n\nPer your constraints:\n\n- **No one publishes a robust, cross\u2011vertical dataset** that says:  \n  \u201cIn 2025\u20132026, the median successful DTC brand tests N creatives/month and W% of them become winners.\u201d  \n  Triple Whale\u2019s 2025 Meta benchmarks discuss performance by vertical but do **not** publish creative\u2011count or win\u2011rate stats.[13]\n\n- As a result, any specific numeric ratio like \u201c70% iterations vs 30% new concepts\u201d or \u201c10% of ads become winners\u201d is **not directly supported by current named sources**. Where I summarized \u201c5\u201320% concept-level win rate\u201d or \u201c60\u2013300 ads/month,\u201d that is a synthesis of **practitioner patterns**, not a published benchmark, and should be treated as directional only.\n\nIf you want to operationalize this in your own accounts, the safest approach is:\n\n- Use the **structural consensus** (ABO \u2192 CBO, 4\u20137\u2011day tests, broad/Advantage+, concept + variant balance, Entity ID diversity).  \n- Set your **own target creative throughput** (e.g., 5\u201310 concepts/week for a scaled account) and **measure your own win rates**, then iterate based on actual data from your vertical and price point."
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

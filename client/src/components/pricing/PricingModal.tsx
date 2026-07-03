@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useUser } from '@clerk/clerk-react'
 import { useStore } from '@/store'
 import { paymentsApi } from '@/lib/api'
+import { track } from '@/lib/analytics'
 import {
   Dialog,
   DialogContent,
@@ -88,6 +89,7 @@ export function PricingModal() {
       return
     }
     setLoading(planId)
+    track('checkout_started', { type: 'subscription', plan: planId, interval, surface: 'pricing_modal' })
     try {
       const res = await paymentsApi.checkout(`${planId}-${interval}`, email, user?.fullName ?? undefined)
       window.location.href = res.checkout_url

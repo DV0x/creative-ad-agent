@@ -1,0 +1,16 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "a1-reframe-ref",
+      "refs": [
+        "assets/trainer/parth-clean.png",
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "Direct-response Meta feed ad (portrait) for a LIVE PTE exam masterclass, designed to make study-abroad students register. You are given THREE reference images: (1) a man (the trainer); (2) the Verbis Edu logo; (3) a Google review badge.\n\nUse the MAN exactly — same face, beard, warm confident smile, navy bandhgala jacket — cut him out from his party background and place him on the RIGHT side, cropped mid-chest up, facing the viewer. Do not change his face.\n\nReproduce the VERBIS EDU LOGO (reference 2) in the TOP-LEFT corner EXACTLY as provided — identical colours, tiles, mark and text; do not redraw, restyle, recolour or crop it.\nReproduce the GOOGLE REVIEW BADGE (reference 3) in the LOWER-LEFT, just below the call-to-action button, EXACTLY as provided — keep the four-colour Google 'G', the five stars, the '4.9' and '491 Google reviews' text unchanged.\n\nBackground: warm cream (#F9F7F3). Design system: deep teal (#0E4852) headline ink, gold (#FBBD29) accents, clean modern geometric sans-serif, generous whitespace, premium and trustworthy. A subtle faint gold concentric-ring motif behind the man.\n\nLEFT column, stacked top to bottom (below the logo):\n- a small gold pill badge with deep-teal text: 'LIVE · 4-HOUR PTE MASTERCLASS'\n- a huge bold headline, three lines: 'It's not your' / 'English.' / 'It's the format.' with the word 'format.' in gold\n- one line of medium grey subtext: 'Why fluent speakers still score 65 — and how to fix it in 4 hours.'\n- a trainer credit: deep teal 'with Parthasarathy Bhaskara', and under it smaller grey 'Pearson-certified PTE Trainer · 2,500+ students trained'\n- a small strikethrough '₹2,999' then a gold rounded button with deep-teal text: 'Claim my seat  →  ₹589'\n- then the Google review badge (reference 3)\n\nBOTTOM: a slim deep-teal band spanning the width with gold text: 'Sat 11 July · 10 AM-2 PM IST · Online'.\n\nEvery piece of text must be crisp, correctly spelled and legible. Professional ad-agency quality."
+    }
+  ]
+}

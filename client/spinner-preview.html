@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Orbital Spinner Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #0f0f0f;
+    color: #f5f5f5;
+    font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+    padding: 40px;
+    min-height: 100vh;
+  }
+  h2 { font-size: 18px; margin-bottom: 32px; font-weight: 600; }
+  h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; color: #666; margin-bottom: 16px; }
+  .section { margin-bottom: 48px; }
+  .row { display: flex; align-items: center; gap: 32px; margin-bottom: 12px; }
+  .label { font-size: 11px; color: #666; width: 24px; }
+
+  /* Colors */
+  :root {
+    --accent: #ff6b6b;
+    --accent-glow: rgba(255, 107, 107, 0.25);
+    --accent-dim: rgba(255, 107, 107, 0.6);
+    --accent-faint: rgba(255, 107, 107, 0.15);
+    --bg-elevated: #1f1f1f;
+    --border: #2a2a2a;
+    --text-secondary: #a3a3a3;
+    --text-muted: #666;
+    --green: #22c55e;
+  }
+
+  /* ─── Variant 1: Twin Orbit ─── */
+  .twin-orbit {
+    position: relative;
+    display: inline-block;
+  }
+  .twin-orbit .track {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid var(--accent-faint);
+  }
+  .twin-orbit .dot-wrap {
+    position: absolute; inset: 0;
+    animation: orbit-spin 1.4s linear infinite;
+  }
+  .twin-orbit .dot-wrap:nth-child(3) {
+    animation-delay: 0.7s;
+  }
+  .twin-orbit .dot {
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 6px var(--accent-glow);
+  }
+  .twin-orbit .dot-wrap:nth-child(3) .dot {
+    background: var(--accent-dim);
+    box-shadow: none;
+  }
+
+  /* Sizes */
+  .twin-orbit.sm { width: 16px; height: 16px; }
+  .twin-orbit.sm .dot { width: 4px; height: 4px; }
+  .twin-orbit.md { width: 20px; height: 20px; }
+  .twin-orbit.md .dot { width: 5px; height: 5px; }
+  .twin-orbit.lg { width: 24px; height: 24px; }
+  .twin-orbit.lg .dot { width: 6px; height: 6px; }
+
+  /* ─── Variant 2: Atom ─── */
+  .atom { position: relative; display: inline-block; }
+  .atom .orbit { position: absolute; inset: 0; }
+  .atom .orbit:nth-child(1) { animation: orbit-spin 1.6s linear infinite; }
+  .atom .orbit:nth-child(2) { transform: rotate(60deg); animation: orbit-spin 2s linear infinite; animation-delay: 0.3s; }
+  .atom .orbit:nth-child(3) { transform: rotate(120deg); animation: orbit-spin 2.4s linear infinite; animation-delay: 0.6s; }
+  .atom .dot { border-radius: 50%; background: var(--accent); }
+  .atom .orbit:nth-child(2) .dot { opacity: 0.7; }
+  .atom .orbit:nth-child(3) .dot { opacity: 0.4; }
+  .atom .center { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); border-radius: 50%; background: rgba(255,107,107,0.3); }
+
+  .atom.sm { width: 16px; height: 16px; }
+  .atom.sm .dot { width: 4px; height: 4px; }
+  .atom.sm .center { width: 2px; height: 2px; }
+  .atom.md { width: 20px; height: 20px; }
+  .atom.md .dot { width: 5px; height: 5px; }
+  .atom.md .center { width: 3px; height: 3px; }
+  .atom.lg { width: 24px; height: 24px; }
+  .atom.lg .dot { width: 6px; height: 6px; }
+  .atom.lg .center { width: 4px; height: 4px; }
+
+  /* ─── Variant 3: Pulse Orbit ─── */
+  .pulse-orbit { position: relative; display: inline-block; }
+  .pulse-orbit .ring {
+    position: absolute; inset: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255,107,107,0.2);
+    animation: pulse-ring 2s ease-in-out infinite;
+  }
+  .pulse-orbit .dot-wrap {
+    position: absolute; inset: 0;
+    animation: orbit-spin 1.8s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+  }
+  .pulse-orbit .dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent-glow), 0 0 16px var(--accent-glow);
+  }
+
+  .pulse-orbit.sm { width: 16px; height: 16px; }
+  .pulse-orbit.sm .dot { width: 4px; height: 4px; }
+  .pulse-orbit.md { width: 20px; height: 20px; }
+  .pulse-orbit.lg { width: 24px; height: 24px; }
+  .pulse-orbit.lg .dot { width: 6px; height: 6px; }
+
+  /* ─── Variant 4: Helix ─── */
+  .helix { position: relative; display: inline-block; }
+  .helix .dot-wrap-cw { position: absolute; inset: 0; animation: orbit-spin 1.2s ease-in-out infinite; }
+  .helix .dot-wrap-ccw { position: absolute; inset: 0; animation: orbit-spin-reverse 1.2s ease-in-out infinite; }
+  .helix .dot { border-radius: 50%; background: var(--accent); }
+  .helix .dot-wrap-ccw .dot { opacity: 0.5; }
+
+  .helix.sm { width: 16px; height: 16px; }
+  .helix.sm .dot { width: 4px; height: 4px; }
+  .helix.md { width: 20px; height: 20px; }
+  .helix.md .dot { width: 5px; height: 5px; }
+  .helix.lg { width: 24px; height: 24px; }
+  .helix.lg .dot { width: 6px; height: 6px; }
+
+  /* ─── Keyframes ─── */
+  @keyframes orbit-spin {
+    from { transform: rotate(0deg) translateX(calc(50% - 2px)) rotate(0deg); }
+    to { transform: rotate(360deg) translateX(calc(50% - 2px)) rotate(-360deg); }
+  }
+  @keyframes orbit-spin-reverse {
+    from { transform: rotate(360deg) translateX(calc(50% - 2px)) rotate(-360deg); }
+    to { transform: rotate(0deg) translateX(calc(50% - 2px)) rotate(0deg); }
+  }
+  @keyframes pulse-ring {
+    0%, 100% { opacity: 0.2; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.1); }
+  }
+
+  /* ─── Rotating verb ─── */
+  .verb { color: var(--accent); font-size: 12px; font-weight: 500; min-width: 100px; }
+
+  /* ─── Mock thinking block ─── */
+  .mock-block {
+    max-width: 420px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,107,107,0.3);
+    background: rgba(255,107,107,0.04);
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .mock-header {
+    display: flex; align-items: center; gap: 8px;
+    padding: 10px 14px;
+  }
+  .mock-header .title { font-size: 12px; font-weight: 500; color: var(--accent); }
+  .mock-header .time { font-size: 11px; color: var(--text-muted); margin-left: auto; }
+  .mock-children { padding: 0 14px 12px; }
+  .mock-child {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--text-secondary);
+    padding: 3px 0;
+  }
+  .mock-child .check { color: var(--green); font-size: 11px; }
+  .mock-child .verb { font-size: 11px; min-width: 80px; }
+
+  /* ─── Phase progress bar ─── */
+  .phase-bar {
+    display: flex; gap: 3px; padding: 8px 14px 12px;
+  }
+  .phase-segment {
+    flex: 1; height: 3px; border-radius: 2px;
+    background: rgba(255,255,255,0.08);
+  }
+  .phase-segment.done { background: var(--accent); }
+  .phase-segment.active {
+    background: linear-gradient(90deg, var(--accent), rgba(255,107,107,0.3));
+    animation: shimmer 1.5s ease-in-out infinite;
+  }
+  @keyframes shimmer {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+
+  .divider { border-top: 1px solid var(--border); margin: 8px 0 32px; }
+</style>
+</head>
+<body>
+
+<h2>Orbital Spinner Variants</h2>
+
+<!-- Variant 1: Twin Orbit -->
+<div class="section">
+  <h3>1. Twin Orbit</h3>
+  <div class="row">
+    <div class="twin-orbit sm"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="label">sm</span>
+    <div class="twin-orbit md"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="label">md</span>
+    <div class="twin-orbit lg"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="label">lg</span>
+    <span style="color:#2a2a2a; margin: 0 8px;">|</span>
+    <div class="twin-orbit md"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="verb" id="verb1">Pondering...</span>
+  </div>
+</div>
+
+<!-- Variant 2: Atom -->
+<div class="section">
+  <h3>2. Atom</h3>
+  <div class="row">
+    <div class="atom sm"><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="center"></div></div>
+    <span class="label">sm</span>
+    <div class="atom md"><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="center"></div></div>
+    <span class="label">md</span>
+    <div class="atom lg"><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="center"></div></div>
+    <span class="label">lg</span>
+    <span style="color:#2a2a2a; margin: 0 8px;">|</span>
+    <div class="atom md"><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="center"></div></div>
+    <span class="verb" id="verb2">Brewing...</span>
+  </div>
+</div>
+
+<!-- Variant 3: Pulse Orbit -->
+<div class="section">
+  <h3>3. Pulse Orbit</h3>
+  <div class="row">
+    <div class="pulse-orbit sm"><div class="ring"></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="label">sm</span>
+    <div class="pulse-orbit md"><div class="ring"></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="label">md</span>
+    <div class="pulse-orbit lg"><div class="ring"></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="label">lg</span>
+    <span style="color:#2a2a2a; margin: 0 8px;">|</span>
+    <div class="pulse-orbit md"><div class="ring"></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="verb" id="verb3">Conjuring...</span>
+  </div>
+</div>
+
+<!-- Variant 4: Helix -->
+<div class="section">
+  <h3>4. Helix</h3>
+  <div class="row">
+    <div class="helix sm"><div class="dot-wrap-cw"><div class="dot"></div></div><div class="dot-wrap-ccw"><div class="dot"></div></div></div>
+    <span class="label">sm</span>
+    <div class="helix md"><div class="dot-wrap-cw"><div class="dot"></div></div><div class="dot-wrap-ccw"><div class="dot"></div></div></div>
+    <span class="label">md</span>
+    <div class="helix lg"><div class="dot-wrap-cw"><div class="dot"></div></div><div class="dot-wrap-ccw"><div class="dot"></div></div></div>
+    <span class="label">lg</span>
+    <span style="color:#2a2a2a; margin: 0 8px;">|</span>
+    <div class="helix md"><div class="dot-wrap-cw"><div class="dot"></div></div><div class="dot-wrap-ccw"><div class="dot"></div></div></div>
+    <span class="verb" id="verb4">Scheming...</span>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<h2 style="margin-bottom: 24px;">In Context: Thinking Blocks</h2>
+
+<!-- Mock block 1: Research phase -->
+<div class="mock-block">
+  <div class="mock-header">
+    <div class="twin-orbit sm"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="title">Researching brand</span>
+    <span class="time" id="timer1">0:42</span>
+  </div>
+  <div class="mock-children">
+    <div class="mock-child"><span class="check">&#10003;</span> Parsed request</div>
+    <div class="mock-child"><span class="check">&#10003;</span> Fetching verbisedu.com</div>
+    <div class="mock-child">
+      <div class="pulse-orbit sm" style="flex-shrink:0"><div class="ring"></div><div class="dot-wrap"><div class="dot"></div></div></div>
+      Analyzing brand identity
+      <span class="verb" id="verb5" style="margin-left:auto">Noodling...</span>
+    </div>
+  </div>
+  <div class="phase-bar">
+    <div class="phase-segment active"></div>
+    <div class="phase-segment"></div>
+    <div class="phase-segment"></div>
+    <div class="phase-segment"></div>
+  </div>
+</div>
+
+<!-- Mock block 2: Hooks phase -->
+<div class="mock-block">
+  <div class="mock-header">
+    <div class="atom sm"><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="center"></div></div>
+    <span class="title">Generating Hooks</span>
+    <span class="time">1:15</span>
+  </div>
+  <div class="mock-children">
+    <div class="mock-child"><span class="check">&#10003;</span> Research complete</div>
+    <div class="mock-child"><span class="check">&#10003;</span> Brand DNA extracted</div>
+    <div class="mock-child">
+      <div class="atom sm" style="flex-shrink:0"><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="orbit"><div class="dot"></div></div><div class="center"></div></div>
+      Writing 6 hooks
+      <span class="verb" id="verb6" style="margin-left:auto">Crafting...</span>
+    </div>
+  </div>
+  <div class="phase-bar">
+    <div class="phase-segment done"></div>
+    <div class="phase-segment active"></div>
+    <div class="phase-segment"></div>
+    <div class="phase-segment"></div>
+  </div>
+</div>
+
+<!-- Mock block 3: Images phase with progress -->
+<div class="mock-block">
+  <div class="mock-header">
+    <div class="twin-orbit sm"><div class="track"></div><div class="dot-wrap"><div class="dot"></div></div><div class="dot-wrap"><div class="dot"></div></div></div>
+    <span class="title">Generating Images</span>
+    <span style="font-size:11px; color:var(--text-muted); margin-left:auto">3/6 images</span>
+    <span class="time">3:22</span>
+  </div>
+  <div class="mock-children">
+    <div class="mock-child"><span class="check">&#10003;</span> Art direction complete</div>
+    <div class="mock-child"><span class="check">&#10003;</span> Prompts written</div>
+    <div class="mock-child">
+      <div class="pulse-orbit sm" style="flex-shrink:0"><div class="ring"></div><div class="dot-wrap"><div class="dot"></div></div></div>
+      Rendering image 4 of 6
+      <span class="verb" id="verb7" style="margin-left:auto">Painting...</span>
+    </div>
+  </div>
+  <div class="phase-bar">
+    <div class="phase-segment done"></div>
+    <div class="phase-segment done"></div>
+    <div class="phase-segment done"></div>
+    <div class="phase-segment active"></div>
+  </div>
+</div>
+
+<script>
+  const VERBS = [
+    'Pondering', 'Cogitating', 'Noodling', 'Brewing', 'Conjuring',
+    'Scheming', 'Vibing', 'Spelunking', 'Wrangling', 'Simmering',
+    'Manifesting', 'Ruminating', 'Percolating', 'Tinkering', 'Musing',
+    'Crafting', 'Painting', 'Imagining', 'Weaving', 'Composing',
+    'Channeling', 'Transmuting', 'Hatching', 'Incubating', 'Dreaming',
+  ];
+
+  function rotateVerbs() {
+    for (let i = 1; i <= 7; i++) {
+      const el = document.getElementById('verb' + i);
+      if (el) el.textContent = VERBS[Math.floor(Math.random() * VERBS.length)] + '...';
+    }
+  }
+  setInterval(rotateVerbs, 800);
+
+  // Elapsed timer
+  let seconds = 42;
+  setInterval(() => {
+    seconds++;
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    document.getElementById('timer1').textContent = `${m}:${s.toString().padStart(2, '0')}`;
+  }, 1000);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,39 @@
+Create a 4:5 social ad image — a customer TESTIMONIAL for The Whole Truth, a premium, honest Indian protein brand. This is ONE fully art-directed frame: every choice — type, composition, the product shot, the light, the background — is decided below. Nothing is left to default.
+
+THE IDEA:
+A real customer's blunt proof — "No bloating at all." — stated with the brand's confidence, the real product shot beside it as evidence. Peer proof closes the sale; the brand states it plainly.
+
+COMPOSITION (asymmetric editorial — NOT centered, NOT symmetric):
+- A clear reading diagonal: oversized quote mark (top-left) -> hero quote -> supporting quote -> product (lower-right) -> CTA (bottom-left).
+- The TYPE COLUMN owns the upper-left and the left edge. Generous, intentional negative space — this is a premium brand; space is a deliberate design choice.
+- The PRODUCT sits in the lower-right third, about 28% of the frame, with clear breathing room. It must NOT overlap or collide with any text.
+- A deep-burgundy oversized opening quotation mark anchors the top-left as a graphic element.
+
+TYPE (the brand's real voice — bold, blunt, confident):
+- A BOLD grotesque / geometric sans-serif. NOT a serif. NOT thin or elegant.
+- Mixed weight inside the hero line — the brand's signature move (the pack reads "Cleanest, lightest" light, then "whey protein. Ever." heavy): render "No bloating" in heavy bold, "at all." in a lighter weight. Periods used as hard stops.
+- HERO QUOTE (largest text), left-aligned: "No bloating at all."
+- SOURCE CHIP (small, uppercase, letter-spaced, directly under the quote): "AMAZON.IN · VERIFIED PURCHASE"
+- SUPPORTING QUOTE (smaller, left-aligned, kept clear of the product): "I can finally have protein daily without stomach issues." — "thewholetruthfoods.com review"
+- CTA (bottom-left, plain, confident): "Try it ->"
+- All type set in deep burgundy.
+
+THE PRODUCT SHOT (decide the camera and the light — premium editorial product photography):
+- The real pouch, standing upright, front face to camera so the wordmark and "24g protein per scoop" read clearly.
+- Camera: eye-level with a slight 10-degree high angle, medium-close, ~85mm feel — crisp, premium, gentle compression.
+- Light: a single large soft key from the upper-left (softbox quality), gentle warm falloff. Matte finish on the pouch — minimal specular, no harsh hotspots.
+- A soft, realistic contact shadow grounds the pouch on the surface to its lower-right. The product is grounded, never floating.
+- A small spec chip beside it: "24g protein per scoop".
+
+BACKGROUND (a real lit space, not a flat fill):
+- The brand's soft blush / mauve environment, rendered as a real lit set: light naturally falls off from upper-left (lighter) to lower-right (gently deeper), so it reads as a photographed space with depth.
+- The pouch sits on an implied matte surface of the same blush tone — a seamless sweep — grounded by its shadow.
+- NOT a flat solid color. NOT a decorative or rainbow gradient — only the natural falloff of the key light gives the depth.
+
+PRODUCT BINDING — match the reference image exactly:
+Deep burgundy / maroon matte stand-up pouch; the white stacked "The Whole Truth" wordmark; the white "Cleanest, lightest whey protein. Ever." line; the "24g protein per scoop" panel; the small green vegetarian mark; the gold-circle "Trustified" seal. Keep the burgundy colorway, the wordmark, and the Trustified seal true to the reference. Do NOT show the red "Bestseller" corner ribbon — it is a marketplace listing overlay, not part of the ad.
+
+TREATMENT / FEEL:
+Art-directed by a brand designer for a premium, honest brand — confident, editorial, clean. Real premium product photography. NOT AI-gloss, NOT a generic e-commerce product-on-white shot, NOT an elegant whispered testimonial card.
+
+DO NOT: a serif font · a centered or symmetric layout · a flat solid-color background · a decorative gradient · the product floating with no grounding shadow · the product centered or oversized · the product overlapping any text · star-rating rows · ★★★★★ stars · stock smiling faces · an "as seen in" press-logo bar · fake review-card or app chrome · a wall of many quotes.

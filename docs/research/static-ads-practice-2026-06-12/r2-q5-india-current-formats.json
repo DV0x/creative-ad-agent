@@ -1,0 +1,166 @@
+{
+  "id": "ca1610bf-74e9-4154-a372-a40105dbd604",
+  "model": "sonar-pro",
+  "created": 1781269623,
+  "usage": {
+    "prompt_tokens": 321,
+    "completion_tokens": 751,
+    "total_tokens": 1072,
+    "search_context_size": "high",
+    "cost": {
+      "input_tokens_cost": 0.00096,
+      "output_tokens_cost": 0.01127,
+      "request_cost": 0.014,
+      "total_cost": 0.02623
+    }
+  },
+  "citations": [
+    "https://www.instagram.com/p/DSGOrn_kUYt/",
+    "https://www.flighted.co/blog/7-meta-ads-creative-strategies-that-work",
+    "https://www.facebook.com/campaignindia.in/posts/as-contemporary-ad-campaigns-continue-to-experiment-with-hyper-local-music-and-r/1619001490231888/",
+    "https://www.instagram.com/reel/DP_s0_EE1C3/",
+    "https://techiegigs.com/top-10-strategic-ways-to-use-meta-ads-library/",
+    "https://www.youtube.com/watch?v=HXox1I6QQvQ",
+    "https://www.instagram.com/reel/DOgCVDJgRfI/",
+    "https://www.instagram.com/reel/DQZpi9Ijufo/",
+    "https://www.instagram.com/reel/DVwU_MMDH02/",
+    "https://www.instagram.com/reel/DUbKY73gAdG/",
+    "https://www.instagram.com/reel/DQDsnc6CYQQ/?hl=en",
+    "https://www.stackmatix.com/blog/facebook-ads-cost-complete-guide",
+    "https://www.instagram.com/p/DTzOeXFERAg/",
+    "https://optifox.in/blog/meta-ads-best-practices-2026/",
+    "https://creascale.ai/blog/ai-ad-copy-multilingual-guide.html"
+  ],
+  "search_results": [
+    {
+      "title": "5 Meta Ads Best Practices Every Brand Needs in 2026 ... - Instagram",
+      "url": "https://www.instagram.com/p/DSGOrn_kUYt/",
+      "date": "2025-12-10",
+      "last_updated": "2026-01-04",
+      "snippet": "The highest-performing creatives in 2025\u20132026 look like TikTok/IG Reels made by real customers. Hook in 2 seconds, use trending audio, native captions, and ...",
+      "source": "web"
+    },
+    {
+      "title": "7 Meta Ads Creative Strategies That Work in 2026 - Flighted",
+      "url": "https://www.flighted.co/blog/7-meta-ads-creative-strategies-that-work",
+      "date": "2026-03-12",
+      "last_updated": "2026-06-11",
+      "snippet": "7 Creative Advertising Strategies That Drive Conversions \u00b7 1. Use Your Own Organic Social Content \u00b7 2. Design All Ads for Sound-Off and Mobile-First Viewing \u00b7 3.",
+      "source": "web"
+    },
+    {
+      "title": "Campaign India - Facebook",
+      "url": "https://www.facebook.com/campaignindia.in/posts/as-contemporary-ad-campaigns-continue-to-experiment-with-hyper-local-music-and-r/1619001490231888/",
+      "date": "2026-06-08",
+      "snippet": "Most of the Indian campaigns are around social justice, family gathering, wives, husbands, power games, etc with zero creativity and weak taglines. The ads ...",
+      "source": "web"
+    },
+    {
+      "title": "Dont sleep on the power of ad creatives. #meta ... - Instagram",
+      "url": "https://www.instagram.com/reel/DP_s0_EE1C3/",
+      "date": "2025-10-19",
+      "snippet": "BRANDING STRATEGY PRESENTATION YA PHIR OFFER GIVE UP KAR DIYA! BESTSELLER ... Why this matters: Video ads consistently outperform static images under Meta's ...",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads Library Guide: Crush Your Competitors Fast - Techiegigs",
+      "url": "https://techiegigs.com/top-10-strategic-ways-to-use-meta-ads-library/",
+      "date": "2026-04-22",
+      "last_updated": "2025-10-25",
+      "snippet": "Master this Meta Ads Library tutorial to boost ROI. Learn to spy on competitors and find winning ad creatives for your brand. Read more to dominate.",
+      "source": "web"
+    },
+    {
+      "title": "Static Ads Ultimate Guide | The Easiest Ads to Scale FAST - YouTube",
+      "url": "https://www.youtube.com/watch?v=HXox1I6QQvQ",
+      "date": "2025-08-15",
+      "last_updated": "2026-06-12",
+      "snippet": "Get 30% Off the First 3 Months with Omnisend: https://your.omnisend.com/frasercottrell Checkout my ad creative course - Perfect for anyone wanting to make ...",
+      "source": "web"
+    },
+    {
+      "title": "Innovative campaigns like these give us the push to create even ...",
+      "url": "https://www.instagram.com/reel/DOgCVDJgRfI/",
+      "date": "2025-09-12",
+      "last_updated": "2025-12-30",
+      "snippet": "Imperial Blue didn't just advertise whisky. It created one of India's most recognizable advertising properties. With its iconic \u201cMen Will Be Men\u201d campaign, the ...",
+      "source": "web"
+    },
+    {
+      "title": "\ufe0f Diversity of creative assets Let Meta do the testing More range ...",
+      "url": "https://www.instagram.com/reel/DQZpi9Ijufo/",
+      "date": "2025-10-29",
+      "last_updated": "2025-11-01",
+      "snippet": "So there's a site that lets you turn the best static ads on Meta into ads for your own brand. ... Meta ads creative India, Shopify ads India, Design Your Website]",
+      "source": "web"
+    },
+    {
+      "title": "I've seen brands waste WAY TOO MUCH time and budget pushing ...",
+      "url": "https://www.instagram.com/reel/DVwU_MMDH02/",
+      "date": "2026-03-11",
+      "snippet": "Statics Pack \u2014 20 winning static ad formats that actually convert for D2C brands. ... Save 6 Meta Ads Library 1 Crore Brand 1 - Menopause and me Native Ads ...",
+      "source": "web"
+    },
+    {
+      "title": "For team @ogee, Advantage+ Sales Campaigns are one of the ...",
+      "url": "https://www.instagram.com/reel/DUbKY73gAdG/",
+      "date": "2026-02-06",
+      "last_updated": "2026-02-10",
+      "snippet": "... performance marketing at Augustinus Bader as the performance marketing ... marketing agencies are not always the ones that come up with the best strategy.",
+      "source": "web"
+    },
+    {
+      "title": "The second Deepavali 2025 ad that worked for me, by ... - Instagram",
+      "url": "https://www.instagram.com/reel/DQDsnc6CYQQ/?hl=en",
+      "date": "2025-10-20",
+      "last_updated": "2025-10-22",
+      "snippet": "Asian Paints ka genius yahan hai Har Indian festival se pehle \u2014ghar ki painting hoti hai.Diwali. Holi. Shaadi.Asian Paints ne ye samjha aurapne ads mein yehi ...",
+      "source": "web"
+    },
+    {
+      "title": "Facebook Ads Cost Complete Guide 2026: Pricing & Budgets",
+      "url": "https://www.stackmatix.com/blog/facebook-ads-cost-complete-guide",
+      "date": "2026-04-06",
+      "last_updated": "2026-03-17",
+      "snippet": "Facebook ads cost $0.50\u2013$3.77/click in 2026. Covers minimum daily budget, country CPM table, industry benchmarks, and a budget calculator.",
+      "source": "web"
+    },
+    {
+      "title": "Save this post! Your Ultimate Ad Specs Update for 2026 is here. In ...",
+      "url": "https://www.instagram.com/p/DTzOeXFERAg/",
+      "date": "2026-01-21",
+      "snippet": "Save this post! Your Ultimate Ad Specs Update for 2026 is here. In 2025, Primal partnered with over 800 brands to drive high-performance campaigns.",
+      "source": "web"
+    },
+    {
+      "title": "Meta Ads Best Practices 2026: Complete Guide to Advantage+ ...",
+      "url": "https://optifox.in/blog/meta-ads-best-practices-2026/",
+      "date": "2026-03-20",
+      "snippet": "This guide is the most comprehensive Meta Ads best practices resource for 2026 \u2014 covering everything from Advantage+ Shopping setup and learning phase ...",
+      "source": "web"
+    },
+    {
+      "title": "Multilingual Ad Copy 2026: Why Translation Loses 30-50%",
+      "url": "https://creascale.ai/blog/ai-ad-copy-multilingual-guide.html",
+      "date": "2026-04-18",
+      "last_updated": "2026-05-07",
+      "snippet": "Quick answer: Native multilingual ad copy beats machine translation by 34% on CTR across 8 Meta-Ads languages, cuts CPA 27% net of compute cost.",
+      "source": "web"
+    }
+  ],
+  "object": "chat.completion",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "I could not verify the specific India-only, 2025\u20132026 claim you asked for from the search results you provided, because the results are mostly general Meta-advice pages, Instagram posts, or non-Indian examples rather than dated breakdowns of **Indian D2C Meta Ad Library findings** with named brands and creative patterns. The only directly relevant India-specific evidence in your results is a Campaign India Facebook comment saying, \u201cMost of the Indian campaigns are around social justice, family gathering, wives, husbands, power games, etc with zero creativity and weak taglines,\u201d but that is a user comment, not a 2025\u20132026 Meta Ad Library analysis, so it is weak evidence[3].\n\nWhat the retrieved sources *do* support is the broader 2025\u20132026 Meta creative direction:\n- A 2026 Instagram post says the \u201chighest-performing creatives in 2025\u20132026 look like TikTok/IG Reels made by real customers,\u201d that \u201cPolished studio ads are getting scrolled,\u201d and that \u201cStatic carousels and single images are seeing steep cost increases\u201d[1].\n- A 2026 Flighted article says static ads can still work, especially at the bottom of the funnel: \u201cBottom-of-funnel creative, like static ads with direct offers, focuses on conversion,\u201d and it recommends format diversity rather than relying on one creative style[2].\n- The same Flighted piece says \u201cthe system now favors diverse formats\u201d and explicitly gives an example of turning a winning video concept into a static \u201cus vs. them\u201d image ad[2].\n\nOn your specific question \u2014 **do polished poster-style statics work better in India than in Western markets, or does lo-fi/native also win in India?** \u2014 I could not find a 2025\u20132026 India-specific source in the retrieved results that directly answers that comparison. The closest support is contradictory in a general way: one 2026 source argues polished studio ads are losing to native/UGC-style creatives[1], while another says static ads with direct offers still convert in the bottom of funnel and that format diversity matters[2]. That means the retrieved evidence supports **both** \u201clo-fi/native is strong\u201d and \u201cstatic can still win for conversion,\u201d but not a clean India-vs-Western comparison[1][2].\n\nI also could not find, in the retrieved results, the India-specific breakdowns you requested for:\n- **supplements**\n- **food**\n- **beauty**\n- **accessories**\n- **Hinglish copy patterns**\n- **price/offer presentation in Indian statics**\n\nThe Meta Ads Library guide result is generic and says the library can be used to study \u201cgraphics\u2026 image-based, video, or carousel ads\u201d and \u201cheadlines, captivating descriptions, and interesting calls-to-action,\u201d but it does not provide India-specific findings or date-stamped examples[5].\n\nThe strongest directly quotable takeaways from the retrieved sources are:\n- \u201cThe highest-performing creatives in 2025\u20132026 look like TikTok/IG Reels made by real customers\u201d[1].\n- \u201cPolished studio ads are getting scrolled\u201d[1].\n- \u201cBottom-of-funnel creative, like static ads with direct offers, focuses on conversion\u201d[2].\n- \u201cThe system now favors diverse formats\u201d[2].\n\nIf you want, I can do a second pass and build the answer you actually want by searching specifically for:\n- Indian Meta Ads Library breakdowns by brand category\n- Indian agency writeups on static ads for D2C\n- examples of Hinglish hooks, pricing, and offer framing\n- India-vs-Western creative performance comparisons"
+      },
+      "delta": {
+        "role": "assistant",
+        "content": ""
+      },
+      "finish_reason": "stop"
+    }
+  ]
+}

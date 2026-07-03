@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creative Machines — The Workflow</title>
+<style>
+  :root{
+    --cream:#FBF9F5; --ink:#1d1b1a; --soft:#5c554f; --wine:#AB406C; --lime:#C1FF64;
+    --line:#e8e1d7; --card:#fff; --pass:#2f7d5b; --shadow:0 1px 2px rgba(0,0,0,.04),0 8px 24px rgba(40,30,20,.06);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--cream);color:var(--ink);line-height:1.5;-webkit-font-smoothing:antialiased;padding:48px 40px 64px}
+  .wrap{max-width:1320px;margin:0 auto}
+  .eyebrow{font-size:12.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--wine);margin-bottom:14px}
+  h1{font-size:38px;line-height:1.1;letter-spacing:-.02em;font-weight:800;margin-bottom:14px;max-width:18ch}
+  .lede{font-size:18px;color:var(--soft);max-width:62ch;margin-bottom:8px}
+  .lede b{color:var(--ink);font-weight:650}
+
+  .flow{display:flex;gap:0;align-items:stretch;margin-top:44px;flex-wrap:nowrap}
+  .stage{flex:1 1 0;min-width:0;display:flex;flex-direction:column}
+  .arrow{flex:0 0 26px;display:flex;align-items:center;justify-content:center;color:#c9bfb2;font-size:22px;padding-top:96px}
+  .num{font-size:11px;font-weight:700;letter-spacing:.12em;color:#b3a999;margin-bottom:7px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 16px 16px;
+    box-shadow:var(--shadow);height:100%;display:flex;flex-direction:column}
+  .card h3{font-size:16px;font-weight:750;letter-spacing:-.01em;margin-bottom:8px}
+  .what{font-size:13.5px;color:var(--ink);margin-bottom:13px}
+  .ground{margin-top:auto;font-size:12px;color:var(--soft);border-top:1px dashed var(--line);padding-top:10px}
+  .ground b{color:var(--wine);font-weight:700;display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;margin-bottom:3px}
+
+  /* critic emphasis */
+  .stage.critic .card{border:2px solid var(--wine);box-shadow:0 0 0 5px rgba(193,255,100,.35),var(--shadow);position:relative}
+  .stage.critic .num{color:var(--wine)}
+  .tag{display:inline-block;background:var(--wine);color:#fff;font-size:10px;font-weight:700;letter-spacing:.06em;
+    text-transform:uppercase;padding:3px 8px;border-radius:999px;margin-bottom:10px}
+
+  .foot{margin-top:46px;background:#211c1a;color:#f5efe7;border-radius:16px;padding:26px 30px;display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .foot .k{font-size:21px;font-weight:750;letter-spacing:-.01em;line-height:1.3;flex:1;min-width:280px}
+  .foot .k em{font-style:normal;color:var(--lime)}
+  .foot .s{font-size:14px;color:#bcae9f;max-width:40ch}
+  @media(max-width:1080px){.flow{flex-wrap:wrap;gap:14px}.stage{flex:1 1 30%}.arrow{display:none}.card{height:auto}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="eyebrow">Creative Machines · next-gen engine · in build</div>
+  <h1>One brand URL in. Six on-brand ads out.</h1>
+  <p class="lede">The pipeline is an <b>agentic workflow</b> — a sequence of specialist steps, each one grounded in the step before it.</p>
+  <p class="lede">Generating an image was never the hard part. Getting output that <b>traces back to the brand</b> was. So it's built as a chain, with an independent critic before anything ships.</p>
+
+  <div class="flow">
+
+    <div class="stage">
+      <div class="num">STEP 1</div>
+      <div class="card">
+        <h3>Research</h3>
+        <div class="what">Surfaces the brand's real story and the buyer's <b>actual words</b> — from its site, reviews, forums.</div>
+        <div class="ground"><b>The starting truth</b>Every claim is sourced. Every gap is named, never invented.</div>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <div class="stage">
+      <div class="num">STEP 2</div>
+      <div class="card">
+        <h3>The Bet <span style="color:#b3a999;font-weight:600">· strategy</span></h3>
+        <div class="what">Diagnoses the one <b>winnable want</b> and the real reason people don't buy yet.</div>
+        <div class="ground"><b>Grounded in research</b>It can't look anything up — it can only reason from what Research sourced.</div>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <div class="stage">
+      <div class="num">STEP 3</div>
+      <div class="card">
+        <h3>Hooks</h3>
+        <div class="what">Writes ad angles — each one <b>extracted from a specific proof point</b>, not a template.</div>
+        <div class="ground"><b>Grounded in The Bet</b>Every hook targets the exact buyer and want the strategy named.</div>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <div class="stage">
+      <div class="num">STEP 4</div>
+      <div class="card">
+        <h3>Art Direction</h3>
+        <div class="what">Turns each hook into a <b>concrete shot</b> — real objects, a scene, a layout a stranger could draw.</div>
+        <div class="ground"><b>Grounded in the hook</b>The picture must <i>demonstrate</i> that claim — not just decorate it.</div>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <div class="stage critic">
+      <div class="num">STEP 5</div>
+      <div class="card">
+        <span class="tag">the quality gate</span>
+        <h3>The Critic — swap test</h3>
+        <div class="what">An <b>independent reviewer</b> that never saw the writer's reasoning tries to <b>kill</b> every ad.</div>
+        <div class="ground"><b>The swap test</b>Strip the logo — could a rival run this unchanged? If yes, it's killed and sent back.</div>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <div class="stage">
+      <div class="num">STEP 6</div>
+      <div class="card">
+        <h3>Render + Vision-gate</h3>
+        <div class="what">Generates the image, then <b>re-reads the finished picture</b> against the plan.</div>
+        <div class="ground"><b>Grounded in the spec</b>If the render missed a detail, it does one targeted retry before shipping.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="foot">
+    <div class="k">Each step is grounded in the one before it.<br>That's how creative gets <em>on-brand by construction</em> — not by luck.</div>
+    <div class="s">It's also the unit you replicate: the same shape runs a performance loop, an influencer loop, a social loop. One workflow, many jobs.</div>
+  </div>
+</div>
+</body>
+</html>

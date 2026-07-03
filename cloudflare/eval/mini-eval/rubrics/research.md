@@ -97,7 +97,9 @@ former produces a confident wrong strategy.
   *"TripAdvisor: no reviews for this property"*); structural blind spots
   are flagged when relevant (*"Google reviews not accessible to search"*);
   the §8 Gaps section names what the strategist will want and you couldn't
-  find.
+  find. When the representative signal (e.g. a ratings distribution) is
+  unreachable, the file says so — a skewed sample is not passed off as the
+  average.
 - **FAIL:** a file that reads as complete when reality was thin; no
   acknowledgment of structural blind spots when they apply; the §8 Gaps
   section absent or empty; fabricated richness shipping as real signal.
@@ -139,6 +141,28 @@ buyer-as-person register.
 - **FAIL:** only one probe attempted when both apply; category-level probe
   missing for a thin-review brand; probes pointed at obviously wrong
   surface classes (e.g., asking OTAs for casual language register).
+
+### `want-and-strengths` — the pull and the claimable proof, both surfaced
+
+§2c surfaces what the buyer is *trying to get* — the JTBD at two levels
+(macro umbrella + hero product, the latter keyed to the reference image or
+briefed line) — mined from the same verbatim voice, never invented. And §1
+captures not only the claim-vs-reality gap but the **verified, claimable
+strengths** — where evidence confirms a genuine plus — each sourced. Both
+stay under the same provenance bar: a guessed desire or an inflated strength
+fails here; genuinely thin material *named as thin* passes. This is what
+gives the downstream cell its **pull** (desire) and its honest **proof**
+— without them it builds spec sheets or fabricates.
+
+- **PASS:** the buyer's want is surfaced at both levels from real retrieved
+  voice; the hero-product JTBD is keyed to the reference/briefed product;
+  verified strengths are captured with sources, or their thinness is named
+  honestly.
+- **FAIL:** §2c absent, or filled with aspirational/invented desire not
+  traceable to retrieved voice; only criteria/objections with no "what they
+  want"; claimable strengths absent for a brand that has them, or strengths
+  asserted with no source; or a want or strength built on a single review or a
+  complaint-skewed sample, with no prevalence or triangulation behind it.
 
 ### `locale-depth` — depth identified, hyperlocal probes if applicable
 
