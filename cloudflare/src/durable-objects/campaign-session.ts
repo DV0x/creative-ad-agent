@@ -46,6 +46,9 @@ export class CampaignSession implements DurableObject {
   // Heartbeat liveness — used to detect "agent went silent" via Sentry heartbeat_silent event
   private lastHeartbeatAt = 0;
   private silentHeartbeatReported = false;
+  // Diagnostic: set when the agent goes silent mid-turn; the alarm's getProcessLogs step then
+  // dumps the tail of the agent's stdout to Sentry so we can see exactly where it wedged.
+  private pendingStdoutDump = false;
 
   // Throttle for ws_send_no_clients capture — one event per minute per session
   // is enough to know "the server is shouting into the void" without flooding Sentry.
@@ -53,6 +56,17 @@ export class CampaignSession implements DurableObject {
   // Throttle for agent_process_died capture — once we know the agent's dead, we
   // don't need to learn it 6 times in a row from successive alarm cycles.
   private lastAgentDeathReportAt = 0;
+
+  // Dead-man's switch (S139): consecutive sandbox RPC timeouts. A memory-pinned
+  // container stops answering its control channel but stays "healthy" to the
+  // platform, so timeouts are the ONLY signal we get — every other net needs a
+  // reply to fire. Any real reply (success OR error) proves the channel is alive.
+  private consecutiveRpcTimeouts = 0;
+  // Sandbox ID rotation: set when the dead-man's switch abandons a wedged
+  // container (or an IP-block retry lands on a new ID). Persisted in DO storage
+  // so follow-ups and alarm reconnects route to the fresh container.
+  // undefined = not yet loaded from storage.
+  private sandboxIdSuffix: string | null | undefined = undefined;
 
   constructor(
     private state: DurableObjectState,
@@ -133,6 +147,7 @@ export class CampaignSession implements DurableObject {
         ),
       ]);
       this.trace('rpc', `${label}.done`, { ms: Date.now() - start });
+      this.consecutiveRpcTimeouts = 0;
       return result;
     } catch (err: any) {
       const ms = Date.now() - start;
@@ -141,6 +156,7 @@ export class CampaignSession implements DurableObject {
       // the timeout path is the one that hints at sandbox hang / connection
       // loss, which is what we actually want to alert on.
       if (typeof err?.message === 'string' && err.message.includes('timed out after')) {
+        this.consecutiveRpcTimeouts++;
         Sentry.captureMessage('sandbox_rpc_timeout', {
           level: 'warning',
           tags: { rpc_label: label },
@@ -153,9 +169,22 @@ export class CampaignSession implements DurableObject {
             isGenerating: this.isGenerating,
           },
         });
+      } else {
+        // A real error response still proves the control channel is alive.
+        this.consecutiveRpcTimeouts = 0;
       }
       throw err;
     }
+  }
+
+  /** Sandbox ID for this user — includes the rotation suffix once a wedged
+   *  container has been abandoned by the dead-man's switch (or IP-block retry). */
+  private async currentSandboxId(): Promise<string> {
+    if (this.sandboxIdSuffix === undefined) {
+      this.sandboxIdSuffix = (await this.state.storage.get<string>('sandboxIdSuffix')) ?? null;
+    }
+    const base = `user-${this.userId.toLowerCase()}-v2`;
+    return this.sandboxIdSuffix ? `${base}-${this.sandboxIdSuffix}` : base;
   }
 
   // ─── Keep-alive heartbeat (prevents hibernation during generation) ───
@@ -202,6 +231,7 @@ export class CampaignSession implements DurableObject {
           extra: { silenceSec, agentProcessId: this.agentProcessId, sessionId: this.sessionId, ageSec, alarmIter: iter },
         });
         this.silentHeartbeatReported = true;
+        this.pendingStdoutDump = true; // dump the agent's stdout in the getProcessLogs step below
       }
 
       // Self-heal after DO reset: restore state if we have nothing in memory
@@ -212,6 +242,49 @@ export class CampaignSession implements DurableObject {
 
       if (!this.isGenerating || !this.campaignId) {
         this.trace('alarm', 'exit.noop', { gen: this.isGenerating, cid: this.campaignId || 'null', ms: Date.now() - alarmStart });
+        return;
+      }
+
+      // Dead-man's switch (S139): a memory-pinned container answers nothing but
+      // stays "healthy" to the platform, so timeouts loop to the 2h net with the
+      // user locked out. 3 consecutive timeouts = instance is dead: kill it at
+      // the platform level and route the next generation to a fresh sandbox ID.
+      if (this.consecutiveRpcTimeouts >= 3) {
+        this.trace('alarm', 'deadman.triggered', { timeouts: this.consecutiveRpcTimeouts });
+        Sentry.captureMessage('sandbox_deadman_triggered', {
+          level: 'error',
+          tags: { failure_mode: 'sandbox_channel_dead' },
+          extra: { consecutiveRpcTimeouts: this.consecutiveRpcTimeouts, sessionId: this.sessionId, ageSec, alarmIter: iter },
+        });
+        // stop(), NOT destroy(): destroy() calls desktop.stop() over the dead
+        // HTTP channel and hangs; stop() is a native platform SIGKILL that
+        // bypasses the channel (verified live 2026-07-02).
+        try {
+          await Promise.race([
+            this.sandbox?.stop('SIGKILL'),
+            new Promise((_, reject) => setTimeout(() => reject(new Error('stop timed out')), 10_000)),
+          ]);
+          this.trace('alarm', 'deadman.stopped');
+        } catch (e: any) {
+          this.trace('alarm', 'deadman.stopFailed', { err: e?.message?.substring(0, 100) });
+        }
+        const suffix = Date.now().toString();
+        await this.state.storage.put('sandboxIdSuffix', suffix);
+        this.sandboxIdSuffix = suffix;
+        this.sandbox = null;
+        this.consecutiveRpcTimeouts = 0;
+        this.emitEvent({
+          type: 'error',
+          timestamp: new Date().toISOString(),
+          error: 'Your workspace froze mid-thought — we swapped in a fresh one, hit send again',
+        });
+        try { await db.updateCampaignStatus(this.env.DB, this.campaignId, 'incomplete'); } catch {}
+        this.isGenerating = false;
+        this.agentProcessId = null;
+        await this.state.storage.delete('agentProcessId');
+        await this.state.storage.delete('agentCampaignId');
+        await this.clearPersistedSession();
+        this.trace('alarm', 'exit.deadman', { ms: Date.now() - alarmStart });
         return;
       }
 
@@ -233,7 +306,7 @@ export class CampaignSession implements DurableObject {
       // Reconnect sandbox after DO reset — but NOT if setupSandbox is already running
       // (creating a second connection cancels in-flight RPCs on the first)
       if (!this.sandbox && !this.sandboxSetupInProgress && this.userId && this.userId !== 'anonymous') {
-        const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
+        const sandboxId = await this.currentSandboxId();
         this.trace('alarm', 'sandbox.reconnect', { sandboxId });
         this.sandbox = getSandbox(this.env.SANDBOX, sandboxId, {
           sleepAfter: '2h',
@@ -327,6 +400,28 @@ export class CampaignSession implements DurableObject {
           try {
             const logs = await this.timedRPC('getProcessLogs', () => this.sandbox.getProcessLogs(this.agentProcessId)) as any;
             const stdout: string = typeof logs === 'string' ? logs : (logs?.stdout || '');
+            // Diagnostic: the agent went silent — dump its recent stdout so we can see exactly
+            // where it wedged (e.g. FUSE Read of a reference image vs a hung fal.subscribe call).
+            if (this.pendingStdoutDump) {
+              this.pendingStdoutDump = false;
+              const tail = stdout.length > 8000 ? stdout.slice(-8000) : stdout;
+              const dumpLines = tail.split('\n').map((l) => l.trim()).filter(Boolean);
+              const lastLines = dumpLines.slice(-30);
+              const lastLine = lastLines.length ? lastLines[lastLines.length - 1] : '(no stdout)';
+              Sentry.captureMessage('agent_silent_stdout', {
+                level: 'warning',
+                tags: { failure_mode: 'agent_silent_dump' },
+                extra: {
+                  agentProcessId: this.agentProcessId,
+                  sessionId: this.sessionId,
+                  campaignId: this.campaignId,
+                  stdoutLen: stdout.length,
+                  lastLine,
+                  lastLines,
+                },
+              });
+              this.trace('alarm', 'stdoutDump', { stdoutLen: stdout.length, lastLine: lastLine.substring(0, 150) });
+            }
             const newLen = stdout.length;
             if (newLen > this.lastContainerLogLen) {
               const newContent = stdout.substring(this.lastContainerLogLen);
@@ -1195,7 +1290,7 @@ export class CampaignSession implements DurableObject {
     this.startKeepAlive();
 
     // --- Check if agent-runner is alive for fast path ---
-    const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
+    const sandboxId = await this.currentSandboxId();
     const sandbox = getSandbox(this.env.SANDBOX, sandboxId, {
       sleepAfter: '2h',
       normalizeId: true,
@@ -1570,14 +1665,15 @@ export class CampaignSession implements DurableObject {
     this.trace('setup', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, userId: this.userId });
 
     // 1. Get sandbox with pre-flight IP retry
-    const sandboxId = `user-${this.userId.toLowerCase()}-v2`;
+    const sandboxId = await this.currentSandboxId();
     let sandbox: any = null;
 
     const MAX_SANDBOX_RETRIES = 3;
     for (let attempt = 1; attempt <= MAX_SANDBOX_RETRIES; attempt++) {
-      const retryId = attempt === 1
+      const retrySuffix = attempt === 1 ? null : `${Date.now()}`;
+      const retryId = retrySuffix === null
         ? sandboxId
-        : `user-${this.userId.toLowerCase()}-v2-${Date.now()}`;
+        : `user-${this.userId.toLowerCase()}-v2-${retrySuffix}`;
 
       this.log(`[gen] Getting sandbox (attempt ${attempt}/${MAX_SANDBOX_RETRIES})`);
       sandbox = getSandbox(this.env.SANDBOX, retryId, {
@@ -1635,6 +1731,12 @@ export class CampaignSession implements DurableObject {
 
       if (netOutput.includes('WITH_KEY=200')) {
         this.trace('setup', 'preflight.ok', { attempt });
+        // A retry landed on a new sandbox ID — persist it so follow-ups and
+        // alarm reconnects route to THIS container, not the abandoned base one.
+        if (retrySuffix !== null) {
+          await this.state.storage.put('sandboxIdSuffix', retrySuffix);
+          this.sandboxIdSuffix = retrySuffix;
+        }
         break;
       }
 

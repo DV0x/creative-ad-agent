@@ -1,10 +1,13 @@
 FROM node:22-slim
 
 # Add sandbox runtime from Cloudflare's image (must match @cloudflare/sandbox version)
-COPY --from=docker.io/cloudflare/sandbox:0.7.19 /container-server/sandbox /sandbox
+COPY --from=docker.io/cloudflare/sandbox:0.12.3 /container-server/sandbox /sandbox
 
 # Install s3fs-fuse + fuse for R2 bucket FUSE mount (required by sandbox.mountBucket())
-RUN apt-get update && apt-get install -y s3fs fuse && rm -rf /var/lib/apt/lists/*
+# + procps: node:22-slim ships NO pkill/ps/pgrep, so every `pkill` the DO execs
+# (killAgent, cleanFuse) was a silent no-op — orphaning the previous campaign's
+# agent + claude processes on container reuse (S139 leak suspect #1).
+RUN apt-get update && apt-get install -y s3fs fuse procps && rm -rf /var/lib/apt/lists/*
 
 # Install Claude CLI globally
 RUN npm install -g @anthropic-ai/claude-code@2.1.64
@@ -33,5 +36,8 @@ RUN chmod -R a+rX /app
 # Required for wrangler dev port access
 EXPOSE 8080
 
-# Sandbox entrypoint (required for Cloudflare Containers)
-ENTRYPOINT ["/sandbox"]
+# Entrypoint wrapper: starts the memory watchdog (S139) then execs /sandbox,
+# so /sandbox keeps its PID and Cloudflare Containers semantics are unchanged.
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
