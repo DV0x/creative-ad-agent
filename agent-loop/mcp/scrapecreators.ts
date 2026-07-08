@@ -200,6 +200,50 @@ function rankRevealedWinners(ads: ShapedAd[]): ShapedAd[] {
   });
 }
 
+// ── Raw-tier dump ──────────────────────────────────────────────────────────
+// The tool result truncates ad copy for context discipline; the RAW dump keeps
+// the FULL body text + all media URLs on disk, one JSONL line per ad, so the
+// creative stage can Grep the whole field (claim prevalence, full hooks)
+// without stuffing its context. Written per page as <slug>.jsonl.
+function rawAdEntry(a: any, brand: string, pageId: string): Record<string, unknown> {
+  const s = a?.snapshot ?? {};
+  return {
+    brand,
+    pageId,
+    archiveId: String(a?.ad_archive_id ?? 'n/a'),
+    active: Boolean(a?.is_active),
+    launched: isoDay(a?.start_date),
+    daysRunning: daysBetween(a?.start_date, a?.end_date),
+    variants: Number(a?.collation_count ?? 1),
+    format: String(s?.display_format ?? a?.media_type ?? 'n/a'),
+    platforms: Array.isArray(a?.publisher_platform) ? a.publisher_platform : [],
+    cta: [s?.cta_text, s?.cta_type].filter(Boolean).join(' / ') || 'n/a',
+    linkDomain: domainOf(s?.link_url),
+    title: (s?.title ?? '').toString().trim() || null,
+    body: (s?.body?.text ?? '').replace(/\s+/g, ' ').trim(), // FULL text, untruncated
+    imageUrls: Array.isArray(s?.images)
+      ? s.images.map((i: any) => i?.original_image_url ?? i?.resized_image_url).filter(Boolean)
+      : [],
+    videoPreviewUrls: Array.isArray(s?.videos)
+      ? s.videos.map((v: any) => v?.video_preview_image_url).filter(Boolean)
+      : [],
+  };
+}
+
+function dumpRawAds(rawAdsDir: string, label: string, pageId: string, raw: any[]): string | null {
+  try {
+    fs.mkdirSync(rawAdsDir, { recursive: true });
+    const slug = (label || pageId).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || pageId;
+    const file = path.join(rawAdsDir, `${slug}.jsonl`);
+    const lines = raw.map((a) => JSON.stringify(rawAdEntry(a, label || pageId, pageId)));
+    fs.writeFileSync(file, lines.join('\n') + '\n', 'utf8');
+    return file;
+  } catch (err) {
+    process.stderr.write(`[scrapecreators] raw dump failed: ${err instanceof Error ? err.message : String(err)}\n`);
+    return null;
+  }
+}
+
 // ── Tool 1 — resolve brand names to candidate pages ────────────────────────
 const findPagesSchema = z.object({
   query: z.string().min(1).describe('Brand/advertiser name to resolve to a Facebook page, e.g. "DailyObjects". Generic names return many namesakes — read the candidates and pick by likes + category + ig_username, do not assume the first is right.'),
@@ -241,9 +285,9 @@ const adsPageSchema = z.object({
   max_ads: z.number().int().min(1).max(30).optional().describe('Max revealed-winner ads to return per page after ranking, default 12.'),
 });
 
-const competitorAds = tool(
+const makeCompetitorAds = (rawAdsDir?: string) => tool(
   'competitor_ads',
-  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). 1 credit per page (cached).',
+  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is ALSO dumped in full (untruncated copy + media URLs) to a raw JSONL file on disk — the result names the path; cite it in your deliverable so downstream seats can Grep the whole field. 1 credit per page (cached).',
   { pages: z.array(adsPageSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of pages to fetch in parallel (max 8).') },
   async (args) => {
     const settled = await Promise.allSettled(
@@ -267,24 +311,33 @@ const competitorAds = tool(
       if (raw.length === 0) {
         return `${head}${r.cached ? ' (cached)' : ''}\n    NO ACTIVE ADS FOUND. This rival is not running active Meta ads (or none in this country). That is a finding — name it; fall back to a Perplexity category-trend read for the visual zeitgeist.`;
       }
+      const dumpFile = rawAdsDir ? dumpRawAds(rawAdsDir, p.label ?? '', p.page_id, raw) : null;
       const shaped = rankRevealedWinners(raw.map(shapeAd));
       const max = p.max_ads ?? DEFAULT_MAX_ADS;
       const realName = raw[0]?.page_name ? ` — confirmed page_name="${raw[0].page_name}"` : '';
+      const dumpNote = dumpFile ? `\n    RAW DUMP (all ${raw.length} ads, full untruncated copy + media URLs): ${dumpFile}` : '';
       const shown = shaped.slice(0, max).map((a, n) =>
         `      ${n + 1}. [${a.format}] running ${a.daysRunning ?? '?'}d (since ${a.launched})` +
         `${a.active ? '' : ' INACTIVE'} | variants=${a.variants} | ${a.platforms.join('+') || 'n/a'} | CTA: ${a.cta} → ${a.linkDomain}\n` +
         `         copy: ${a.body || '(no body text)'}`);
-      return `${head}${r.cached ? ' (cached)' : ''}${realName}\n    ${raw.length} active ad(s) total; showing top ${Math.min(max, shaped.length)} by revealed-winner ranking (variants × longevity):\n${shown.join('\n')}`;
+      return `${head}${r.cached ? ' (cached)' : ''}${realName}${dumpNote}\n    ${raw.length} active ad(s) total; showing top ${Math.min(max, shaped.length)} by revealed-winner ranking (variants × longevity):\n${shown.join('\n')}`;
     });
     return { content: [{ type: 'text' as const, text: blocks.join('\n\n') }] };
   },
 );
 
-export const scrapecreatorsMcpServer = createSdkMcpServer({
-  name: 'scrapecreators',
-  version: '0.1.0',
-  tools: [competitorFindPages, competitorAds],
-});
+/** Build the server. Pass rawAdsDir (e.g. <runDir>/raw/ads) to have every
+ *  competitor_ads fetch dumped in full to disk for the creative's Grep. */
+export function createScrapecreatorsServer(rawAdsDir?: string) {
+  return createSdkMcpServer({
+    name: 'scrapecreators',
+    version: '0.2.0',
+    tools: [competitorFindPages, makeCompetitorAds(rawAdsDir)],
+  });
+}
+
+/** Legacy no-dump instance (eval and older callers). */
+export const scrapecreatorsMcpServer = createScrapecreatorsServer();
 
 export const SCRAPECREATORS_FIND_PAGES_TOOL = 'mcp__scrapecreators__competitor_find_pages';
 export const SCRAPECREATORS_ADS_TOOL = 'mcp__scrapecreators__competitor_ads';

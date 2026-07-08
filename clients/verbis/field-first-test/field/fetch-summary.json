@@ -1,0 +1,58 @@
+[
+  {
+    "brand": "verbis-edu",
+    "total": 6,
+    "imageAds": 2,
+    "videoOnly": 1,
+    "imagesDownloaded": 2
+  },
+  {
+    "brand": "e2-test-prep",
+    "total": 2,
+    "imageAds": 1,
+    "videoOnly": 1,
+    "imagesDownloaded": 1
+  },
+  {
+    "brand": "pte-tutorials",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "brand": "leap-scholar",
+    "total": 30,
+    "imageAds": 6,
+    "videoOnly": 8,
+    "imagesDownloaded": 6
+  },
+  {
+    "brand": "idp-ielts-india",
+    "total": 30,
+    "imageAds": 0,
+    "videoOnly": 11,
+    "imagesDownloaded": 0
+  },
+  {
+    "brand": "yocket",
+    "total": 30,
+    "imageAds": 13,
+    "videoOnly": 11,
+    "imagesDownloaded": 13
+  },
+  {
+    "brand": "scaler",
+    "total": 30,
+    "imageAds": 0,
+    "videoOnly": 1,
+    "imagesDownloaded": 0
+  },
+  {
+    "brand": "gradding",
+    "total": 16,
+    "imageAds": 4,
+    "videoOnly": 3,
+    "imagesDownloaded": 4
+  }
+]

@@ -1,0 +1,90 @@
+[
+  {
+    "creative": 1,
+    "name": "The Sticky Notes",
+    "sourceRead": "fittr_1319601606776567 (50d, ~7 flights — objection-wall)",
+    "keepSwapDerive": {
+      "keep": "pinned-notes objection wall + question hook + answer-all turn + proof stack + price CTA band; photographed-real wall/desk staging",
+      "swap": "palette → Verbis cream/navy/yellow; props → PTE study desk (headset, notebook); brand logo",
+      "derive": "the notes carry PTE-specific stuck-points from student voice"
+    },
+    "claimType": "objection-wall callout",
+    "endorsementBasis": "FITTR runs this construction 50d across ~7 concurrent flights",
+    "hook": { "text": "Are these keeping you under 79?", "zone": "mid-left", "sizeRank": 1 },
+    "textBlocks": [
+      { "text": "Speaking 58 | Retake #3 | Good English, low score | Templates don't work | Exam in 2 weeks", "zone": "top row", "style": "5 pastel sticky notes, blue ballpoint handwriting, pinned to wall", "role": "recognition device — the reader's own situation, physicalized" },
+      { "text": "One Saturday. The format, decoded.", "zone": "mid", "style": "plain subhead, navy", "role": "turn — 4-hour live masterclass as the answer" },
+      { "text": "LIVE · SAT 11 JULY · 4 HOURS", "zone": "above hook", "style": "small gold-outline chip", "role": "event frame" },
+      { "text": "4.9★ · 491 Google reviews · Pearson-certified trainer", "zone": "lower", "style": "single small line", "role": "proof" },
+      { "text": "Claim your seat → ₹589", "zone": "bottom-left", "style": "yellow filled rounded band, navy text", "role": "CTA + price" }
+    ],
+    "layout": { "grid": "photographed cream wall, notes row top; text block center-left; desk with PTE props lower right", "eyePath": "notes → question → turn → CTA", "imageTextRatio": "35:65", "focal": "the notes" },
+    "palette": "warm cream wall, pastel notes, navy text, single yellow accent (CTA)",
+    "finish": "photographed-real wall + desk, natural window light, designed type overlaid",
+    "meta": {
+      "primaryText": "Speaking stuck at 58? Third attempt booked? It was never your English — PTE is scored by a machine, and the machine rewards a format. One Saturday, live: templates for all 22 task types, from a Pearson-certified trainer (2,500+ students, 4.9★). ₹589 — and you leave with a ₹3,000 exam voucher.",
+      "headline": "Crack 79+ in one Saturday",
+      "cta": "Book now"
+    },
+    "factSources": "notes text from field/student-voice.md verbatim register; event facts from brief.md"
+  },
+  {
+    "creative": 2,
+    "name": "The Price Tag",
+    "sourceRead": "astroarunpandit_1664361465011833 (83d × 4v — price-slash object)",
+    "keepSwapDerive": {
+      "keep": "hanging price-tag with strikethrough + product-as-object + urgency marker + CTA band skeleton",
+      "swap": "palette → Verbis cream/navy/yellow; category; no authority-human (avoids cloning live Verbis ad)",
+      "derive": "the object becomes the ₹3,000 exam voucher card; urgency becomes the TRUE deadline (Sat 11 July · 100 seats); the math line 'the seat pays you back'"
+    },
+    "claimType": "offer price-slash + value-math",
+    "endorsementBasis": "Astro Arun Pandit runs this construction 83d × 4 variants; nobody in the PTE field runs value-math — open lane",
+    "hook": { "text": "Pay ₹589. Walk out with a ₹3,000 exam voucher.", "zone": "top", "sizeRank": 1 },
+    "textBlocks": [
+      { "text": "₹2,999 (struck through) → ₹589", "zone": "center-left", "style": "hanging navy price tag on string, yellow strikethrough, big numerals", "role": "price-slash device" },
+      { "text": "₹3,000 PTE EXAM VOUCHER — included with your seat", "zone": "center-right", "style": "gift-card style voucher card, Verbis navy with gold edge, standing upright", "role": "the value object" },
+      { "text": "4-hour live PTE masterclass · templates for all 22 task types", "zone": "under hook", "sizeRank": 3, "style": "plain navy subhead", "role": "what it is" },
+      { "text": "SAT 11 JULY · 10 AM · 100 SEATS ONLY", "zone": "bottom bar", "style": "navy full-width bar, cream text, yellow '100 SEATS'", "role": "true-deadline urgency" },
+      { "text": "Claim your seat → ₹589", "zone": "above bottom bar", "style": "yellow filled rounded band", "role": "CTA" }
+    ],
+    "layout": { "grid": "cream studio field; hook top; tag hanging left-center, voucher card right-center on soft pedestal; CTA + deadline bar bottom", "eyePath": "hook → slashed tag → voucher card → CTA → deadline", "imageTextRatio": "50:50", "focal": "the price tag" },
+    "palette": "cream field, navy tag/bar, yellow accents, gold voucher edge",
+    "finish": "designed-premium studio; soft single-source light, real shadows under tag and card",
+    "meta": {
+      "primaryText": "A PTE retake costs about ₹18,000. This masterclass costs ₹589 — and includes a ₹3,000 official exam voucher. You're not spending on the seat; the seat pays you back ₹2,411. Live this Saturday, 4 hours, templates for all 22 task types. 100 seats, full refund any time before class.",
+      "headline": "The seat pays you back",
+      "cta": "Claim seat · ₹589"
+    },
+    "factSources": "₹2,999/₹589/voucher/refund from workshop page (brief.md); ₹18,000 retake fee from field/student-voice.md (LeapScholar/PW listings)"
+  },
+  {
+    "creative": 3,
+    "name": "The Apology Letter",
+    "sourceRead": "yocket_4571512229777923 (69d — reverse-brag letter/document parody)",
+    "keepSwapDerive": {
+      "keep": "letter-on-paper construction + banner device + checklist-as-identification + P.S. callout + full-width CTA band; pure typography",
+      "swap": "brand palette accents; the story",
+      "derive": "the apology target: the coaching industry's 'improve your English' advice; checklist = the READER's true situation (recognition, not a fabricated student profile)"
+    },
+    "claimType": "contrarian letter / curiosity",
+    "endorsementBasis": "Yocket runs the letter construction 69d; long-copy document ads endure; unclaimed in PTE",
+    "hook": { "text": "AN APOLOGY, FROM A PTE TRAINER", "zone": "top banner", "sizeRank": 1 },
+    "textBlocks": [
+      { "text": "Dear PTE aspirants, the industry owes you an apology.", "zone": "upper", "style": "italic letter opening, navy ink", "role": "frame" },
+      { "text": "You were told to improve your English. But you already: ✓ speak fluent English ✓ work in English every day ✓ still score 55-65 in speaking", "zone": "mid", "style": "checkbox list, navy", "role": "recognition checklist — the reader's own facts" },
+      { "text": "Your English was never the problem. PTE is scored by a machine, and the machine rewards a format. Last batch, one student walked out with a 90/90 — the Pearson report is on our page.", "zone": "lower-mid", "style": "letter paragraphs, key phrases bold", "role": "mechanism + real proof" },
+      { "text": "This Saturday, I'll show you the format. All 22 task types. Four hours. — Parthasarathy Bhaskara, Pearson-certified trainer", "zone": "lower", "style": "sign-off with name", "role": "who is speaking + event" },
+      { "text": "P.S. If you've booked a retake already — come before you sit it. The seat is ₹589; a retake is ₹18,000.", "zone": "under sign-off", "style": "italic P.S.", "role": "direct callout + value math" },
+      { "text": "Claim your seat → ₹589 · Sat 11 July", "zone": "bottom full-width", "style": "yellow filled band, navy text", "role": "CTA" }
+    ],
+    "layout": { "grid": "single-column letter on off-white paper texture, thin navy banner top, generous margins", "eyePath": "banner → Dear → checklist → mechanism → sign-off → P.S. → CTA", "imageTextRatio": "0:100", "focal": "typography" },
+    "palette": "paper off-white, navy ink, single yellow CTA band",
+    "finish": "typographic document; subtle paper grain; no imagery",
+    "meta": {
+      "primaryText": "\"My English is good but my speaking keeps getting 55.\" If you've said this, read the letter. Live 4-hour PTE masterclass, Sat 11 July — templates for all 22 task types, ₹3,000 exam voucher included. ₹589.",
+      "headline": "It was never your English",
+      "cta": "Read & claim seat"
+    },
+    "factSources": "checklist mirrors verbatim student voice (field/student-voice.md); 90/90 + trainer + facts from brief.md; ₹18,000 from voice pass"
+  }
+]

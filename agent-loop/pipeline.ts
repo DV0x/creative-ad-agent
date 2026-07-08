@@ -14,10 +14,10 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import * as fs from 'node:fs';
 import { perplexityMcpServer, PERPLEXITY_TOOL_NAME } from './mcp/perplexity.ts';
-import { scrapecreatorsMcpServer, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL } from './mcp/scrapecreators.ts';
+import { createScrapecreatorsServer, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL } from './mcp/scrapecreators.ts';
 import { createNanoBananaServer } from './mcp/nano-banana.ts';
 import { createRefsServer } from './mcp/refs.ts';
-import { STAGES, NANO_BANANA_TOOL, REFS_TOOL, MODE_CAPS, modeHint, GATHER_STAGES, CRITIC_MODEL, CRITIC_IO_PROMPT, RENDER_CRITIC_MODEL, RENDER_CRITIC_IO_PROMPT, type Stage, type Mode } from './stages.ts';
+import { STAGES, NANO_BANANA_TOOL, REFS_TOOL, MODE_CAPS, modeHint, GATHER_STAGES, BUY_MODEL, BUY_IO_PROMPT, RENDER_CRITIC_MODEL, RENDER_CRITIC_IO_PROMPT, type Stage, type Mode } from './stages.ts';
 import { buildHooks } from './hook.ts';
 import type { TraceLogger } from './trace.ts';
 
@@ -54,16 +54,16 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
   const lines: string[] = [];
   for (const n of order) {
     const s = STAGES[n];
-    if (n === 'cell-generate') {
-      lines.push('  • cell-generate — subagent_type "cell-generate" → writes takes.md.');
-      lines.push('      then the TAKE-CRITIC — subagent_type "critic" → writes verdict.md (it judges the takes cold).');
+    if (n === 'create') {
+      lines.push('  • create — subagent_type "create" → writes diagnosis.md, hooks-workbench.md, cards.md, cards.json.');
+      lines.push('      then the BUYER — subagent_type "buy" → writes verdict.md (it judges the cards + the matrix cold,');
+      lines.push('      verifying against material.md and market.md; it never sees the creative\'s diagnosis).');
       lines.push('      Read verdict.md and branch:');
-      lines.push('        · names a WINNER  → proceed to cell-render.');
-      lines.push('        · "REJECT ALL"    → re-run cell-generate (it reads verdict.md and re-mines NEW takes),');
-      lines.push('          then re-run the take-critic. AT MOST 3 rounds total. If the 3rd batch is STILL reject-all,');
-      lines.push('          STOP: the problem is upstream (the room/strategy). Write a short flag to cell-output.md');
-      lines.push('          ("could not clear the take-critic in 3 rounds — room/strategy needs revisiting: <reasons>")');
-      lines.push('          and END. Do not render.');
+      lines.push('        · "FINAL: WINNERS — …" → the approved cards are the phase deliverable. Proceed (or finish).');
+      lines.push('        · "FINAL: REJECT ALL"  → re-run create (it reads verdict.md and writes a NEW batch that answers');
+      lines.push('          the autopsy), then re-run the buyer. AT MOST 2 rounds total. If the 2nd batch is STILL');
+      lines.push('          reject-all, STOP: the problem is upstream (material or brief). Write the flag to DONE.md');
+      lines.push('          ("flagged: buyer rejected two batches — <the buyer\'s instruction>") and END.');
     } else if (n === 'cell-render') {
       lines.push('  • cell-render — subagent_type "cell-render" → writes shotspec.md, the image, and cell-output.md.');
       lines.push('      then the RENDER-CRITIC — subagent_type "render-critic" → writes render-verdict.md (judges the pixels).');
@@ -84,6 +84,11 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
     '',
     `Working directory: ${runDir} (every artifact lives here). The brand brief is in founder-facts.md; the brand`,
     `URL is ${brandUrl}.`,
+    '',
+    'THIS RUN\'S WORK IS NOT DONE UNTIL YOU RUN IT. The working directory may contain files from earlier runs or',
+    'archived rounds (e.g. an r1/ folder, *.degraded.md). Those are history, never this run\'s deliverables. Run',
+    'EVERY stage in the flow below via the Agent tool this session — never conclude from pre-existing files that a',
+    'stage is already complete.',
     '',
     'HOW SUBAGENTS RETURN — READ THIS (it is how you avoid deadlocking): when you launch an Agent it runs in the',
     'background and you get "Async agent launched…". You WILL be notified when it finishes. WAIT for that',
@@ -110,11 +115,11 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
     'write. It already knows its full method (binder preloaded / rubric inlined) — do NOT re-explain the method,',
     "and NEVER pass a cell's reasoning or preferred take to a critic; the critics judge cold.",
     '',
-    'Your FINAL action, once the flow is complete (the render-critic returned PASS) OR you have flagged upstream:',
-    'write a one-line file DONE.md recording the outcome ("shipped: <image path>" or "flagged: <reason>"). That',
-    'file is the signal the run is over — write it ONLY at true completion, never before the render-critic passes.',
-    'Then briefly summarize the deliverables + the rendered image path and STOP. Never produce creative work',
-    'yourself; never call MCP tools.',
+    'Your FINAL action, once the flow is complete (the buyer approved winners — or, when render stages are in',
+    'the flow, the render-critic returned PASS) OR you have flagged upstream: write a one-line file DONE.md',
+    'recording the outcome ("approved: Card X, Card Y — see cards.json + verdict.md", "shipped: <image path>",',
+    'or "flagged: <reason>"). That file is the signal the run is over — write it ONLY at true completion.',
+    'Then briefly summarize the deliverables and STOP. Never produce creative work yourself; never call MCP tools.',
     ...(interactive
       ? [
           '',
@@ -127,23 +132,23 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
   ].join('\n');
 }
 
-// Assemble the subagent registry: the ordered produce-stages + the two independent
-// critics (orchestrator-launched, depth-1). Shared by the headless runner and the
+// Assemble the subagent registry: the ordered produce-stages + the independent
+// judges (orchestrator-launched, depth-1). Shared by the headless runner and the
 // interactive chat session so both drive the exact same agents.
 export function buildAgents(order: string[], mode: Mode): Record<string, AgentDefinition> {
   const agents: Record<string, AgentDefinition> = {};
   for (const n of order) agents[n] = agentDef(STAGES[n], mode);
 
-  const criticRubric = fs.readFileSync(join(PLUGIN_PATH, 'skills', 'cell', 'references', 'critic.md'), 'utf8');
-  agents['critic'] = {
+  const buyerRubric = fs.readFileSync(join(PLUGIN_PATH, 'skills', 'create', 'references', 'buyer.md'), 'utf8');
+  agents['buy'] = {
     description:
-      "Independent creative critic — judges the cell's takes with a fresh context that never saw the writer's " +
-      'reasoning. The ORCHESTRATOR invokes it after cell-generate; it writes verdict.md and returns a winner or REJECT ALL.',
-    prompt: CRITIC_IO_PROMPT + '\n\n' + criticRubric,
-    model: CRITIC_MODEL,
-    tools: ['Read', 'Write'],
+      "Media buyer — judges the creative's cards + the test matrix with a fresh context that never saw the " +
+      "writer's diagnosis. The ORCHESTRATOR invokes it after create; it writes verdict.md and returns winners or REJECT ALL.",
+    prompt: BUY_IO_PROMPT + '\n\n' + buyerRubric,
+    model: BUY_MODEL,
+    tools: ['Read', 'Write', 'Grep'],
     mcpServers: [],
-    maxTurns: 8,
+    maxTurns: 12,
   };
 
   const renderCriticRubric = fs.readFileSync(join(PLUGIN_PATH, 'skills', 'cell', 'references', 'render-critic.md'), 'utf8');
@@ -190,7 +195,7 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
     plugins: [{ type: 'local', path: PLUGIN_PATH }],
     mcpServers: {
       perplexity: perplexityMcpServer,
-      scrapecreators: scrapecreatorsMcpServer,
+      scrapecreators: createScrapecreatorsServer(join(runDir, 'raw', 'ads')), // dumps full ads for the creative's Grep
       'nano-banana': createNanoBananaServer(imagesDir),
       refs: createRefsServer(runDir),
     },
@@ -199,8 +204,9 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
     allowedTools: ['Agent', 'Task', 'Read', 'Glob', 'Grep', 'Write', 'WebFetch', ...ALL_MCP_TOOLS, ...extraAllowedTools],
     agents: buildAgents(order, mode),
     hooks: buildHooks({
-      caps: { research: MODE_CAPS[mode], comp: MODE_CAPS[mode] }, // surface/deep gathering cap
+      caps: { collect: MODE_CAPS[mode], market: MODE_CAPS[mode] }, // surface/deep gathering cap
       defaultCap: MODE_CAPS[mode], // applies even if agent_type isn't populated (the async-task path)
+      doneRequires: order.map((n) => join(runDir, STAGES[n].deliverable)), // DONE.md refused until every ordered deliverable exists
       onEvent: (msg) => onProgress?.(msg),
     }),
     maxTurns: 100, // orchestrator turns are cheap; async-task re-invocations add segments
@@ -220,6 +226,12 @@ export interface PipelineArgs {
 }
 
 export async function runPipeline({ brandUrl, runDir, order, mode, logger, onProgress }: PipelineArgs): Promise<void> {
+  // A RESUMED run dir may hold DONE.md from its previous run. The completion check
+  // below keys on that file existing at a result segment — stale, it closes the
+  // input stream on the FIRST segment, which kills the in-process MCP bridge
+  // ("Stream closed" on every MCP call) and hook integration. Clear it first.
+  fs.rmSync(join(runDir, 'DONE.md'), { force: true });
+
   const options = buildBaseOptions({ brandUrl, runDir, order, mode, onProgress });
 
   // STREAMING INPUT MODE (not a plain string prompt). We yield the initial user

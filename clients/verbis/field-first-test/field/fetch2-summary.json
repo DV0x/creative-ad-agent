@@ -1,0 +1,253 @@
+{
+  "picks": [
+    {
+      "tier": "pte",
+      "query": "Entri App",
+      "page_id": "746818848748264",
+      "name": "Entri App മലയാളം",
+      "likes": 295203,
+      "ig": "entri.app",
+      "cat": "Education website"
+    },
+    {
+      "tier": "pte",
+      "query": "Tiju's Academy",
+      "page_id": "423664594698179",
+      "name": "Tiju's Academy",
+      "likes": 313480,
+      "ig": "tijusacademy",
+      "cat": "Test Preparation Center"
+    },
+    {
+      "tier": "pte",
+      "query": "Sure Way English",
+      "page_id": "1386550061644301",
+      "name": "Sure Way English",
+      "likes": 1669,
+      "ig": "",
+      "cat": "Education"
+    },
+    {
+      "tier": "pte",
+      "query": "EnglishWise",
+      "page_id": "1395373887444990",
+      "name": "English Wise- PTE, IELTS, NAATI and OET Experts",
+      "likes": 81880,
+      "ig": "englishwiseglobal",
+      "cat": "Language School"
+    },
+    {
+      "tier": "pte",
+      "query": "Vision Language Experts",
+      "page_id": "641159403181450",
+      "name": "Vision Language Experts - Center for PTE, IELTS, OET & NAATI CCL",
+      "likes": 8760,
+      "ig": "visionlanguageexperts",
+      "cat": "Language School"
+    },
+    {
+      "tier": "workshop",
+      "query": "Booming Bulls",
+      "page_id": "107544173985016",
+      "name": "Booming Bulls",
+      "likes": 20864,
+      "ig": "boomingbulls",
+      "cat": "Education"
+    },
+    {
+      "tier": "workshop",
+      "query": "Pushkar Raj Thakur",
+      "page_id": "778434852010723",
+      "name": "Pushkar Raj Thakur",
+      "likes": 26418,
+      "ig": "",
+      "cat": "Public Figure"
+    },
+    {
+      "tier": "workshop",
+      "query": "Bada Business",
+      "page_id": "2135456630077654",
+      "name": "Bada Business Pvt. Ltd.",
+      "likes": 2571428,
+      "ig": "badabusinessoff_",
+      "cat": "Business Consultant"
+    },
+    {
+      "tier": "workshop",
+      "query": "Ankur Warikoo",
+      "page_id": "107594063255738",
+      "name": "Ankur Warikoo",
+      "likes": 1216581,
+      "ig": "ankurwarikoo",
+      "cat": "Entrepreneur"
+    },
+    {
+      "tier": "workshop",
+      "query": "FITTR",
+      "page_id": "506612312741804",
+      "name": "FITTR",
+      "likes": 1034199,
+      "ig": "fittrwithsquats",
+      "cat": "Health & wellness website"
+    },
+    {
+      "tier": "workshop",
+      "query": "Astro Arun Pandit",
+      "page_id": "100150782402698",
+      "name": "Astro Arun Pandit",
+      "likes": 853549,
+      "ig": "astroarunpandit",
+      "cat": "Public Figure"
+    },
+    {
+      "tier": "workshop",
+      "query": "Cook With Parul",
+      "page_id": "431383797210174",
+      "name": "Cook With Parul",
+      "likes": 2411801,
+      "ig": "cookwithparul",
+      "cat": "Chef"
+    }
+  ],
+  "ambiguous": [
+    {
+      "name": "Josh Skills",
+      "reason": "no confident match",
+      "candidates": [
+        {
+          "page_id": "925263593998646",
+          "name": "Coach Joshua - Gameball Basketball Skills Trainer",
+          "likes": 34573,
+          "ig": "yourskillstrainer",
+          "cat": "Personal Coach"
+        },
+        {
+          "page_id": "1710143862582505",
+          "name": "Josh Keyes #wightmanstrong Flag Football, Skills Camp & Community Day 6/26",
+          "likes": 409,
+          "ig": "",
+          "cat": "Sports Event"
+        },
+        {
+          "page_id": "113956107037501",
+          "name": "Berachah Digi-Hub",
+          "likes": 196,
+          "ig": "",
+          "cat": "Product/service"
+        }
+      ]
+    },
+    {
+      "name": "Awal English Academy",
+      "reason": "no confident match",
+      "candidates": [
+        {
+          "page_id": "102797756090046",
+          "name": "English Academy by M.A. Awal",
+          "likes": 320,
+          "ig": "",
+          "cat": "Educational Research Center"
+        }
+      ]
+    },
+    {
+      "name": "CA Rachana Ranade",
+      "reason": "no confident match",
+      "candidates": [
+        {
+          "page_id": "229451140259130",
+          "name": "CA Rachana Phadke Ranade",
+          "likes": 195,
+          "ig": "",
+          "cat": "Financial Service"
+        }
+      ]
+    }
+  ],
+  "summary": [
+    {
+      "brand": "entriapp",
+      "tier": "pte",
+      "total": 30,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "tijusacademy",
+      "tier": "pte",
+      "total": 30,
+      "imageAds": 6,
+      "imagesDownloaded": 6
+    },
+    {
+      "brand": "surewayenglish",
+      "tier": "pte",
+      "total": 0,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "englishwise",
+      "tier": "pte",
+      "total": 4,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "visionlanguageexperts",
+      "tier": "pte",
+      "total": 0,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "boomingbulls",
+      "tier": "workshop",
+      "total": 0,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "pushkarrajthakur",
+      "tier": "workshop",
+      "total": 0,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "badabusiness",
+      "tier": "workshop",
+      "total": 30,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "ankurwarikoo",
+      "tier": "workshop",
+      "total": 30,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    },
+    {
+      "brand": "fittr",
+      "tier": "workshop",
+      "total": 30,
+      "imageAds": 15,
+      "imagesDownloaded": 15
+    },
+    {
+      "brand": "astroarunpandit",
+      "tier": "workshop",
+      "total": 30,
+      "imageAds": 15,
+      "imagesDownloaded": 15
+    },
+    {
+      "brand": "cookwithparul",
+      "tier": "workshop",
+      "total": 0,
+      "imageAds": 0,
+      "imagesDownloaded": 0
+    }
+  ]
+}

@@ -1,22 +1,24 @@
 /**
- * The four pipeline stages, as data. Each becomes an SDK AgentDefinition in
- * pipeline.ts. Derived from the proven mini-eval apprentices
- * (cloudflare/eval/mini-eval/apprentices/*.ts) with two deliberate changes for
- * the new architecture:
+ * The pipeline stages, as data. Each becomes an SDK AgentDefinition in
+ * pipeline.ts.
  *
- *   1. BINDER LOADING. The eval INLINES each SKILL.md into the system prompt.
- *      Here the binder is PRELOADED as a plugin skill (AgentDefinition.skills),
- *      per the locked plan §5 — so each identityPrompt points at the preloaded
- *      binder instead of "the method below". (Phase-1 open question: does a
- *      preloaded skill get followed as authoritatively as an inlined one? The
- *      research-only smoke validates this before the expensive full run.)
+ * DR REBUILD (2026-07-07, S141→S142): the old research/comp/strategy/cell-generate
+ * roster is retired (archived at archive/agent-loop-2026-07-07-pre-dr-rebuild/).
+ * The new spine:
  *
- *   2. CELL RENDER. The eval cell shells out to Bash render scripts. Here the
- *      cell renders via the nano-banana MCP and reads product refs via the refs
- *      MCP — the plan §6 tool surface. Its I/O contract is rewritten to match.
+ *   collect — field collector: verbatim artifacts across the buyer journey → material.md
+ *   market  — ad-field collector: verbatim rival claims + wear evidence → market.md
+ *             (its MCP dumps every fetched ad IN FULL to raw/ads/*.jsonl — the raw
+ *             tier the creative Greps)
+ *   create  — senior DR creative (Opus): diagnose → write; hooks in volume; copy
+ *             split by destination; 8 cards = 8 named hypotheses → cards.json
+ *   buy     — media buyer (Opus, orchestrator-launched like the old critics):
+ *             judges the cards + the matrix cold → verdict.md
  *
- * Models: all four stages on Sonnet 4.6 (Phase-1 decision — tests wiring, not
- * model tiers; trivially bumpable later). The orchestrator runs on Haiku.
+ *   cell-render + render-critic survive UNCHANGED for now — the render side is the
+ *   next phase (one on-image line, eyes-only refs, layout as a named decision).
+ *
+ * Models: collectors on Sonnet; create and buy on Opus — the copy is the product.
  */
 import { PERPLEXITY_TOOL_NAME } from './mcp/perplexity.ts';
 import { SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL } from './mcp/scrapecreators.ts';
@@ -25,10 +27,11 @@ export const NANO_BANANA_TOOL = 'mcp__nano-banana__generate_ad_images';
 export const REFS_TOOL = 'mcp__refs__get_reference_images';
 
 const STAGE_MODEL = 'claude-sonnet-4-6';
+const CREATE_MODEL = 'opus'; // the copy is the product; alias resolves to current Opus
 
 export interface Stage {
-  name: string; // research | comp | strategy | cell-generate | cell-render (stage id)
-  skill?: string; // binder skill to preload (defaults to name); both cell stages use 'cell'
+  name: string; // collect | market | create | cell-render (stage id)
+  skill?: string; // binder skill to preload (defaults to name)
   description: string; // AgentDefinition.description (when-to-use)
   identityPrompt: string; // AgentDefinition.prompt — thin role + I/O contract; binder carries the method
   model: string;
@@ -39,167 +42,118 @@ export interface Stage {
   maxTurns: number;
 }
 
-export const RESEARCH: Stage = {
-  name: 'research',
+export const COLLECT: Stage = {
+  name: 'collect',
   description:
-    "Performance-marketing research analyst — the strategist's eyes on the open web. Surfaces the brand's reality, its buyers' voice, and the market context needed to diagnose the real conversion blocker. Run FIRST on a fresh brand.",
+    'Field collector — gathers RAW VERBATIM material (customer voices, desires, objections, facts, scenes) across the buyer journey. Run FIRST on a fresh brand.',
   identityPrompt: [
-    'You are a senior performance-marketing research analyst, engaged for one brand.',
+    'You are a FIELD COLLECTOR for a direct-response ad team, engaged for one brand.',
     '',
-    'Your complete method is **the research binder**, already loaded into your context as a',
-    'preloaded skill named `research`. Read it as your operating manual — it is how you think,',
-    'not a checklist. It establishes who you are and what your deliverable, research.md, must',
-    'contain. Follow it.',
+    'Your complete method is **the field collector binder**, already loaded into your context as a',
+    'preloaded skill named `collect`. Read it as your operating manual — it is how you work, not a',
+    'checklist. It defines the eight artifact types you hunt, the journey coverage you owe, and the',
+    'exact shape of your deliverable, material.md. Follow it.',
     '',
     "For this engagement, the founder's intake is in your working directory. Read it first:",
-    '  - founder-facts.md    The brand URL, the founder\'s brief, and their own facts. May be',
-    '                        thin — work with what is there; name the gaps.',
-    '  - reference-images/   Founder-supplied product/space/people photos. MAY BE ABSENT; if the',
-    '                        folder exists, Read every file in it.',
+    '  - founder-facts.md    The brand URL, the product, the conversion goal. May be thin — work',
+    '                        with what is there; name the gaps.',
     '',
     'Your tools, in priority order:',
     `  - ${PERPLEXITY_TOOL_NAME}`,
-    '                        Primary research engine (Perplexity Sonar Pro). Pass an ARRAY of',
-    '                        questions (1-8); each returns a web-grounded ANSWER (subject of every',
-    '                        fact kept intact) PLUS the SOURCES it cited. Read the ANSWER for context;',
-    '                        attribute every load-bearing fact to a named SOURCE, by domain. A figure',
-    '                        whose subject you cannot confirm in a source is a gap, not a fact.',
-    "  - WebFetch             For the brand's own URL and other specific known pages. Some sites",
-    '                        return empty (JS SPAs, crawler-blocking) — name the gap and reroute.',
-    '  - Read                 Files in your working directory (the binder will direct you to',
-    '                        reference/hyperlocal.md when locale depth reaches city-or-tighter).',
-    '  - Write                Writes your deliverable.',
+    '                        Primary engine. Pass an ARRAY of questions (1-8) per call; ask explicitly',
+    '                        for VERBATIM customer language with sources. Plan batches before firing.',
+    "  - WebFetch             The brand's own pages and unusually rich single sources (save those to",
+    '                        raw/<slug>.md per the binder). A few fetches, not a crawl.',
+    '  - Read / Write         Working-directory files.',
     '',
-    'Your deliverable is a single file — research.md — in the case-file-header + 8-section form the',
-    'binder specifies. Produce nothing else. When research.md is written, you are done.',
+    'Your deliverable is material.md in the exact shape the binder specifies (numbered verbatim',
+    'artifacts, journey coverage, raw tier, gaps). Produce nothing else. When material.md is written,',
+    'you are done.',
   ].join('\n'),
   model: STAGE_MODEL,
   tools: ['Read', 'Write', 'WebFetch', PERPLEXITY_TOOL_NAME],
   mcpServers: ['perplexity'],
-  deliverable: 'research.md',
+  deliverable: 'material.md',
   reads: ['founder-facts.md'],
   maxTurns: 40,
 };
 
-export const COMP: Stage = {
-  name: 'comp',
+export const MARKET: Stage = {
+  name: 'market',
   description:
-    'Competitive-intelligence analyst — reads the field a brand competes in: the rivals, where positioning clusters, the open lane, and what live Meta ads reveal. Run AFTER research; sharpens the Bet, never blocks it.',
+    'Ad-field collector — resolves the rival set and brings back VERBATIM claim language from live Meta ads with wear evidence (prevalence, endurance, churn, escalation). Run after (or alongside) collect.',
   identityPrompt: [
-    'You are a senior competitive-intelligence analyst, engaged for one brand.',
+    'You are an AD-FIELD COLLECTOR for a direct-response ad team, engaged for one brand.',
     '',
-    'Your complete method is **the competitive-intelligence binder**, already loaded into your',
-    'context as a preloaded skill named `comp`. Read it as your operating manual — it is how you',
-    'think, not a checklist. It establishes who you are and what your deliverable, competitors.md,',
-    'must contain. Follow it.',
+    'Your complete method is **the ad-field binder**, already loaded into your context as a preloaded',
+    'skill named `market`. Read it as your operating manual. You are a reporter of the live ad field —',
+    'verbatim claims, offers, hooks, wear evidence — never a strategist. It defines the exact shape of',
+    'your deliverable, market.md. Follow it.',
     '',
-    'The upstream work is in your working directory. Read both before you reason:',
-    '  - research.md         The brand, its buyers, market, reputation, locale, and any',
-    '                        "alternatives landscape" the buyer named. Treat that as a HINT, not',
-    '                        your rival list — you discover the field yourself.',
-    '  - founder-facts.md    The brand URL and the founder\'s own facts. May be thin.',
+    'Read founder-facts.md first — if the founder named competitors, they lead your set.',
     '',
     'Your tools:',
     `  - ${PERPLEXITY_TOOL_NAME}`,
-    '                        Perplexity Sonar Pro — field discovery, the clustering read, white-space',
-    '                        verification, and the category-trend FALLBACK when the Ad Library is empty.',
-    '                        Attribute every rival/claim/number to a named SOURCE.',
+    '                        ONE discovery pass if the rival list is thin: who does this buyer cross-shop?',
     `  - ${SCRAPECREATORS_FIND_PAGES_TOOL}`,
     '                        Resolve rival NAMES → Meta Ad Library pages. YOU pick the right page_id',
     '                        (likes + category + ig) — the wrong-brand defence.',
     `  - ${SCRAPECREATORS_ADS_TOOL}`,
-    "                        Fetch a page's active ads, pre-ranked by revealed-winner signal (longevity ×",
-    '                        variants). NO performance data — proxies only. Empty = rival runs no active',
-    '                        Meta ads (a finding). Scrape only the top 3-5 rivals that define the field.',
+    "                        Fetch a page's active ads, pre-ranked by revealed-winner signal (variants ×",
+    '                        longevity). It ALSO dumps every ad in full to raw/ads/<brand>.jsonl and names',
+    '                        the path — record those paths in market.md. Scrape the brand itself + the',
+    '                        top 4-6 rivals that define the field.',
     '  - WebFetch             Specific known pages when a snippet is not enough.',
     '  - Read / Write         Working-dir files; writes your deliverable.',
     '',
-    'Your deliverable is a single file — competitors.md — in the 4-section form the binder specifies',
-    '(the competitive field, the clustering axes, the white space, the live ad field & visual',
-    'zeitgeist). Produce nothing else. When competitors.md is written, you are done.',
+    'Your deliverable is market.md in the exact shape the binder specifies (the set, the verbatim claim',
+    'inventory with evidence, patterns, the brand\'s own field, format notes, gaps). Produce nothing',
+    'else. When market.md is written, you are done.',
   ].join('\n'),
   model: STAGE_MODEL,
   tools: ['Read', 'Write', 'WebFetch', PERPLEXITY_TOOL_NAME, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL],
   mcpServers: ['perplexity', 'scrapecreators'],
-  deliverable: 'competitors.md',
-  reads: ['research.md', 'founder-facts.md'],
+  deliverable: 'market.md',
+  reads: ['founder-facts.md'],
   maxTurns: 40,
 };
 
-export const STRATEGY: Stage = {
-  name: 'strategy',
+export const CREATE: Stage = {
+  name: 'create',
   description:
-    'Head of Performance Marketing — diagnoses the real conversion blocker, prescribes competing test angles, sizes the test to budget, assigns visual lanes, and writes The Bet. Run AFTER comp.',
+    'Senior DR creative (Opus) — diagnoses awareness, claim wear, and desire from the collected material, then writes a test matrix of 8 hypothesis cards with copy split by destination. Run after collect + market.',
   identityPrompt: [
-    'You are a senior performance-marketing strategist, engaged for one brand.',
+    'You are a SENIOR DIRECT-RESPONSE CREATIVE, engaged for one brand.',
     '',
-    'Your complete method is **the strategy binder**, already loaded into your context as a',
-    'preloaded skill named `strategy`. Read it as your operating manual — it is how you think, not a',
-    'checklist. It establishes who you are and what your deliverable, "The Bet", must contain. Follow it.',
-    '',
-    'You work entirely from files already in your working directory. Read all three before you reason:',
-    '  - research.md       the brand, its buyers, market, reputation, visual reality',
-    '  - competitors.md    rivals and where their ads cluster',
-    '  - founder-facts.md  the founder\'s own facts (may be thin or partly missing)',
-    '',
-    'You have NO web access and no tools beyond Read and Write. Reason only from those three files',
-    'plus the current date you are given.',
-    '',
-    'Your deliverable is a single file — thebet.md — in the five-part form the binder specifies.',
-    'Produce nothing else. When thebet.md is written, you are done.',
-  ].join('\n'),
-  model: STAGE_MODEL,
-  tools: ['Read', 'Write'],
-  mcpServers: [],
-  deliverable: 'thebet.md',
-  reads: ['research.md', 'competitors.md', 'founder-facts.md'],
-  maxTurns: 25,
-};
-
-// The cell is TWO orchestrator-run stages (split so a critic runs between them —
-// see docs/PLAN_AGENT_LOOP_CRITIC_REBUILD_2026-07-01.md). Neither spawns anything;
-// the orchestrator launches the critics (depth-1, where async actually works).
-export const CELL_GENERATE: Stage = {
-  name: 'cell-generate',
-  skill: 'cell',
-  description:
-    'The direct-response creative cell, FIRST half — mines one Bet angle into ~5 distinct bound takes and writes them to takes.md for the independent critic. Does NOT render and does NOT grade its own work.',
-  identityPrompt: [
-    'You are a senior direct-response creative — art director and copywriter as one seat — engaged for one brand.',
-    '',
-    'Your complete method is **the cell binder**, already loaded as a preloaded skill named `cell`. Read it as your',
-    'operating manual. This stage does the FIRST half only: mine the angle and develop the takes. You do NOT render,',
-    'and you do NOT grade your own work — a separate critic judges your takes, and the orchestrator runs it next.',
+    'Your complete method is **the DR creative binder**, already loaded into your context as a preloaded',
+    'skill named `create`. Read it as your operating manual — diagnosis before writing, hooks in volume,',
+    'copy by destination, the matrix rules. It defines your four deliverables. Follow it.',
     '',
     'In your working directory:',
-    '  - thebet.md         The strategy output — your ROOM: buyer + awareness + promise + proof (the ONLY claims',
-    '                      you may make) + mandatories. Read it FIRST; work the PRIMARY angle.',
-    '  - research.md       Brand reality and buyer voice — the real material your copy is anchored from.',
-    '  - competitors.md    The live field — the wallpaper to avoid, the proven structures.',
-    '  - references/       Your binder\'s reference files (layer-stack, style-grammar, type-grammar, counterexamples,',
-    '                      formats/) — read as the binder directs.',
-    '  - verdict.md        PRESENT ONLY ON A RE-MINE ROUND — the critic\'s reasons a prior batch was rejected. If it',
-    '                      exists, read it and re-mine NEW takes that answer it: "re-mine sharper" = the want is',
-    '                      right, the execution was generic — dig THAT want deeper for this brand\'s specific truth;',
-    '                      "dead" = off-strategy — drop it. Re-mine fresh; never polish the dead takes.',
+    '  - founder-facts.md   The job: conversion event, CPA, buyer, OFFERS ALLOWED. Read first.',
+    '  - material.md        The verbatim artifact bank — read it WHOLE before anything else.',
+    '  - market.md          The live ad field: claims + wear evidence — read it WHOLE.',
+    '  - raw/               The raw tier (raw/ads/*.jsonl = full untruncated rival ads; raw/*.md = full',
+    '                       source texts). Grep/Read it on demand for prevalence checks and full context —',
+    '                       never as a substitute for reading the curated files whole.',
+    '  - verdict.md         PRESENT ONLY ON ROUND 2 — the buyer killed the previous batch. Read the',
+    '                       autopsy and write a NEW batch that answers it. Never resubmit a killed card.',
     '',
-    'Match a format (or build freestyle), mine ~5 genuinely different way-ins that serve the room\'s promise, develop',
-    'each into a bound take (hook + picture + staging + completion), and run the mechanical self-check. Then write',
-    'ALL of them to takes.md — a one-line header naming the angle (e.g. "Angle 1 — <name>"), then each take as a',
-    'bound artifact in the shape references/critic.md expects. Put ONLY the takes there — no way-in deliberation, no',
-    'hint of which you prefer; the critic must judge them cold.',
+    'Your tools: Read, Write, Grep, Glob. No web access — you work from the collected material only.',
     '',
-    'Your deliverable is takes.md. Write nothing else. When takes.md is written, you are done — the orchestrator',
-    'runs the critic next.',
+    'Your deliverables, in order: diagnosis.md, hooks-workbench.md, cards.md, cards.json — exactly as the',
+    'binder specifies. The copy strings in cards.json are FINAL. No preamble, no favorite named anywhere —',
+    'a cold buyer judges the cards next. When cards.json is written, you are done.',
   ].join('\n'),
-  model: STAGE_MODEL,
-  tools: ['Read', 'Write'],
+  model: CREATE_MODEL,
+  tools: ['Read', 'Write', 'Grep', 'Glob'],
   mcpServers: [],
-  deliverable: 'takes.md',
-  reads: ['thebet.md', 'research.md', 'competitors.md'],
-  maxTurns: 30,
+  deliverable: 'cards.json',
+  reads: ['founder-facts.md', 'material.md', 'market.md'],
+  maxTurns: 40,
 };
 
+// ── cell-render survives unchanged for now (render rework is the next phase) ──
 export const CELL_RENDER: Stage = {
   name: 'cell-render',
   skill: 'cell',
@@ -248,47 +202,38 @@ export const CELL_RENDER: Stage = {
   maxTurns: 40,
 };
 
-// ── The independent take-critic (orchestrator-launched stage) ────────────────
-// The ORCHESTRATOR launches it (depth-1) after cell-generate writes takes.md — NOT
-// the cell (nested spawns deadlock under the SDK's async default; see the rebuild
-// plan). Fresh context — it never sees the cell's reasoning. Its rubric
-// (references/critic.md) is inlined by pipeline.ts; it reads thebet.md + takes.md +
-// the counterexample bank from cwd and writes verdict.md.
-export const CRITIC_MODEL = 'opus'; // strong independent judge; alias resolves to current Opus (4.8)
+// ── The media buyer (orchestrator-launched stage, the concept gate) ──────────
+// The ORCHESTRATOR launches it (depth-1) after create writes cards.json — NOT the
+// creative (nested spawns deadlock under the SDK's async default). Fresh context —
+// it never sees the creative's diagnosis or workbench. Its rubric
+// (create/references/buyer.md) is inlined by pipeline.ts; it reads founder-facts +
+// material + market + cards from cwd and writes verdict.md.
+export const BUY_MODEL = 'opus'; // the money seat; alias resolves to current Opus
 
-export const CRITIC_IO_PROMPT = [
-  'You are the INDEPENDENT creative critic — a fresh seat. You did NOT write these takes and you have',
-  "not seen the writer's reasoning. Judge by your rubric (below), not by taste.",
+export const BUY_IO_PROMPT = [
+  'You are the MEDIA BUYER — a fresh seat. You did NOT write these cards and you have not seen the',
+  "writer's diagnosis or workbench. Judge by your rubric (below), not by taste. The money is yours.",
   '',
-  'Read ONLY these three files in your working directory — nothing else (never the cell\'s reasoning):',
-  '  - thebet.md                       The ROOM: the angle(s) — buyer, awareness, promise, proof, mandatories.',
-  '                                    The brief the writer was handed; judge the takes against the angle they name.',
-  '  - takes.md                        The TAKES to judge — a header naming their angle, then each take as a bound',
-  '                                    hook + picture + staging. Judge only what is on the page.',
-  '  - references/counterexamples.md   The category anti-example bank — the concrete clichés your category-look and',
-  '                                    obvious-first-idea tests score against. Judge genericness against THIS list,',
-  '                                    not just your own sense of what is generic.',
+  'Read ONLY these files in your working directory — never diagnosis.md or hooks-workbench.md (the',
+  "writer's reasoning; you judge cold):",
+  '  - founder-facts.md   The conversion event, CPA, and OFFERS ALLOWED you buy against.',
+  '  - material.md        The artifact bank — verify every anchor and quoted proof VERBATIM against it.',
+  '  - market.md          The live ad field — your SEEN-IT test runs on this evidence.',
+  '  - cards.md           The 8 cards. Judge ONLY what is on the page. (cards.json holds the same',
+  '                       cards machine-readable; use it to check exact copy strings.)',
+  '  - raw/ads/*.jsonl    OPTIONAL: Grep it when you need to verify a wallpaper call against the full field.',
   '',
-  'Apply the rubric below adversarially, take by take. Then:',
-  '  1. Write your full verdict to verdict.md — per-take pass/fail with the failing element QUOTED, the',
-  '     set-level reads, and the final call.',
-  "  2. The final call is EITHER one WINNER (name the take + one line: why it best makes the strategy's",
-  '     promise and would move a cold buyer to act) OR "REJECT ALL" — each take marked "re-mine sharper"',
-  '     (on-strategy, generic execution) or "dead" (off-strategy).',
-  '  3. Return that final call as your last message — the cell acts on it.',
+  'Apply the rubric below adversarially, card by card, then judge the batch as a test design. Write',
+  'verdict.md exactly in the rubric\'s shape, ending with the FINAL line. Return the final call as your',
+  'last message.',
   '',
-  'You kill and you pick; you cannot add what a take lacks. When uncertain on a kill test, FAIL the take.',
-  'Do not render, do not rewrite the takes, do not invent.',
+  'You kill and you pick; you cannot add what a card lacks. When uncertain on any test, KILL.',
+  'Do not rewrite the cards, do not invent.',
   '',
-  '════════════════════ YOUR RUBRIC (references/critic.md) ════════════════════',
+  '════════════════════ YOUR RUBRIC (references/buyer.md) ════════════════════',
 ].join('\n');
 
-// ── The independent render-critic (orchestrator-launched stage, the pixel gate) ──
-// The ORCHESTRATOR launches it (depth-1) after cell-render, mirroring the take-critic.
-// Fresh context. It Globs the rendered image + Reads the product reference (its path is
-// in shotspec.md), checks the pixels against shotspec.md + the counterexample bank + its
-// rubric (inlined by pipeline.ts from references/render-critic.md), and writes
-// render-verdict.md: PASS or named diffs (each "re-render" or "structural").
+// ── The independent render-critic (unchanged; render rework is the next phase) ──
 export const RENDER_CRITIC_MODEL = 'opus'; // multimodal judge; it views the pixels
 
 export const RENDER_CRITIC_IO_PROMPT = [
@@ -318,31 +263,29 @@ export const RENDER_CRITIC_IO_PROMPT = [
 ].join('\n');
 
 export const STAGES: Record<string, Stage> = {
-  research: RESEARCH,
-  comp: COMP,
-  strategy: STRATEGY,
-  'cell-generate': CELL_GENERATE,
+  collect: COLLECT,
+  market: MARKET,
+  create: CREATE,
   'cell-render': CELL_RENDER,
 };
 
-/** Canonical fresh-run order (the linear produce stages; the two critics are
- *  orchestrator-invoked between the cell stages, not listed here). */
-export const STAGE_ORDER = ['research', 'comp', 'strategy', 'cell-generate', 'cell-render'] as const;
+/** Canonical fresh-run order (the linear produce stages; the buyer is
+ *  orchestrator-invoked after create, not listed here). cell-render joins the
+ *  default order when the render phase is rebuilt. */
+export const STAGE_ORDER = ['collect', 'market', 'create'] as const;
 
-// ── Research/comp depth modes ────────────────────────────────────────────────
+// ── Gathering depth modes ────────────────────────────────────────────────────
 // A mode is just the gathering-call cap the hook enforces + a prompt nudge so the
 // agent converges gracefully (prefer parallel perplexity batches over serial
 // WebFetch crawling) instead of hitting an abrupt wall.
 //   surface — fast, bounded; the default for iterating.
-//   deep    — thorough but still bounded (NOT the 133-fetch runaway). The
-//             parallel-gatherers-→-synthesizer version is the next increment;
-//             for now deep = a single agent with a higher ceiling.
+//   deep    — thorough but still bounded.
 export type Mode = 'surface' | 'deep';
 
 export const MODE_CAPS: Record<Mode, number> = { surface: 15, deep: 35 };
 
 /** Stages whose prompt gets the depth nudge (the gathering stages). */
-export const GATHER_STAGES = new Set(['research', 'comp']);
+export const GATHER_STAGES = new Set(['collect', 'market']);
 
 export function modeHint(mode: Mode): string {
   const cap = MODE_CAPS[mode];
@@ -365,4 +308,3 @@ export function modeHint(mode: Mode): string {
     `- You have a gathering budget of ~${cap} external calls. When it is spent, synthesize and write.`,
   ].join('\n');
 }
-

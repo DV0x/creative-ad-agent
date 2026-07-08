@@ -1,0 +1,15 @@
+{
+  "quality": "low",
+  "size": "1:1",
+  "outDir": "field-first-test/renders",
+  "jobs": [
+    {
+      "name": "probe-tiny",
+      "size": {
+        "width": 512,
+        "height": 512
+      },
+      "prompt": "A plain yellow circle on a navy background."
+    }
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "rt-parth-reframe-native",
+      "refs": [
+        "assets/trainer/parth-clean.png",
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass — a DIRECT-RESPONSE RETARGETING ad aimed at people who visited the class page but were not convinced they actually need it. It should feel like a real candid still from a phone-recorded video of the trainer explaining something directly to you, NOT a glossy studio poster. THREE reference images: (1) the trainer's face; (2) the Verbis Edu logo; (3) a Google review badge.\n\nUse the MAN in reference 1 EXACTLY — same face, beard, warm expression, navy bandhgala jacket — but in a DIFFERENT setting from a plain talking-head: he is seated at a desk in a warm, lived-in study/office, soft out-of-focus bookshelves and warm lamp light behind him, leaning slightly forward mid-explanation with one open hand gesturing as if he's about to show you something. He looks straight into the camera, talking directly to you. Natural warm indoor light, slight candid imperfection like a real video frame. Do NOT change his face. AVOID: glossy studio polish, perfect symmetry, slick gradients, over-saturation, floating elements.\n\nComposition: he occupies roughly the RIGHT 45%; keep the LEFT side clean for text.\n\nNAME STRIP: near the bottom over his side, a lower-third video-style caption bar (a semi-transparent dark rounded bar): 'Parthasarathy Bhaskara' in bold white, and under it in smaller light text 'Pearson-certified PTE Trainer · 2,500+ students trained'.\n\nTEXT on the LEFT (simple, casual, like a real social ad — not heavy poster type):\n- a small gold-outlined eyebrow tag, uppercase: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- a bold dark headline: 'You speak English fine. That's not what PTE scores.'\n- a smaller line: 'Let me show you what it actually scores — and how to give it exactly that, in 4 hours.'\n- a simple flat gold (#FBBD29) button with dark text: 'Show me how  →  ₹589'\n- directly BELOW the button, reproduce the provided GOOGLE REVIEW BADGE (reference 3) SMALL, exactly as given — keep the four-colour Google 'G', the stars, '4.9' and '491 Google reviews'.\n\nReproduce the VERBIS EDU logo (reference 2) SMALL in the TOP-LEFT corner with a clear margin from the edges — fully visible, NOT cropped, exactly as provided.\n\nWarm, real, authentic look — like a frame from his own phone video. All text crisp and correctly spelled.",
+      "size": "4:5"
+    }
+  ]
+}

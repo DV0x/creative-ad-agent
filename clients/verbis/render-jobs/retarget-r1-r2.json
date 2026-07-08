@@ -1,0 +1,26 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "r1-valuemath-native",
+      "refs": [
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass — a DIRECT-RESPONSE RETARGETING ad aimed at people who visited the class page but did NOT buy, to overcome their price hesitation at checkout. It must look real and honest, like a genuine phone flat-lay someone shot on a desk, NOT a glossy agency 'MEGA OFFER' poster. TWO reference images: (1) the Verbis Edu logo; (2) a Google review badge.\n\nBACKGROUND (native, real): a clean light cream / pale-wood desk surface in soft natural daylight, shot slightly from above, subtle real paper texture, a simple pen resting to one side — authentic, gentle real shadows, slight phone-camera imperfection. AVOID: glossy 3D render, slick gradients, floating badges, neon, over-saturation, hype-y styling.\n\nThe HERO is a simple, bold MONEY MATH laid out big and clear like someone worked it out on paper — three stacked steps in dark ink type, with ONE gold highlight on the '₹3,000':\n- 'You pay ₹589'\n- 'You get ₹3,000 OFF your official PTE exam'\n- 'You come out ₹2,400 ahead.'\nMake '₹3,000' the single largest, most eye-catching figure. Keep it clean, legible and uncluttered, with generous spacing.\n\nSMALLER TEXT:\n- at the very TOP, a small gold-outlined eyebrow tag, uppercase: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- one short line under the math: 'The class literally pays for itself. Sat 11 July · 100 seats.'\n- near the BOTTOM, a simple flat gold (#FBBD29) button with dark text: 'Finish signing up  →  ₹589'\n- directly BELOW the button, reproduce the provided GOOGLE REVIEW BADGE (reference 2) SMALL, exactly as given — keep the four-colour Google 'G', the stars, '4.9' and '491 Google reviews'.\n\nReproduce the VERBIS EDU logo (reference 1) SMALL in the TOP-LEFT corner with a clear margin from the edges — fully visible, NOT cropped, exactly as provided.\n\nDo NOT show any '₹2,999' or crossed-out price anywhere. Clean, honest, real, warm daylight look — not salesy. All added text crisp and correctly spelled.",
+      "size": "4:5"
+    },
+    {
+      "name": "r2-proof-90-native",
+      "refs": [
+        "assets/scorecards-redacted/card-rahul.png",
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait) for a live PTE masterclass — a DIRECT-RESPONSE RETARGETING ad aimed at people who checked out the class but hesitated; its job is to PROVE the class is real and trusted. It must look like a genuine candid phone photo a proud student shared, NOT a polished AI or agency design. THREE reference images: (1) a real PTE Academic score report showing Overall Score 90; (2) the Verbis Edu logo; (3) a Google review badge.\n\nSCENE (real candid photograph, BRIGHT natural daylight): the single provided PTE score report (reference 1) printed on paper, resting on a clean light wooden desk, shot slightly from above and fairly CLOSE so the big purple 'Overall Score 90' badge is large and clearly readable — as if a student photographed their own result to share. Soft real daylight from a window, gentle natural shadows, slight shallow depth of field and phone-camera imperfection. Reproduce the score report EXACTLY as provided — do NOT change, redraw, re-number or blur anything, keep the black redaction boxes and the purple '90' Overall Score badge exactly. AVOID: glossy 3D render, floating objects, perfect symmetry, slick gradients, studio lighting, over-saturation.\n\nLEAVE clear space at the TOP for a headline and at the BOTTOM for a button. TEXT (simple, casual, like a real social ad — not heavy poster type):\n- at the very TOP, a small gold-outlined eyebrow tag, uppercase: 'LIVE · 4-HOUR PTE MASTERCLASS · SAT 11 JULY'\n- a bold dark headline: 'Still deciding? This is real.'\n- a smaller line: '491 students. 4.9 stars. One walked out with a perfect 90/90 — here is the actual Pearson report.'\n- near the BOTTOM, a simple flat gold (#FBBD29) button with dark text: 'Claim your seat  →  ₹589'\n- directly BELOW the button, reproduce the provided GOOGLE REVIEW BADGE (reference 3) SMALL, exactly as given — keep the four-colour Google 'G', the stars, '4.9' and '491 Google reviews'.\n\nReproduce the VERBIS EDU logo (reference 2) SMALL in the TOP-LEFT corner with a clear margin from the top and left edges — fully visible, NOT cropped, exactly as provided.\n\nWarm, real, authentic bright phone-photo look. All added text crisp and correctly spelled.",
+      "size": "4:5"
+    }
+  ]
+}

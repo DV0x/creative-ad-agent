@@ -45,23 +45,22 @@ export interface ChatView {
 }
 
 const LABELS: Record<string, string> = {
-  research: 'research',
-  comp: 'comp',
-  strategy: 'strategy',
-  'cell-generate': 'cell · generate',
-  critic: 'take-critic',
+  collect: 'collect',
+  market: 'market',
+  create: 'create',
+  buy: 'buyer',
   'cell-render': 'cell · render',
   'render-critic': 'render-critic',
 };
 const label = (id: string): string => LABELS[id] ?? id;
-const isCritic = (id: string | null): boolean => id === 'critic' || id === 'render-critic';
+const isCritic = (id: string | null): boolean => id === 'buy' || id === 'render-critic';
 
-/** Seed the scoreboard with the whole sequence (the two critics interleave between cell stages). */
+/** Seed the scoreboard with the whole sequence (the judges interleave after their stages). */
 export function initView(brand: string, order: string[]): ChatView {
   const seq: string[] = [];
   for (const n of order) {
     seq.push(n);
-    if (n === 'cell-generate') seq.push('critic');
+    if (n === 'create') seq.push('buy');
     if (n === 'cell-render') seq.push('render-critic');
   }
   return {

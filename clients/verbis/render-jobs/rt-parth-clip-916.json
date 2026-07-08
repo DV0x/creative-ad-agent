@@ -1,0 +1,16 @@
+{
+  "quality": "high",
+  "size": "9:16",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "rt-parth-clip-916",
+      "refs": [
+        "assets/trainer/parth-clean.png",
+        "assets/logo/verbis-logo-horizontal.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta ad — FULL-SCREEN VERTICAL 9:16 (Instagram Reel / Story) — that must look EXACTLY like a screenshot of a real Instagram Reel / short vertical video, NOT a designed poster or graphic ad. This is a direct-response retargeting ad for a live PTE masterclass. TWO reference images: (1) the trainer's face; (2) the Verbis Edu logo.\n\nFULL-BLEED SCENE: use the MAN in reference 1 EXACTLY — same face, beard, warm expression, navy bandhgala jacket — filling the WHOLE tall vertical frame (roughly chest-up, fairly close), shot like he is recording a casual selfie-video on his phone in a warm, lived-in study (soft out-of-focus bookshelves, warm lamp light). He looks straight into the lens, talking directly to you, natural and mid-sentence, one hand lightly gesturing. Real phone-video look: natural warm light, slight softness and grain, a little candid imperfection, as if paused mid-clip. Do NOT change his face. NO separate text column, NO flat colour panels, NO poster layout — the photo fills everything and all text sits ON TOP of it like video overlays. AVOID: glossy studio polish, slick gradients, floating badges, perfect symmetry, over-saturation.\n\nSAFE ZONE: keep ALL text and stickers within the central vertical band, well away from the very TOP and very BOTTOM edges (those get covered by the app's Reels/Stories buttons). Leave generous empty margins top and bottom.\n\nOVERLAYS (like a real Reel, sitting on top of the video, inside the safe zone):\n- upper area (below the top margin): a small casual caption sticker — a dark rounded translucent label with white text: 'Stuck at 65-79? Watch this 👇'\n- CENTRE / lower-centre: big BOLD auto-caption subtitles in the TikTok / Instagram style — white text with a dark outline for readability, two short stacked lines, key word in bright gold: 'PTE doesn't score your English. It scores your FORMAT.' — put the word 'FORMAT' in bright gold, the rest white.\n- below the captions (still above the bottom margin): a slim semi-transparent dark pill bar with small clean white text: 'LIVE · 4-HR PTE MASTERCLASS · SAT 11 JULY · ₹589 · Book my seat'.\n\nReproduce the VERBIS EDU logo (reference 2) SMALL in the TOP-RIGHT corner (inside the safe margin), fully visible, not cropped.\n\nOverall it must look like a genuine paused Reel a student would scroll past — casual, real, video-native. All added text crisp and correctly spelled.",
+      "size": "9:16"
+    }
+  ]
+}

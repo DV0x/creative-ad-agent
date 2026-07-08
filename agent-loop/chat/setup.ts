@@ -24,8 +24,8 @@ export function loadEnv(): void {
 /** Which required keys are missing for the chosen stages (fail fast with a clear message). */
 export function missingKeys(order: string[]): string[] {
   const need = new Set<string>();
-  if (order.includes('research') || order.includes('comp')) need.add('PERPLEXITY_API_KEY');
-  if (order.includes('comp')) need.add('SCRAPECREATORS_API_KEY');
+  if (order.includes('collect') || order.includes('market')) need.add('PERPLEXITY_API_KEY');
+  if (order.includes('market')) need.add('SCRAPECREATORS_API_KEY');
   if (order.includes('cell-render')) need.add('FAL_KEY');
   return [...need].filter((k) => !process.env[k]);
 }
@@ -43,8 +43,6 @@ const CELL_REFS = [
   })),
 ];
 const EXTRA_FILES: Record<string, Array<{ src: string; dest: string }>> = {
-  research: [{ src: 'agent/.claude/skills/research/reference/hyperlocal.md', dest: 'reference/hyperlocal.md' }],
-  'cell-generate': CELL_REFS,
   'cell-render': CELL_REFS,
 };
 

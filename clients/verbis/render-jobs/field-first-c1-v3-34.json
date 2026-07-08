@@ -1,0 +1,15 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "field-first-test/renders",
+  "jobs": [
+    {
+      "name": "creative-1-sticky-notes-v3-34",
+      "size": "3:4",
+      "prompt": "Direct-response ad image for the Meta feed, 4:5. Reproduce the provided brand logo exactly where specified, never redraw it.\n\nSCENE: a PTE aspirant's study desk at night, photographed from the front at slight elevation. An open laptop sits lower-right, its screen showing a softly blurred practice-test interface that casts a cool glow; a wired headset with microphone \u2014 the PTE test headset \u2014 rests on the keyboard. A warm desk lamp lights the scene from the right. The wall above the desk holds the ad's text and notes. Mood: the 11pm practice grind, real and lived-in \u2014 a mug, a pen, nothing staged.\n\nTHE NOTES: five sticky notes with slightly curled corners \u2014 three stuck on the wall above the laptop in a loose cluster, one stuck on the laptop's screen bezel edge, one on the wall lower, half-lit by the lamp. Pastel colors (mint, orange, blue, yellow, pink), handwritten in blue ballpoint, natural uneven handwriting, one short phrase per note, each phrase complete on its note, exactly: \"Speaking 58\" \u00b7 \"Retake #3\" \u00b7 \"Good English, low score\" \u00b7 \"Templates don't work\" \u00b7 \"Exam in 2 weeks\".\n\nTYPE ON THE WALL AREA (designed type over the dim wall, cream-white for contrast): small gold-outlined rounded chip, uppercase, exactly: \"LIVE PTE MASTERCLASS \u00b7 SAT 11 JULY \u00b7 4 HOURS\". Below it the headline in a heavy geometric sans, 800 weight, sentence case, cream-white, exactly: \"Are these keeping you under 79?\" Under it at half size, regular weight, exactly: \"One Saturday. The format, decoded.\" One small plain line beneath, exactly: \"4.9\u2605 \u00b7 491 Google reviews \u00b7 Pearson-certified trainer\". Bottom-left, a rounded-rectangle CTA band in solid warm yellow with navy bold text, exactly: \"Claim your seat \u2192 \u20b9589\". The brand logo sits small at top-left on the wall.\n\nLIGHT & FINISH: two light sources only \u2014 warm lamp from the right, cool screen glow from below-left; soft real shadows under each note and behind the laptop; photographed-real textures throughout (wall grain, worn desk wood); the designed type floats clean above the scene. The only saturated elements are the yellow CTA and the notes.\n\nPALETTE: warm dark evening tones, cream-white type, navy shadows, one yellow accent.\n\nRENDER EXACTLY the quoted text strings and no other text, no people, no watermarks.",
+      "refs": [
+        "assets/logo/verbis-logo-horizontal.png"
+      ]
+    }
+  ]
+}

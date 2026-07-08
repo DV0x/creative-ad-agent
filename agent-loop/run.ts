@@ -2,8 +2,8 @@
  * Entry point — runs the pipeline on one brand URL, standalone (no WS, no DB).
  *
  *   tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep] [--founder=<brief.md>] [--product=<image>]
- *   tsx run.ts https://thewholetruthfoods.com research          # one-stage smoke
- *   tsx run.ts https://thewholetruthfoods.com                    # full spine
+ *   tsx run.ts https://thewholetruthfoods.com collect           # one-stage smoke
+ *   tsx run.ts https://thewholetruthfoods.com                    # full spine (collect → market → create ⇄ buy)
  *
  * Loads the repo-root .env for the MCP keys, then STRIPS ANTHROPIC_API_KEY so the
  * Max login (OAuth) is used. Each run gets its own runs/<stamp>_<brand>/ dir; the
@@ -56,8 +56,8 @@ for (const s of order) {
 
 // 3) required keys for the chosen stages — fail fast with a clear message
 const need = new Set<string>();
-if (order.includes('research') || order.includes('comp')) need.add('PERPLEXITY_API_KEY');
-if (order.includes('comp')) need.add('SCRAPECREATORS_API_KEY');
+if (order.includes('collect') || order.includes('market')) need.add('PERPLEXITY_API_KEY');
+if (order.includes('market')) need.add('SCRAPECREATORS_API_KEY');
 if (order.includes('cell-render')) need.add('FAL_KEY');
 const missing = [...need].filter((k) => !process.env[k]);
 if (missing.length) {
@@ -155,8 +155,6 @@ const CELL_REFS = [
   })),
 ];
 const EXTRA_FILES: Record<string, Array<{ src: string; dest: string }>> = {
-  research: [{ src: 'agent/.claude/skills/research/reference/hyperlocal.md', dest: 'reference/hyperlocal.md' }],
-  'cell-generate': CELL_REFS,
   'cell-render': CELL_REFS,
 };
 for (const s of order) {

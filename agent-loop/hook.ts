@@ -18,30 +18,34 @@
  *     surface/deep mode knob.
  */
 import type { Options } from '@anthropic-ai/claude-agent-sdk';
+import * as fs from 'node:fs';
 
 const isGatheringTool = (name: string): boolean =>
   name === 'WebFetch' || name.startsWith('mcp__perplexity') || name.startsWith('mcp__scrapecreators');
 
-// Per-stage launch ceilings. The retry loops re-launch cell stages + critics
-// (cell-generate/critic re-mine up to 3 rounds; cell-render/render-critic 1 retry),
-// so a flat "once only" rule would block them. Gather/strategy run once. Beyond the
+// Per-stage launch ceilings. The retry loops re-launch create/buy (one
+// buyer-rejected redo) and cell-render/render-critic (1 retry), so a flat
+// "once only" rule would block them. Collectors run once. Beyond the
 // ceiling = a runaway (the old async double-fire) — deny it.
 const LAUNCH_CAPS: Record<string, number> = {
-  research: 1,
-  comp: 1,
-  strategy: 1,
-  'cell-generate': 4,
-  critic: 4,
+  collect: 1,
+  market: 1,
+  create: 2, // one buyer-rejected redo
+  buy: 2,
   'cell-render': 3,
   'render-critic': 3,
 };
 const DEFAULT_LAUNCH_CAP = 2;
 
 export interface HookConfig {
-  /** subagent_type -> max gathering calls (e.g. { research: 15, comp: 15 }). */
+  /** subagent_type -> max gathering calls (e.g. { collect: 15, market: 15 }). */
   caps: Record<string, number>;
-  /** Cap for stages not in `caps` (cell/strategy don't gather). Default: no cap. */
+  /** Cap for stages not in `caps` (create/buy don't gather). Default: no cap. */
   defaultCap?: number;
+  /** Absolute paths that must ALL exist before DONE.md may be written. Stops the
+   *  orchestrator declaring completion off stale/archived files (observed: it
+   *  Globbed an archived r1/ round and wrote DONE.md without running any stage). */
+  doneRequires?: string[];
   /** Progress sink for denials. */
   onEvent?: (msg: string) => void;
 }
@@ -72,6 +76,20 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
             const agentId: string | undefined = input?.agent_id; // absent on main thread
             const agentType: string | undefined = input?.agent_type; // subagent stage name
             const fromOrchestrator = !agentId;
+
+            // 0) DONE.md is the completion sentinel — it may only be written once every
+            // ordered stage's deliverable exists ON THIS RUN's disk. This is the code-side
+            // "harness disposes" guard against the orchestrator concluding completion from
+            // archived/stale files instead of running its stages.
+            if (tool === 'Write' && typeof input?.tool_input?.file_path === 'string' && /(^|\/)DONE\.md$/.test(input.tool_input.file_path)) {
+              const missing = (cfg.doneRequires ?? []).filter((p) => !fs.existsSync(p));
+              if (missing.length) {
+                return deny(
+                  `DONE.md refused: this run's deliverable(s) do not exist yet — ${missing.join(', ')}. ` +
+                  'Run the missing stage(s) via the Agent tool first. Files in archived subfolders do not count.',
+                );
+              }
+            }
 
             // 1) orchestrator must not call MCP directly
             if (tool.startsWith('mcp__') && fromOrchestrator) {

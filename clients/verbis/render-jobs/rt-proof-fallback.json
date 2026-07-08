@@ -1,0 +1,17 @@
+{
+  "quality": "high",
+  "size": "4:5",
+  "outDir": "renders",
+  "jobs": [
+    {
+      "name": "rt-proof-fallback-native",
+      "refs": [
+        "assets/scorecards-redacted/card-rahul.png",
+        "assets/logo/verbis-logo-horizontal.png",
+        "assets/google-badge.png"
+      ],
+      "prompt": "A NATIVE, authentic Meta feed ad (portrait 4:5) — a DIRECT-RESPONSE RETARGETING proof ad for a live PTE masterclass, aimed at people who visited the class but hesitated because they weren't sure it's legit. It should look like a real 'proof share' — a genuine photo of a student's actual result plus a real review — NOT a glossy agency poster and NOT a plain wooden-desk flat-lay. THREE reference images: (1) a real PTE Academic score report showing Overall Score 90; (2) the Verbis Edu logo; (3) a Google review badge.\n\nBACKGROUND: a soft, clean, slightly warm neutral backdrop (a bright plain wall or soft paper tone) with gentle real light — simple and authentic so all focus is on the proof. AVOID: wooden-desk flat-lay with pens/mugs, glossy 3D render, slick gradients, floating objects, studio polish, over-saturation.\n\nHERO — the real result: show the PROVIDED score report (reference 1) large in the UPPER portion, as if it's a real photographed/shared result, very slightly angled like a genuine phone photo. Reproduce it EXACTLY as provided — do NOT change, redraw, re-number or blur anything; keep the black redaction boxes and the purple 'Overall Score 90' badge exactly.\n\nREVIEW — the real testimonial: in the LOWER-MIDDLE, a clean white rounded review card containing the name 'Elissa Pereira', a row of five gold stars, and the quote: 'Parthasarathy Sir explained each section clearly and provided useful strategies and practice materials.'\n\nTEXT:\n- at the very TOP, a small bold dark caption 'Still deciding? This is real.' and under it a thin line 'Real Verbis student · real Pearson 90/90.'\n- along the very BOTTOM, a slim semi-transparent dark bar with small clean white text: 'LIVE · 4-HR PTE MASTERCLASS · SAT 11 JULY · ₹589 · Claim your seat'.\n- reproduce the provided GOOGLE REVIEW BADGE (reference 3) SMALL just beside or below the review card — exactly as given, keeping the four-colour Google 'G', the stars, '4.9' and '491 Google reviews'.\n\nReproduce the VERBIS EDU logo (reference 2) SMALL in the TOP-LEFT corner, fully visible, not cropped, with a clear margin.\n\nWarm, real, authentic 'proof share' look — believable, not salesy. All added text crisp and correctly spelled.",
+      "size": "4:5"
+    }
+  ]
+}
