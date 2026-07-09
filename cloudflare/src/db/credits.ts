@@ -3,7 +3,7 @@ import { generateId } from './utils.js';
 // 10 credits = $1 USD. DB stores USD, convert at API/WS boundary.
 export const CREDITS_PER_USD = 10;
 
-// 4x cost multiplier on raw AI COGS = 75% gross margin (against Claude+fal.ai only;
+// 4x cost multiplier on raw AI COGS = 75% gross margin (against Claude+KIE only;
 // real all-in margin is lower due to Workers/R2/Dodo/etc).
 // In usage_log: claude_cost_usd & image_cost_usd hold RAW COGS;
 // charged_amount_usd holds the already-multiplied USER CHARGE

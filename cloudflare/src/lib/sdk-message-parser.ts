@@ -32,8 +32,9 @@ export interface ParserContext {
 // Strip image URLs and file paths — images are shown in the gallery, not in chat text
 export function stripImageUrls(text: string): string {
   let cleaned = text;
-  // Remove fal.ai URLs
+  // Remove render-provider URLs (KIE result/upload hosts; fal kept for old sessions)
   cleaned = cleaned.replace(/https?:\/\/[^\s]*fal\.(media|ai)[^\s]*/g, '');
+  cleaned = cleaned.replace(/https?:\/\/[^\s]*(redpandaai\.co|kie\.ai|aiquickdraw\.com)[^\s]*/g, '');
   // Remove /mnt/r2/images/... paths
   cleaned = cleaned.replace(/\/mnt\/r2\/images\/[^\s)"]*/g, '');
   // Remove **Image URL:** lines

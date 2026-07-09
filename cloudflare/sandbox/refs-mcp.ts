@@ -7,7 +7,7 @@ import * as fs from 'fs';
  * Reads /app/refs.json on every call (not closure-bound), so mid-session updates
  * to the campaign's active reference set are picked up automatically (D3).
  *
- * /app/refs.json shape: { references: [{ falUrl, sandboxPath, fileId }, ...] }
+ * /app/refs.json shape: { references: [{ refUrl, sandboxPath, fileId }, ...] }
  * Written by the DO inside setupSandbox (cold path) and runFollowUpFast (warm path)
  * before the agent processes the next turn.
  */
@@ -21,7 +21,7 @@ export const refsMcpServer = createSdkMcpServer({
     tool(
       'get_reference_images',
       'Returns the user-uploaded reference images currently active for this campaign. ' +
-      'Each reference includes a falUrl (pass to generate_ad_images as referenceImageUrls), ' +
+      'Each reference includes a refUrl (pass to generate_ad_images as referenceImageUrls), ' +
       'a sandboxPath (use Read() to analyze the image visually), and a fileId. ' +
       'If no references are active, returns { references: [] } and the agent should proceed in text-to-image mode.',
       {},

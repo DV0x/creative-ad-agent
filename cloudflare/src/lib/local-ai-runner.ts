@@ -6,7 +6,6 @@
 
 import { query, createSdkMcpServer, tool } from '@anthropic-ai/claude-agent-sdk';
 import type { Options } from '@anthropic-ai/claude-agent-sdk';
-import { fal } from '@fal-ai/client';
 import { z } from 'zod';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
@@ -99,17 +98,44 @@ function sanitizeFilename(text: string): string {
   return text.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '').substring(0, 50);
 }
 
-function createLocalMcpServer(falKey: string, imageOutputDir: string) {
-  fal.config({ credentials: falKey });
+// KIE jobs API — same flow as sandbox/nano-banana-mcp.ts: createTask → poll → download.
+const KIE_API = 'https://api.kie.ai/api/v1';
+const KIE_POLL_MS = 10_000;
+const KIE_TIMEOUT_MS = 10 * 60 * 1000;
 
+async function kieGenerateImage(kieKey, input) {
+  const headers = { Authorization: `Bearer ${kieKey}`, 'Content-Type': 'application/json' };
+  const cr = await fetch(`${KIE_API}/jobs/createTask`, {
+    method: 'POST', headers,
+    body: JSON.stringify({ model: 'nano-banana-pro', input }),
+  });
+  const cd = await cr.json();
+  if (cd?.code !== 200 || !cd?.data?.taskId) throw new Error(`KIE createTask failed: ${JSON.stringify(cd).slice(0, 300)}`);
+  const t0 = Date.now();
+  for (;;) {
+    if (Date.now() - t0 > KIE_TIMEOUT_MS) throw new Error(`KIE poll timeout for task ${cd.data.taskId}`);
+    await new Promise(r => setTimeout(r, KIE_POLL_MS));
+    const qr = await fetch(`${KIE_API}/jobs/recordInfo?taskId=${cd.data.taskId}`, { headers });
+    const qd = await qr.json();
+    const state = qd?.data?.state;
+    if (state === 'fail') throw new Error(`KIE render failed: ${qd.data.failCode} ${qd.data.failMsg}`);
+    if (state === 'success') {
+      const urls = JSON.parse(qd.data.resultJson ?? '{}')?.resultUrls ?? [];
+      if (!urls.length) throw new Error('KIE task succeeded but returned no resultUrls');
+      return urls[0];
+    }
+  }
+}
+
+function createLocalMcpServer(kieKey: string, imageOutputDir: string) {
   return createSdkMcpServer({
     name: 'nano-banana',
-    version: '5.1.0',
+    version: '6.0.0',
     tools: [
       tool(
         'generate_ad_images',
-        'Generate up to 6 high-quality images using fal.ai Nano Banana Pro. ' +
-        'Supports 1K/2K/4K resolution, multiple aspect ratios, web search grounding, and optional reference images.',
+        'Generate up to 6 high-quality images using Nano Banana Pro (via KIE). ' +
+        'Supports 1K/2K/4K resolution, multiple aspect ratios, and optional reference images.',
         {
           prompts: z.array(z.string()).min(1).max(6).describe('Array of 1-6 image generation prompts'),
           style: z.string().optional().describe('Visual style to apply across all images'),
@@ -138,27 +164,24 @@ function createLocalMcpServer(falKey: string, imageOutputDir: string) {
               if (args.style) enhancedPrompt = `${enhancedPrompt}. Style: ${args.style}.`;
 
               try {
-                const endpoint = hasRefs ? 'fal-ai/nano-banana-pro/edit' : 'fal-ai/nano-banana-pro';
+                // KIE format: png/jpg only. jpeg → jpg, webp → png (unsupported).
+                const kieFormat = args.outputFormat === 'jpeg' ? 'jpg' : args.outputFormat === 'webp' ? 'png' : (args.outputFormat || 'png');
                 const input: any = {
                   prompt: enhancedPrompt,
-                  num_images: 1,
                   aspect_ratio: args.aspectRatio || '1:1',
                   resolution: args.resolution || '1K',
-                  output_format: args.outputFormat || 'png',
-                  enable_web_search: args.enableWebSearch || false,
+                  output_format: kieFormat,
                 };
-                if (hasRefs) input.image_urls = args.referenceImageUrls;
+                if (hasRefs) input.image_input = args.referenceImageUrls;
 
-                const result = await fal.subscribe(endpoint, { input, logs: true });
-                const data = result.data as { images: Array<{ url: string; content_type: string }>; description?: string };
-                if (!data.images?.length) throw new Error('No images in response');
+                const imageUrl = await kieGenerateImage(kieKey, input);
 
-                const ext = args.outputFormat || 'png';
+                const ext = kieFormat;
                 const filename = `${timestamp}_${i + 1}_${sanitizeFilename(args.prompts[i])}.${ext}`;
                 const filepath = path.join(outputDir, filename);
 
                 // Download and save
-                const res = await fetch(data.images[0].url);
+                const res = await fetch(imageUrl);
                 const buf = Buffer.from(await res.arrayBuffer());
                 fs.writeFileSync(filepath, buf);
 
@@ -169,13 +192,13 @@ function createLocalMcpServer(falKey: string, imageOutputDir: string) {
                   imageIndex,
                   hookType: getHookTypeForIndex(imageIndex),
                   filename, url, prompt: args.prompts[i], enhancedPrompt,
-                  originalUrl: data.images[0].url,
-                  mimeType: `image/${ext}`,
+                  originalUrl: imageUrl,
+                  mimeType: ext === 'jpg' ? 'image/jpeg' : 'image/png',
                   sizeKB: Math.round(buf.length / 1024),
                   aspectRatio: args.aspectRatio || '1:1',
                   resolution: args.resolution || '1K',
                   style: args.style || 'default',
-                  mode, description: data.description || '',
+                  mode, description: '',
                 });
               } catch (err: any) {
                 results.push({ id: `image_${i + 1}`, error: err.message, prompt: args.prompts[i] });
@@ -211,7 +234,7 @@ function createLocalMcpServer(falKey: string, imageOutputDir: string) {
 
 export interface LocalRunnerOptions {
   apiKey: string;
-  falKey: string;
+  kieKey: string;
   imageOutputDir: string;
   cwd?: string;
 }
@@ -224,7 +247,7 @@ export async function* runLocalGeneration(
 ): AsyncGenerator<any> {
   if (!options) throw new Error('LocalRunnerOptions required');
 
-  const mcpServer = createLocalMcpServer(options.falKey, options.imageOutputDir);
+  const mcpServer = createLocalMcpServer(options.kieKey, options.imageOutputDir);
   const cwd = options.cwd || process.cwd();
 
   const baseOptions: Partial<Options> = {

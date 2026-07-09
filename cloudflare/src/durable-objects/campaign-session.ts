@@ -14,7 +14,6 @@ import * as db from '../db/index.js';
 import * as credits from '../db/credits.js';
 import { CREDITS_PER_USD, COST_MULTIPLIER } from '../db/credits.js';
 import { getSandbox, parseSSEStream } from '@cloudflare/sandbox';
-import { fal } from '@fal-ai/client';
 
 export class CampaignSession implements DurableObject {
   // Per-generation state (transient, lost on eviction)
@@ -401,7 +400,7 @@ export class CampaignSession implements DurableObject {
             const logs = await this.timedRPC('getProcessLogs', () => this.sandbox.getProcessLogs(this.agentProcessId)) as any;
             const stdout: string = typeof logs === 'string' ? logs : (logs?.stdout || '');
             // Diagnostic: the agent went silent — dump its recent stdout so we can see exactly
-            // where it wedged (e.g. FUSE Read of a reference image vs a hung fal.subscribe call).
+            // where it wedged (e.g. FUSE Read of a reference image vs a hung KIE render poll).
             if (this.pendingStdoutDump) {
               this.pendingStdoutDump = false;
               const tail = stdout.length > 8000 ? stdout.slice(-8000) : stdout;
@@ -1116,7 +1115,7 @@ export class CampaignSession implements DurableObject {
     });
 
     // Resolve campaign-level active references (replaces per-message assetFileIds, D4).
-    // We resolve URLs here (D1 read + fal.ai upload — no sandbox needed) but the actual
+    // We resolve URLs here (D1 read + KIE upload — no sandbox needed) but the actual
     // /app/refs.json write happens inside setupSandbox after mountBucket succeeds (D13).
     let aiPrompt = prompt;
     let resolvedRefs: ResolvedRefs | null = null;
@@ -1125,11 +1124,11 @@ export class CampaignSession implements DurableObject {
       : [];
     if (activeFileIds.length > 0) {
       this.log(`[ASSET] Resolving ${activeFileIds.length} active reference(s) for campaign ${this.campaignId}`);
-      const { falUrls, sandboxPaths } = await this.resolveAssetUrls(activeFileIds);
-      this.log(`[ASSET] Resolved ${falUrls.length} reference(s)`);
-      if (falUrls.length > 0) {
-        resolvedRefs = { falUrls, sandboxPaths, fileIds: activeFileIds.slice(0, falUrls.length) };
-        aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${falUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them. Do not look for URLs in this prompt — use the MCP tool.`;
+      const { refUrls, sandboxPaths } = await this.resolveAssetUrls(activeFileIds);
+      this.log(`[ASSET] Resolved ${refUrls.length} reference(s)`);
+      if (refUrls.length > 0) {
+        resolvedRefs = { refUrls, sandboxPaths, fileIds: activeFileIds.slice(0, refUrls.length) };
+        aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${refUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them. Do not look for URLs in this prompt — use the MCP tool.`;
       }
     } else {
       this.log(`[ASSET] No active references for campaign ${this.campaignId}`);
@@ -1257,11 +1256,11 @@ export class CampaignSession implements DurableObject {
       const activeFileIds = await db.getActiveReferences(this.env.DB, campaignId);
       if (activeFileIds.length > 0) {
         this.log(`[ASSET] Follow-up resolving ${activeFileIds.length} active reference(s)`);
-        const { falUrls, sandboxPaths } = await this.resolveAssetUrls(activeFileIds);
-        this.log(`[ASSET] Follow-up resolved ${falUrls.length} reference(s)`);
-        if (falUrls.length > 0) {
-          resolvedRefs = { falUrls, sandboxPaths, fileIds: activeFileIds.slice(0, falUrls.length) };
-          aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${falUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them.`;
+        const { refUrls, sandboxPaths } = await this.resolveAssetUrls(activeFileIds);
+        this.log(`[ASSET] Follow-up resolved ${refUrls.length} reference(s)`);
+        if (refUrls.length > 0) {
+          resolvedRefs = { refUrls, sandboxPaths, fileIds: activeFileIds.slice(0, refUrls.length) };
+          aiPrompt = `${prompt}\n\n## Reference Images\nThis campaign has ${refUrls.length} active reference image(s). Call \`mcp__refs__get_reference_images\` from within the art-style skill (Step 2.5) to retrieve them.`;
         }
       } else {
         this.log(`[ASSET] Follow-up — no active references for campaign ${campaignId}`);
@@ -1820,16 +1819,16 @@ export class CampaignSession implements DurableObject {
     // 3c. Write /app/refs.json so the refs MCP can serve campaign-level references
     // to the agent (D13). Snapshot taken at generation start; mid-turn 'set_active_references'
     // updates D1 but does NOT rewrite this file (D15).
-    if (resolvedRefs && resolvedRefs.falUrls.length > 0) {
+    if (resolvedRefs && resolvedRefs.refUrls.length > 0) {
       const payload = JSON.stringify({
-        references: resolvedRefs.falUrls.map((falUrl, i) => ({
-          falUrl,
+        references: resolvedRefs.refUrls.map((refUrl, i) => ({
+          refUrl,
           sandboxPath: resolvedRefs.sandboxPaths[i],
           fileId: resolvedRefs.fileIds[i],
         })),
       }, null, 2);
       await this.timedRPC('writeRefsFile', () => sandbox.writeFile('/app/refs.json', payload));
-      this.log(`[ASSET] Wrote /app/refs.json with ${resolvedRefs.falUrls.length} reference(s)`);
+      this.log(`[ASSET] Wrote /app/refs.json with ${resolvedRefs.refUrls.length} reference(s)`);
     } else {
       // Clear any stale refs.json from a previous campaign reusing this sandbox
       await this.timedRPC('clearRefsFile', () => sandbox.exec('rm -f /app/refs.json 2>/dev/null || true'));
@@ -1848,7 +1847,7 @@ export class CampaignSession implements DurableObject {
       cwd: '/app',
       env: {
         ANTHROPIC_API_KEY: this.env.ANTHROPIC_API_KEY,
-        FAL_KEY: this.env.FAL_KEY,
+        KIE_API_KEY: this.env.KIE_API_KEY,
         PROMPT: prompt,
         SESSION_ID: sessionId,
         CAMPAIGN_ID: this.campaignId || '',
@@ -1946,16 +1945,16 @@ export class CampaignSession implements DurableObject {
 
       // 2b. Refresh /app/refs.json BEFORE next-prompt.json so the MCP picks up any
       // changes to the campaign's active reference set since the last turn (D13).
-      if (resolvedRefs && resolvedRefs.falUrls.length > 0) {
+      if (resolvedRefs && resolvedRefs.refUrls.length > 0) {
         const payload = JSON.stringify({
-          references: resolvedRefs.falUrls.map((falUrl, i) => ({
-            falUrl,
+          references: resolvedRefs.refUrls.map((refUrl, i) => ({
+            refUrl,
             sandboxPath: resolvedRefs.sandboxPaths[i],
             fileId: resolvedRefs.fileIds[i],
           })),
         }, null, 2);
         await this.timedRPC('writeRefsFile', () => sandbox.writeFile('/app/refs.json', payload));
-        this.log(`[ASSET] Refreshed /app/refs.json with ${resolvedRefs.falUrls.length} reference(s)`);
+        this.log(`[ASSET] Refreshed /app/refs.json with ${resolvedRefs.refUrls.length} reference(s)`);
       } else {
         await this.timedRPC('clearRefsFile', () => sandbox.exec('rm -f /app/refs.json 2>/dev/null || true'));
       }
@@ -2042,7 +2041,7 @@ export class CampaignSession implements DurableObject {
       return this.runGenerationLocal(prompt, sessionId, sdkSessionId);
     }
     const genStart = Date.now();
-    this.trace('gen', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, promptLen: prompt.length, refs: resolvedRefs?.falUrls.length || 0 });
+    this.trace('gen', 'enter', { sessionId, hasSdkSession: !!sdkSessionId, promptLen: prompt.length, refs: resolvedRefs?.refUrls.length || 0 });
 
     const { ctx } = await this.createStreamingContext(this.campaignId, 'Parsing Request');
     let wasCancelled = false;
@@ -2166,7 +2165,7 @@ export class CampaignSession implements DurableObject {
 
       const generator = runLocalGeneration(prompt, sessionId, sdkSessionId, {
         apiKey: this.env.ANTHROPIC_API_KEY,
-        falKey: this.env.FAL_KEY,
+        kieKey: this.env.KIE_API_KEY,
         imageOutputDir: './generated-images',
       });
 
@@ -2256,12 +2255,12 @@ export class CampaignSession implements DurableObject {
 
   // ─── Asset Resolution ────────────────────────────────────────
 
-  /** Resolve asset file IDs → R2 objects → fal.ai public URLs for reference images */
-  private async resolveAssetUrls(assetFileIds: string[]): Promise<{ falUrls: string[]; sandboxPaths: string[] }> {
-    const falUrls: string[] = [];
+  /** Resolve asset file IDs → R2 objects → KIE public URLs for reference images.
+   *  Upload goes through KIE's base64 file API (same pattern as agent-loop/mcp/render.ts);
+   *  returned URLs are temp (~3 days), fine because refs are re-resolved every turn. */
+  private async resolveAssetUrls(assetFileIds: string[]): Promise<{ refUrls: string[]; sandboxPaths: string[] }> {
+    const refUrls: string[] = [];
     const sandboxPaths: string[] = [];
-
-    fal.config({ credentials: this.env.FAL_KEY });
 
     for (const fileId of assetFileIds) {
       try {
@@ -2284,23 +2283,51 @@ export class CampaignSession implements DurableObject {
           continue;
         }
 
-        // Upload to fal.ai storage to get a public URL
-        const blob = await r2Object.blob();
-        const uploadFile = new File([blob], file.name, { type: r2Object.httpMetadata?.contentType || 'image/png' });
-        const publicUrl = await fal.storage.upload(uploadFile);
-        falUrls.push(publicUrl);
+        // Upload to KIE's file API to get a public URL
+        const bytes = new Uint8Array(await r2Object.arrayBuffer());
+        const mime = r2Object.httpMetadata?.contentType || 'image/png';
+        const publicUrl = await this.kieUploadRef(bytes, mime, file.name);
+        refUrls.push(publicUrl);
 
         // R2 mount path — accessible on sandbox after mountBucket()
         const sandboxPath = `/mnt/r2/uploads/${file.file_path}`;
         sandboxPaths.push(sandboxPath);
 
-        console.log(`Resolved asset: ${file.name} → fal: ${publicUrl}, sandbox: ${sandboxPath}`);
+        console.log(`Resolved asset: ${file.name} → kie: ${publicUrl}, sandbox: ${sandboxPath}`);
       } catch (err) {
         console.error(`Failed to resolve asset ${fileId}:`, err);
       }
     }
 
-    return { falUrls, sandboxPaths };
+    return { refUrls, sandboxPaths };
+  }
+
+  /** Upload image bytes to KIE's base64 file endpoint; returns a public download URL. */
+  private async kieUploadRef(bytes: Uint8Array, mime: string, fileName: string): Promise<string> {
+    // btoa needs a binary string; build it in chunks to stay off the arg-count limit.
+    let bin = '';
+    const CHUNK = 0x8000;
+    for (let i = 0; i < bytes.length; i += CHUNK) {
+      bin += String.fromCharCode(...bytes.subarray(i, i + CHUNK));
+    }
+    const b64 = btoa(bin);
+
+    const r = await fetch('https://kieai.redpandaai.co/api/file-base64-upload', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${this.env.KIE_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        base64Data: `data:${mime};base64,${b64}`,
+        uploadPath: 'campaign-refs',
+        fileName,
+      }),
+    });
+    const d: any = await r.json().catch(() => ({}));
+    const url = d?.data?.downloadUrl ?? d?.data?.fileUrl ?? d?.data?.url;
+    if (!url) throw new Error(`KIE ref upload failed (${r.status}): ${JSON.stringify(d).slice(0, 200)}`);
+    return url;
   }
 
   // ─── Helpers ──────────────────────────────────────────────────

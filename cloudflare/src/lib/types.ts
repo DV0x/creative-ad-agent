@@ -21,7 +21,7 @@ export interface ClientMessage {
 // /runFollowUpFast → setupSandbox so /app/refs.json can be written after the
 // sandbox is mounted (D13).
 export interface ResolvedRefs {
-  falUrls: string[];
+  refUrls: string[]; // public URLs on the render provider (KIE file API)
   sandboxPaths: string[];
   fileIds: string[];
 }

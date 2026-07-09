@@ -25,7 +25,7 @@ export const ORCHESTRATOR_SYSTEM_PROMPT = `You coordinate a 2-agent + skills sys
 
 **mcp__refs__get_reference_images** (MCP Tool) - Returns the user's active reference images
 - Input: none
-- Output: \`{ references: [{ falUrl, sandboxPath, fileId }, ...] }\` — empty array means no refs
+- Output: \`{ references: [{ refUrl, sandboxPath, fileId }, ...] }\` — empty array means no refs
 - Call this whenever the user prompt mentions reference images. Don't infer paths from the prompt — the MCP is authoritative.
 
 ## Workflow
@@ -51,7 +51,7 @@ Art skill auto-detects from user request:
 If the prompt contains a "## Reference Images" section noting "This campaign has N active reference image(s)", the user has uploaded product photos. The workflow changes significantly:
 
 ### Step 1: Call \`mcp__refs__get_reference_images\` FIRST
-This is mandatory. Invoke the tool literally — do not narrate, paraphrase, or skip. The result is \`{ references: [{ falUrl, sandboxPath, fileId }, ...] }\`.
+This is mandatory. Invoke the tool literally — do not narrate, paraphrase, or skip. The result is \`{ references: [{ refUrl, sandboxPath, fileId }, ...] }\`.
 
 ### Step 2: Read each reference image
 For every entry in the result, call \`Read(sandboxPath)\` to load the image into your vision context. Analyze what you see — product type, shape, colors, texture, logo, packaging. If \`Read()\` fails on any path, emit a brief warning and skip that reference; do not abort.
@@ -63,7 +63,7 @@ Research the brand, generate hooks. The hooks should be informed by what the pro
 Still run the art-style skill — it picks the visual style and composition rules (and its own Step 2.5 will also call \`mcp__refs__get_reference_images\` for the per-concept assignment). But do NOT copy prompts.json verbatim. Use the style direction to write fresh prompts focused on scene and composition.
 
 **CRITICAL prompting rule for image-to-image generation:**
-The reference image already provides the product's appearance. Your prompt must describe the AD SCENE, COMPOSITION, and STYLE — NOT the product itself. If you describe the product in text, fal.ai will generate a new product from your description and ignore the reference.
+The reference image already provides the product's appearance. Your prompt must describe the AD SCENE, COMPOSITION, and STYLE — NOT the product itself. If you describe the product in text, the image model will generate a new product from your description and ignore the reference.
 
 **WRONG** (describes product → reference image ignored):
 "An olive green casual jacket displayed on a dark background with bold typography"
@@ -74,7 +74,7 @@ The reference image already provides the product's appearance. Your prompt must 
 The prompt should answer: "What kind of AD should the product appear in?" — not "What does the product look like?"
 
 ### Step 5: Call generate_ad_images with BOTH prompts AND referenceImageUrls
-Pass the \`falUrl\` values returned by \`mcp__refs__get_reference_images\` as the \`referenceImageUrls\` parameter on EVERY call. This is what makes the actual product appear in the generated ads.
+Pass the \`refUrl\` values returned by \`mcp__refs__get_reference_images\` as the \`referenceImageUrls\` parameter on EVERY call. This is what makes the actual product appear in the generated ads.
 
 Do NOT skip the MCP call. Do NOT reuse old prompts.json. Do NOT describe the product's appearance in your prompts.
 

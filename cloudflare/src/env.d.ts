@@ -16,7 +16,7 @@ export interface Env {
 
   // Secrets (set via `wrangler secret put`)
   ANTHROPIC_API_KEY: string;
-  FAL_KEY: string;
+  KIE_API_KEY: string;
   CLERK_SECRET_KEY: string;
   CLERK_WEBHOOK_SECRET: string;       // Svix-signed webhook from Clerk → /webhooks/clerk
 
