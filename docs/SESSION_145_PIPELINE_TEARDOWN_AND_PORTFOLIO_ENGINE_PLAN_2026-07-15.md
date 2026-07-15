@@ -144,8 +144,25 @@ the small sourceRead copy-vs-pixel honesty edit (S143 §3.3) — fold into Step 
 2. **Construction-level accrual**: twin-flight dedupe+sum, serial re-investment counted (same construction,
    multiple ads over time), cross-brand convergence named; single-variant long-runners flagged
    "unchallenged." Files: `field/SKILL.md` (shortlist rules), `field-brief.md` reference.
-3. **Recency window**: a second date-windowed read (last ~90d, launched+variant-invested) alongside
-   all-time — `start_date/end_date` params exist on both endpoints. Files: scraper tool schema + field binder.
+3. **Recency-PRIMARY / all-time-DEMOTED read weighting** — DECIDED S146 (the Andromeda adjustment).
+   - **Primary read = a 90-day recency window** (`start_date`/`end_date` exist on both endpoints).
+     Why 90 not 30: a 30d window scoops up every brand-new test *before it has died*, and most die in
+     ~2 weeks — pure noise; 90d is still "current fashion" but survivorship + variant re-investment have
+     already filtered the flash-in-the-pans, so what shows up strong is what the brand *kept feeding*.
+   - **All-time is KEPT but demoted** — its job is no longer "which single ad ran longest." Raw age is a
+     weak, zombie-prone signal now that the creative fatigue window is ~2–4 weeks (Andromeda doc §2 line 79;
+     Foxwell/Motion HIGH). A single old ad is as likely a lazy brand that never refreshed as a real winner.
+     All-time's new job = **"which CONSTRUCTION did the brand re-invest in across refreshed executions?"**
+     Fatigue kills the SKIN (the specific image), not the SKELETON (the sales angle) — and the durable
+     winning angle is the rarest, highest-value find (Foxwell's one ad: $600K @ 2.5× ROAS over 2.5 yrs;
+     Motion: ~6% of ads take the majority of spend, but those winners are durable). Dropping all-time
+     entirely = losing the only signal that separates a *proven* angle from this month's fashion (the whole
+     edge over generic AI ad tools).
+   - **Net weighting**: endorsement leans on **re-investment** (variants + serial same-construction re-runs
+     + recency), NOT raw age. A **single-variant long-runner is flagged "unproven zombie," not "champion"**
+     (folds into #2's construction accrual — that machinery IS how all-time now reads angle-not-age).
+   - Files: scraper tool schema (date params), `field/SKILL.md` (two-read weighting + zombie flag),
+     `field-brief.md` (recency section is primary; all-time section reframed as durable-angle detector).
 4. **Churn read**: one `status:ALL` fetch per key rival → "recently retired winners" brief section
    (negative signal + fatigue map). Files: field binder (the param already exists in the tool).
 5. **Brand calibration**: launch-date distribution per brand computed at dump time → active-tester /
@@ -153,7 +170,23 @@ the small sourceRead copy-vs-pixel honesty edit (S143 §3.3) — fold into Step 
 6. **Scraper completeness**: cursor pagination for big pages; domain-based page resolution retries
    (TheRateFinder lesson — search by domain); coverage-score header in the brief ("read N of M brands,
    blind spots: …"); linkDomain read as funnel-sophistication signal. Files: scraper + field binder.
-7. *(Video poster frames — PARKED by founder decision: statics only.)*
+7. **Construction-spread read selection (the scout's slice gate)** — DECIDED S146. Gap S146 surfaced:
+   the scout DOWNLOADS ~140 creatives but only SLICES ~19 to the readers, ranking those slices by
+   endorsement + DO-NOT-CLONE — so the category leader dominates (this run: MuscleBlaze got 2 whole
+   slices) and crafted-but-newer gems get a footnote (OZiva's DR = 2 images in a shared slice, barely
+   read though they carry a *distinct* construction). We read for endorsement but never DEDUPE BY
+   CONSTRUCTION — 5 MuscleBlaze price-slash reads = one trick learned 5×, while a different construction
+   goes under-read. **Rule: when the scout picks which creatives to slice to readers, spread the picks
+   across the visibly-distinct KINDS of ad — one strong exemplar per kind gets a guaranteed read slot
+   before any single brand gets a second read of the same construction.** The scout eyeballs "kind" from
+   the dump's copy + CTA + thumbnail — it CANNOT use `formatFamily` labels here (those don't exist until
+   the readers assign them; the label lands one step too late to guide selection — the chicken-and-egg).
+   This lives at the SLICE step specifically: the diversity collapse happens BEFORE any downstream seat
+   (brief/create/gate) can see it, so Step 2's `formatFamily` coverage machinery must reach BACK to here,
+   not only forward. Runs free on the already-dumped metadata (no new scrape); pairs with #1 (job
+   classification strips junk first, so the spread is over real conversion ads). Files: `field/SKILL.md`
+   (slice-selection rules), `field/references/read-schema.md` (the eyeball-the-kind cue list).
+8. *(Video poster frames — PARKED by founder decision: statics only.)*
 
 ### STEP 2 — diversity architecture (widen the output; binder/rubric edits + bank)
 1. **Read schema +2 fields**: `formatFamily` (CLOSED enum — table below) + `persona` (one line: who +
