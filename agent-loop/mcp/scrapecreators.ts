@@ -63,6 +63,12 @@ const DEFAULT_MAX_ADS = 12;      // revealed-winner ads returned per page
 // is independent of the harness's cwd.
 const CACHE_DIR = path.resolve(__dirname, '..', '.cache', 'scrapecreators');
 
+// Ad-payload responses carry SIGNED fbcdn media URLs that expire within days —
+// a cache hit past that window serves dumps whose images all 403 (the dump looks
+// fine; the pixel tier silently starves). So ad-bearing endpoints get a TTL;
+// search/companies carries no media URLs and stays unbounded.
+const AD_CACHE_TTL_HOURS = Number(process.env.SCRAPECREATORS_CACHE_TTL_HOURS || 48);
+
 // ── Diagnostics — mirrors perplexity.ts so runs read the same way ──────────
 const TOOL_INIT_MS = Date.now();
 let callCounter = 0;
@@ -79,9 +85,14 @@ function cacheKey(parts: Record<string, string | number | undefined>): string {
   return norm.replace(/[^a-z0-9=&._-]+/gi, '_').slice(0, 180);
 }
 
-function cacheRead(key: string): unknown | null {
+function cacheRead(key: string, maxAgeHours?: number): unknown | null {
   const f = path.join(CACHE_DIR, `${key}.json`);
   if (!fs.existsSync(f)) return null;
+  if (maxAgeHours !== undefined) {
+    try {
+      if (Date.now() - fs.statSync(f).mtimeMs > maxAgeHours * 3_600_000) return null; // stale — refetch live
+    } catch { return null; }
+  }
   try { return JSON.parse(fs.readFileSync(f, 'utf8')); } catch { return null; }
 }
 
@@ -95,9 +106,10 @@ async function apiGet(
   endpoint: string,
   params: Record<string, string | number | undefined>,
   label: string,
+  ttlHours?: number,
 ): Promise<{ ok: true; data: any; cached: boolean } | { ok: false; error: string }> {
   const key = cacheKey({ ep: endpoint, ...params });
-  const hit = cacheRead(key);
+  const hit = cacheRead(key, ttlHours);
   const callNum = ++callCounter;
   if (hit !== null) {
     process.stderr.write(`[scrapecreators] #${callNum} CACHE-HIT t=${tRel(Date.now())}s ${label}\n`);
@@ -200,6 +212,31 @@ function rankRevealedWinners(ads: ShapedAd[]): ShapedAd[] {
   });
 }
 
+// ── Creative-URL extraction (handles IMAGE, DCO, CAROUSEL, DPA) ─────────────
+// The category's dominant format on Meta India is DCO (dynamic creative), whose
+// STATIC creatives live in snapshot.cards[], NOT snapshot.images[] (which is
+// empty for DCO). A card with an image url and no video url is a real static
+// creative worth reading; a card with a video url is a video whose image is
+// only a poster frame. IMAGE-format ads use snapshot.images[]. We collect from
+// both so the pixel-read tier sees the whole endorsed field, not just the
+// shrinking slice of brands still running old-style single-image ads.
+const imgUrlOf = (o: any): string | undefined => o?.original_image_url ?? o?.resized_image_url ?? undefined;
+const cardIsVideo = (c: any): boolean => Boolean(c?.video_hd_url || c?.video_sd_url || c?.video_preview_image_url && !imgUrlOf(c));
+
+function collectImageUrls(s: any): string[] {
+  const urls: string[] = [];
+  if (Array.isArray(s?.images)) for (const i of s.images) { const u = imgUrlOf(i); if (u) urls.push(u); }
+  // static cards only (a video card's original_image_url is just its poster frame)
+  if (Array.isArray(s?.cards)) for (const c of s.cards) { if (!cardIsVideo(c)) { const u = imgUrlOf(c); if (u) urls.push(u); } }
+  return [...new Set(urls)];
+}
+function collectVideoPreviewUrls(s: any): string[] {
+  const urls: string[] = [];
+  if (Array.isArray(s?.videos)) for (const v of s.videos) if (v?.video_preview_image_url) urls.push(v.video_preview_image_url);
+  if (Array.isArray(s?.cards)) for (const c of s.cards) if (cardIsVideo(c) && c?.video_preview_image_url) urls.push(c.video_preview_image_url);
+  return [...new Set(urls)];
+}
+
 // ── Raw-tier dump ──────────────────────────────────────────────────────────
 // The tool result truncates ad copy for context discipline; the RAW dump keeps
 // the FULL body text + all media URLs on disk, one JSONL line per ad, so the
@@ -221,19 +258,23 @@ function rawAdEntry(a: any, brand: string, pageId: string): Record<string, unkno
     linkDomain: domainOf(s?.link_url),
     title: (s?.title ?? '').toString().trim() || null,
     body: (s?.body?.text ?? '').replace(/\s+/g, ' ').trim(), // FULL text, untruncated
-    imageUrls: Array.isArray(s?.images)
-      ? s.images.map((i: any) => i?.original_image_url ?? i?.resized_image_url).filter(Boolean)
-      : [],
-    videoPreviewUrls: Array.isArray(s?.videos)
-      ? s.videos.map((v: any) => v?.video_preview_image_url).filter(Boolean)
-      : [],
+    imageUrls: collectImageUrls(s),           // IMAGE ads + DCO/CAROUSEL static cards
+    videoPreviewUrls: collectVideoPreviewUrls(s),
+    // Opportunistic delivery fields — null for most commercial ads; Meta exposes
+    // them for political and EU-shown ads. Captured when present (free upgrade
+    // from the days×variants proxy to real delivery numbers). undefined = dropped
+    // by JSON.stringify, so ordinary dumps stay lean.
+    pageLikes: s?.page_like_count ?? undefined,
+    reachEstimate: a?.reach_estimate ?? undefined,
+    spend: a?.spend ?? undefined,
+    impressionsText: a?.impressions_with_index?.impressions_text ?? undefined,
   };
 }
 
 function dumpRawAds(rawAdsDir: string, label: string, pageId: string, raw: any[]): string | null {
   try {
     fs.mkdirSync(rawAdsDir, { recursive: true });
-    const slug = (label || pageId).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || pageId;
+    const slug = brandSlug(label, pageId);
     const file = path.join(rawAdsDir, `${slug}.jsonl`);
     const lines = raw.map((a) => JSON.stringify(rawAdEntry(a, label || pageId, pageId)));
     fs.writeFileSync(file, lines.join('\n') + '\n', 'utf8');
@@ -242,6 +283,201 @@ function dumpRawAds(rawAdsDir: string, label: string, pageId: string, raw: any[]
     process.stderr.write(`[scrapecreators] raw dump failed: ${err instanceof Error ? err.message : String(err)}\n`);
     return null;
   }
+}
+
+function brandSlug(label: string, pageId: string): string {
+  return (label || pageId).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 60) || pageId;
+}
+
+// ── Image-creative download (the field stage's pixel tier) ─────────────────
+// The pixel-read step needs the actual creatives on disk. Download images for
+// the TOP image-bearing ads only (revealed-winner order — the endorsed ads are
+// the ones worth reading), capped per brand, ≤3 images per ad, skipping tiny
+// files (tracking pixels / thumbs). Same discipline as the validated manual
+// run (clients/verbis/field-first-test/mine-fetch.mjs).
+// Caps sized for the DCO era: cards[] extraction means a single brand can expose
+// 40-60 static creatives, so we take the TOP endorsed ads (the dump is pre-ranked
+// by active × variants × days) and ≤2 cards each — enough to read the construction
+// (a DCO ad's cards share one layout; only the product/flavour swaps) without
+// flooding the reader fan-out. ~24 images/brand ceiling.
+const IMG_ADS_PER_BRAND = 12;
+const IMGS_PER_AD = 2;
+const MIN_IMG_BYTES = 5000;
+
+async function downloadAdImages(
+  imagesRoot: string,
+  label: string,
+  pageId: string,
+  raw: any[],
+): Promise<{ dir: string; adsWithImages: number; downloaded: number; failed: number } | null> {
+  try {
+    const entries = raw
+      .map((a) => rawAdEntry(a, label || pageId, pageId) as { archiveId: string; active: boolean; daysRunning: number | null; variants: number; imageUrls: string[] })
+      .sort((x, y) => {
+        if (x.active !== y.active) return x.active ? -1 : 1;
+        if (y.variants !== x.variants) return y.variants - x.variants;
+        return (y.daysRunning ?? 0) - (x.daysRunning ?? 0);
+      });
+    const withImages = entries.filter((e) => e.imageUrls.length > 0);
+    if (withImages.length === 0) return null;
+    const dir = path.join(imagesRoot, brandSlug(label, pageId));
+    fs.mkdirSync(dir, { recursive: true });
+    let downloaded = 0;
+    let failed = 0;
+    for (const ad of withImages.slice(0, IMG_ADS_PER_BRAND)) {
+      for (let i = 0; i < Math.min(ad.imageUrls.length, IMGS_PER_AD); i++) {
+        try {
+          const r = await fetch(ad.imageUrls[i]);
+          if (!r.ok) { failed++; continue; }
+          const buf = Buffer.from(await r.arrayBuffer());
+          if (buf.length < MIN_IMG_BYTES) continue; // tracking pixel / tiny thumb
+          fs.writeFileSync(path.join(dir, `${ad.archiveId}_${i}.jpg`), buf);
+          downloaded++;
+        } catch { failed++; }
+      }
+    }
+    return { dir, adsWithImages: withImages.length, downloaded, failed };
+  } catch (err) {
+    process.stderr.write(`[scrapecreators] image download failed: ${err instanceof Error ? err.message : String(err)}\n`);
+    return null;
+  }
+}
+
+// ── Format hunts — keyword-fingerprint search across ALL advertisers ────────
+// A format family (testimonial static, math-anchor offer card, founder-POV…)
+// leaves textual fingerprints in ad copy ("verified buyer", "do the math",
+// "so we made"). search/ads searches the WHOLE ad library by keyword, so a
+// hunt finds who is running a format RIGHT NOW without knowing brand names —
+// the discovery path for white-space format lanes and for seeding the format
+// bank. Results arrive server-ranked by impressions (the numbers themselves
+// are hidden for commercial ads; the ORDER still encodes delivery), so hunt
+// dumps preserve API order instead of re-ranking by days×variants.
+
+const HUNT_DEFAULTS = {
+  search_type: 'keyword_exact_phrase',
+  media_type: 'IMAGE_AND_MEME', // statics only ("MEME" = Meta's name for text-on-image)
+  status: 'ACTIVE',
+  sort_by: 'total_impressions',
+} as const;
+
+// Hunt images land in ONE dir per hunt (not per brand), page-slug-prefixed so
+// the pixel reader knows each creative's advertiser: <brand>__<adId>_<n>.jpg
+async function downloadHuntImages(
+  imagesRoot: string,
+  huntSlug: string,
+  entries: any[],
+): Promise<{ dir: string; adsWithImages: number; downloaded: number; failed: number } | null> {
+  try {
+    const withImages = entries.filter((e) => Array.isArray(e.imageUrls) && e.imageUrls.length > 0);
+    if (withImages.length === 0) return null;
+    const dir = path.join(imagesRoot, `hunt-${huntSlug}`);
+    fs.mkdirSync(dir, { recursive: true });
+    let downloaded = 0;
+    let failed = 0;
+    for (const ad of withImages.slice(0, IMG_ADS_PER_BRAND)) {
+      const prefix = brandSlug(String(ad.brand ?? ''), String(ad.pageId ?? ''));
+      for (let i = 0; i < Math.min(ad.imageUrls.length, IMGS_PER_AD); i++) {
+        try {
+          const r = await fetch(ad.imageUrls[i]);
+          if (!r.ok) { failed++; continue; }
+          const buf = Buffer.from(await r.arrayBuffer());
+          if (buf.length < MIN_IMG_BYTES) continue; // tracking pixel / tiny thumb
+          fs.writeFileSync(path.join(dir, `${prefix}__${ad.archiveId}_${i}.jpg`), buf);
+          downloaded++;
+        } catch { failed++; }
+      }
+    }
+    return { dir, adsWithImages: withImages.length, downloaded, failed };
+  } catch (err) {
+    process.stderr.write(`[scrapecreators] hunt image download failed: ${err instanceof Error ? err.message : String(err)}\n`);
+    return null;
+  }
+}
+
+export interface FormatHunt {
+  query: string;
+  label?: string;
+  country?: string;
+  search_type?: 'keyword_exact_phrase' | 'keyword_unordered';
+  media_type?: 'ALL' | 'IMAGE' | 'MEME' | 'IMAGE_AND_MEME';
+  status?: 'ACTIVE' | 'INACTIVE' | 'ALL';
+  max_ads?: number;
+  depth?: number;
+}
+
+/** Exported for direct testing; the format_hunt tool is a thin wrapper. */
+export async function runFormatHunts(hunts: FormatHunt[], rawAdsDir?: string, imagesRoot?: string): Promise<string> {
+  const blocks: string[] = [];
+  for (let i = 0; i < hunts.length; i++) {
+    const h = hunts[i];
+    const slug = brandSlug(h.label ?? h.query, `hunt${i + 1}`);
+    const head = `[${i + 1}] HUNT: "${h.query}" (${h.country ?? 'ALL'} / ${h.status ?? HUNT_DEFAULTS.status} / ${h.media_type ?? HUNT_DEFAULTS.media_type})`;
+    const all: any[] = [];
+    let cursor: string | undefined;
+    let allCached = true;
+    let fetchError: string | null = null;
+    const depth = Math.min(h.depth ?? 1, 3);
+    for (let pg = 0; pg < depth; pg++) {
+      const r = await apiGet('search/ads', {
+        query: h.query,
+        search_type: h.search_type ?? HUNT_DEFAULTS.search_type,
+        media_type: h.media_type ?? HUNT_DEFAULTS.media_type,
+        status: h.status ?? HUNT_DEFAULTS.status,
+        sort_by: HUNT_DEFAULTS.sort_by,
+        country: h.country,
+        cursor,
+      }, `hunt "${h.query}" pg${pg + 1}`, AD_CACHE_TTL_HOURS);
+      if (!r.ok) { fetchError = r.error; break; }
+      allCached = allCached && r.cached;
+      const ads = (r.data?.searchResults ?? []) as any[];
+      all.push(...ads);
+      cursor = r.data?.cursor ?? undefined;
+      if (!cursor || ads.length === 0) break;
+    }
+    if (fetchError && all.length === 0) { blocks.push(`${head}\n    ERROR: ${fetchError}`); continue; }
+    if (all.length === 0) {
+      blocks.push(`${head}\n    NO ADS FOUND for this fingerprint. Try keyword_unordered, a different phrase, or country=ALL — or the format genuinely is not running, which is itself a finding.`);
+      continue;
+    }
+    // Search results carry page identity PER AD — each entry keeps its own advertiser.
+    const entries = all.map((a) => rawAdEntry(a, String(a?.page_name ?? 'unknown'), String(a?.page_id ?? 'n/a')));
+    let dumpFile: string | null = null;
+    if (rawAdsDir) {
+      try {
+        fs.mkdirSync(rawAdsDir, { recursive: true });
+        dumpFile = path.join(rawAdsDir, `hunt-${slug}.jsonl`);
+        fs.writeFileSync(dumpFile, entries.map((e) => JSON.stringify(e)).join('\n') + '\n', 'utf8');
+      } catch (err) {
+        process.stderr.write(`[scrapecreators] hunt dump failed: ${err instanceof Error ? err.message : String(err)}\n`);
+        dumpFile = null;
+      }
+    }
+    const images = imagesRoot ? await downloadHuntImages(imagesRoot, slug, entries) : null;
+    // Advertiser roll-up — who is running this format, how hard.
+    const byPage = new Map<string, { pageId: string; n: number; likes: number | null }>();
+    for (const e of entries as any[]) {
+      const cur = byPage.get(e.brand) ?? { pageId: e.pageId, n: 0, likes: (e.pageLikes as number | undefined) ?? null };
+      cur.n++;
+      byPage.set(e.brand, cur);
+    }
+    const rollup = [...byPage.entries()]
+      .sort((x, y) => y[1].n - x[1].n)
+      .slice(0, 15)
+      .map(([name, v]) => `      ${name} (page_id=${v.pageId}${v.likes != null ? `, likes=${v.likes}` : ''}) × ${v.n} ad(s)`);
+    const max = h.max_ads ?? DEFAULT_MAX_ADS;
+    const shown = (entries as any[]).slice(0, max).map((e, n) =>
+      `      ${n + 1}. ${e.brand} [${e.format}] ${e.daysRunning ?? '?'}d × ${e.variants}v | imgs=${e.imageUrls.length} | ${String(e.body).slice(0, 140) || '(no body text)'}`);
+    blocks.push([
+      `${head}${allCached ? ' (cached)' : ''} — ${all.length} ad(s) found${cursor ? '; MORE available (raise depth)' : ''}${fetchError ? `; page fetch stopped early: ${fetchError}` : ''}`,
+      dumpFile ? `    RAW DUMP (full copy + media URLs, one line per ad, per-ad advertiser identity): ${dumpFile}` : '',
+      images ? `    IMAGE CREATIVES: ${images.downloaded} downloaded (${images.adsWithImages} image-bearing ads${images.failed ? `; ${images.failed} URL(s) FAILED — signed CDN links expire, likely a stale payload` : ''}) → ${images.dir} (files: <brand>__<adId>_<n>.jpg)` : '',
+      `    ADVERTISERS RUNNING THIS FINGERPRINT (${byPage.size}):`,
+      ...rollup,
+      `    TOP ADS (API order = impressions-ranked; numbers hidden for commercial ads):`,
+      ...shown,
+    ].filter(Boolean).join('\n'));
+  }
+  return blocks.join('\n\n');
 }
 
 // ── Tool 1 — resolve brand names to candidate pages ────────────────────────
@@ -285,9 +521,9 @@ const adsPageSchema = z.object({
   max_ads: z.number().int().min(1).max(30).optional().describe('Max revealed-winner ads to return per page after ranking, default 12.'),
 });
 
-const makeCompetitorAds = (rawAdsDir?: string) => tool(
+const makeCompetitorAds = (rawAdsDir?: string, imagesRoot?: string) => tool(
   'competitor_ads',
-  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is ALSO dumped in full (untruncated copy + media URLs) to a raw JSONL file on disk — the result names the path; cite it in your deliverable so downstream seats can Grep the whole field. 1 credit per page (cached).',
+  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is ALSO dumped in full (untruncated copy + media URLs) to a raw JSONL file on disk, AND the top image creatives are downloaded to a per-brand images folder for the pixel-read step — the result names both paths; cite them in your deliverable so downstream seats can Grep the field and Read the creatives. 1 credit per page (cached).',
   { pages: z.array(adsPageSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of pages to fetch in parallel (max 8).') },
   async (args) => {
     const settled = await Promise.allSettled(
@@ -296,11 +532,11 @@ const makeCompetitorAds = (rawAdsDir?: string) => tool(
           pageId: p.page_id,
           country: p.country ?? 'ALL',
           status: p.status ?? 'ACTIVE',
-        }, `ads ${p.label ?? p.page_id} ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'}`);
+        }, `ads ${p.label ?? p.page_id} ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'}`, AD_CACHE_TTL_HOURS);
         return { p, r };
       }),
     );
-    const blocks = settled.map((s, i) => {
+    const blocks = await Promise.all(settled.map(async (s, i) => {
       const idx = i + 1;
       const p = args.pages[i];
       const head = `[${idx}] PAGE: ${p.label ?? p.page_id} (page_id=${p.page_id}, ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'})`;
@@ -312,27 +548,55 @@ const makeCompetitorAds = (rawAdsDir?: string) => tool(
         return `${head}${r.cached ? ' (cached)' : ''}\n    NO ACTIVE ADS FOUND. This rival is not running active Meta ads (or none in this country). That is a finding — name it; fall back to a Perplexity category-trend read for the visual zeitgeist.`;
       }
       const dumpFile = rawAdsDir ? dumpRawAds(rawAdsDir, p.label ?? '', p.page_id, raw) : null;
+      const images = imagesRoot ? await downloadAdImages(imagesRoot, p.label ?? '', p.page_id, raw) : null;
       const shaped = rankRevealedWinners(raw.map(shapeAd));
       const max = p.max_ads ?? DEFAULT_MAX_ADS;
       const realName = raw[0]?.page_name ? ` — confirmed page_name="${raw[0].page_name}"` : '';
       const dumpNote = dumpFile ? `\n    RAW DUMP (all ${raw.length} ads, full untruncated copy + media URLs): ${dumpFile}` : '';
+      const imgNote = images
+        ? `\n    IMAGE CREATIVES: ${images.downloaded} downloaded (${images.adsWithImages} image-bearing ads, top ${Math.min(images.adsWithImages, IMG_ADS_PER_BRAND)} taken${images.failed ? `; ${images.failed} URL(s) FAILED — signed CDN links expire, likely a stale payload` : ''}) → ${images.dir} (files named <adId>_<n>.jpg)`
+        : imagesRoot
+          ? '\n    IMAGE CREATIVES: none (video/DCO-only page — copy captured in the dump; pixels skipped)'
+          : '';
       const shown = shaped.slice(0, max).map((a, n) =>
         `      ${n + 1}. [${a.format}] running ${a.daysRunning ?? '?'}d (since ${a.launched})` +
         `${a.active ? '' : ' INACTIVE'} | variants=${a.variants} | ${a.platforms.join('+') || 'n/a'} | CTA: ${a.cta} → ${a.linkDomain}\n` +
         `         copy: ${a.body || '(no body text)'}`);
-      return `${head}${r.cached ? ' (cached)' : ''}${realName}${dumpNote}\n    ${raw.length} active ad(s) total; showing top ${Math.min(max, shaped.length)} by revealed-winner ranking (variants × longevity):\n${shown.join('\n')}`;
-    });
+      return `${head}${r.cached ? ' (cached)' : ''}${realName}${dumpNote}${imgNote}\n    ${raw.length} active ad(s) total; showing top ${Math.min(max, shaped.length)} by revealed-winner ranking (variants × longevity):\n${shown.join('\n')}`;
+    }));
     return { content: [{ type: 'text' as const, text: blocks.join('\n\n') }] };
   },
 );
 
+// ── Tool 3 — format_hunt: find who runs a FORMAT, by its copy fingerprint ──
+const huntSchema = z.object({
+  query: z.string().min(1).describe('The format FINGERPRINT — a phrase the target format leaves in ad copy (e.g. "verified buyer" for testimonial statics, "do the math" for math-anchor offers, "so we made" for founder-POV).'),
+  label: z.string().optional().describe('Short slug for the dump/images folder names; defaults to a slug of the query.'),
+  country: z.string().optional().describe("One 2-letter market code (e.g. IN, US, CA). Defaults to ALL countries — prefer the brand's market for in-market hunts; ALL for bank seeding."),
+  search_type: z.enum(['keyword_exact_phrase', 'keyword_unordered']).optional().describe('Default keyword_exact_phrase — fingerprints work best as exact phrases.'),
+  media_type: z.enum(['ALL', 'IMAGE', 'MEME', 'IMAGE_AND_MEME']).optional().describe('Default IMAGE_AND_MEME = statics only (MEME is Meta-speak for text-on-image).'),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'ALL']).optional().describe('Default ACTIVE (the live field). ALL adds recently-retired ads.'),
+  max_ads: z.number().int().min(1).max(30).optional().describe('Max ads to summarize in the result (the dump holds everything), default 12.'),
+  depth: z.number().int().min(1).max(3).optional().describe('Result pages to fetch via cursor, default 1. Each page ≈ 30 ads and costs 1 credit.'),
+});
+
+const makeFormatHunt = (rawAdsDir?: string, imagesRoot?: string) => tool(
+  'format_hunt',
+  'Hunt a creative FORMAT across ALL advertisers by its copy fingerprint — no brand names needed. Searches the whole Meta Ad Library by exact phrase (statics-only by default), returns the advertisers running that format ranked by delivery, dumps every hit in full to a raw JSONL (per-ad advertiser identity), and downloads the top static creatives for the pixel readers. Use when a format family the brief needs is ABSENT from the rival set (white-space format lanes), or to seed the format bank. Pass an ARRAY of hunts (1-8); each page of each hunt costs 1 credit (cached).',
+  { hunts: z.array(huntSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of fingerprint hunts to run (max 8).') },
+  async (args) => ({ content: [{ type: 'text' as const, text: await runFormatHunts(args.hunts, rawAdsDir, imagesRoot) }] }),
+);
+
 /** Build the server. Pass rawAdsDir (e.g. <runDir>/raw/ads) to have every
- *  competitor_ads fetch dumped in full to disk for the creative's Grep. */
-export function createScrapecreatorsServer(rawAdsDir?: string) {
+ *  competitor_ads fetch dumped in full to disk for the creative's Grep, and
+ *  imagesRoot (e.g. <runDir>/raw/images) to download the top image creatives
+ *  per brand for the pixel-read step. format_hunt dumps land in the same
+ *  dirs as hunt-<slug>.jsonl / hunt-<slug>/. */
+export function createScrapecreatorsServer(rawAdsDir?: string, imagesRoot?: string) {
   return createSdkMcpServer({
     name: 'scrapecreators',
-    version: '0.2.0',
-    tools: [competitorFindPages, makeCompetitorAds(rawAdsDir)],
+    version: '0.4.0',
+    tools: [competitorFindPages, makeCompetitorAds(rawAdsDir, imagesRoot), makeFormatHunt(rawAdsDir, imagesRoot)],
   });
 }
 
@@ -341,3 +605,4 @@ export const scrapecreatorsMcpServer = createScrapecreatorsServer();
 
 export const SCRAPECREATORS_FIND_PAGES_TOOL = 'mcp__scrapecreators__competitor_find_pages';
 export const SCRAPECREATORS_ADS_TOOL = 'mcp__scrapecreators__competitor_ads';
+export const SCRAPECREATORS_FORMAT_HUNT_TOOL = 'mcp__scrapecreators__format_hunt';

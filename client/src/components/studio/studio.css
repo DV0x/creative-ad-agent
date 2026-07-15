@@ -1,0 +1,215 @@
+/* ================================================================
+   Studio page — /studio · Chakra's founder services page
+   Reuses the landing design system (lp-* classes + tokens from
+   index.css / landing.css). Only page-specific layout lives here.
+   Mobile-first: single column, generous readable type.
+   ================================================================ */
+
+.st-root {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  /* Long figures (₹30,357, CAD $3,000) must never force a horizontal scroll */
+  overflow-wrap: break-word;
+}
+.st-root main { flex: 1; }
+
+/* ---- Header: wordmark + one CTA, no product nav ---- */
+.st-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(251, 249, 245, 0.85);
+  backdrop-filter: blur(14px) saturate(140%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--color-border);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .st-header { background: rgba(251, 249, 245, 0.97); }
+}
+.st-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  height: 64px;
+}
+.st-header-cta { padding: 8px 14px; font-size: 13px; }
+
+/* ---- Hero ---- */
+.st-hero { padding: 64px 0 56px; }
+.st-hero .lp-h1 { max-width: 18ch; }
+.st-hero-sub {
+  margin: 22px 0 0;
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--color-text-secondary);
+  max-width: 52ch;
+}
+
+/* ---- Sections ---- */
+.st-sec {
+  padding: 48px 0;
+  border-top: 1px solid var(--color-border);
+}
+.st-h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(1.65rem, 3.4vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.014em;
+  color: var(--color-text-primary);
+  text-wrap: balance;
+  margin: 0 0 26px;
+}
+.st-prose {
+  margin: 0;
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+
+/* Inline link (matches lp-faq-link) */
+.st-link {
+  color: var(--color-accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.st-link:hover { color: var(--color-accent-hover); }
+
+/* ---- Card pairs (What I do · Real numbers) ---- */
+.st-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  border: 1px solid var(--color-text-primary);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--color-bg-base);
+}
+.st-card { padding: 26px 22px; min-width: 0; }
+.st-card + .st-card { border-top: 1px solid var(--color-text-primary); }
+.st-card h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 19px;
+  line-height: 1.2;
+  letter-spacing: -0.012em;
+  color: var(--color-text-primary);
+  margin: 0 0 12px;
+}
+.st-card p {
+  margin: 0;
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+}
+.st-case { background: var(--color-bg-elevated); }
+
+.st-closer {
+  margin: 28px 0 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 19px;
+  line-height: 1.35;
+  letter-spacing: -0.008em;
+  color: var(--color-text-primary);
+  max-width: 44ch;
+}
+
+/* ---- How I work list ---- */
+.st-how {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-top: 1px solid var(--color-border);
+}
+.st-how li {
+  padding: 22px 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 15.5px;
+  line-height: 1.65;
+  color: var(--color-text-secondary);
+  max-width: 62ch;
+}
+.st-how li strong {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 18px;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--color-text-primary);
+  margin-bottom: 8px;
+}
+
+/* ---- Trust strip ---- */
+.st-trust {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  flex-wrap: wrap;
+}
+.st-trust-name { margin-bottom: 8px; }
+.st-avatar {
+  width: 92px;
+  height: 92px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  object-fit: cover;
+}
+/* Placeholder block where Chakra's photo will go — PHOTO PENDING */
+.st-avatar-placeholder {
+  background: var(--color-bg-elevated);
+  border: 1px dashed var(--color-border-emphasis);
+}
+
+/* ---- CTA rows ---- */
+.st-cta-row {
+  margin-top: 28px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ---- Footer ---- */
+.st-footer {
+  border-top: 1px solid var(--color-border);
+  background: var(--color-bg-elevated);
+  padding: 32px 0;
+}
+.st-footer p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--color-text-secondary);
+}
+.st-footer a {
+  color: var(--color-text-primary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color 120ms ease;
+}
+.st-footer a:hover { color: var(--color-accent); }
+
+/* ---- Wider screens ---- */
+@media (min-width: 720px) {
+  .st-hero { padding: 88px 0 72px; }
+  .st-sec { padding: 64px 0; }
+  .st-cards { grid-template-columns: 1fr 1fr; }
+  .st-card { padding: 32px 30px; }
+  .st-card + .st-card {
+    border-top: none;
+    border-left: 1px solid var(--color-text-primary);
+  }
+  .st-avatar { width: 112px; height: 112px; }
+}
+
+/* On very narrow screens keep the header CTA from crowding the wordmark */
+@media (max-width: 420px) {
+  .st-header-cta { padding: 7px 10px; font-size: 12px; }
+  .st-header .lp-nav-logo { font-size: 18px; }
+}

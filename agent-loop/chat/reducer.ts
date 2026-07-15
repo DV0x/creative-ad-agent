@@ -45,23 +45,26 @@ export interface ChatView {
 }
 
 const LABELS: Record<string, string> = {
+  'field-scout': 'field · scout',
+  'field-read': 'field · read',
+  'field-brief': 'field · brief',
   collect: 'collect',
-  market: 'market',
   create: 'create',
   buy: 'buyer',
-  'cell-render': 'cell · render',
-  'render-critic': 'render-critic',
+  build: 'build',
+  gate: 'gate',
 };
 const label = (id: string): string => LABELS[id] ?? id;
-const isCritic = (id: string | null): boolean => id === 'buy' || id === 'render-critic';
+const isCritic = (id: string | null): boolean => id === 'buy' || id === 'gate';
 
-/** Seed the scoreboard with the whole sequence (the judges interleave after their stages). */
+/** Seed the scoreboard with the whole sequence (the intermediate seats interleave after their stages). */
 export function initView(brand: string, order: string[]): ChatView {
   const seq: string[] = [];
   for (const n of order) {
     seq.push(n);
+    if (n === 'field-scout') seq.push('field-read', 'field-brief'); // the fan-out renders as one stage row
     if (n === 'create') seq.push('buy');
-    if (n === 'cell-render') seq.push('render-critic');
+    if (n === 'build') seq.push('gate');
   }
   return {
     brand,

@@ -1,0 +1,170 @@
+[
+  {
+    "ring": "rate",
+    "brand": "ratehub",
+    "total": 18,
+    "imageAds": 16,
+    "videoOnly": 2,
+    "imagesDownloaded": 18
+  },
+  {
+    "ring": "rate",
+    "brand": "nesto",
+    "total": 30,
+    "imageAds": 24,
+    "videoOnly": 5,
+    "imagesDownloaded": 24
+  },
+  {
+    "ring": "rate",
+    "brand": "true-north-mortgage",
+    "total": 30,
+    "imageAds": 20,
+    "videoOnly": 7,
+    "imagesDownloaded": 17
+  },
+  {
+    "ring": "rate",
+    "brand": "butler-mortgage",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "rate",
+    "brand": "dominion-lending",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "rate",
+    "brand": "mortgage-alliance",
+    "total": 8,
+    "imageAds": 8,
+    "videoOnly": 0,
+    "imagesDownloaded": 16
+  },
+  {
+    "ring": "rate",
+    "brand": "mortgage-architects",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "rate",
+    "brand": "frank-mortgage",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "canadian-mortgages-inc",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "sunlite-mortgage",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "greenhouse-mortgage",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "zuzart-mortgages",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "approved-by-dustin",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "lendsimpl",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "approval",
+    "brand": "swivel-mortgage",
+    "total": 1,
+    "imageAds": 1,
+    "videoOnly": 0,
+    "imagesDownloaded": 2
+  },
+  {
+    "ring": "approval",
+    "brand": "mortgage-squad-advisors",
+    "total": 0,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "local",
+    "brand": "pekoe-mortgages",
+    "total": 2,
+    "imageAds": 0,
+    "videoOnly": 1,
+    "imagesDownloaded": 0
+  },
+  {
+    "ring": "local",
+    "brand": "360lending",
+    "total": 6,
+    "imageAds": 2,
+    "videoOnly": 0,
+    "imagesDownloaded": 4
+  },
+  {
+    "ring": "local",
+    "brand": "miracle-financial",
+    "total": 16,
+    "imageAds": 10,
+    "videoOnly": 6,
+    "imagesDownloaded": 19
+  },
+  {
+    "ring": "local",
+    "brand": "northwood-mortgage",
+    "total": 25,
+    "imageAds": 13,
+    "videoOnly": 5,
+    "imagesDownloaded": 24
+  },
+  {
+    "ring": "alt-lender",
+    "brand": "haventree-bank",
+    "total": 1,
+    "imageAds": 0,
+    "videoOnly": 0,
+    "imagesDownloaded": 0
+  }
+]

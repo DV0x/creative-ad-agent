@@ -1,0 +1,434 @@
+[
+  {
+    "ring": "local",
+    "query": "Pekoe Mortgages",
+    "candidates": [
+      {
+        "page_id": "108711993795502",
+        "name": "Pekoe Mortgages",
+        "likes": 191,
+        "category": "Mortgage Brokers",
+        "ig": "pekoemortgages"
+      }
+    ]
+  },
+  {
+    "ring": "local",
+    "query": "Northwood Mortgage",
+    "candidates": [
+      {
+        "page_id": "106828242136339",
+        "name": "Northwood Mortgage",
+        "likes": 30,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "100539732357563",
+        "name": "Home Equity Loans",
+        "likes": 3,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "374491605749362",
+        "name": "Northwood Mortgage",
+        "likes": 0,
+        "category": "Mortgage Brokers",
+        "ig": "get_mortgage_now"
+      },
+      {
+        "page_id": "150523381662414",
+        "name": "Northwood Mortgage LTD.",
+        "likes": 1248,
+        "category": "Financial Planner",
+        "ig": ""
+      }
+    ]
+  },
+  {
+    "ring": "local",
+    "query": "360Lending",
+    "candidates": [
+      {
+        "page_id": "244737585862518",
+        "name": "360Lending",
+        "likes": 530,
+        "category": "Loan Service",
+        "ig": "360lending.ca"
+      },
+      {
+        "page_id": "100830358339170",
+        "name": "360 Lending Corp",
+        "likes": 4786,
+        "category": "Investing Service",
+        "ig": "360lendingcorp"
+      },
+      {
+        "page_id": "642709695853547",
+        "name": "Violett Lending Team - Movement Mortgage NMLS 360252",
+        "likes": 679,
+        "category": "Loan Service",
+        "ig": "violettlending"
+      },
+      {
+        "page_id": "206178823303685",
+        "name": "360 Home Lending",
+        "likes": 486,
+        "category": "Loan Service",
+        "ig": "360homelending"
+      }
+    ]
+  },
+  {
+    "ring": "local",
+    "query": "Miracle Financial",
+    "candidates": [
+      {
+        "page_id": "577299112349066",
+        "name": "Miracle Financial",
+        "likes": 1025,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "1284288298370486",
+        "name": "Miracle Financial",
+        "likes": 217,
+        "category": "Product/service",
+        "ig": "miraclefinancialsolutions"
+      },
+      {
+        "page_id": "101562191942589",
+        "name": "Hm.dumba Happy Financial Spells and Miracles",
+        "likes": 1236,
+        "category": "Community",
+        "ig": ""
+      },
+      {
+        "page_id": "101592751199441",
+        "name": "Miracle Financials",
+        "likes": 908,
+        "category": "Financial Service",
+        "ig": ""
+      }
+    ]
+  },
+  {
+    "ring": "local",
+    "query": "OntarioLend",
+    "candidates": [
+      {
+        "page_id": "215119058581662",
+        "name": "Rateplicity Mortgage Corporation - TMG The Mortgage Group",
+        "likes": 1252,
+        "category": "Mortgage Brokers",
+        "ig": "ontariolend"
+      },
+      {
+        "page_id": "100660032019290",
+        "name": "Joan Hodge Mortgage Agent -Ontario Lending Solutions Inc.",
+        "likes": 158,
+        "category": "Product/service",
+        "ig": ""
+      },
+      {
+        "page_id": "231252921137418",
+        "name": "Ontario Lending Solutions FSCO # 13063",
+        "likes": 56,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "213308018528065",
+        "name": "Amara  Graham, Mortgage Agent - Ontario Lending Solutions Inc FSRA #:13063",
+        "likes": 10,
+        "category": "Product/service",
+        "ig": ""
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Canadian Mortgages Inc",
+    "candidates": [
+      {
+        "page_id": "87780268966",
+        "name": "Canadian Mortgages Inc.",
+        "likes": 4613,
+        "category": "Mortgage Brokers",
+        "ig": "cmi_mortgages"
+      },
+      {
+        "page_id": "1182513991846073",
+        "name": "Canadian Capital Mortgages Inc.",
+        "likes": 1042,
+        "category": "Financial Service",
+        "ig": ""
+      },
+      {
+        "page_id": "809336072255491",
+        "name": "Star Canadian Mortgages Inc",
+        "likes": 20,
+        "category": "Mortgage Brokers",
+        "ig": "starcanadianmortgagesinc"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Sunlite Mortgage",
+    "candidates": [
+      {
+        "page_id": "1729646093920632",
+        "name": "Sunlite Mortgage",
+        "likes": 6855,
+        "category": "Mortgage Brokers",
+        "ig": "sunlitemortgage"
+      },
+      {
+        "page_id": "111007271560975",
+        "name": "Sunlite Mortgage",
+        "likes": 42,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "373978739140710",
+        "name": "Vanna King - Sunlite Mortgage",
+        "likes": 74,
+        "category": "Loan Service",
+        "ig": "mortgages_by_vanna"
+      },
+      {
+        "page_id": "177298952130512",
+        "name": "Prem Kumar - Sunlite Mortgage",
+        "likes": 48,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "LendSimpl",
+    "candidates": [
+      {
+        "page_id": "121503927718054",
+        "name": "Lendsimpl",
+        "likes": 70,
+        "category": "Mortgage Brokers",
+        "ig": "lendsimpl"
+      },
+      {
+        "page_id": "475837262282182",
+        "name": "SimpleLend",
+        "likes": 4,
+        "category": "Financial Service",
+        "ig": ""
+      },
+      {
+        "page_id": "108996347613780",
+        "name": "Andrew Koulouris - Finance Broker - Simple Property Lending",
+        "likes": 908,
+        "category": "Mortgage Brokers",
+        "ig": "simplepropertylending"
+      },
+      {
+        "page_id": "350562104795665",
+        "name": "Simplestate Lending",
+        "likes": 468,
+        "category": "Real Estate",
+        "ig": "simplestatelending"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Mortgage Squad",
+    "candidates": [
+      {
+        "page_id": "123072814441880",
+        "name": "Jason Brooks NMLS# 75430 - Movement Mortgage",
+        "likes": 1873,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "1465332723695151",
+        "name": "Logue & Hamilton LoanDepot  Team, Your Mortgage Squad WV",
+        "likes": 1444,
+        "category": "Loan Service",
+        "ig": "yourmortgagesquadwv"
+      },
+      {
+        "page_id": "317235161621861",
+        "name": "Mortgage Squad Advisors - Highly Rated Mortgage Broker",
+        "likes": 496,
+        "category": "Mortgage Brokers",
+        "ig": "mortgagesquadadvisors"
+      },
+      {
+        "page_id": "102048552267264",
+        "name": "The Mortgage Squad",
+        "likes": 471,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Joe Purewal Mortgages",
+    "candidates": []
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Swivel Mortgage",
+    "candidates": [
+      {
+        "page_id": "100287336346291",
+        "name": "Swivel Mortgage ",
+        "likes": 128,
+        "category": "Mortgage Brokers",
+        "ig": "swivel_mortgage"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Pine Mortgage",
+    "candidates": [
+      {
+        "page_id": "110880895136481",
+        "name": "Eazzy Lending LLC",
+        "likes": 0,
+        "category": "Financial Service",
+        "ig": ""
+      },
+      {
+        "page_id": "108709348471723",
+        "name": "Alexander Dan - Mortgage Specialist",
+        "likes": 112,
+        "category": "Mortgage Brokers",
+        "ig": "pineapple.team.alex"
+      },
+      {
+        "page_id": "101310203293517",
+        "name": "Mahoney Group - Pineapple - Shoreline Mortgages",
+        "likes": 1630,
+        "category": "Mortgage Brokers",
+        "ig": "shoreline.mortgages"
+      },
+      {
+        "page_id": "111645787844266",
+        "name": "Pineapple Mortgage",
+        "likes": 856,
+        "category": "Mortgage Brokers",
+        "ig": "pineapplemortgage"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Homewise Mortgage",
+    "candidates": [
+      {
+        "page_id": "110804775437833",
+        "name": "MOTTO Mortgage Homewise",
+        "likes": 509,
+        "category": "Mortgage Brokers",
+        "ig": "mottomortgagehomewise"
+      },
+      {
+        "page_id": "862838483883795",
+        "name": "Homewise Mortgage, LLC",
+        "likes": 104,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "731555626880821",
+        "name": "הום וייז משכנתא בע\"מ",
+        "likes": 3875,
+        "category": "Credit Counseling Service",
+        "ig": "homewise_mortgage"
+      },
+      {
+        "page_id": "1058982980626295",
+        "name": "homewise_mortgage",
+        "likes": 0,
+        "category": "Profile",
+        "ig": "homewise_mortgage"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Frank Mortgage",
+    "candidates": [
+      {
+        "page_id": "114755726876498",
+        "name": "Frank Mortgage",
+        "likes": 395,
+        "category": "Finance",
+        "ig": "frankmortgage"
+      },
+      {
+        "page_id": "179049858627399",
+        "name": "Frank Mortgages - Mortgage & Protection Advisors",
+        "likes": 133,
+        "category": "Mortgage Brokers",
+        "ig": "frank_mortgages"
+      },
+      {
+        "page_id": "174700929394990",
+        "name": "Frank Myers, NMLS 590237 - Mortgage Investors Group, Sr. Loan Officer",
+        "likes": 1474,
+        "category": "Loan Service",
+        "ig": ""
+      },
+      {
+        "page_id": "111081573827373",
+        "name": "Frank Lo Greco Mortgage Agent",
+        "likes": 413,
+        "category": "Finance",
+        "ig": "flgmortgages"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Mortgage Architects",
+    "candidates": [
+      {
+        "page_id": "127094607347416",
+        "name": "Mortgage Architects",
+        "likes": 6274,
+        "category": "Mortgage Brokers",
+        "ig": "mortgagearchitectscanada"
+      },
+      {
+        "page_id": "824440884236256",
+        "name": "Mortgage Architects",
+        "likes": 126,
+        "category": "Loan Service",
+        "ig": "mortgagebroker.ca"
+      },
+      {
+        "page_id": "101634801949171",
+        "name": "Mortgage Architects",
+        "likes": 7,
+        "category": "Mortgage Brokers",
+        "ig": ""
+      },
+      {
+        "page_id": "131386213400941",
+        "name": "Michelle Minhas - Mortgage Architects",
+        "likes": 173,
+        "category": "Mortgage Brokers",
+        "ig": "minhasmichellemortgages"
+      }
+    ]
+  }
+]

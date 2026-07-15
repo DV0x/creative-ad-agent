@@ -13,7 +13,7 @@ if (!path) {
   process.exit(1);
 }
 
-let v: ChatView = initView('test-brand', ['research', 'comp', 'strategy', 'cell-generate', 'cell-render']);
+let v: ChatView = initView('test-brand', ['field-scout', 'collect', 'create', 'build']);
 const lines = readFileSync(path, 'utf8').split('\n').filter(Boolean);
 let parsed = 0;
 for (const line of lines) {

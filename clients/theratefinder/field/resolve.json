@@ -1,0 +1,700 @@
+[
+  {
+    "ring": "client",
+    "query": "TheRateFinder",
+    "candidates": [
+      {
+        "page_id": "759130567273182",
+        "name": "Europe's Rates Finder",
+        "likes": 7542,
+        "category": "Financial Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "112292877088604",
+        "name": "Auto Rates Finder",
+        "likes": 232,
+        "category": "Website",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "1132441529955505",
+        "name": "The Rate Finder",
+        "likes": 4,
+        "category": "Internet Company",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "765850063258854",
+        "name": "Europes Rates Finder",
+        "likes": 3,
+        "category": "Financial Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "866826373176160",
+        "name": "Fixed Rate Finder",
+        "likes": 11,
+        "category": "Investing Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Ratehub.ca",
+    "candidates": [
+      {
+        "page_id": "741997649228043",
+        "name": "Ratehub.ca",
+        "likes": 7857,
+        "category": "Financial Service",
+        "ig": "ratehub",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "652685481466263",
+        "name": "Ratehub.ca Cabinet en courtage hypothécaire - QC",
+        "likes": 697,
+        "category": "Mortgage Brokers",
+        "ig": "ratehubquebec",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "nesto",
+    "candidates": [
+      {
+        "page_id": "583539761512529",
+        "name": "Nestora",
+        "likes": 70,
+        "category": "Vitamins/supplements",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "407899732685790",
+        "name": "Néstor Camarillo",
+        "likes": 105952,
+        "category": "Politician",
+        "ig": "",
+        "verified": "BLUE_VERIFIED"
+      },
+      {
+        "page_id": "180488989240637",
+        "name": "nesto",
+        "likes": 9234,
+        "category": "Loan Service",
+        "ig": "nestomortgages",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "185405068261709",
+        "name": "The Zone - Neston",
+        "likes": 4325,
+        "category": "Gym/Physical Fitness Center",
+        "ig": "thezoneneston",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "185797824928708",
+        "name": "Néstor Pitrola",
+        "likes": 109658,
+        "category": "Politician",
+        "ig": "nestor.pitrola",
+        "verified": "BLUE_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Pine",
+    "candidates": [
+      {
+        "page_id": "105877964595440",
+        "name": "Ericka Pineda",
+        "likes": 11819609,
+        "category": "Public Figure",
+        "ig": "ericka.pineda09",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "106487520883333",
+        "name": "Cardinal & Pine",
+        "likes": 98594,
+        "category": "Media/News Company",
+        "ig": "cardinalandpine",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "847445881794436",
+        "name": "PineDrama",
+        "likes": 17319,
+        "category": "TV show",
+        "ig": "pinedrama_",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "996269593567995",
+        "name": "PineDrama US",
+        "likes": 10079,
+        "category": "Entertainment website",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "110582017098499",
+        "name": "Pineapplea Lot",
+        "likes": 4006,
+        "category": "Household supplies",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Homewise",
+    "candidates": [
+      {
+        "page_id": "815118345028394",
+        "name": "HomeWise",
+        "likes": 28,
+        "category": "Shopping Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "768428919681051",
+        "name": "HomeWise Guide",
+        "likes": 1336,
+        "category": "Household supplies",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "143926788322",
+        "name": "Homewise",
+        "likes": 23238,
+        "category": "Nonprofit Organization",
+        "ig": "homewise",
+        "verified": "BLUE_VERIFIED"
+      },
+      {
+        "page_id": "958799617319088",
+        "name": "Homewise Roofing & Building",
+        "likes": 25,
+        "category": "Roofing Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "501440636892738",
+        "name": "Homewise",
+        "likes": 1794,
+        "category": "Mortgage Brokers",
+        "ig": "homewise_",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "True North Mortgage",
+    "candidates": [
+      {
+        "page_id": "124806884020",
+        "name": "True North Mortgage",
+        "likes": 18920,
+        "category": "Mortgage Brokers",
+        "ig": "truenorthmortgage",
+        "verified": "BLUE_VERIFIED"
+      },
+      {
+        "page_id": "926897433830485",
+        "name": "True North Mortgage",
+        "likes": 0,
+        "category": "Product/service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "1061218467074539",
+        "name": "True North Mortgage Brokers",
+        "likes": 67,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "372640232926911",
+        "name": "Tim Galang -   Winnipeg Mortgage Agent True North Mortgage",
+        "likes": 1133,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "154610425187271",
+        "name": "True North Mortgage & Protection Consultants",
+        "likes": 736,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Butler Mortgage",
+    "candidates": [
+      {
+        "page_id": "101932165519839",
+        "name": "My Mortgage Butler",
+        "likes": 334,
+        "category": "Mortgage Brokers",
+        "ig": "mymortgagebutler",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "170839513498119",
+        "name": "Charlotte Butler - Mortgage Adviser",
+        "likes": 562,
+        "category": "Mortgage Brokers",
+        "ig": "charlottebutlermab",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "172339346145804",
+        "name": "Butler Mortgage Inc.",
+        "likes": 3710,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "100991255144104",
+        "name": "Your Mortgage Butlers",
+        "likes": 2629,
+        "category": "Loan Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "144227946411",
+        "name": "The Ed Butler Team of Lenders - NMLS 108407 - Movement Mortgage",
+        "likes": 1298,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Dominion Lending Centres",
+    "candidates": [
+      {
+        "page_id": "490460550983497",
+        "name": "Dominion Lending Centres",
+        "likes": 7943,
+        "category": "Mortgage Brokers",
+        "ig": "dlccanada",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "588285714568126",
+        "name": "Dominion Lending Centres",
+        "likes": 445,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "1679672802358996",
+        "name": "Dominion Lending Centres",
+        "likes": 46,
+        "category": "Product/service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "1568214280161709",
+        "name": "Dominion Lending Centres",
+        "likes": 8,
+        "category": "Financial Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "105516555393724",
+        "name": "Dominion Lending Centres",
+        "likes": 3,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "rate-lane",
+    "query": "Mortgage Alliance",
+    "candidates": [
+      {
+        "page_id": "211509792583",
+        "name": "Mortgage Alliance",
+        "likes": 14521,
+        "category": "Interest",
+        "ig": "mortgage_alliance",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "189405614410961",
+        "name": "Mortgage Alliance",
+        "likes": 409,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "363275390481236",
+        "name": "Mortgage Alliance",
+        "likes": 81,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "112281031825072",
+        "name": "Alliance Mortgage",
+        "likes": 69,
+        "category": "Mortgage Brokers",
+        "ig": "alliancemtgnd",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "107983702322579",
+        "name": "Mortgage Alliance",
+        "likes": 0,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "GreenHouse Mortgage",
+    "candidates": [
+      {
+        "page_id": "369526379764549",
+        "name": "Green House Mortgage",
+        "likes": 656,
+        "category": "Local Business",
+        "ig": "greenhousemortgage",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Zuzart Mortgages",
+    "candidates": [
+      {
+        "page_id": "840663462473191",
+        "name": "ZuzartMortgages",
+        "likes": 70,
+        "category": "Entrepreneur",
+        "ig": "zuzartmortgages",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "ApprovedByDustin",
+    "candidates": [
+      {
+        "page_id": "105545428171513",
+        "name": "ApprovedbyDustin",
+        "likes": 50,
+        "category": "Mortgage Brokers",
+        "ig": "approvedbydustin",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "The Private Mortgages",
+    "candidates": [
+      {
+        "page_id": "412530291938708",
+        "name": "Infinity Private Mortgages",
+        "likes": 37,
+        "category": "Loan Service",
+        "ig": "infinityprivatemortgages",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "184019594998626",
+        "name": "Houlihan & O'Malley Commercial Real Estate and Private Mortgages",
+        "likes": 1492,
+        "category": "Commercial Real Estate Agency",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "1003180846457624",
+        "name": "Private Money 4 Mortgages",
+        "likes": 1413,
+        "category": "Real Estate",
+        "ig": "private_mortgage",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "100148972575618",
+        "name": "Mortgages By Bruce",
+        "likes": 1402,
+        "category": "Real Estate Service",
+        "ig": "bruce_hill_privatemoneylender",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "104392714606096",
+        "name": "Jerry Fragomeni Real Estate, Mortgages, Private Lending",
+        "likes": 538,
+        "category": "Real Estate",
+        "ig": "jerry.fragomeni",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Clearkey",
+    "candidates": [
+      {
+        "page_id": "1165368156661516",
+        "name": "ClearKey.homes",
+        "likes": 7,
+        "category": "Real Estate",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "985651154631225",
+        "name": "El Clearkeys",
+        "likes": 5672,
+        "category": "Digital creator",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "704038189453976",
+        "name": "ClearKey Autos",
+        "likes": 1070,
+        "category": "Pet Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "880351431832396",
+        "name": "ClearKey",
+        "likes": 272,
+        "category": "Car dealership",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "117148360130462",
+        "name": "ClearKey UK",
+        "likes": 70,
+        "category": "Financial Service",
+        "ig": "clearkeyuk",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "LendCity",
+    "candidates": [
+      {
+        "page_id": "1546425072052611",
+        "name": "Key City Lending",
+        "likes": 2985,
+        "category": "Real Estate Company",
+        "ig": "keycitylending",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "105504281018474",
+        "name": "Val Bodart for McLendon-Chisholm City Council Place 5",
+        "likes": 74,
+        "category": "Political Candidate",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "1785768781466280",
+        "name": "Hub City Lending",
+        "likes": 1016,
+        "category": "Loan Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "126270259613489",
+        "name": "Todd Lakey, LO, My City Lending",
+        "likes": 437,
+        "category": "Loan Service",
+        "ig": "toddlakeymycity",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "733002446566085",
+        "name": "Dennis London - McLendon Chisholm City Council Place 2",
+        "likes": 275,
+        "category": "Politician",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "approval-lane",
+    "query": "Pegasus Lending",
+    "candidates": [
+      {
+        "page_id": "358040700943037",
+        "name": "Pegasus Mortgage Lending Center Inc",
+        "likes": 2765,
+        "category": "Mortgage Brokers",
+        "ig": "pegasuslending",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "103505492248648",
+        "name": "Pegasus Mortgage Lending Center - Monty Tayara",
+        "likes": 100,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "105927432116207",
+        "name": "Thriving Mortgages - Pegasus Mortgage Lending Centers",
+        "likes": 57,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "262457787819987",
+        "name": "Pegasus Mortgage Lending Centre Inc,",
+        "likes": 48,
+        "category": "Accounting Service",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "102803392252363",
+        "name": "Peter Gour-Pegasus Mortgage Lending Center Inc.",
+        "likes": 43,
+        "category": "Mortgage Brokers",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "alt-lender",
+    "query": "Home Trust",
+    "candidates": [
+      {
+        "page_id": "105698702006825",
+        "name": "Home Trust",
+        "likes": 59,
+        "category": "Real Estate Service",
+        "ig": "hometrustsrl_immobiliare",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "402193439957202",
+        "name": "Trust Home",
+        "likes": 2404,
+        "category": "Contractor",
+        "ig": "trusthomelb",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "113581481245568",
+        "name": "Home Trust",
+        "likes": 535,
+        "category": "Home Improvement",
+        "ig": "hometrustcd",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "896910253501625",
+        "name": "Home trust",
+        "likes": 409,
+        "category": "Courier Service",
+        "ig": "ellezo_01",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "828955496958013",
+        "name": "The Gift Garden",
+        "likes": 27,
+        "category": "Home Goods Store",
+        "ig": "",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "alt-lender",
+    "query": "Equitable Bank",
+    "candidates": [
+      {
+        "page_id": "208866862480834",
+        "name": "Equitable Bank",
+        "likes": 1048,
+        "category": "Commercial Bank",
+        "ig": "equitablebankne",
+        "verified": "NOT_VERIFIED"
+      },
+      {
+        "page_id": "285269446779",
+        "name": "The Equitable Bank",
+        "likes": 15755,
+        "category": "Loan Service",
+        "ig": "theequitablebank",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  },
+  {
+    "ring": "alt-lender",
+    "query": "Haventree Bank",
+    "candidates": [
+      {
+        "page_id": "2111998369013594",
+        "name": "Haventree Bank",
+        "likes": 1197,
+        "category": "Retail Bank",
+        "ig": "haventreebank",
+        "verified": "NOT_VERIFIED"
+      }
+    ]
+  }
+]

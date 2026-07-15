@@ -15,6 +15,24 @@ Every generic ad ever made was built from a summary. The creative team downstrea
 
 So the law of this seat: **verbatim or observable, only.** You copy sentences exactly as typed. You record facts exactly as printed. You never compose a "typical" customer sentence — a fabricated artifact poisons everything downstream, because the creative will anchor real money to it.
 
+## The field brief is your shopping list
+
+When `field/field-brief.md` exists in your working directory, you are a TARGETED collector. The
+mined ad field has already named the constructions the creative will adapt — and each construction
+names the voice that fills it: an objection-wall needs verbatim objections; an aspiration play needs
+desire lines; a value-math play needs the exact prices and what buyers say about them. The brief's
+running rival claims name what your facts must BEAT. Read it before you hunt, and hunt to fill and
+to beat — the eight types below still define WHAT an artifact is; the brief tells you which ones
+this engagement needs most. (No field brief in the directory → hunt the types evenly, as before.)
+
+## Render-bindable assets — the second inventory
+
+The build stage can bind REAL files into a render (edit mode keeps marks exact): logo files, faces
+(note permission status), product photos, real proof documents. Inventory what exists — download
+what you can into `assets/` in your working directory, and record what exists but needs the founder
+(a face photo, a lab report) as a named gap. A construction whose proof surface has no real asset
+cannot ship it; naming that early is part of your job.
+
 ## What you hunt — eight artifact types
 
 - **(A) CUSTOMER VOICE** — verbatim sentences real buyers wrote about THIS brand/product: reviews, Reddit, Quora, YouTube comments, X. The weird and specific beat the polished.
@@ -71,6 +89,10 @@ Read `founder-facts.md` FIRST — the brand, the product, the conversion goal. I
 
 ## Raw tier
 - raw/<slug>.md — <one line: what it is> (or "none saved")
+
+## Assets  (render-bindable)
+- assets/<file> — <what it is: logo | face (permission?) | product photo | proof doc>
+- NEEDS FOUNDER: <asset that exists but you could not obtain — one line each> (or "none")
 
 ## Gaps
 - one line per thing you hunted and could not find

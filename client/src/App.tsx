@@ -5,6 +5,7 @@ import { X } from 'lucide-react'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { EmptyState } from '@/components/EmptyState'
 import { LandingPage } from '@/components/landing/LandingPage'
+import { StudioPage } from '@/components/studio/StudioPage'
 import { ResultsView } from '@/components/ResultsView'
 import { LibraryFolderView } from '@/components/library/LibraryFolderView'
 import { SignIn } from '@/components/auth/SignIn'
@@ -692,6 +693,13 @@ function CheckoutSuccess() {
 }
 
 function App() {
+  // /studio — Chakra's standalone founder-services page. No auth, no app chrome,
+  // deliberately not linked from the product homepage nav (prospects get the
+  // direct link). Checked before the dev-mode branch so it works in dev too.
+  if (window.location.pathname === '/studio') {
+    return <StudioPage />
+  }
+
   if (isDevMode()) {
     return <DevModeApp />
   }

@@ -13,8 +13,7 @@
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { readFile } from 'node:fs/promises';
-import { existsSync, watch, writeFileSync, readFileSync, mkdirSync } from 'node:fs';
-import { fal } from '@fal-ai/client';
+import { existsSync, watch, writeFileSync, mkdirSync } from 'node:fs';
 import { join, extname, basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { loadEnv, missingKeys, createRunDir, writeFounderStub, stageBinderRefs, AGENT_LOOP_DIR } from '../chat/setup.ts';
@@ -45,10 +44,10 @@ const http = createServer(async (req, res) => {
     const url = new URL(req.url ?? '/', 'http://localhost');
     let path = decodeURIComponent(url.pathname);
 
-    // rendered ad images: /images/<runId>/<file>  →  runs/<runId>/images/<file>
+    // rendered ad images: /images/<runId>/<file>  →  runs/<runId>/renders/<file>
     if (path.startsWith('/images/')) {
       const [runId, ...rest] = path.replace('/images/', '').split('/');
-      const imgPath = join(AGENT_LOOP_DIR, 'runs', runId, 'images', rest.join('/'));
+      const imgPath = join(AGENT_LOOP_DIR, 'runs', runId, 'renders', rest.join('/'));
       if (existsSync(imgPath) && imgPath.startsWith(join(AGENT_LOOP_DIR, 'runs'))) {
         res.writeHead(200, { 'content-type': MIME[extname(imgPath)] ?? 'application/octet-stream', 'cache-control': 'no-cache' });
         res.end(await readFile(imgPath));
@@ -74,39 +73,20 @@ const http = createServer(async (req, res) => {
   }
 });
 
-// Decode a browser data-URL, save it into the run dir (+ reference-images/ so research can view it),
-// upload it to fal for binding, and append it to refs.json — mirrors run.ts's --product path.
+// Decode a browser data-URL and land it in the run dir's assets/ folder — the field-first
+// flow binds LOCAL paths at render time (the render MCP handles per-provider upload), so no
+// fal upload happens here. collect inventories assets/; build binds them on the render call.
 async function bindReference(runDir: string, dataUrl: string, filename: string, idx: number) {
   const m = /^data:(image\/[a-z0-9.+-]+);base64,(.+)$/i.exec(dataUrl);
   if (!m) throw new Error('not a valid image');
-  const mime = m[1];
   const buf = Buffer.from(m[2], 'base64');
-  const ext = (mime.split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace('+xml', '');
+  const ext = (m[1].split('/')[1] || 'jpg').replace('jpeg', 'jpg').replace('+xml', '');
   const base = (filename || `ref-${idx}`).replace(/\.[^.]+$/, '').replace(/[^a-z0-9._-]+/gi, '-').slice(0, 32) || `ref-${idx}`;
-  const localName = `ref-${idx}-${base}.${ext}`;
-  const localPath = join(runDir, localName);
+  const assetsDir = join(runDir, 'assets');
+  mkdirSync(assetsDir, { recursive: true });
+  const localPath = join(assetsDir, `ref-${idx}-${base}.${ext}`);
   writeFileSync(localPath, buf);
-  const refImgDir = join(runDir, 'reference-images');
-  mkdirSync(refImgDir, { recursive: true });
-  writeFileSync(join(refImgDir, localName), buf); // research reads this folder
-
-  if (!process.env.FAL_KEY) throw new Error('FAL_KEY missing — cannot upload reference');
-  fal.config({ credentials: process.env.FAL_KEY });
-  const falUrl = await fal.storage.upload(new Blob([buf], { type: mime }));
-
-  const refsFile = join(runDir, 'refs.json');
-  let refs: { references: any[] } = { references: [] };
-  if (existsSync(refsFile)) {
-    try {
-      refs = JSON.parse(readFileSync(refsFile, 'utf8'));
-    } catch {
-      refs = { references: [] };
-    }
-  }
-  refs.references = refs.references ?? [];
-  refs.references.push({ falUrl, localPath, fileId: `ref-${idx}` });
-  writeFileSync(refsFile, JSON.stringify(refs, null, 2));
-  return { falUrl, localPath, count: refs.references.length };
+  return { localPath, count: idx };
 }
 
 const wss = new WebSocketServer({ server: http });
@@ -204,15 +184,15 @@ wss.on('connection', (ws) => {
       }
     }
 
-    // the ad image lands in runs/<runId>/images — tell the browser the moment it appears
+    // the ad images land in runs/<runId>/renders — tell the browser the moment each appears
     try {
-      imgWatcher = watch(join(runDir, 'images'), (_ev, fname) => {
+      imgWatcher = watch(join(runDir, 'renders'), (_ev, fname) => {
         if (fname && /\.(png|jpe?g|webp)$/i.test(fname.toString())) {
           send({ type: 'image', url: `/images/${runId}/${fname}` });
         }
       });
     } catch {
-      /* images dir watch is best-effort */
+      /* renders dir watch is best-effort */
     }
 
     session = new ChatSession(

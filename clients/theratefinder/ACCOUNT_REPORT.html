@@ -1,0 +1,270 @@
+<title>TheRateFinder — Meta Ads Diagnostic</title>
+
+<style>
+  :root{
+    --paper:#F2F5F8; --surface:#FFFFFF; --surface-2:#FAFBFC;
+    --ink:#0F1620; --ink-2:#3A4652; --muted:#6B7787;
+    --rule:#D8E0E8; --rule-strong:#B9C6D3;
+    --accent:#1F3B6E;
+    --good:#0B6E56; --good-bg:#E3F1EC;
+    --bad:#A83226;  --bad-bg:#FAE7E4;
+    --warn:#9A5B1E; --warn-bg:#FBEEDF;
+    --shadow:0 1px 2px rgba(15,22,32,.05), 0 8px 24px -12px rgba(15,22,32,.16);
+    --font-display:'Iowan Old Style','Palatino Linotype','Book Antiqua',Palatino,Georgia,ui-serif,serif;
+    --font-sans:system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',sans-serif;
+    --font-mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --paper:#0C1117; --surface:#141B24; --surface-2:#111820;
+      --ink:#E6ECF3; --ink-2:#B3BECB; --muted:#7E8B9A;
+      --rule:#263340; --rule-strong:#354656;
+      --accent:#7FA5E3;
+      --good:#3FBF9B; --good-bg:#0F312A;
+      --bad:#E8776A;  --bad-bg:#331A17;
+      --warn:#D89A55; --warn-bg:#33260F;
+      --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#0C1117; --surface:#141B24; --surface-2:#111820;
+    --ink:#E6ECF3; --ink-2:#B3BECB; --muted:#7E8B9A;
+    --rule:#263340; --rule-strong:#354656;
+    --accent:#7FA5E3;
+    --good:#3FBF9B; --good-bg:#0F312A;
+    --bad:#E8776A;  --bad-bg:#331A17;
+    --warn:#D89A55; --warn-bg:#33260F;
+    --shadow:0 1px 2px rgba(0,0,0,.4), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+  :root[data-theme="light"]{
+    --paper:#F2F5F8; --surface:#FFFFFF; --surface-2:#FAFBFC;
+    --ink:#0F1620; --ink-2:#3A4652; --muted:#6B7787;
+    --rule:#D8E0E8; --rule-strong:#B9C6D3;
+    --accent:#1F3B6E;
+    --good:#0B6E56; --good-bg:#E3F1EC;
+    --bad:#A83226;  --bad-bg:#FAE7E4;
+    --warn:#9A5B1E; --warn-bg:#FBEEDF;
+    --shadow:0 1px 2px rgba(15,22,32,.05), 0 8px 24px -12px rgba(15,22,32,.16);
+  }
+
+  .page{
+    background:var(--paper); color:var(--ink);
+    font-family:var(--font-sans); line-height:1.5;
+    padding:32px 20px 72px; min-height:100%;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1000px; margin:0 auto; display:flex; flex-direction:column; gap:28px;}
+
+  /* ---- statement header ---- */
+  .head{border-top:3px solid var(--accent); padding-top:18px; display:flex; flex-wrap:wrap; gap:20px; align-items:flex-end; justify-content:space-between;}
+  .head h1{font-family:var(--font-display); font-size:30px; line-height:1.15; margin:0 0 6px; letter-spacing:-.01em; text-wrap:balance; font-weight:600;}
+  .head .sub{color:var(--muted); font-size:13.5px;}
+  .meta{display:flex; flex-wrap:wrap; gap:10px 22px; font-family:var(--font-mono); font-size:11.5px; color:var(--ink-2);}
+  .meta b{display:block; font-family:var(--font-sans); font-weight:600; font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); margin-bottom:2px;}
+
+  .live{display:inline-flex; align-items:center; gap:6px; color:var(--good); font-weight:600;}
+  .dot{width:7px; height:7px; border-radius:50%; background:var(--good);}
+
+  /* ---- verdict tiles ---- */
+  .tiles{display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px;}
+  .tile{background:var(--surface); border:1px solid var(--rule); border-radius:4px; padding:16px 18px; box-shadow:var(--shadow); border-left:3px solid var(--rule-strong);}
+  .tile.good{border-left-color:var(--good);} .tile.bad{border-left-color:var(--bad);} .tile.warn{border-left-color:var(--warn);}
+  .tile .k{font-size:9.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--muted); font-weight:600;}
+  .tile .v{font-family:var(--font-mono); font-size:30px; font-weight:600; letter-spacing:-.02em; margin:8px 0 3px; font-variant-numeric:tabular-nums;}
+  .tile.good .v{color:var(--good);} .tile.bad .v{color:var(--bad);}
+  .tile .n{font-size:12px; color:var(--ink-2);}
+
+  /* ---- sections ---- */
+  section{background:var(--surface); border:1px solid var(--rule); border-radius:4px; box-shadow:var(--shadow); overflow:hidden;}
+  .sh{padding:15px 18px; border-bottom:1px solid var(--rule); background:var(--surface-2);}
+  .sh h2{font-family:var(--font-display); font-size:18px; margin:0; font-weight:600; letter-spacing:-.005em;}
+  .sh p{margin:4px 0 0; font-size:12.5px; color:var(--muted);}
+
+  .scroll{overflow-x:auto;}
+  table{width:100%; border-collapse:collapse; font-size:13px;}
+  th{font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600; text-align:right; padding:10px 12px; border-bottom:1px solid var(--rule); white-space:nowrap;}
+  th:first-child{text-align:left;}
+  td{padding:10px 12px; border-bottom:1px solid var(--rule); text-align:right; font-family:var(--font-mono); font-variant-numeric:tabular-nums; white-space:nowrap; color:var(--ink-2);}
+  td:first-child{text-align:left; font-family:var(--font-sans); color:var(--ink);}
+  tbody tr:last-child td{border-bottom:none;}
+  tr.total td{background:var(--surface-2); font-weight:700; color:var(--ink); border-top:2px solid var(--rule-strong);}
+  .num{color:var(--ink); font-weight:600;}
+  .win{color:var(--good); font-weight:700;}
+  .lose{color:var(--bad); font-weight:700;}
+  .dim{color:var(--muted);}
+
+  tr.stripe-good td:first-child{box-shadow:inset 3px 0 0 var(--good);}
+  tr.stripe-bad td:first-child{box-shadow:inset 3px 0 0 var(--bad);}
+  tr.stripe-warn td:first-child{box-shadow:inset 3px 0 0 var(--warn);}
+
+  .pill{display:inline-block; font-family:var(--font-mono); font-size:10px; padding:2px 7px; border-radius:3px; letter-spacing:.02em; font-weight:600;}
+  .pill.good{background:var(--good-bg); color:var(--good);}
+  .pill.bad{background:var(--bad-bg); color:var(--bad);}
+  .pill.warn{background:var(--warn-bg); color:var(--warn);}
+
+  /* ---- funnel ---- */
+  .funnel{padding:6px 18px 16px;}
+  .step{display:grid; grid-template-columns:1fr auto; gap:4px 16px; align-items:baseline; padding:13px 0; border-bottom:1px solid var(--rule);}
+  .step:last-child{border-bottom:none;}
+  .step .lbl{font-size:14px; color:var(--ink); font-weight:500;}
+  .step .cnt{font-family:var(--font-mono); font-size:22px; font-weight:600; font-variant-numeric:tabular-nums; color:var(--ink);}
+  .bar{grid-column:1/-1; height:7px; border-radius:2px; background:var(--accent); opacity:.85; min-width:3px;}
+  .bar.warn{background:var(--warn);} .bar.bad{background:var(--bad);} .bar.good{background:var(--good);}
+  .drop{grid-column:1/-1; font-size:12px; color:var(--muted); margin-top:2px;}
+  .drop .flag{color:var(--bad); font-weight:700;}
+
+  /* ---- callout ---- */
+  .call{border-left:3px solid var(--warn); background:var(--warn-bg); padding:14px 16px; border-radius:0 4px 4px 0;}
+  .call h3{margin:0 0 6px; font-size:14px; font-family:var(--font-sans); font-weight:700; color:var(--ink);}
+  .call p{margin:0; font-size:13.5px; color:var(--ink-2);}
+  .call p + p{margin-top:8px;}
+  .call.bad{border-left-color:var(--bad); background:var(--bad-bg);}
+
+  .foot{font-size:11.5px; color:var(--muted); text-align:center; font-family:var(--font-mono);}
+  @media (max-width:560px){ .head h1{font-size:24px;} .tile .v{font-size:25px;} }
+</style>
+
+<div class="page">
+<div class="wrap">
+
+  <header class="head">
+    <div>
+      <h1>Where the ad money actually went</h1>
+      <div class="sub">TheRateFinder — Meta ads diagnostic</div>
+    </div>
+    <div class="meta">
+      <div><b>Account</b>act_744787094857765</div>
+      <div><b>Period</b>1 Apr – 14 Jul 2026</div>
+      <div><b>Currency</b>CAD</div>
+      <div><b>Pixel</b><span class="live"><span class="dot"></span>firing 13 Jul</span></div>
+    </div>
+  </header>
+
+  <div class="tiles">
+    <div class="tile"><div class="k">Total spend</div><div class="v">$1,876</div><div class="n">113,290 impressions · 1,649 clicks</div></div>
+    <div class="tile good"><div class="k">Website applications</div><div class="v">8</div><div class="n">$234.50 each (blended)</div></div>
+    <div class="tile bad"><div class="k">Spend that produced nothing</div><div class="v">$781</div><div class="n">42% of budget · 0 applications</div></div>
+    <div class="tile"><div class="k">Click-through rate</div><div class="v">1.93%</div><div class="n">healthy · $0.86 per click</div></div>
+  </div>
+
+  <section>
+    <div class="sh">
+      <h2>The split: every campaign, and what it actually produced</h2>
+      <p>“Instant-form” leads never leave Facebook. “Web form” means someone filled the form on theratefinder.ca.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Campaign</th><th>Objective</th><th>Spend</th><th>Instant-form</th><th>Web form</th><th>Applications</th><th>Cost / application</th>
+        </tr></thead>
+        <tbody>
+          <tr class="stripe-good">
+            <td>TRF_Traffic</td><td><span class="pill good">SALES</span></td>
+            <td class="num">$212</td><td class="dim">0</td><td class="num">3</td><td class="win">3</td><td class="win">$71</td>
+          </tr>
+          <tr class="stripe-good">
+            <td>TRF_Lead Gen</td><td><span class="pill good">LEADS</span></td>
+            <td class="num">$883</td><td class="num">91</td><td class="num">12</td><td class="win">5</td><td class="num">$177</td>
+          </tr>
+          <tr class="stripe-bad">
+            <td>TRF_Post Engagement Products</td><td><span class="pill bad">ENGAGEMENT</span></td>
+            <td class="lose">$404</td><td class="dim">0</td><td class="dim">0</td><td class="lose">0</td><td class="dim">—</td>
+          </tr>
+          <tr class="stripe-bad">
+            <td>TRF_Post Engagement</td><td><span class="pill bad">ENGAGEMENT</span></td>
+            <td class="lose">$377</td><td class="dim">0</td><td class="dim">0</td><td class="lose">0</td><td class="dim">—</td>
+          </tr>
+          <tr class="total">
+            <td>Total</td><td></td><td>$1,876</td><td>91</td><td>15</td><td>8</td><td>$234.50</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="call bad">
+    <h3>The single clearest finding</h3>
+    <p><b>$781 — 42% of the budget — went to engagement campaigns that produced zero applications.</b> They bought 14,053 post reactions at 13¢ each. Cheap likes, no business. Across many ads, over three months, that is not a sample-size problem — it is a settled result.</p>
+    <p>Moved into the campaigns that already convert, that same $781 is worth roughly <b>70–110 more leads</b> at the CPLs those campaigns are already achieving.</p>
+  </div>
+
+  <section>
+    <div class="sh">
+      <h2>The website funnel — where people fall out</h2>
+      <p>99% of this traffic is on mobile, inside the Facebook / Instagram in-app browser.</p>
+    </div>
+    <div class="funnel">
+      <div class="step">
+        <div class="lbl">Clicked the ad</div><div class="cnt">1,649</div>
+        <div class="bar" style="width:100%"></div>
+      </div>
+      <div class="step">
+        <div class="lbl">Actually landed on the site</div><div class="cnt">920</div>
+        <div class="bar warn" style="width:55.8%"></div>
+        <div class="drop"><span class="flag">44% never arrive.</span> They tapped, then vanished before the page loaded — worth testing on a phone, in the in-app browser.</div>
+      </div>
+      <div class="step">
+        <div class="lbl">Filled in the form</div><div class="cnt">15</div>
+        <div class="bar bad" style="width:0.91%"></div>
+        <div class="drop"><span class="flag">1.6% of the people who landed.</span> This is the biggest leak in the funnel.</div>
+      </div>
+      <div class="step">
+        <div class="lbl">Completed the application</div><div class="cnt">8</div>
+        <div class="bar good" style="width:0.49%"></div>
+        <div class="drop">53% of those who started the form finished it — <b>this part works fine.</b></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh">
+      <h2>The 8 applications — which ads made them</h2>
+      <p>Half of all applications are <b>construction financing</b>, and they are the cheapest.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr>
+          <th>Ad</th><th>Product</th><th>Spend</th><th>Web form</th><th>Applications</th><th>Cost / application</th><th>CTR</th>
+        </tr></thead>
+        <tbody>
+          <tr class="stripe-good"><td>Traffic · Construction Financing</td><td><span class="pill good">CONSTRUCTION</span></td><td>$21</td><td>1</td><td class="win">1</td><td class="win">$21</td><td>2.0%</td></tr>
+          <tr class="stripe-good"><td>Leads · Construction Financing</td><td><span class="pill good">CONSTRUCTION</span></td><td>$44</td><td>2</td><td class="win">1</td><td class="win">$44</td><td>3.4%</td></tr>
+          <tr class="stripe-good"><td>Traffic · Construction Credit</td><td><span class="pill good">CONSTRUCTION</span></td><td>$49</td><td>1</td><td class="win">1</td><td class="win">$49</td><td>2.1%</td></tr>
+          <tr class="stripe-good"><td>Traffic · Construction 2M</td><td><span class="pill good">CONSTRUCTION</span></td><td>$51</td><td>1</td><td class="win">1</td><td class="win">$51</td><td>2.8%</td></tr>
+          <tr class="stripe-good"><td>Leads · Bridge Term Loan</td><td><span class="pill good">BRIDGE</span></td><td>$122</td><td>2</td><td class="win">2</td><td class="win">$61</td><td class="num">3.7%</td></tr>
+          <tr class="stripe-good"><td>Leads · Private 5.99%</td><td><span class="pill good">PRIVATE</span></td><td>$63</td><td>1</td><td class="win">1</td><td>$63</td><td>2.5%</td></tr>
+          <tr class="stripe-good"><td>Leads · Term Loan</td><td><span class="pill good">TERM LOAN</span></td><td>$82</td><td>2</td><td class="win">1</td><td>$82</td><td class="num">4.1%</td></tr>
+          <tr class="stripe-warn"><td>Leads · Video “Think Mortgages”</td><td><span class="pill warn">UNDER-TESTED</span></td><td>$10</td><td>1</td><td class="dim">0</td><td class="dim">—</td><td class="win">6.7%</td></tr>
+          <tr class="stripe-warn"><td>Leads · Construction 85% · Private (updated)</td><td><span class="pill warn">NO APP YET</span></td><td>$166</td><td>4</td><td class="dim">0</td><td class="dim">—</td><td>2.2%</td></tr>
+          <tr class="total"><td>Total</td><td></td><td>$608</td><td>15</td><td>8</td><td>—</td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <div class="sh">
+      <h2>Facebook vs Instagram</h2>
+      <p>Instagram takes two-thirds of the budget and delivers the same number of applications.</p>
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th>Platform</th><th>Spend</th><th>Share of budget</th><th>CTR</th><th>Leads</th><th>Applications</th><th>Cost / application</th></tr></thead>
+        <tbody>
+          <tr class="stripe-good"><td>Facebook</td><td class="num">$612</td><td>33%</td><td class="win">3.13%</td><td class="num">75</td><td class="win">4</td><td class="win">$153</td></tr>
+          <tr class="stripe-bad"><td>Instagram</td><td class="lose">$1,264</td><td class="lose">67%</td><td>1.67%</td><td>31</td><td>4</td><td class="lose">$316</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="call">
+    <h3>Two things to read carefully before acting</h3>
+    <p><b>1. Eight conversions is a small sample.</b> The “$21 per application” ad did that on a single conversion from $21 of spend — one data point, not a proven cost. Don’t bet a budget on any individual row above. The <i>zero</i> from $781 of engagement spend, however, is solid — that one you can act on today.</p>
+    <p><b>2. The number that decides everything is missing.</b> Of the <b>106 leads</b>, how many became real conversations? How many <b>funded</b>? And what is a funded deal worth in commission? If a funded construction deal is worth thousands, then applications at $21–$82 mean this account is badly <i>under</i>-spent. If those leads are junk, the cheap CPLs are a mirage. That answer has to come from the client.</p>
+  </div>
+
+  <div class="foot">Read-only pull from the Meta Marketing API · 14 Jul 2026</div>
+
+</div>
+</div>

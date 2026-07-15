@@ -24,16 +24,19 @@ const isGatheringTool = (name: string): boolean =>
   name === 'WebFetch' || name.startsWith('mcp__perplexity') || name.startsWith('mcp__scrapecreators');
 
 // Per-stage launch ceilings. The retry loops re-launch create/buy (one
-// buyer-rejected redo) and cell-render/render-critic (1 retry), so a flat
-// "once only" rule would block them. Collectors run once. Beyond the
-// ceiling = a runaway (the old async double-fire) — deny it.
+// buyer-rejected redo) and build/gate (1 re-render round), and the field-read
+// FAN-OUT launches several readers in one message — so a flat "once only" rule
+// would block them. Collectors/scout run once. Beyond the ceiling = a runaway
+// (the old async double-fire) — deny it.
 const LAUNCH_CAPS: Record<string, number> = {
+  'field-scout': 1,
+  'field-read': 8, // the parallel fan-out: one launch per reader slice
+  'field-brief': 2,
   collect: 1,
-  market: 1,
   create: 2, // one buyer-rejected redo
   buy: 2,
-  'cell-render': 3,
-  'render-critic': 3,
+  build: 3, // initial + the gate's single re-render round (+1 headroom)
+  gate: 3,
 };
 const DEFAULT_LAUNCH_CAP = 2;
 
@@ -81,12 +84,18 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
             // ordered stage's deliverable exists ON THIS RUN's disk. This is the code-side
             // "harness disposes" guard against the orchestrator concluding completion from
             // archived/stale files instead of running its stages.
+            // EXCEPTION: a DONE.md that starts with "flagged" is a legitimate EARLY end
+            // (buyer rejected two batches; gate found a structural miss) — on that path the
+            // downstream deliverables rightly do not exist, so the guard must let it through.
             if (tool === 'Write' && typeof input?.tool_input?.file_path === 'string' && /(^|\/)DONE\.md$/.test(input.tool_input.file_path)) {
-              const missing = (cfg.doneRequires ?? []).filter((p) => !fs.existsSync(p));
+              const content = String(input?.tool_input?.content ?? '');
+              const isFlag = /^\s*flagged\b/i.test(content);
+              const missing = isFlag ? [] : (cfg.doneRequires ?? []).filter((p) => !fs.existsSync(p));
               if (missing.length) {
                 return deny(
                   `DONE.md refused: this run's deliverable(s) do not exist yet — ${missing.join(', ')}. ` +
-                  'Run the missing stage(s) via the Agent tool first. Files in archived subfolders do not count.',
+                  'Run the missing stage(s) via the Agent tool first. Files in archived subfolders do not count. ' +
+                  '(Only a "flagged: <reason>" DONE.md may end a run early.)',
                 );
               }
             }

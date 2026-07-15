@@ -1,7 +1,13 @@
 /**
- * The orchestrator — one Haiku query() whose systemPrompt is the routing brain.
- * It delegates to the four binder-subagents in order, files-as-handoff, and
- * never produces itself (no Write, no MCP; the hook hard-blocks orchestrator MCP).
+ * The orchestrator — one query() whose systemPrompt is the routing brain.
+ * It delegates to the binder-subagents in order, files-as-handoff, and never
+ * produces itself (no Write except DONE.md, no MCP; the hook hard-blocks
+ * orchestrator MCP).
+ *
+ * FIELD-FIRST FLOW (2026-07-09): field-scout → field-read FAN-OUT (the one
+ * place agents run in PARALLEL — several readers in one message, each on its
+ * own slice; the S137 deadlock was NESTED spawns, depth-1 concurrency is
+ * supported) → field-brief → collect → create ⇄ buy → build ⇄ gate.
  *
  * MCP grant model (verified in Phase 0): every mcp__ tool name goes in BOTH the
  * subagent's `tools` (capability) AND the top-level `allowedTools` (approval).
@@ -14,10 +20,16 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import * as fs from 'node:fs';
 import { perplexityMcpServer, PERPLEXITY_TOOL_NAME } from './mcp/perplexity.ts';
-import { createScrapecreatorsServer, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL } from './mcp/scrapecreators.ts';
-import { createNanoBananaServer } from './mcp/nano-banana.ts';
-import { createRefsServer } from './mcp/refs.ts';
-import { STAGES, NANO_BANANA_TOOL, REFS_TOOL, MODE_CAPS, modeHint, GATHER_STAGES, BUY_MODEL, BUY_IO_PROMPT, RENDER_CRITIC_MODEL, RENDER_CRITIC_IO_PROMPT, type Stage, type Mode } from './stages.ts';
+import { createScrapecreatorsServer, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL, SCRAPECREATORS_FORMAT_HUNT_TOOL } from './mcp/scrapecreators.ts';
+import { createRenderServer, RENDER_TOOL } from './mcp/render.ts';
+import {
+  STAGES, MODE_CAPS, modeHint, GATHER_STAGES,
+  FIELD_READ_MODEL, FIELD_READ_IO_PROMPT,
+  FIELD_BRIEF_MODEL, FIELD_BRIEF_IO_PROMPT,
+  BUY_MODEL, BUY_IO_PROMPT,
+  GATE_MODEL, GATE_IO_PROMPT,
+  type Stage, type Mode,
+} from './stages.ts';
 import { buildHooks } from './hook.ts';
 import type { TraceLogger } from './trace.ts';
 
@@ -29,12 +41,12 @@ const ALL_MCP_TOOLS = [
   PERPLEXITY_TOOL_NAME,
   SCRAPECREATORS_FIND_PAGES_TOOL,
   SCRAPECREATORS_ADS_TOOL,
-  NANO_BANANA_TOOL,
-  REFS_TOOL,
+  SCRAPECREATORS_FORMAT_HUNT_TOOL,
+  RENDER_TOOL,
 ];
 
 function agentDef(stage: Stage, mode: Mode): AgentDefinition {
-  // Gather stages (research/comp) get the depth nudge appended; others run as-is.
+  // Gather stages (field-scout/collect) get the depth nudge appended; others run as-is.
   const prompt = GATHER_STAGES.has(stage.name) ? stage.identityPrompt + '\n' + modeHint(mode) : stage.identityPrompt;
   return {
     description: stage.description,
@@ -42,45 +54,59 @@ function agentDef(stage: Stage, mode: Mode): AgentDefinition {
     model: stage.model,
     tools: stage.tools,
     mcpServers: stage.mcpServers,
-    skills: [stage.skill ?? stage.name], // preload the binder (both cell stages use the 'cell' skill)
+    skills: [stage.skill ?? stage.name], // preload the binder
     maxTurns: stage.maxTurns,
   };
 }
 
 function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], interactive = false): string {
-  // The linear produce stages come from `order`. The two critics are NOT in `order` —
-  // this orchestrator launches them (depth-1) between the cell stages, with the retry
-  // loops below. cell-generate carries the take-critic loop; cell-render the render one.
+  // The linear produce stages come from `order`. The intermediate seats
+  // (field-read fan-out, field-brief, buy, gate) are NOT in `order` — this
+  // orchestrator launches them between stages, with the loops below.
   const lines: string[] = [];
   for (const n of order) {
     const s = STAGES[n];
-    if (n === 'create') {
-      lines.push('  • create — subagent_type "create" → writes diagnosis.md, hooks-workbench.md, cards.md, cards.json.');
-      lines.push('      then the BUYER — subagent_type "buy" → writes verdict.md (it judges the cards + the matrix cold,');
-      lines.push('      verifying against material.md and market.md; it never sees the creative\'s diagnosis).');
+    if (n === 'field-scout') {
+      lines.push('  • field-scout — subagent_type "field-scout" → writes field/shortlist.md (the set, the shortlist,');
+      lines.push('      the READER SLICES, do-not-clone marks).');
+      lines.push('      then the PIXEL READERS — Read field/shortlist.md yourself and find its "Reader slices" section.');
+      lines.push('      Launch ONE subagent_type "field-read" PER SLICE — ALL IN ONE MESSAGE (this is the single place');
+      lines.push('      you parallelize; the readers are independent). Each launch instruction names (a) that slice\'s');
+      lines.push('      image file paths and (b) its own output file: field/reads/slice-<N>.jsonl. WAIT for ALL readers');
+      lines.push('      to finish, then verify every slice file exists (Glob field/reads/*.jsonl) before proceeding.');
+      lines.push('      then the FIELD-BRIEF seat — subagent_type "field-brief" → writes field/field-brief.md');
+      lines.push('      (it synthesizes shortlist + all reads + the raw dumps). Verify it exists before the next stage.');
+    } else if (n === 'create') {
+      lines.push('  • create — subagent_type "create" → writes creatives.md + creatives.json (3–5 brand specs).');
+      lines.push('      then the BUYER — subagent_type "buy" → writes verdict.md (it judges the specs cold against');
+      lines.push('      material, the field brief, and the source reads; it never sees the creative\'s reasoning).');
       lines.push('      Read verdict.md and branch:');
-      lines.push('        · "FINAL: WINNERS — …" → the approved cards are the phase deliverable. Proceed (or finish).');
+      lines.push('        · "FINAL: WINNERS — …" → the approved specs proceed to build.');
       lines.push('        · "FINAL: REJECT ALL"  → re-run create (it reads verdict.md and writes a NEW batch that answers');
       lines.push('          the autopsy), then re-run the buyer. AT MOST 2 rounds total. If the 2nd batch is STILL');
-      lines.push('          reject-all, STOP: the problem is upstream (material or brief). Write the flag to DONE.md');
+      lines.push('          reject-all, STOP: the problem is upstream (field or material). Write the flag to DONE.md');
       lines.push('          ("flagged: buyer rejected two batches — <the buyer\'s instruction>") and END.');
-    } else if (n === 'cell-render') {
-      lines.push('  • cell-render — subagent_type "cell-render" → writes shotspec.md, the image, and cell-output.md.');
-      lines.push('      then the RENDER-CRITIC — subagent_type "render-critic" → writes render-verdict.md (judges the pixels).');
-      lines.push('      Read render-verdict.md and branch:');
-      lines.push('        · "PASS" → done.');
-      lines.push('        · "FAIL" with ONLY "re-render" diffs → re-run cell-render ONCE (it reads render-verdict.md and');
-      lines.push('          fixes only those diffs), then re-run the render-critic.');
-      lines.push('        · any "structural" diff, OR still FAIL after that 1 retry → STOP; the note stays in');
-      lines.push('          cell-output.md. Do NOT render again — every render costs money.');
+    } else if (n === 'build') {
+      lines.push('  • build — subagent_type "build" → compiles the approved specs, renders via the render tool, writes');
+      lines.push('      prompts.md + build-output.md (image paths inside).');
+      lines.push('      then the GATE — subagent_type "gate" → writes gate-verdict.md (five checks per image, viewing');
+      lines.push('      the actual pixels against creatives.json and the source reads).');
+      lines.push('      Read gate-verdict.md\'s FINAL line and branch:');
+      lines.push('        · "FINAL: PASS — …" → those creatives ship. Done.');
+      lines.push('        · "FINAL: RE-RENDER — …" → re-run build ONCE (it reads gate-verdict.md and fixes ONLY the');
+      lines.push('          named re-render diffs), then re-run the gate. AT MOST 1 retry — every render costs money.');
+      lines.push('        · "FINAL: FLAG — …" (structural), OR still failing after the retry → STOP. Write the flag to');
+      lines.push('          DONE.md ("flagged: gate — <the structural reason>") and END. Do NOT render again.');
+      lines.push('        · A mixed FINAL line (some PASS, some RE-RENDER) → the passes ship as-is; run the single');
+      lines.push('          build retry scoped to the re-render creatives only, then the gate once more.');
     } else {
       lines.push(`  • ${n} — subagent_type "${n}" → writes ${s.deliverable}  (reads: ${s.reads.join(', ')}).`);
     }
   }
   return [
     'You orchestrate an ad-creative pipeline. You do NOT do the creative work yourself and you do NOT call MCP',
-    'tools. You delegate to specialist subagents via the Agent tool — ONE at a time — and stages hand off through',
-    'files in the working directory.',
+    'tools. You delegate to specialist subagents via the Agent tool and stages hand off through files in the',
+    'working directory.',
     '',
     `Working directory: ${runDir} (every artifact lives here). The brand brief is in founder-facts.md; the brand`,
     `URL is ${brandUrl}.`,
@@ -93,16 +119,20 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
     'HOW SUBAGENTS RETURN — READ THIS (it is how you avoid deadlocking): when you launch an Agent it runs in the',
     'background and you get "Async agent launched…". You WILL be notified when it finishes. WAIT for that',
     'notification, then confirm its deliverable file exists (Read or Glob) BEFORE the next step. NEVER give up',
-    'waiting, never poll-then-quit, and never launch the next step until the current file is on disk. Exactly ONE',
-    'Agent in flight at a time.',
+    'waiting, never poll-then-quit, and never launch the next step until the current file is on disk.',
+    '',
+    'CONCURRENCY RULE: exactly ONE Agent in flight at a time — with ONE exception: the field-read fan-out, where',
+    'you launch ALL the pixel readers in a single message (they are independent, each on its own slice and its own',
+    'output file) and wait for every one of them before proceeding. Never parallelize anything else.',
     '',
     ...(interactive
       ? [
           'BEFORE the pipeline — FOUNDER INTAKE (you are in a live chat with the founder):',
-          `  0. Ground yourself: WebFetch ${brandUrl} (and an obvious page or two) so your questions are informed.`,
-          '  1. Then ASK the founder what you need, using the AskUserQuestion tool: the conversion goal (sales /',
-          '     leads / bookings / signups), who the buyer is, the rough monthly ad budget, and what they have',
-          '     already tried or what is not working. Keep it to 3–4 crisp questions, each with sensible options.',
+          `  0. Ground yourself: WebFetch ${brandUrl} (and an obvious page or two) so your questions are informed,`,
+          '     and extract any OFFER FACTS the pages state verbatim (prices, guarantees, dates).',
+          '  1. Then ASK the founder what you need, using the AskUserQuestion tool: the conversion event (what a',
+          '     "sale" is, and its price), the target CPA or acceptable cost, the budget/flight window, and who the',
+          '     buyer is (market country included). Keep it to 3–4 crisp questions, each with sensible options.',
           '  2. Write their answers + what you learned from the site into founder-facts.md, replacing the stub — be',
           '     concrete; this is the brief every downstream stage reads. Only THEN begin the flow below.',
           '',
@@ -112,14 +142,15 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
     ...lines,
     '',
     'For each subagent give a SHORT instruction: which working-directory files to read and which deliverable to',
-    'write. It already knows its full method (binder preloaded / rubric inlined) — do NOT re-explain the method,',
-    "and NEVER pass a cell's reasoning or preferred take to a critic; the critics judge cold.",
+    'write (for pixel readers: the slice\'s image paths + its output file). It already knows its full method',
+    '(binder preloaded / rubric inlined) — do NOT re-explain the method, and NEVER pass a writer\'s reasoning or',
+    'preferred pick to a judging seat (buy, gate); the judges work cold.',
     '',
-    'Your FINAL action, once the flow is complete (the buyer approved winners — or, when render stages are in',
-    'the flow, the render-critic returned PASS) OR you have flagged upstream: write a one-line file DONE.md',
-    'recording the outcome ("approved: Card X, Card Y — see cards.json + verdict.md", "shipped: <image path>",',
-    'or "flagged: <reason>"). That file is the signal the run is over — write it ONLY at true completion.',
-    'Then briefly summarize the deliverables and STOP. Never produce creative work yourself; never call MCP tools.',
+    'Your FINAL action, once the flow is complete (the gate returned PASS for the shipped set) OR you have',
+    'flagged upstream: write a one-line file DONE.md recording the outcome ("shipped: <image paths> — see',
+    'gate-verdict.md", or "flagged: <reason>"). That file is the signal the run is over — write it ONLY at true',
+    'completion. Then briefly summarize the deliverables and STOP. Never produce creative work yourself; never',
+    'call MCP tools.',
     ...(interactive
       ? [
           '',
@@ -132,36 +163,57 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
   ].join('\n');
 }
 
-// Assemble the subagent registry: the ordered produce-stages + the independent
-// judges (orchestrator-launched, depth-1). Shared by the headless runner and the
+// Assemble the subagent registry: the ordered produce-stages + the intermediate
+// seats (pixel readers, field-brief, buyer, gate — orchestrator-launched,
+// depth-1, reference docs inlined). Shared by the headless runner and the
 // interactive chat session so both drive the exact same agents.
 export function buildAgents(order: string[], mode: Mode): Record<string, AgentDefinition> {
   const agents: Record<string, AgentDefinition> = {};
   for (const n of order) agents[n] = agentDef(STAGES[n], mode);
 
-  const buyerRubric = fs.readFileSync(join(PLUGIN_PATH, 'skills', 'create', 'references', 'buyer.md'), 'utf8');
+  const skillRef = (skill: string, rel: string) => fs.readFileSync(join(PLUGIN_PATH, 'skills', skill, 'references', rel), 'utf8');
+
+  agents['field-read'] = {
+    description:
+      'Pixel reader — reads ONE SLICE of shortlisted ad creatives (image files) and writes one unified-schema JSONL line per creative. The ORCHESTRATOR launches several in parallel after field-scout, each with its own slice and output file.',
+    prompt: FIELD_READ_IO_PROMPT + '\n\n' + skillRef('field', 'read-schema.md'),
+    model: FIELD_READ_MODEL,
+    tools: ['Read', 'Write', 'Grep', 'Glob'],
+    mcpServers: [],
+    maxTurns: 30,
+  };
+
+  agents['field-brief'] = {
+    description:
+      'Field-brief seat — synthesizes the shortlist + all pixel reads + the raw dumps into field/field-brief.md (working/emerging constructions, hook bank, registers, open lanes, DO-NOT-CLONE). The ORCHESTRATOR launches it after all readers finish.',
+    prompt: FIELD_BRIEF_IO_PROMPT + '\n\n' + skillRef('field', 'field-brief.md'),
+    model: FIELD_BRIEF_MODEL,
+    tools: ['Read', 'Write', 'Grep', 'Glob'],
+    mcpServers: [],
+    maxTurns: 15,
+  };
+
   agents['buy'] = {
     description:
-      "Media buyer — judges the creative's cards + the test matrix with a fresh context that never saw the " +
-      "writer's diagnosis. The ORCHESTRATOR invokes it after create; it writes verdict.md and returns winners or REJECT ALL.",
-    prompt: BUY_IO_PROMPT + '\n\n' + buyerRubric,
+      "Media buyer — judges the creative's specs cold, with a fresh context that never saw the writer's reasoning. " +
+      'The ORCHESTRATOR invokes it after create; it writes verdict.md and returns winners or REJECT ALL.',
+    prompt: BUY_IO_PROMPT + '\n\n' + skillRef('create', 'buyer.md'),
     model: BUY_MODEL,
-    tools: ['Read', 'Write', 'Grep'],
+    tools: ['Read', 'Write', 'Grep', 'Glob'],
     mcpServers: [],
     maxTurns: 12,
   };
 
-  const renderCriticRubric = fs.readFileSync(join(PLUGIN_PATH, 'skills', 'cell', 'references', 'render-critic.md'), 'utf8');
-  agents['render-critic'] = {
+  agents['gate'] = {
     description:
-      "Independent render-critic — judges the cell's RENDERED IMAGE with a fresh context that never saw the " +
-      'writer\'s reasoning. The ORCHESTRATOR invokes it after cell-render; it views the pixels against shotspec.md, ' +
-      'writes render-verdict.md, and returns PASS or FAIL with named diffs.',
-    prompt: RENDER_CRITIC_IO_PROMPT + '\n\n' + renderCriticRubric,
-    model: RENDER_CRITIC_MODEL,
-    tools: ['Read', 'Write', 'Glob'],
+      "The gate — judges the RENDERED IMAGES with a fresh context that never saw the compiler's reasoning. The " +
+      'ORCHESTRATOR invokes it after build; it views every image against creatives.json and the source reads, ' +
+      'writes gate-verdict.md, and returns PASS / RE-RENDER / FLAG.',
+    prompt: GATE_IO_PROMPT + '\n\n' + skillRef('build', 'gate.md'),
+    model: GATE_MODEL,
+    tools: ['Read', 'Write', 'Glob', 'Grep'],
     mcpServers: [],
-    maxTurns: 8,
+    maxTurns: 12,
   };
 
   return agents;
@@ -185,7 +237,6 @@ export interface BaseOptionsArgs {
 // input `prompt` (the headless single-yield vs the chat's held-open queue differ). Both
 // entry points build on this, so they run identical agents, MCP grants, hooks, and guards.
 export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, extraAllowedTools = [], canUseTool, interactive = false }: BaseOptionsArgs): Options {
-  const imagesDir = join(runDir, 'images');
   const options: Options = {
     cwd: runDir, // subagents inherit this → files-as-handoff through one shared dir
     model: 'claude-sonnet-4-6', // the orchestrator — reasons about conditional retries + async coordination, so Sonnet not Haiku
@@ -195,21 +246,28 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
     plugins: [{ type: 'local', path: PLUGIN_PATH }],
     mcpServers: {
       perplexity: perplexityMcpServer,
-      scrapecreators: createScrapecreatorsServer(join(runDir, 'raw', 'ads')), // dumps full ads for the creative's Grep
-      'nano-banana': createNanoBananaServer(imagesDir),
-      refs: createRefsServer(runDir),
+      // dumps full ads to raw/ads/ + downloads the top image creatives to raw/images/
+      scrapecreators: createScrapecreatorsServer(join(runDir, 'raw', 'ads'), join(runDir, 'raw', 'images')),
+      // provider-redundant GPT Image 2 (KIE primary, fal failover); brand refs resolve against runDir
+      render: createRenderServer(join(runDir, 'renders'), runDir),
     },
     // Orchestrator gets Agent + read-only inspection; subagents' built-ins + all MCP names live here too
     // (top-level is the only approval list). extraAllowedTools lets the chat add 'AskUserQuestion'.
     allowedTools: ['Agent', 'Task', 'Read', 'Glob', 'Grep', 'Write', 'WebFetch', ...ALL_MCP_TOOLS, ...extraAllowedTools],
     agents: buildAgents(order, mode),
     hooks: buildHooks({
-      caps: { collect: MODE_CAPS[mode], market: MODE_CAPS[mode] }, // surface/deep gathering cap
+      caps: { 'field-scout': MODE_CAPS[mode], collect: MODE_CAPS[mode] }, // surface/deep gathering cap
       defaultCap: MODE_CAPS[mode], // applies even if agent_type isn't populated (the async-task path)
-      doneRequires: order.map((n) => join(runDir, STAGES[n].deliverable)), // DONE.md refused until every ordered deliverable exists
+      // DONE.md refused until every ordered deliverable exists — plus the field brief (an
+      // orchestrator-launched intermediate whose absence means the field phase was skipped).
+      // A DONE.md that starts with "flagged:" bypasses this (a legitimate early end).
+      doneRequires: [
+        ...order.map((n) => join(runDir, STAGES[n].deliverable)),
+        ...(order.includes('field-scout') ? [join(runDir, 'field', 'field-brief.md')] : []),
+      ],
       onEvent: (msg) => onProgress?.(msg),
     }),
-    maxTurns: 100, // orchestrator turns are cheap; async-task re-invocations add segments
+    maxTurns: 120, // orchestrator turns are cheap; the reader fan-out adds notification segments
     maxBudgetUsd: mode === 'deep' ? 28 : 20, // global safety-net; the per-agent gathering cap is the real control
   };
   if (canUseTool) options.canUseTool = canUseTool;
@@ -252,14 +310,13 @@ export async function runPipeline({ brandUrl, runDir, order, mode, logger, onPro
   }
 
   // Close the input stream ONLY when the ORCHESTRATOR signals true completion — it
-  // writes DONE.md as its final action (after the render-critic PASSES or it flags
-  // upstream). Keying on a stage deliverable (cell-output.md) closed too EARLY:
-  // cell-render writes cell-output.md BEFORE the render-critic + any re-render retry,
-  // so the retry got cut off mid-flight (observed in the 2026-07-01 validation run).
-  // DONE.md exists only at true end. A wall-clock hard-stop guards a run that never
-  // produces it.
+  // writes DONE.md as its final action (after the gate PASSES or it flags upstream).
+  // Keying on a stage deliverable closed too EARLY: build writes build-output.md
+  // BEFORE the gate + any re-render retry, so the retry would get cut off mid-flight
+  // (observed with cell-output.md in the 2026-07-01 validation run). DONE.md exists
+  // only at true end. A wall-clock hard-stop guards a run that never produces it.
   const finalDeliverable = join(runDir, 'DONE.md');
-  const hardStop = setTimeout(() => done.abort(), 45 * 60 * 1000);
+  const hardStop = setTimeout(() => done.abort(), 60 * 60 * 1000); // field phase + renders: longer ceiling than the old 45min
   try {
     for await (const m of query({ prompt: promptStream(), options })) {
       logger.record(m);

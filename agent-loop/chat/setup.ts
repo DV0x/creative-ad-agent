@@ -24,27 +24,13 @@ export function loadEnv(): void {
 /** Which required keys are missing for the chosen stages (fail fast with a clear message). */
 export function missingKeys(order: string[]): string[] {
   const need = new Set<string>();
-  if (order.includes('collect') || order.includes('market')) need.add('PERPLEXITY_API_KEY');
-  if (order.includes('market')) need.add('SCRAPECREATORS_API_KEY');
-  if (order.includes('cell-render')) need.add('FAL_KEY');
-  return [...need].filter((k) => !process.env[k]);
+  if (order.includes('collect') || order.includes('field-scout')) need.add('PERPLEXITY_API_KEY');
+  if (order.includes('field-scout')) need.add('SCRAPECREATORS_API_KEY');
+  const missing = [...need].filter((k) => !process.env[k]);
+  // build renders via KIE (primary) or fal (failover) — at least one key must exist
+  if (order.includes('build') && !process.env.KIE_API_KEY && !process.env.FAL_KEY) missing.push('KIE_API_KEY (or FAL_KEY)');
+  return missing;
 }
-
-// The cell reference bundle — copied into the run dir for both cell stages so the binder's
-// "read references/X.md" resolves relative to cwd. MUST match run.ts.
-const CELL_REFS = [
-  ...['layer-stack', 'style-grammar', 'type-grammar', 'shot-spec', 'critic', 'render-critic', 'counterexamples'].map((n) => ({
-    src: `agent/.claude/skills/cell/references/${n}.md`,
-    dest: `references/${n}.md`,
-  })),
-  ...['testimonial', 'founder-pov', 'pas-real-world'].map((n) => ({
-    src: `agent/.claude/skills/cell/references/formats/${n}.md`,
-    dest: `references/formats/${n}.md`,
-  })),
-];
-const EXTRA_FILES: Record<string, Array<{ src: string; dest: string }>> = {
-  'cell-render': CELL_REFS,
-};
 
 export function slugFor(brandUrl: string): string {
   return brandUrl
@@ -55,12 +41,13 @@ export function slugFor(brandUrl: string): string {
     .toLowerCase();
 }
 
-/** Create a fresh stamped run dir (with images/), or reuse an existing one for --resume. */
+/** Create a fresh stamped run dir (with field/reads/ + renders/), or reuse an existing one for --resume. */
 export function createRunDir(brandUrl: string, resumeDir?: string): string {
   const runDir = resumeDir
     ? resumeDir
     : join(AGENT_LOOP_DIR, 'runs', `${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}_${slugFor(brandUrl)}`);
-  fs.mkdirSync(join(runDir, 'images'), { recursive: true });
+  fs.mkdirSync(join(runDir, 'field', 'reads'), { recursive: true }); // the reader fan-out appends slice files here
+  fs.mkdirSync(join(runDir, 'renders'), { recursive: true });
   return runDir;
 }
 
@@ -75,16 +62,7 @@ export function writeFounderStub(runDir: string, brandUrl: string): void {
   );
 }
 
-/** Copy the binder reference files each stage expects into the run dir. */
-export function stageBinderRefs(runDir: string, order: string[]): void {
-  for (const s of order) {
-    for (const f of EXTRA_FILES[s] ?? []) {
-      const src = join(REPO_ROOT, f.src);
-      const dest = join(runDir, f.dest);
-      if (fs.existsSync(src)) {
-        fs.mkdirSync(dirname(dest), { recursive: true });
-        fs.copyFileSync(src, dest);
-      }
-    }
-  }
-}
+/** Binder reference staging — now a NO-OP kept for caller compatibility. The field-first
+ *  seats get their reference docs INLINED into their prompts by pipeline.ts (read-schema,
+ *  field-brief rules, buyer + gate rubrics), so nothing needs copying into the run dir. */
+export function stageBinderRefs(_runDir: string, _order: string[]): void {}

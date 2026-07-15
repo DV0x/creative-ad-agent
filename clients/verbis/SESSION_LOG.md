@@ -6,9 +6,9 @@
 
 ## STATUS / NEXT
 - Campaign to **10 Jul** (workshop 11). Target **40–50 sales**.
-- Latest (Jul 6): **18 sales · ₹11,284 · ₹627/sale · 1.10× · 19 abandoners · 49% close.** Jul 6 = best day (6 sales, 75% day-close). Checkout bug **fixed**. Detail + daily pattern: `RESULTS.md`.
+- Latest (Jul 8): **23 sales · ₹18,334 · ₹797/sale · 0.84× (below breakeven) · 49% close.** Efficiency collapse = the reel (₹3,299/**0 sales**) + retarget over-freq (11.7). **Killed both; paused b2 → proof-only pivot.** Detail + daily pattern: `RESULTS.md`.
 - Pipe built (read-only Meta CLI). Re-pull cmd + campaign/ad IDs in `RESULTS.md` §6.
-- **▶ NEXT:** (1) **watch the reel to the ₹1,000–1,500 read-point** — retention weak (3s avg, 42s too long), 0 sales on ₹760; if still 0 → cut a 10–15s version, offer up front. (2) **Fix retargeting** objective LPV→purchase + cap freq (9.6) + widen pool. (3) Keep the fixed prospecting funnel running. Ad changes user-side (token read-only); Claude built the reel via Chrome + tracks.
+- **▶ NEXT — the push to 40 (user goal · 3 days · need ~17 more ≈ 7/day · realistic ~33–38):** (1) **un-pause b2** (b2+proofwall+b3 for volume), (2) **raise prospecting budget ₹2,500→₹4,500/day**, (3) **relaunch retargeting FIXED** (purchase obj · freq cap 2 · wide pool + lookalike), (4) **build urgency creative** for final 72h, (5) protect checkout. Full plan: `RESULTS.md` §5. Cost = ROAS ~1.0× (the volume tax). Ad changes user-side.
 
 ## Session entry template (newest at bottom)
 Keep the **snapshot + dimension lines tight** — fixed and comparable across sessions (the anti-drift part). **Observations can be as detailed as the session warrants** — that's the actual learning, and each session's will differ. Go deep there.
@@ -102,3 +102,55 @@ _New dated entries append below, newest at bottom, using the template above._
 - **Method notes (browser automation to place a live ad):** hit real walls — 24MB video **> the 10MB upload-tool cap** (user did the file-pick; native picker can't be driven); the **duplicate-upload confusion** (both copies were the same v2-final; resolved by reading filenames via hover-tooltip); enhancement toggles are **finicky** (each needs an in-panel *Save* + confirm dialog; "Video touch-ups" never stuck). **AI-disclosure (2026):** research says AI-*video* should be disclosed + Meta auto-detects/can retro-flag → recommended checking it; **user chose to turn it off** (defensible for obvious claymation, low but non-zero risk).
 
 **▶ Port to CM agent:** **A technical checkout/tracking bug can masquerade as an "algo" or "creative" failure** — before blaming the model, verify the funnel *mechanics* (pixel firing, checkout completing across devices). The in-app-browser payment failure + 100%-mobile blast radius is a classic. · **Attribution lag is a first-class eval hazard** — build any auto-eval on **settled (next-day) data**, never same-day; real-time reads systematically understate. · **Video/Reels retention (avg-watch, %-completion) is a fast, cheap leading indicator** — readable at ~₹400 before conversions accrue; if avg-watch << video length, the hook/length is the bottleneck. · low absolute conversion volume (< ~50/wk) means Advantage+ **never exits learning** — at that scale the optimizer is semi-guessing regardless; a higher-funnel optimization event may stabilize delivery.
+
+---
+
+## 2026-07-08 — Session 4 · the efficiency collapse, reel verdict, + the pivot to volume
+
+**Snapshot:** 23 sales · ₹18,334 · ₹797 CPA · **0.84× ROAS (below breakeven)** · 47 begCO (24 abandoners) · 49% close. _(Cumulative Jul 2–8; Jul 8 partial.)_
+
+**Δ + dimension moves:** Blended ROAS 1.10×→0.84× — **not a sales drop, an efficiency collapse.** Cause isolated: the **reel** (₹3,299 / 0 sales) dragged a healthy 1.08× prospecting core down to 0.84×; retargeting over-frequencied (11.7) to waste. **New verdicts:** reel format = ❌ (killed), retargeting-as-configured = ❌ (killed). proofwall's ROAS-king status reconfirmed but it was **starved to the very end** (Meta gave it ₹219+₹90 on Jul 7–8 while feeding b2).
+
+**Did / decided (user-side):**
+- **Killed the reel** (₹3,299/0 — past read-point, low-intent 4% L→CO) and **retargeting** (freq 11.7, pool exhausted).
+- **Paused b2** (1.02× volume hog) → **pivoted to proof-only** (proofwall + b3 active) to force budget onto the ROAS winner Meta kept starving. Smart **"ROAS-lever-by-subtraction"** — you can't set per-creative budget in Advantage+, but you can pause everything else.
+- **Goal reset: user now wants 40 leads** (from 23, in 3 days) — a **volume** goal that conflicts with the proof-only ROAS pivot.
+
+**Observations (the learning):**
+- **A single 0-conversion test can sink the whole account's ROAS.** The reel burned ₹1,500/day at 0 sales; Jul 7 (first full day all 3 campaigns ran) pushed spend to ₹4,289 for 3 sales = 0.41×. Strip the reel → 1.02×; strip retarget too → prospecting = 1.08×. **Watch blended ROAS by *campaign*; kill 0-sale spenders fast — they mask a healthy core.**
+- **Reel verdict = dead, and the retention curve called it early.** 3s avg watch on 42.5s, 1% finish, 4% L→CO (half the prospecting baseline). The retention curve was readable + stable at ~₹400; the ₹3,299 just confirmed it. **Video kill-signal = avg-watch ≪ length AND L→CO ≈ half baseline.**
+- **Advantage+ "Highest volume" bidding structurally starves the efficiency winner.** proofwall (1.88×, 80% close) got ₹219+₹90 on Jul 7–8 while b2 (1.02×) ate the budget — Meta optimizes conversion *count*, and b2 makes more count. Levers: (a) creative supply, (b) a CPA/value bid cap, or (c) **pause the hog to force the winner** (what the user did).
+- **ROAS vs volume is now the explicit fork.** proof-only = best ROAS, lowest volume (proofwall unproven at scale, 4 sales ever). 40 leads = volume → needs b2 back + more budget + fixed retargeting + urgency, at breakeven ROAS. Gave the volume-first push-to-40 plan (RESULTS §5); honest landing ~33–38, not 40.
+
+**▶ Port to CM agent:** **kill-fast discipline** — a format/creative test with 0 conversions past its spend read-point isn't "too early," it's a *drag*; auto-eval should flag 0-sale spenders exceeding ~2× expected-CPA and pause them. · **the optimizer's objective ≠ the client's** — Advantage+ "Highest volume" maximizes conversion *count*, not ROAS, and chronically starves the per-rupee winner; a managed agent promising ROAS must change the bid objective or force the winner (pause-the-hog), not trust auto-allocation. · **volume vs ROAS is a real fork near a deadline** — surface the trade explicitly, let the human pick; don't silently optimize one.
+
+---
+
+## 2026-07-09 — Session 5 · proof-only pivot working + the real-value ROAS correction (field-first creatives live)
+
+**Snapshot (16:50 IST, partial day):** 29 sales · ₹23,427 spend · **real-value blended ROAS 0.91×** (pixel purchase value ₹21,211; the flat-₹589 proxy read 0.73×) · 60 begCO · 48% close. **Today (Jul 9):** ₹2,962 · 4 sales · **real-ROAS 1.39×** (flat-589 = 0.80×). Pulled via Marketing API (`~/.meta-ads-verbis/.env` token; `~/.venvs/meta-ads/bin/meta` CLI also available).
+
+**The correction (why this pull matters):** every earlier ROAS that leaned on a flat ₹589/sale UNDERSTATED the account — real average order value is **₹731/sale** (buyers routinely spend more than one seat). Recomputing on actual pixel purchase value: blended lifetime **0.91×** (not 0.73×), proofwall **2.36×** (not 1.66×), and C2 Price-Tag **0.83× life / 1.12× today** (not the "0.56× underperformer" a flat price implied). The account is **near breakeven, and today is above it.**
+
+**Did / observed:**
+- **Proof-only pivot (from Jul 8) is working.** Daily spend ₹4,532→~₹3,000, blended real-ROAS ₹0.52→1.39× today. Killing the reel + tightening delivery restored efficiency.
+- **Field-first creatives went live** — C1 Sticky-Notes (the render resized to 4:5 at the start of this session) + C2 Price-Tag (value-math). First real flight data on them:
+  - **C2 Price-Tag = AOV king.** 3 sales / ₹2,947 value = **₹982/sale life, ₹1,179 today = ~2× the ₹589 seat.** The value-math angle ("₹589 → ₹3,000 voucher") pulls buyers into bigger orders. Costs more per acquisition (₹1,179 CPA) but each is worth more — a *defensible* budget hog, not a loser.
+  - **C1 Sticky-Notes = unproven.** 0 sales on ₹485 — genuinely too early, not a verdict.
+- **proofwall still starved** even post-pivot (₹389 today at 4.5×) — Advantage+ keeps under-funding the efficiency winner.
+
+**▶ Port to CM agent:** **use real purchase VALUE, never a flat per-unit price, for ROAS and eval** — a flat seat price silently understates any creative that lifts AOV, and would auto-kill a value-driver (C2) that's actually profitable; the outcome-loop `score.flights[]` must store pixel purchase value, not count×price. · **a "value-math" creative optimizes AOV, not CPA** — judge it on revenue/spend, not cost-per-sale; a managed agent that ranks purely on CPA would kill its own best revenue creative. · **first field-first outcome data logged** — C2 (value-math) = AOV win, C1 (objection-wall) = unproven; these belong on the bank entries as the moat's first real numbers.
+
+---
+
+## 2026-07-12 — Session 6 · FINAL: campaign closed, attribution settled, retainer proposal built on the numbers
+
+**Snapshot (FINAL, settled):** **39 sales · ₹30,357 spend · ₹27,101 pixel value · 0.89× blended** · CPA ₹778 · AOV ₹695 · 75 begCO · 52% close. Funnel: 115k impr → 1,193 clicks → 891 LPV → 75 begCO → 39 sales. Re-pull on Jul 12 shows zero spend/sales after Jul 11 — flight is closed and attribution is complete. **Workshop 11 Jul: 34/39 attended (87% show).**
+
+**Did / observed:**
+- **Final pull vs Jul 9 partial: +10 sales settled in** (29 → 39). The Jul 8 "efficiency collapse" (0.84×) ended the flight at 0.89× blended.
+- **Pivot vindicated in the tail:** Jul 9 = best day of the whole campaign (7 sales), and the last 3 days delivered **14 of 39 sales** — the account was accelerating into the event, not fading.
+- **Business read for the client:** tickets returned 89% of spend → **net acquisition ₹3,256 total ≈ ₹84 per paying student**, vs ₹300–800 market rate for cold form-fill leads that don't pay and don't show. Target 40–50 → landed 39 on a 10-day cold-pixel flight.
+- **Retainer proposal VE-WS-003 drafted on these numbers** (chakra-os `output/verbis-edu/`): A ₹55k/mo workshop engine · B ₹85k/mo + always-on counselling lead gen · à la carte ₹50k/cycle · floor ₹45k. Pending: finder-fee scope, package price, cadence.
+
+**▶ Port to CM agent:** **never grade a flight before attribution closes** — the partial-day pessimism was systematic (29→39 settled, "collapse" 0.84×→0.89× final with the best day after the panic); an auto-eval acting on end-of-flight partials would have killed a winning account. · **for paid-event lead-gen, the KPI is net-CAC + show rate, not ROAS** — when the ticket is a qualifier and the real product is downstream (counselling), 0.89× "loss" is actually ₹84/paying-lead at 87% show, a wildly good funnel; client reporting must pick the KPI that matches the client's economics. · **compressed flights understate structurally** — 10 days on a cold pixel hit the target floor while still accelerating (36% of sales in the last 3 days); month-two-from-the-winner is a quantifiable pitch, not a hope.

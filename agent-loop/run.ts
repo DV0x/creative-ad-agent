@@ -2,15 +2,15 @@
  * Entry point — runs the pipeline on one brand URL, standalone (no WS, no DB).
  *
  *   tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep] [--founder=<brief.md>] [--product=<image>]
- *   tsx run.ts https://thewholetruthfoods.com collect           # one-stage smoke
- *   tsx run.ts https://thewholetruthfoods.com                    # full spine (collect → market → create ⇄ buy)
+ *   tsx run.ts https://verbisedu.com field-scout                 # one-stage smoke
+ *   tsx run.ts https://verbisedu.com                             # full spine
+ *     (field-scout → read fan-out → field-brief → collect → create ⇄ buy → build ⇄ gate)
  *
  * Loads the repo-root .env for the MCP keys, then STRIPS ANTHROPIC_API_KEY so the
  * Max login (OAuth) is used. Each run gets its own runs/<stamp>_<brand>/ dir; the
  * stages hand off through files there, and the TraceLogger writes the eval-ready trace.
  */
 import { config as loadEnv } from 'dotenv';
-import { fal } from '@fal-ai/client';
 import { fileURLToPath } from 'node:url';
 import { dirname, join, resolve } from 'node:path';
 import * as fs from 'node:fs';
@@ -56,12 +56,16 @@ for (const s of order) {
 
 // 3) required keys for the chosen stages — fail fast with a clear message
 const need = new Set<string>();
-if (order.includes('collect') || order.includes('market')) need.add('PERPLEXITY_API_KEY');
-if (order.includes('market')) need.add('SCRAPECREATORS_API_KEY');
-if (order.includes('cell-render')) need.add('FAL_KEY');
+if (order.includes('collect') || order.includes('field-scout')) need.add('PERPLEXITY_API_KEY');
+if (order.includes('field-scout')) need.add('SCRAPECREATORS_API_KEY');
 const missing = [...need].filter((k) => !process.env[k]);
 if (missing.length) {
-  console.error(`missing required env: ${missing.join(', ')} (expected in ${join(REPO_ROOT, '.env')})`);
+  console.error(`missing required env: ${missing.join(', ')} (expected in ${join(REPO_ROOT, '.env.local')} / .env)`);
+  process.exit(1);
+}
+// build renders via KIE (primary) or fal (failover) — at least one key must exist
+if (order.includes('build') && !process.env.KIE_API_KEY && !process.env.FAL_KEY) {
+  console.error('build needs KIE_API_KEY or FAL_KEY (render providers) — neither is set');
   process.exit(1);
 }
 
@@ -85,7 +89,8 @@ if (resumeDir) {
   const stamp = new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-');
   runDir = join(__dirname, 'runs', `${stamp}_${slug}`);
 }
-fs.mkdirSync(join(runDir, 'images'), { recursive: true });
+fs.mkdirSync(join(runDir, 'field', 'reads'), { recursive: true }); // the reader fan-out appends slice files here
+fs.mkdirSync(join(runDir, 'renders'), { recursive: true });
 
 // 5) founder-facts.md — a supplied brief (--founder=<path.md>), else the thin URL-only stub
 const founderPath = rawArgs.find((a) => a.startsWith('--founder='))?.split('=')[1];
@@ -112,60 +117,20 @@ if (resumeDir && !founderPath && fs.existsSync(founderFile)) {
   );
 }
 
-// 5b) refs.json — bind a real product photo if given (--product=<image>). The image model fetches a URL,
-//     and there is no built-in upload step, so push it to fal here; also copy it locally for the cell's
-//     vision gate. Absent --product, no refs.json is written → the cell runs text-to-image (unchanged).
+// 5b) --product=<image> — a real product photo to bind at render. The render MCP
+//     binds LOCAL paths (uploading per provider internally), so this just lands the
+//     file in assets/ where collect inventories it and build binds it.
 const productPath = rawArgs.find((a) => a.startsWith('--product='))?.split('=')[1];
 if (productPath) {
   if (!fs.existsSync(productPath)) {
     console.error(`--product file not found: ${productPath}`);
     process.exit(1);
   }
-  if (!process.env.FAL_KEY) {
-    console.error('--product needs FAL_KEY to upload the reference image');
-    process.exit(1);
-  }
-  fal.config({ credentials: process.env.FAL_KEY });
-  const buf = fs.readFileSync(productPath);
   const ext = (productPath.match(/\.([a-z0-9]+)$/i)?.[1] ?? 'jpg').toLowerCase();
-  const mime = ext === 'png' ? 'image/png' : ext === 'webp' ? 'image/webp' : 'image/jpeg';
-  const localPath = join(runDir, `product-ref.${ext}`);
-  fs.writeFileSync(localPath, buf);
-  console.log('· uploading product reference to fal …');
-  const falUrl = await fal.storage.upload(new Blob([buf], { type: mime }));
-  fs.writeFileSync(
-    join(runDir, 'refs.json'),
-    JSON.stringify({ references: [{ falUrl, localPath, fileId: 'product-ref' }] }, null, 2),
-  );
-  console.log(`· product bound → ${falUrl}`);
-}
-
-// 6) stage binder reference files into the working dir (mirrors the eval's EXTRA_FILES_FOR,
-//    so the binders' "read references/X.md" / "reference/hyperlocal.md" resolve relative to cwd)
-// The cell reference bundle — copied into cwd for BOTH cell stages (and the critics
-// read counterexamples.md / the cell reads critic.md from here). Same set for each.
-const CELL_REFS = [
-  ...['layer-stack', 'style-grammar', 'type-grammar', 'shot-spec', 'critic', 'render-critic', 'counterexamples'].map((n) => ({
-    src: `agent/.claude/skills/cell/references/${n}.md`,
-    dest: `references/${n}.md`,
-  })),
-  ...['testimonial', 'founder-pov', 'pas-real-world'].map((n) => ({
-    src: `agent/.claude/skills/cell/references/formats/${n}.md`,
-    dest: `references/formats/${n}.md`,
-  })),
-];
-const EXTRA_FILES: Record<string, Array<{ src: string; dest: string }>> = {
-  'cell-render': CELL_REFS,
-};
-for (const s of order) {
-  for (const f of EXTRA_FILES[s] ?? []) {
-    const src = join(REPO_ROOT, f.src);
-    const dest = join(runDir, f.dest);
-    if (fs.existsSync(src)) {
-      fs.mkdirSync(dirname(dest), { recursive: true });
-      fs.copyFileSync(src, dest);
-    }
-  }
+  const dest = join(runDir, 'assets', `product-ref.${ext}`);
+  fs.mkdirSync(dirname(dest), { recursive: true });
+  fs.copyFileSync(productPath, dest);
+  console.log(`· product reference staged → ${dest}`);
 }
 
 // 7) run
@@ -188,9 +153,9 @@ try {
     const p = join(runDir, STAGES[s].deliverable);
     console.log(`     ${fs.existsSync(p) ? '✓' : '✗'} ${STAGES[s].deliverable}`);
   }
-  const imgDir = join(runDir, 'images');
+  const imgDir = join(runDir, 'renders');
   const imgs = fs.existsSync(imgDir) ? fs.readdirSync(imgDir).filter((f) => /\.(png|jpe?g|webp)$/i.test(f)) : [];
-  console.log(`   images: ${imgs.length}${imgs.length ? ' → ' + imgDir : ''}`);
+  console.log(`   renders: ${imgs.length}${imgs.length ? ' → ' + imgDir : ''}`);
   console.log(`   trace:  ${join(runDir, 'trace.md')}  (+ summary.json, trace.jsonl)`);
   if (summary.anomalies.length) console.log(`   ⚠️  ${summary.anomalies.length} anomaly(ies) — see summary.json`);
 }

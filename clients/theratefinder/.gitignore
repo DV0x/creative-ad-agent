@@ -1,0 +1,4 @@
+# real spend data pulled from the client's Meta ad account — never commit
+meta/
+# large raw competitor corpus (regenerate with scripts/fetch.mjs)
+raw/images/
