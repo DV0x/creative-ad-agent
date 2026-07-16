@@ -157,11 +157,31 @@ async function falRender(prompt: string, ratio: string, refPaths: string[]): Pro
 
 // ── The tool ────────────────────────────────────────────────────────────────
 const jobSchema = z.object({
-  name: z.string().min(1).describe('Job name — becomes the output filename (<name>_<stamp>.png). Use the creative id, e.g. "creative-1-sticky-notes".'),
+  name: z.string().min(1).describe('Job name — becomes the output filename (<name>_<stamp>.png). Use the build binder\'s naming law (yyyymmdd_cN_claim_hookslug_family_ratio) so flight CSVs stay attributable.'),
   prompt: z.string().min(1).describe('The fully-COMPILED render prompt (the build binder owns compilation — layout skeleton, type scale, exact strings).'),
   size: z.string().optional().describe("Aspect ratio, default '4:5' (Meta feed portrait). Others: '1:1', '3:4', '9:16', '16:9', '1.91:1'."),
-  refs: z.array(z.string()).max(8).optional().describe('LOCAL file paths of BRAND references to bind (logo, founder face, product photo) — absolute, or relative to the run dir. Binding uses the edit/i2i endpoint so the marks stay exact. NEVER pass competitor creatives.'),
+  refs: z.array(z.string()).max(8).optional().describe('BRAND references to bind (logo, founder face, product photo): LOCAL paths (absolute, or relative to the run dir) or http(s) URLs of the BRAND\'S OWN assets (downloaded once into assets/). Binding uses the edit/i2i endpoint so the marks stay exact. NEVER pass competitor creatives.'),
 });
+
+// A brand asset the collector could only record as a URL (logo, og-image) gets
+// downloaded ONCE into <run>/assets/ and then behaves like any local ref.
+async function materializeUrlRef(url: string, refsBaseDir: string): Promise<string> {
+  const assetsDir = path.join(refsBaseDir, 'assets');
+  fs.mkdirSync(assetsDir, { recursive: true });
+  const clean = url.split(/[?#]/)[0];
+  const ext = (clean.match(/\.(png|jpe?g|webp)$/i)?.[1] ?? 'png').toLowerCase();
+  // Deterministic name per URL so repeat renders reuse the same download.
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) hash = ((hash << 5) - hash + url.charCodeAt(i)) | 0;
+  const dest = path.join(assetsDir, `url-ref-${(hash >>> 0).toString(16)}.${ext}`);
+  if (fs.existsSync(dest)) return dest;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`ref URL fetch failed (${r.status}): ${url}`);
+  const buf = Buffer.from(await r.arrayBuffer());
+  if (buf.length < 1024) throw new Error(`ref URL returned a tiny payload (${buf.length}B — tracking pixel?): ${url}`);
+  fs.writeFileSync(dest, buf);
+  return dest;
+}
 
 export function createRenderServer(outputDir: string, refsBaseDir?: string) {
   fs.mkdirSync(outputDir, { recursive: true });
@@ -185,11 +205,16 @@ export function createRenderServer(outputDir: string, refsBaseDir?: string) {
       const results: any[] = [];
       for (const job of args.jobs) {
         const ratio = job.size ?? '4:5';
-        const refPaths = (job.refs ?? []).map((p) => {
+        const refPaths: string[] = [];
+        for (const p of job.refs ?? []) {
+          if (/^https?:\/\//i.test(p)) {
+            refPaths.push(await materializeUrlRef(p, refsBaseDir ?? process.cwd()));
+            continue;
+          }
           const abs = path.isAbsolute(p) ? p : path.resolve(refsBaseDir ?? process.cwd(), p);
           if (!fs.existsSync(abs)) throw Object.assign(new Error(`ref not found: ${p} (resolved ${abs})`), { jobName: job.name });
-          return abs;
-        });
+          refPaths.push(abs);
+        }
 
         let rendered: { buf: Buffer; note: string } | null = null;
         const errors: string[] = [];

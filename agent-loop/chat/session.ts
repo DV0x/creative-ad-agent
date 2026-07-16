@@ -43,6 +43,9 @@ export interface ChatSessionArgs {
   order: string[];
   mode: Mode;
   logger: TraceLogger;
+  /** Reopen a past conversation: the SDK session id from runDir/session.json. The orchestrator
+   *  wakes with its full history (intake, verdicts, the lot) and the follow-up router applies. */
+  resumeSessionId?: string;
 }
 
 export interface ChatSessionEvents {
@@ -123,7 +126,7 @@ export class ChatSession {
   }
 
   async run(): Promise<void> {
-    const { brandUrl, runDir, order, mode, logger } = this.args;
+    const { brandUrl, runDir, order, mode, logger, resumeSessionId } = this.args;
     const options = buildBaseOptions({
       brandUrl,
       runDir,
@@ -132,6 +135,7 @@ export class ChatSession {
       onProgress: this.events.onProgress,
       canUseTool: this.canUseTool,
       interactive: true,
+      resumeSessionId,
     });
 
     let lastActivity = Date.now();

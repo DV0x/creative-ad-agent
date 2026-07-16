@@ -28,9 +28,11 @@ import {
   FIELD_BRIEF_MODEL, FIELD_BRIEF_IO_PROMPT,
   BUY_MODEL, BUY_IO_PROMPT,
   GATE_MODEL, GATE_IO_PROMPT,
+  KIT_MODEL, KIT_IO_PROMPT,
   type Stage, type Mode,
 } from './stages.ts';
 import { buildHooks } from './hook.ts';
+import { ensureBankAccess, appendRunReadsToBank } from './bank.ts';
 import type { TraceLogger } from './trace.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -59,9 +61,16 @@ function agentDef(stage: Stage, mode: Mode): AgentDefinition {
   };
 }
 
-function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], interactive = false): string {
+function orchestratorPrompt(
+  brandUrl: string,
+  runDir: string,
+  order: string[],
+  interactive = false,
+  renderTop = 3,
+  ratios: string[] = ['4:5'],
+): string {
   // The linear produce stages come from `order`. The intermediate seats
-  // (field-read fan-out, field-brief, buy, gate) are NOT in `order` — this
+  // (field-read fan-out, field-brief, buy, gate, kit) are NOT in `order` — this
   // orchestrator launches them between stages, with the loops below.
   const lines: string[] = [];
   for (const n of order) {
@@ -77,28 +86,41 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
       lines.push('      then the FIELD-BRIEF seat — subagent_type "field-brief" → writes field/field-brief.md');
       lines.push('      (it synthesizes shortlist + all reads + the raw dumps). Verify it exists before the next stage.');
     } else if (n === 'create') {
-      lines.push('  • create — subagent_type "create" → writes creatives.md + creatives.json (3–5 brand specs).');
+      lines.push('  • create — subagent_type "create" → writes creatives.md + creatives.json (the 8-spec portfolio).');
       lines.push('      then the BUYER — subagent_type "buy" → writes verdict.md (it judges the specs cold against');
-      lines.push('      material, the field brief, and the source reads; it never sees the creative\'s reasoning).');
-      lines.push('      Read verdict.md and branch:');
-      lines.push('        · "FINAL: WINNERS — …" → the approved specs proceed to build.');
-      lines.push('        · "FINAL: REJECT ALL"  → re-run create (it reads verdict.md and writes a NEW batch that answers');
-      lines.push('          the autopsy), then re-run the buyer. AT MOST 2 rounds total. If the 2nd batch is STILL');
-      lines.push('          reject-all, STOP: the problem is upstream (field or material). Write the flag to DONE.md');
-      lines.push('          ("flagged: buyer rejected two batches — <the buyer\'s instruction>") and END.');
+      lines.push('      material, the field brief, and the source reads; it never sees the creative\'s reasoning; it');
+      lines.push('      approves the genuine survivors RANKED, target 6–8).');
+      lines.push('      Read verdict.md\'s FINAL line and branch on the number of approved names:');
+      lines.push('        · WINNERS with ≥6 names → the approved specs proceed to build.');
+      lines.push('        · WINNERS with 1–5 names → ONE BACKFILL ROUND: re-run create telling it "BACKFILL round —');
+      lines.push('          read verdict.md; the survivors stand untouched; write replacement specs for the killed');
+      lines.push('          slots only". Then re-run the buyer telling it "BACKFILL round — autopsy only the new specs,');
+      lines.push('          re-run the batch tests on the full set, write a fresh complete verdict.md". Whatever the');
+      lines.push('          fresh verdict approves proceeds to build — even if still under 6 (honest gaps ship; padded');
+      lines.push('          slots do not). AT MOST 1 backfill round; never a second.');
+      lines.push('        · "FINAL: REJECT ALL"  → re-run create (FULL REDO: it reads verdict.md and writes a NEW batch');
+      lines.push('          that answers the autopsy), then re-run the buyer. AT MOST 2 full rounds total. If the 2nd');
+      lines.push('          batch is STILL reject-all, STOP: the problem is upstream (field or material). Write the');
+      lines.push('          flag to DONE.md ("flagged: buyer rejected two batches — <the buyer\'s instruction>") and END.');
     } else if (n === 'build') {
-      lines.push('  • build — subagent_type "build" → compiles the approved specs, renders via the render tool, writes');
+      lines.push(`  • build — subagent_type "build". THINK WIDE, RENDER NARROW: instruct it to render ONLY the TOP ${renderTop}`);
+      lines.push(`      creatives by the buyer's ranking (verdict.md FINAL line order), at ratio(s) ${ratios.join(', ')} — name them`);
+      lines.push('      explicitly in the launch instruction. Every other approved spec stays STORED in creatives.json (the');
+      lines.push('      founder can ask to render more later — a cheap build+gate pass, no upstream re-run). It writes');
       lines.push('      prompts.md + build-output.md (image paths inside).');
-      lines.push('      then the GATE — subagent_type "gate" → writes gate-verdict.md (five checks per image, viewing');
-      lines.push('      the actual pixels against creatives.json and the source reads).');
+      lines.push('      then the GATE — subagent_type "gate" → writes gate-verdict.md (six checks per image + the batch');
+      lines.push('      diversity line, viewing the actual pixels against creatives.json and the source reads).');
       lines.push('      Read gate-verdict.md\'s FINAL line and branch:');
-      lines.push('        · "FINAL: PASS — …" → those creatives ship. Done.');
+      lines.push('        · "FINAL: PASS — …" → those creatives ship. Proceed to the kit.');
       lines.push('        · "FINAL: RE-RENDER — …" → re-run build ONCE (it reads gate-verdict.md and fixes ONLY the');
       lines.push('          named re-render diffs), then re-run the gate. AT MOST 1 retry — every render costs money.');
-      lines.push('        · "FINAL: FLAG — …" (structural), OR still failing after the retry → STOP. Write the flag to');
-      lines.push('          DONE.md ("flagged: gate — <the structural reason>") and END. Do NOT render again.');
+      lines.push('        · "FINAL: FLAG — …" (structural on EVERYTHING), OR still failing after the retry → STOP. Write');
+      lines.push('          the flag to DONE.md ("flagged: gate — <the structural reason>") and END. Do NOT render again.');
       lines.push('        · A mixed FINAL line (some PASS, some RE-RENDER) → the passes ship as-is; run the single');
       lines.push('          build retry scoped to the re-render creatives only, then the gate once more.');
+      lines.push('      then the LAUNCH KIT — once ANY creative ships, subagent_type "kit" → writes launch-kit.md');
+      lines.push('      (shipped images by ratio, the copy pool, the naming map, the campaign sheet, and the test map');
+      lines.push('      covering every approved concept — rendered or stored). Verify it exists before DONE.md.');
     } else {
       lines.push(`  • ${n} — subagent_type "${n}" → writes ${s.deliverable}  (reads: ${s.reads.join(', ')}).`);
     }
@@ -130,11 +152,20 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
           'BEFORE the pipeline — FOUNDER INTAKE (you are in a live chat with the founder):',
           `  0. Ground yourself: WebFetch ${brandUrl} (and an obvious page or two) so your questions are informed,`,
           '     and extract any OFFER FACTS the pages state verbatim (prices, guarantees, dates).',
-          '  1. Then ASK the founder what you need, using the AskUserQuestion tool: the conversion event (what a',
-          '     "sale" is, and its price), the target CPA or acceptable cost, the budget/flight window, and who the',
-          '     buyer is (market country included). Keep it to 3–4 crisp questions, each with sensible options.',
-          '  2. Write their answers + what you learned from the site into founder-facts.md, replacing the stub — be',
-          '     concrete; this is the brief every downstream stage reads. Only THEN begin the flow below.',
+          '  1. ASK ROUND ONE (AskUserQuestion, up to 4 crisp questions with sensible options): the conversion',
+          '     event (what a "sale" is, and its price), the target CPA or acceptable cost, the budget/flight',
+          '     window, and who the buyer is (market country included).',
+          '  2. ASK ROUND TWO (AskUserQuestion, up to 4 more): the COMPLIANCE LANE (e-commerce / lead-gen /',
+          '     financial-SAC / health-wellness); the BRAND LAWS ("what will this brand NEVER do — discounts?',
+          '     urgency? comparisons? — and what real fuel does it hold: certs, deadlines, price advantages?");',
+          '     AD HISTORY ("what have you tested before; what won, what lost"); and ASSETS ("upload the hero',
+          '     product photo + logo via the panel now" — with an explicit "no photo available" option).',
+          '  3. Check assets/ (Glob) for what actually landed. Write EVERYTHING into founder-facts.md, replacing',
+          '     the stub, with explicit sections: THE JOB (conversion event, CPA, budget, buyer, market),',
+          '     COMPLIANCE LANE, BRAND LAWS (held fuel + forbidden moves — the motor law reads this), AD HISTORY,',
+          '     OFFER FACTS (verbatim from the site), and ASSETS (each file in assets/ + what is MISSING; if no',
+          '     hero photo: write "NO HERO PHOTO — steer to pack-free constructions or model-knowledge renders").',
+          '     Be concrete; this is the brief every downstream stage reads. Only THEN begin the flow below.',
           '',
         ]
       : []),
@@ -146,18 +177,36 @@ function orchestratorPrompt(brandUrl: string, runDir: string, order: string[], i
     '(binder preloaded / rubric inlined) — do NOT re-explain the method, and NEVER pass a writer\'s reasoning or',
     'preferred pick to a judging seat (buy, gate); the judges work cold.',
     '',
-    'Your FINAL action, once the flow is complete (the gate returned PASS for the shipped set) OR you have',
+    'Your FINAL action, once the flow is complete (creatives shipped AND launch-kit.md written) OR you have',
     'flagged upstream: write a one-line file DONE.md recording the outcome ("shipped: <image paths> — see',
-    'gate-verdict.md", or "flagged: <reason>"). That file is the signal the run is over — write it ONLY at true',
-    'completion. Then briefly summarize the deliverables and STOP. Never produce creative work yourself; never',
-    'call MCP tools.',
+    'launch-kit.md + gate-verdict.md", or "flagged: <reason>"). That file is the signal the run is over — write',
+    'it ONLY at true completion. Then briefly summarize the deliverables and STOP. Never produce creative work',
+    'yourself; never call MCP tools.',
     ...(interactive
       ? [
           '',
-          'FOLLOW-UPS (the chat continues after DONE.md): the founder may ask for changes. If the request is CLEAR',
-          '("make the headline bigger"), act — re-run ONLY the stage(s) needed and re-verify. If it is VAGUE ("make',
-          'it pop more"), call AskUserQuestion to pin down exactly what they mean BEFORE delegating. Never guess at',
-          'a vague ask.',
+          'FOLLOW-UPS — THE ROUTER (the chat continues after DONE.md). A follow-up NEVER re-runs the whole',
+          'pipeline: the field/collect work is done and paid for; you route each ask to the SMALLEST seat that',
+          'owns the change, with a SCOPED instruction naming exactly which creative(s) and field(s) to touch.',
+          'The routes:',
+          '  · QUESTION about the work ("why this hook?", "what did rival X run?") → answer it YOURSELF from the',
+          '    files (Read/Grep). Launch NOTHING.',
+          '  · COPY or SPEC change on an existing creative ("change the headline", "different background scene",',
+          '    "drop the price line") → create, scoped: "edit ONLY creative N\'s <field> in creatives.json +',
+          '    creatives.md; touch nothing else" → then build scoped to creative N (its ratios) → then the gate',
+          '    (it re-views everything shipped). The founder directed the change, so the BUYER IS SKIPPED.',
+          '  · RENDER problem, spec unchanged ("the logo garbled", "text is cut off") → build scoped re-render',
+          '    (fix the compiled prompt) → gate. No create.',
+          '  · RENDER MORE ("render the other winners", "give me 9:16 and 1:1") → build scoped to the named',
+          '    stored specs/ratios from creatives.json → gate. Nothing upstream.',
+          '  · NEW concept/angle ("try something around X") → create (ADD the new spec(s); survivors untouched)',
+          '    → buy judges the NEW spec(s) cold → build → gate. New bets always face the buyer.',
+          '  · UPSTREAM truth changed (different audience, new product, new offer, "actually we can\'t discount")',
+          '    → this re-spends real budget: confirm with AskUserQuestion FIRST (name which stages must re-run',
+          '    and why), then run the needed chain (usually create ⇄ buy → build ⇄ gate; collect only if the',
+          '    brand facts themselves changed). NEVER re-run field-scout/readers for a creative-level ask.',
+          '  After ANY route that changed shipped work, re-run the kit seat so launch-kit.md reflects reality.',
+          '  If the ask is VAGUE ("make it pop"), AskUserQuestion to pin it down BEFORE delegating. Never guess.',
         ]
       : []),
   ].join('\n');
@@ -201,7 +250,7 @@ export function buildAgents(order: string[], mode: Mode): Record<string, AgentDe
     model: BUY_MODEL,
     tools: ['Read', 'Write', 'Grep', 'Glob'],
     mcpServers: [],
-    maxTurns: 12,
+    maxTurns: 20, // 8-spec portfolio: each spec pulls its sourceRead + anchors before the verdict
   };
 
   agents['gate'] = {
@@ -211,6 +260,18 @@ export function buildAgents(order: string[], mode: Mode): Record<string, AgentDe
       'writes gate-verdict.md, and returns PASS / RE-RENDER / FLAG.',
     prompt: GATE_IO_PROMPT + '\n\n' + skillRef('build', 'gate.md'),
     model: GATE_MODEL,
+    tools: ['Read', 'Write', 'Glob', 'Grep', 'WebFetch'], // WebFetch: the LP-congruence check (one fetch)
+    mcpServers: [],
+    maxTurns: 12,
+  };
+
+  agents['kit'] = {
+    description:
+      'Launch-kit seat — mechanical assembly of launch-kit.md (shipped images by ratio, copy pool, naming map, ' +
+      'campaign sheet, test map) from the run\'s own artifacts. The ORCHESTRATOR invokes it after the gate ' +
+      'passes; re-invoked after any follow-up that changes shipped work.',
+    prompt: KIT_IO_PROMPT,
+    model: KIT_MODEL,
     tools: ['Read', 'Write', 'Glob', 'Grep'],
     mcpServers: [],
     maxTurns: 12,
@@ -229,18 +290,31 @@ export interface BaseOptionsArgs {
   extraAllowedTools?: string[];
   /** Interactive permission callback (the chat uses it to render AskUserQuestion in the UI). */
   canUseTool?: Options['canUseTool'];
-  /** Chat mode: adds founder intake (AskUserQuestion) + clarify-on-vague-followup to the orchestrator prompt. */
+  /** Chat mode: adds founder intake (AskUserQuestion) + the follow-up router to the orchestrator prompt. */
   interactive?: boolean;
+  /** Render economics (S145 Step 3.1, "think wide render narrow"): how many buyer-ranked
+   *  winners get rendered on the main pass. Default 3; the rest stay stored in creatives.json. */
+  renderTop?: number;
+  /** Ratios rendered on the main pass. Default ['4:5']; more ratios are follow-up territory. */
+  ratios?: string[];
+  /** SDK session id to RESUME (session_management.md:194 — the docs' path for returning to a
+   *  specific past conversation). The orchestrator wakes with its full JSONL history; the fresh
+   *  systemPrompt/hooks/agents from this options object apply on top. cwd must equal the
+   *  original run dir (it does — cwd is the runDir). */
+  resumeSessionId?: string;
 }
 
 // The single source of truth for the orchestrator's SDK Options — everything EXCEPT the
 // input `prompt` (the headless single-yield vs the chat's held-open queue differ). Both
 // entry points build on this, so they run identical agents, MCP grants, hooks, and guards.
-export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, extraAllowedTools = [], canUseTool, interactive = false }: BaseOptionsArgs): Options {
+export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, extraAllowedTools = [], canUseTool, interactive = false, renderTop = 3, ratios = ['4:5'], resumeSessionId }: BaseOptionsArgs): Options {
+  // The cross-client format bank, exposed as runDir/bank so the brief/create/buy
+  // seats can Grep bank/*.jsonl with their ordinary file tools (Step 2.6).
+  ensureBankAccess(runDir);
   const options: Options = {
     cwd: runDir, // subagents inherit this → files-as-handoff through one shared dir
     model: 'claude-sonnet-4-6', // the orchestrator — reasons about conditional retries + async coordination, so Sonnet not Haiku
-    systemPrompt: orchestratorPrompt(brandUrl, runDir, order, interactive),
+    systemPrompt: orchestratorPrompt(brandUrl, runDir, order, interactive, renderTop, ratios),
     settingSources: [],
     strictMcpConfig: true,
     plugins: [{ type: 'local', path: PLUGIN_PATH }],
@@ -264,11 +338,22 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
       doneRequires: [
         ...order.map((n) => join(runDir, STAGES[n].deliverable)),
         ...(order.includes('field-scout') ? [join(runDir, 'field', 'field-brief.md')] : []),
+        // Ships must be launchable: the kit is part of "done" whenever build ran.
+        ...(order.includes('build') ? [join(runDir, 'launch-kit.md')] : []),
       ],
+      // Once DONE.md exists, launch ceilings relax — founder-driven iterations
+      // (the follow-up router) must not be denied by the mid-run runaway guard.
+      donePath: join(runDir, 'DONE.md'),
+      // Run complete (DONE.md written) → this run's pixel reads join the bank.
+      onDone: () => appendRunReadsToBank(runDir, (msg) => onProgress?.(msg)),
       onEvent: (msg) => onProgress?.(msg),
     }),
+    // JSONL session resume (the docs' recommended return-to-a-conversation path).
+    ...(resumeSessionId ? { resume: resumeSessionId } : {}),
     maxTurns: 120, // orchestrator turns are cheap; the reader fan-out adds notification segments
-    maxBudgetUsd: mode === 'deep' ? 28 : 20, // global safety-net; the per-agent gathering cap is the real control
+    // Global safety-net; the per-agent gathering cap is the real control. Raised for the
+    // 8-spec portfolio era (create/buy handle ~2x the specs; a backfill round may add a pass).
+    maxBudgetUsd: mode === 'deep' ? 34 : 26,
   };
   if (canUseTool) options.canUseTool = canUseTool;
   return options;
@@ -281,16 +366,18 @@ export interface PipelineArgs {
   mode: Mode;
   logger: TraceLogger;
   onProgress?: (line: string) => void;
+  renderTop?: number;
+  ratios?: string[];
 }
 
-export async function runPipeline({ brandUrl, runDir, order, mode, logger, onProgress }: PipelineArgs): Promise<void> {
+export async function runPipeline({ brandUrl, runDir, order, mode, logger, onProgress, renderTop, ratios }: PipelineArgs): Promise<void> {
   // A RESUMED run dir may hold DONE.md from its previous run. The completion check
   // below keys on that file existing at a result segment — stale, it closes the
   // input stream on the FIRST segment, which kills the in-process MCP bridge
   // ("Stream closed" on every MCP call) and hook integration. Clear it first.
   fs.rmSync(join(runDir, 'DONE.md'), { force: true });
 
-  const options = buildBaseOptions({ brandUrl, runDir, order, mode, onProgress });
+  const options = buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, renderTop, ratios });
 
   // STREAMING INPUT MODE (not a plain string prompt). We yield the initial user
   // message from an async generator and HOLD IT OPEN (await `done`) until the run

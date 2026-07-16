@@ -162,12 +162,98 @@ function domainOf(url?: string): string {
   try { return new URL(url).hostname.replace(/^www\./, ''); } catch { return url.slice(0, 40); }
 }
 
+// ── Job classification (ad-data v2) ─────────────────────────────────────────
+// The Ad Library exposes no campaign objective, and longevity endorses survival
+// at ANY job — a store-opening ad that ran 390 days is a triumph of local
+// awareness, not a conversion construction (the BigMuscles pollution: its only
+// pixel reads were store-opening ads whose hooks entered the hook bank). We
+// classify each ad's JOB from what IS visible — CTA type, link domain, copy
+// shape, format — so downstream seats can weight conversion-job ads and treat
+// the rest as context. A heuristic, deterministic and conservative: when no
+// non-conversion signal fires, the ad is 'conversion' (the default job of a
+// commercial ad). The binder treats the label as a strong hint, not a verdict.
+export type AdJob = 'conversion' | 'retargeting' | 'local' | 'awareness' | 'recruitment';
+
+const LOCAL_COPY_RE = /\bnow open\b|\bgrand opening\b|\bnew store\b|\bstore (?:launch|opening)\b|\bvisit (?:our|the) (?:new )?store\b/i;
+const RECRUIT_COPY_RE = /\bwe(?:'|’)?re hiring\b|\bjoin our team\b|\bnow hiring\b|\bjob opening\b/i;
+const DCO_TEMPLATE_RE = /\{\{[^}]+\}\}/; // catalog boilerplate: "{{product.name}}"
+
+/** Exported for direct testing. Takes a RAW ad (API shape, not a dump entry). */
+export function classifyJob(a: any): AdJob {
+  const s = a?.snapshot ?? {};
+  const ctaType = String(s?.cta_type ?? '').toUpperCase();
+  const format = String(s?.display_format ?? a?.media_type ?? '').toUpperCase();
+  const link = domainOf(s?.link_url).toLowerCase();
+  const copy = `${s?.title ?? ''} ${s?.body?.text ?? ''}`;
+  // Local: maps CTAs, maps shortlinks, store-opening copy.
+  if (ctaType === 'GET_DIRECTIONS' || ctaType === 'CALL_NOW') return 'local';
+  if (link === 'g.co' || link === 'goo.gl' || link === 'maps.app.goo.gl' || link.startsWith('maps.google')) return 'local';
+  if (LOCAL_COPY_RE.test(copy)) return 'local';
+  // Recruitment: hiring copy or a careers destination.
+  if (RECRUIT_COPY_RE.test(copy) || /(^|\.)careers\./.test(link) || link.includes('linkedin.com')) return 'recruitment';
+  // Retargeting/catalog: DPA format or unrendered catalog placeholders.
+  if (format === 'DPA' || DCO_TEMPLATE_RE.test(copy)) return 'retargeting';
+  // Awareness: page-like / profile-visit plays — no purchase destination.
+  if (format === 'PAGE_LIKE' || ctaType === 'LIKE_PAGE' || ctaType === 'VIEW_INSTAGRAM_PROFILE') return 'awareness';
+  return 'conversion';
+}
+
+// ── Launch-cadence brand calibration (ad-data v2) ───────────────────────────
+// Endorsement (days × variants) only means something against the brand's own
+// testing posture. A brand that launched everything last week (launch flush —
+// the Avvatar trap) has NOTHING endorsed yet; a brand with no fresh launch in
+// months is coasting, and its long-runners may be unmanaged rather than proven.
+// Computed at dump time from the launch dates of the fetched ads; the label
+// travels with every page result so the scout carries it into the shortlist.
+export interface LaunchCadence {
+  label: 'ACTIVE-TESTER' | 'LAUNCH-FLUSH' | 'ZOMBIE' | 'STEADY' | 'UNKNOWN';
+  newestDays: number | null;
+  buckets: { d0_30: number; d31_90: number; d91_180: number; d180_plus: number };
+  note: string;
+}
+
+/** Exported for direct testing. Takes dump-shaped entries ({ daysRunning, active }). */
+export function launchCadence(entries: Array<{ daysRunning: number | null; active: boolean }>): LaunchCadence {
+  const ages = entries.filter((e) => e.active && e.daysRunning != null).map((e) => e.daysRunning as number);
+  const buckets = { d0_30: 0, d31_90: 0, d91_180: 0, d180_plus: 0 };
+  if (ages.length === 0) return { label: 'UNKNOWN', newestDays: null, buckets, note: 'no active ads with launch dates' };
+  for (const d of ages) {
+    if (d <= 30) buckets.d0_30++;
+    else if (d <= 90) buckets.d31_90++;
+    else if (d <= 180) buckets.d91_180++;
+    else buckets.d180_plus++;
+  }
+  const newestDays = Math.min(...ages);
+  const proven = buckets.d91_180 + buckets.d180_plus;
+  if (buckets.d0_30 / ages.length >= 0.7 && newestDays <= 30)
+    return { label: 'LAUNCH-FLUSH', newestDays, buckets, note: 'nearly everything launched inside 30d — survival untested, endorsement signal ≈ zero' };
+  if (newestDays >= 120)
+    return { label: 'ZOMBIE', newestDays, buckets, note: `no new creative in ${newestDays}d — long-runners may be unmanaged, not proven` };
+  if (buckets.d0_30 + buckets.d31_90 >= 1 && proven >= 1)
+    return { label: 'ACTIVE-TESTER', newestDays, buckets, note: 'fresh tests running alongside proven survivors — endorsement here is meaningful' };
+  return { label: 'STEADY', newestDays, buckets, note: 'launches present but no long-proven survivors yet — read endorsement with care' };
+}
+
+function cadenceLine(c: LaunchCadence): string {
+  const b = c.buckets;
+  return `LAUNCH CADENCE: newest ${c.newestDays ?? '?'}d | launched ≤30d: ${b.d0_30}, 31–90d: ${b.d31_90}, 91–180d: ${b.d91_180}, >180d: ${b.d180_plus} → ${c.label} (${c.note})`;
+}
+
+// last_days=N → server-side start_date of N days ago (YYYY-MM-DD). The primary
+// recency read is 90d (decided S146): 30d scoops up tests before they die; 90d
+// is current fashion with survivorship already applied.
+function startDateFor(lastDays?: number): string | undefined {
+  if (!lastDays) return undefined;
+  return new Date(Date.now() - lastDays * 86_400_000).toISOString().slice(0, 10);
+}
+
 interface ShapedAd {
   archiveId: string;
   daysRunning: number | null;
   launched: string;
   variants: number;     // collation_count
   active: boolean;
+  job: AdJob;           // conversion | retargeting | local | awareness | recruitment
   format: string;       // VIDEO / IMAGE / DCO / ...
   nImages: number;
   nVideos: number;
@@ -187,6 +273,7 @@ function shapeAd(a: any): ShapedAd {
     launched: isoDay(a?.start_date),
     variants: Number(a?.collation_count ?? 1),
     active: Boolean(a?.is_active),
+    job: classifyJob(a),
     format: String(s?.display_format ?? a?.media_type ?? 'n/a'),
     nImages: Array.isArray(s?.images) ? s.images.length : 0,
     nVideos: Array.isArray(s?.videos) ? s.videos.length : 0,
@@ -202,11 +289,14 @@ function shapeAd(a: any): ShapedAd {
   };
 }
 
-// Revealed-winner ranking: active first, then most-duplicated, then
-// longest-running. The brand's budget is voting; this surfaces its vote.
+// Revealed-winner ranking: active first, conversion-job first (a store-opening
+// ad's longevity endorses a different job — it must not outrank the sales ads),
+// then most-duplicated, then longest-running. The brand's budget is voting;
+// this surfaces its vote on the job we're actually here to read.
 function rankRevealedWinners(ads: ShapedAd[]): ShapedAd[] {
   return [...ads].sort((x, y) => {
     if (x.active !== y.active) return x.active ? -1 : 1;
+    if ((x.job === 'conversion') !== (y.job === 'conversion')) return x.job === 'conversion' ? -1 : 1;
     if (y.variants !== x.variants) return y.variants - x.variants;
     return (y.daysRunning ?? 0) - (x.daysRunning ?? 0);
   });
@@ -242,7 +332,8 @@ function collectVideoPreviewUrls(s: any): string[] {
 // the FULL body text + all media URLs on disk, one JSONL line per ad, so the
 // creative stage can Grep the whole field (claim prevalence, full hooks)
 // without stuffing its context. Written per page as <slug>.jsonl.
-function rawAdEntry(a: any, brand: string, pageId: string): Record<string, unknown> {
+/** Exported for direct testing (ad-data v2 classification runs through it). */
+export function rawAdEntry(a: any, brand: string, pageId: string): Record<string, unknown> {
   const s = a?.snapshot ?? {};
   return {
     brand,
@@ -252,6 +343,7 @@ function rawAdEntry(a: any, brand: string, pageId: string): Record<string, unkno
     launched: isoDay(a?.start_date),
     daysRunning: daysBetween(a?.start_date, a?.end_date),
     variants: Number(a?.collation_count ?? 1),
+    job: classifyJob(a),
     format: String(s?.display_format ?? a?.media_type ?? 'n/a'),
     platforms: Array.isArray(a?.publisher_platform) ? a.publisher_platform : [],
     cta: [s?.cta_text, s?.cta_type].filter(Boolean).join(' / ') || 'n/a',
@@ -271,11 +363,14 @@ function rawAdEntry(a: any, brand: string, pageId: string): Record<string, unkno
   };
 }
 
-function dumpRawAds(rawAdsDir: string, label: string, pageId: string, raw: any[]): string | null {
+// suffix keeps re-fetch variants from clobbering the primary dump: the default
+// ACTIVE all-time fetch writes <slug>.jsonl; a churn fetch (status ALL/INACTIVE)
+// or a windowed fetch (last_days) writes its own file beside it.
+function dumpRawAds(rawAdsDir: string, label: string, pageId: string, raw: any[], suffix = ''): string | null {
   try {
     fs.mkdirSync(rawAdsDir, { recursive: true });
     const slug = brandSlug(label, pageId);
-    const file = path.join(rawAdsDir, `${slug}.jsonl`);
+    const file = path.join(rawAdsDir, `${slug}${suffix}.jsonl`);
     const lines = raw.map((a) => JSON.stringify(rawAdEntry(a, label || pageId, pageId)));
     fs.writeFileSync(file, lines.join('\n') + '\n', 'utf8');
     return file;
@@ -312,9 +407,12 @@ async function downloadAdImages(
 ): Promise<{ dir: string; adsWithImages: number; downloaded: number; failed: number } | null> {
   try {
     const entries = raw
-      .map((a) => rawAdEntry(a, label || pageId, pageId) as { archiveId: string; active: boolean; daysRunning: number | null; variants: number; imageUrls: string[] })
+      .map((a) => rawAdEntry(a, label || pageId, pageId) as { archiveId: string; active: boolean; daysRunning: number | null; variants: number; job: AdJob; imageUrls: string[] })
       .sort((x, y) => {
         if (x.active !== y.active) return x.active ? -1 : 1;
+        // conversion-job creatives first — the per-brand download cap must not be
+        // spent on store-opening/catalog pixels (the BigMuscles pollution)
+        if ((x.job === 'conversion') !== (y.job === 'conversion')) return x.job === 'conversion' ? -1 : 1;
         if (y.variants !== x.variants) return y.variants - x.variants;
         return (y.daysRunning ?? 0) - (x.daysRunning ?? 0);
       });
@@ -401,6 +499,7 @@ export interface FormatHunt {
   search_type?: 'keyword_exact_phrase' | 'keyword_unordered';
   media_type?: 'ALL' | 'IMAGE' | 'MEME' | 'IMAGE_AND_MEME';
   status?: 'ACTIVE' | 'INACTIVE' | 'ALL';
+  last_days?: number;
   max_ads?: number;
   depth?: number;
 }
@@ -425,6 +524,7 @@ export async function runFormatHunts(hunts: FormatHunt[], rawAdsDir?: string, im
         status: h.status ?? HUNT_DEFAULTS.status,
         sort_by: HUNT_DEFAULTS.sort_by,
         country: h.country,
+        start_date: startDateFor(h.last_days),
         cursor,
       }, `hunt "${h.query}" pg${pg + 1}`, AD_CACHE_TTL_HOURS);
       if (!r.ok) { fetchError = r.error; break; }
@@ -488,7 +588,7 @@ const findPagesSchema = z.object({
 
 const competitorFindPages = tool(
   'competitor_find_pages',
-  'Resolve rival brand NAMES to Meta Ad Library PAGES (the prerequisite for fetching their ads). Pass an ARRAY of brand names (1-8); each fires concurrently and returns candidate pages with page_id, name, category, likes, verification and Instagram handle. YOU choose the correct page_id from the candidates — match on likes (the real brand has far more), category and ig_username; reject namesakes. Then pass the chosen page_id(s) to competitor_ads. 1 credit per name (cached).',
+  'Resolve rival brand NAMES to Meta Ad Library PAGES (the prerequisite for fetching their ads). Pass an ARRAY of brand names (1-8); each fires concurrently and returns candidate pages with page_id, name, category, likes, verification and Instagram handle. YOU choose the correct page_id from the candidates — match on likes (the real brand has far more), category and ig_username; reject namesakes. When a NAME lookup returns nothing or only namesakes, RETRY with the brand\'s DOMAIN as the query (e.g. "theratefinder.ca") — page records often match on domain when the display name does not. Then pass the chosen page_id(s) to competitor_ads. 1 credit per name (cached).',
   { queries: z.array(findPagesSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of brand-name lookups to run in parallel (max 8).') },
   async (args) => {
     const settled = await Promise.allSettled(
@@ -517,52 +617,83 @@ const adsPageSchema = z.object({
   page_id: z.string().min(1).describe('The page_id chosen from competitor_find_pages results.'),
   label: z.string().optional().describe('Optional human label (the brand name) echoed back so you can tell results apart.'),
   country: z.string().optional().describe('ISO country to scope ads to, e.g. "IN", "CA", "US". Default ALL. Use the brand\'s market.'),
-  status: z.enum(['ACTIVE', 'INACTIVE', 'ALL']).optional().describe('Ad status, default ACTIVE (what they are running NOW — the live field).'),
+  status: z.enum(['ACTIVE', 'INACTIVE', 'ALL']).optional().describe('Ad status, default ACTIVE (what they are running NOW — the live field). ALL adds recently-retired ads (the churn read: recently-killed winners are negative signal).'),
+  last_days: z.number().int().min(1).max(365).optional().describe('Server-side date window: only ads from the last N days. Use 90 for an explicit recency read on big pages; omit for the all-time read (the default).'),
+  depth: z.number().int().min(1).max(3).optional().describe('Result pages to fetch via cursor for big advertisers, default 1. Each page ≈ 30 ads and costs 1 credit; the result says when MORE pages are available.'),
   max_ads: z.number().int().min(1).max(30).optional().describe('Max revealed-winner ads to return per page after ranking, default 12.'),
 });
 
 const makeCompetitorAds = (rawAdsDir?: string, imagesRoot?: string) => tool(
   'competitor_ads',
-  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is ALSO dumped in full (untruncated copy + media URLs) to a raw JSONL file on disk, AND the top image creatives are downloaded to a per-brand images folder for the pixel-read step — the result names both paths; cite them in your deliverable so downstream seats can Grep the field and Read the creatives. 1 credit per page (cached).',
+  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then conversion-job, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Every ad also gets a JOB label (conversion/retargeting/local/awareness/recruitment — the Ad Library hides campaign objectives, so this is inferred from CTA type, link domain, and copy shape) and every page gets a LAUNCH CADENCE calibration (ACTIVE-TESTER / LAUNCH-FLUSH / ZOMBIE / STEADY) — carry both into your shortlist; only conversion-job ads carry endorsement worth reading. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is ALSO dumped in full (untruncated copy + media URLs) to a raw JSONL file on disk, AND the top image creatives are downloaded to a per-brand images folder for the pixel-read step — the result names both paths; cite them in your deliverable so downstream seats can Grep the field and Read the creatives. 1 credit per page (cached).',
   { pages: z.array(adsPageSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of pages to fetch in parallel (max 8).') },
   async (args) => {
     const settled = await Promise.allSettled(
       args.pages.map(async (p) => {
-        const r = await apiGet('company/ads', {
-          pageId: p.page_id,
-          country: p.country ?? 'ALL',
-          status: p.status ?? 'ACTIVE',
-        }, `ads ${p.label ?? p.page_id} ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'}`, AD_CACHE_TTL_HOURS);
-        return { p, r };
+        // Cursor pagination for big advertisers (the "30-ad cap" was just us
+        // never paginating). depth=1 (default) is the old single fetch.
+        const raw: any[] = [];
+        let cursor: string | undefined;
+        let cached = true;
+        let error: string | null = null;
+        let more = false;
+        const depth = Math.min(p.depth ?? 1, 3);
+        for (let pg = 0; pg < depth; pg++) {
+          const r = await apiGet('company/ads', {
+            pageId: p.page_id,
+            country: p.country ?? 'ALL',
+            status: p.status ?? 'ACTIVE',
+            start_date: startDateFor(p.last_days),
+            cursor,
+          }, `ads ${p.label ?? p.page_id} ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'}${p.last_days ? `/last${p.last_days}d` : ''} pg${pg + 1}`, AD_CACHE_TTL_HOURS);
+          if (!r.ok) { error = r.error; break; }
+          cached = cached && r.cached;
+          const ads = (r.data?.results ?? []) as any[];
+          raw.push(...ads);
+          cursor = r.data?.cursor ?? undefined;
+          more = Boolean(cursor);
+          if (!cursor || ads.length === 0) break;
+        }
+        return { p, raw, cached, error, more };
       }),
     );
     const blocks = await Promise.all(settled.map(async (s, i) => {
       const idx = i + 1;
       const p = args.pages[i];
-      const head = `[${idx}] PAGE: ${p.label ?? p.page_id} (page_id=${p.page_id}, ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'})`;
+      const head = `[${idx}] PAGE: ${p.label ?? p.page_id} (page_id=${p.page_id}, ${p.country ?? 'ALL'}/${p.status ?? 'ACTIVE'}${p.last_days ? `/last ${p.last_days}d` : ''})`;
       if (s.status !== 'fulfilled') return `${head}\n    ERROR: ${String(s.reason)}`;
-      const { r } = s.value;
-      if (!r.ok) return `${head}\n    ERROR: ${r.error}`;
-      const raw = (r.data?.results ?? []) as any[];
+      const { raw, cached, error, more } = s.value;
+      if (error && raw.length === 0) return `${head}\n    ERROR: ${error}`;
       if (raw.length === 0) {
-        return `${head}${r.cached ? ' (cached)' : ''}\n    NO ACTIVE ADS FOUND. This rival is not running active Meta ads (or none in this country). That is a finding — name it; fall back to a Perplexity category-trend read for the visual zeitgeist.`;
+        return `${head}${cached ? ' (cached)' : ''}\n    NO ACTIVE ADS FOUND. This rival is not running active Meta ads (or none in this country). That is a finding — name it; fall back to a Perplexity category-trend read for the visual zeitgeist.`;
       }
-      const dumpFile = rawAdsDir ? dumpRawAds(rawAdsDir, p.label ?? '', p.page_id, raw) : null;
+      const status = p.status ?? 'ACTIVE';
+      const dumpSuffix = `${status !== 'ACTIVE' ? `.status-${status.toLowerCase()}` : ''}${p.last_days ? `.last${p.last_days}d` : ''}`;
+      const dumpFile = rawAdsDir ? dumpRawAds(rawAdsDir, p.label ?? '', p.page_id, raw, dumpSuffix) : null;
       const images = imagesRoot ? await downloadAdImages(imagesRoot, p.label ?? '', p.page_id, raw) : null;
       const shaped = rankRevealedWinners(raw.map(shapeAd));
       const max = p.max_ads ?? DEFAULT_MAX_ADS;
       const realName = raw[0]?.page_name ? ` — confirmed page_name="${raw[0].page_name}"` : '';
-      const dumpNote = dumpFile ? `\n    RAW DUMP (all ${raw.length} ads, full untruncated copy + media URLs): ${dumpFile}` : '';
+      const dumpNote = dumpFile ? `\n    RAW DUMP (all ${raw.length} ads, full untruncated copy + media URLs + job labels): ${dumpFile}` : '';
       const imgNote = images
         ? `\n    IMAGE CREATIVES: ${images.downloaded} downloaded (${images.adsWithImages} image-bearing ads, top ${Math.min(images.adsWithImages, IMG_ADS_PER_BRAND)} taken${images.failed ? `; ${images.failed} URL(s) FAILED — signed CDN links expire, likely a stale payload` : ''}) → ${images.dir} (files named <adId>_<n>.jpg)`
         : imagesRoot
           ? '\n    IMAGE CREATIVES: none (video/DCO-only page — copy captured in the dump; pixels skipped)'
           : '';
+      // Job mix + cadence — the ad-data v2 calibration the scout carries into
+      // the shortlist. Cadence reads over conversion-job ads only (a store
+      // opening spree must not make a coasting brand look like a tester).
+      const jobMix = new Map<string, number>();
+      for (const a of shaped) jobMix.set(a.job, (jobMix.get(a.job) ?? 0) + 1);
+      const jobNote = `\n    JOB MIX: ${[...jobMix.entries()].map(([j, n]) => `${j}=${n}`).join(', ')} (only conversion-job ads carry endorsement for our read; the rest is context)`;
+      const cadNote = `\n    ${cadenceLine(launchCadence(shaped.filter((a) => a.job === 'conversion')))}`;
+      const moreNote = more ? `\n    MORE PAGES AVAILABLE — re-call with depth=${Math.min((p.depth ?? 1) + 1, 3)} to fetch deeper (1 credit/page).` : '';
+      const stopNote = error ? `\n    NOTE: page fetch stopped early: ${error}` : '';
       const shown = shaped.slice(0, max).map((a, n) =>
-        `      ${n + 1}. [${a.format}] running ${a.daysRunning ?? '?'}d (since ${a.launched})` +
+        `      ${n + 1}. [${a.format}${a.job === 'conversion' ? '' : ` · job:${a.job}`}] running ${a.daysRunning ?? '?'}d (since ${a.launched})` +
         `${a.active ? '' : ' INACTIVE'} | variants=${a.variants} | ${a.platforms.join('+') || 'n/a'} | CTA: ${a.cta} → ${a.linkDomain}\n` +
         `         copy: ${a.body || '(no body text)'}`);
-      return `${head}${r.cached ? ' (cached)' : ''}${realName}${dumpNote}${imgNote}\n    ${raw.length} active ad(s) total; showing top ${Math.min(max, shaped.length)} by revealed-winner ranking (variants × longevity):\n${shown.join('\n')}`;
+      return `${head}${cached ? ' (cached)' : ''}${realName}${dumpNote}${imgNote}${jobNote}${cadNote}${moreNote}${stopNote}\n    ${raw.length} ad(s) fetched; showing top ${Math.min(max, shaped.length)} by revealed-winner ranking (active × conversion-job × variants × longevity):\n${shown.join('\n')}`;
     }));
     return { content: [{ type: 'text' as const, text: blocks.join('\n\n') }] };
   },
@@ -576,6 +707,7 @@ const huntSchema = z.object({
   search_type: z.enum(['keyword_exact_phrase', 'keyword_unordered']).optional().describe('Default keyword_exact_phrase — fingerprints work best as exact phrases.'),
   media_type: z.enum(['ALL', 'IMAGE', 'MEME', 'IMAGE_AND_MEME']).optional().describe('Default IMAGE_AND_MEME = statics only (MEME is Meta-speak for text-on-image).'),
   status: z.enum(['ACTIVE', 'INACTIVE', 'ALL']).optional().describe('Default ACTIVE (the live field). ALL adds recently-retired ads.'),
+  last_days: z.number().int().min(1).max(365).optional().describe('Server-side date window: only ads from the last N days (e.g. 90 = the current fashion of this format). Omit for all-time.'),
   max_ads: z.number().int().min(1).max(30).optional().describe('Max ads to summarize in the result (the dump holds everything), default 12.'),
   depth: z.number().int().min(1).max(3).optional().describe('Result pages to fetch via cursor, default 1. Each page ≈ 30 ads and costs 1 credit.'),
 });
@@ -595,7 +727,10 @@ const makeFormatHunt = (rawAdsDir?: string, imagesRoot?: string) => tool(
 export function createScrapecreatorsServer(rawAdsDir?: string, imagesRoot?: string) {
   return createSdkMcpServer({
     name: 'scrapecreators',
-    version: '0.4.0',
+    // 0.5.0 = ad-data v2: per-ad job classification, launch-cadence brand
+    // calibration, job-aware ranking, last_days date windows, company/ads
+    // cursor pagination (S146 Step 1).
+    version: '0.5.0',
     tools: [competitorFindPages, makeCompetitorAds(rawAdsDir, imagesRoot), makeFormatHunt(rawAdsDir, imagesRoot)],
   });
 }

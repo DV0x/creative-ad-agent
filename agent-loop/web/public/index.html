@@ -144,6 +144,18 @@
       .refbar { display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 4px 0; }
       .refchip { font-size: 12px; background: var(--wine-wash); color: var(--wine); border-radius: 999px; padding: 3px 10px; }
       .statusline { padding: 4px 4px; color: var(--wine); font-size: 13px; }
+
+      /* resume list on the welcome screen */
+      .runlist { margin-top: 28px; text-align: left; display: flex; flex-direction: column; gap: 8px; }
+      .runlist .qh { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.4px; text-align: center; }
+      .runitem {
+        font: inherit; cursor: pointer; text-align: left; background: var(--raised);
+        border: 1px solid var(--border2); border-radius: 12px; padding: 10px 14px; color: var(--ink);
+        transition: border-color 0.12s;
+      }
+      .runitem:hover { border-color: var(--wine); }
+      .runitem b { font-weight: 600; }
+      .runitem small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
     </style>
   </head>
   <body>
@@ -151,7 +163,7 @@
     <script>
       const app = document.getElementById('app');
       let ws = null;
-      let state = { screen: 'welcome', view: null, images: [], question: null, startTs: 0, error: '', pendingImage: null, refs: [], status: '' };
+      let state = { screen: 'welcome', view: null, images: [], question: null, startTs: 0, error: '', pendingImage: null, refs: [], status: '', runs: [] };
 
       function connect() {
         ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
@@ -162,7 +174,9 @@
           else if (m.type === 'question') { state.question = m.questions; render(); }
           else if (m.type === 'image') { if (!state.images.includes(m.url)) { state.images.push(m.url); render(); } }
           else if (m.type === 'started') { state.startTs = Date.now(); state.error = ''; }
-          else if (m.type === 'ended') { if (m.error) state.error = m.error; }
+          else if (m.type === 'resumed') { state.startTs = Date.now(); state.error = ''; state.screen = 'run'; render(); }
+          else if (m.type === 'runs') { state.runs = m.runs || []; if (state.screen === 'welcome') render(); }
+          else if (m.type === 'ended') { if (m.error) { state.error = m.error; render(); } }
           else if (m.type === 'ref') { state.refs.push(m.name); state.status = ''; render(); }
           else if (m.type === 'status') { state.status = m.text; render(); }
         };
@@ -208,6 +222,19 @@
         if (state.pendingImage) { const pv = el('img', 'preview'); pv.src = state.pendingImage.dataUrl; photo.appendChild(pv); }
         w.appendChild(photo);
         w.appendChild(el('div', 'hint', 'Runs the full pipeline: research → competitors → strategy → concepts → two critics → render.'));
+        if (state.runs.length) {
+          const rl = el('div', 'runlist');
+          rl.appendChild(el('div', 'qh', 'or continue a previous run'));
+          for (const r of state.runs) {
+            const btn = el('button', 'runitem');
+            const when = r.startedAt ? new Date(r.startedAt).toLocaleString() : r.runId;
+            btn.innerHTML = '<b>' + escapeHtml(r.brandUrl.replace(/^https?:\/\//, '')) + '</b><small>' +
+              escapeHtml(when) + ' · ' + (r.done ? '✓ finished' : '⏸ interrupted') + (r.renders ? ' · ' + r.renders + ' ad' + (r.renders > 1 ? 's' : '') : '') + '</small>';
+            btn.onclick = () => { state.screen = 'run'; state.startTs = Date.now(); send({ type: 'resume', runId: r.runId }); render(); };
+            rl.appendChild(btn);
+          }
+          w.appendChild(rl);
+        }
         if (state.error) w.appendChild(el('div', 'err', state.error));
         app.appendChild(w);
         b.onclick = () => start(inp.value);

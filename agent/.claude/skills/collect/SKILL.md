@@ -25,12 +25,22 @@ running rival claims name what your facts must BEAT. Read it before you hunt, an
 to beat — the eight types below still define WHAT an artifact is; the brief tells you which ones
 this engagement needs most. (No field brief in the directory → hunt the types evenly, as before.)
 
+## Client-provided voice — read it FIRST
+
+Glob `assets/` and the working directory for founder-uploaded files (reviews exports, survey CSVs,
+support-ticket dumps, testimonial docs) before you search the open web. Client-provided voice is
+FIRST-CLASS material: closer to the buyer than anything Perplexity will find. Pull artifacts from it
+verbatim with source "client-provided: <filename>" — the same eight types, the same verbatim law.
+
 ## Render-bindable assets — the second inventory
 
 The build stage can bind REAL files into a render (edit mode keeps marks exact): logo files, faces
 (note permission status), product photos, real proof documents. Inventory what exists — download
 what you can into `assets/` in your working directory, and record what exists but needs the founder
-(a face photo, a lab report) as a named gap. A construction whose proof surface has no real asset
+(a face photo, a lab report) as a named gap. **The brand's own site assets count**: when you find
+the real logo or a clean product image on the brand's pages (og:image, press kit, PDP) but cannot
+save the file yourself, record its EXACT URL in the Assets section marked `URL-REF` — the render
+tool can bind a brand-owned URL directly. A construction whose proof surface has no real asset
 cannot ship it; naming that early is part of your job.
 
 ## What you hunt — eight artifact types
@@ -92,6 +102,7 @@ Read `founder-facts.md` FIRST — the brand, the product, the conversion goal. I
 
 ## Assets  (render-bindable)
 - assets/<file> — <what it is: logo | face (permission?) | product photo | proof doc>
+- URL-REF: <exact url> — <what it is; brand-owned only> (or none)
 - NEEDS FOUNDER: <asset that exists but you could not obtain — one line each> (or "none")
 
 ## Gaps

@@ -13,10 +13,10 @@
 import { createServer } from 'node:http';
 import { WebSocketServer } from 'ws';
 import { readFile } from 'node:fs/promises';
-import { existsSync, watch, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, watch, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, extname, basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadEnv, missingKeys, createRunDir, writeFounderStub, stageBinderRefs, AGENT_LOOP_DIR } from '../chat/setup.ts';
+import { loadEnv, missingKeys, createRunDir, writeFounderStub, stageBinderRefs, readSessionInfo, listResumableRuns, AGENT_LOOP_DIR } from '../chat/setup.ts';
 import { ChatSession } from '../chat/session.ts';
 import { initView, reduce, type ChatView } from '../chat/reducer.ts';
 import { TraceLogger } from '../trace.ts';
@@ -117,6 +117,9 @@ wss.on('connection', (ws) => {
     }
   };
 
+  // the welcome screen offers "continue a previous run" — send the list up front
+  send({ type: 'runs', runs: listResumableRuns() });
+
   ws.on('message', (data) => {
     let msg: any;
     try {
@@ -128,6 +131,8 @@ wss.on('connection', (ws) => {
       startRun(String(msg.url ?? ''), msg.mode === 'deep' ? 'deep' : 'surface', msg.image).catch((e) =>
         send({ type: 'ended', error: String(e?.message ?? e) }),
       );
+    else if (msg.type === 'resume' && !session)
+      resumeRun(String(msg.runId ?? '')).catch((e) => send({ type: 'ended', error: String(e?.message ?? e) }));
     else if (msg.type === 'answer' && session) {
       bump({ t: 'answered', a: msg.answers });
       session.answer(msg.answers);
@@ -185,6 +190,31 @@ wss.on('connection', (ws) => {
     }
 
     // the ad images land in runs/<runId>/renders — tell the browser the moment each appears
+    watchRenders();
+
+    session = new ChatSession({ brandUrl: url, runDir, order, mode, logger }, sessionEvents(logger));
+    void session.run();
+    session.send(`My brand is ${url}. Read the site first, then ask me what you need to know, and build the ad.`);
+  }
+
+  function sessionEvents(logger: TraceLogger) {
+    return {
+      onMessage: (m: any) => bump({ t: 'sdk', m }),
+      onQuestion: (q: any) => {
+        bump({ t: 'question', q });
+        send({ type: 'question', questions: q.questions });
+      },
+      onIdle: () => bump({ t: 'idle' }),
+      onSessionId: (id: string) => bump({ t: 'session', id }),
+      onEnd: (err?: Error) => {
+        logger.finalize();
+        bump({ t: 'ended', err: err?.message });
+        send({ type: 'ended', error: err?.message });
+      },
+    };
+  }
+
+  function watchRenders() {
     try {
       imgWatcher = watch(join(runDir, 'renders'), (_ev, fname) => {
         if (fname && /\.(png|jpe?g|webp)$/i.test(fname.toString())) {
@@ -194,26 +224,44 @@ wss.on('connection', (ws) => {
     } catch {
       /* renders dir watch is best-effort */
     }
+  }
+
+  // Reopen a finished (or interrupted) run: SDK JSONL resume — the orchestrator wakes with the
+  // whole conversation (intake answers, verdicts, gate calls) and the follow-up router applies.
+  // The founder just types what they want changed; no kickoff message is sent.
+  async function resumeRun(runId_: string) {
+    if (!/^[a-z0-9._-]+$/i.test(runId_)) {
+      send({ type: 'ended', error: 'invalid run id' });
+      return;
+    }
+    const dir = join(AGENT_LOOP_DIR, 'runs', runId_);
+    const info = readSessionInfo(dir);
+    if (!info) {
+      send({ type: 'ended', error: 'this run has no captured session (it predates resume support) — start a new run' });
+      return;
+    }
+    runDir = dir;
+    runId = runId_;
+    const order = info.order.length ? info.order : [...STAGE_ORDER];
+    const logger = new TraceLogger(runDir, { append: true }); // the original trace is evidence — append, never truncate
+    view = initView(info.brandUrl, order);
+    dirty = true;
+    send({ type: 'resumed', runId, brandUrl: info.brandUrl });
+
+    // replay the run's shipped ads into the chat, then keep watching for follow-up renders
+    const rendersDir = join(runDir, 'renders');
+    if (existsSync(rendersDir)) {
+      for (const f of readdirSync(rendersDir)) {
+        if (/\.(png|jpe?g|webp)$/i.test(f)) send({ type: 'image', url: `/images/${runId}/${f}` });
+      }
+    }
+    watchRenders();
 
     session = new ChatSession(
-      { brandUrl: url, runDir, order, mode, logger },
-      {
-        onMessage: (m) => bump({ t: 'sdk', m }),
-        onQuestion: (q) => {
-          bump({ t: 'question', q });
-          send({ type: 'question', questions: q.questions });
-        },
-        onIdle: () => bump({ t: 'idle' }),
-        onSessionId: (id) => bump({ t: 'session', id }),
-        onEnd: (err) => {
-          logger.finalize();
-          bump({ t: 'ended', err: err?.message });
-          send({ type: 'ended', error: err?.message });
-        },
-      },
+      { brandUrl: info.brandUrl, runDir, order, mode: 'surface', logger, resumeSessionId: info.sessionId },
+      sessionEvents(logger),
     );
     void session.run();
-    session.send(`My brand is ${url}. Read the site first, then ask me what you need to know, and build the ad.`);
   }
 });
 

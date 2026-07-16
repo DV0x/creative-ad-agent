@@ -1,5 +1,8 @@
 node_modules/
 runs/
 .cache/
+# format-bank DATA persists locally + churns every run; the code (bank.ts) is
+# tracked, the store is not (real cross-machine store is R2/D1 later, per plan)
+bank/
 .env
 *.log

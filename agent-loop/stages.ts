@@ -16,14 +16,16 @@
  *                 hook bank, open lanes, DO-NOT-CLONE)
  *   collect     — brand field collector, now TARGETED by the field brief
  *                 → material.md (+ render-bindable asset inventory)
- *   create      — senior DR creative (Opus): picks 3–5 endorsed constructions,
- *                 executes keep/swap/re-derive → creatives.md + creatives.json
+ *   create      — senior DR creative (Opus): designs the 8-spec portfolio under
+ *                 the diversity contract (≤2/family, ≥4 claims, ≥2 personas,
+ *                 ≥1 lane, ≥1 native) → creatives.md + creatives.json
  *   buy         — media buyer (Opus, orchestrator-launched): judges the specs
- *                 cold → verdict.md
+ *                 cold, approves 6–8 RANKED (partial kills → one backfill
+ *                 create round) → verdict.md
  *   build       — compiles approved specs into render prompts (Contra rules),
  *                 renders via the provider-redundant render MCP → build-output.md
- *   gate        — fresh pixel seat (Opus, orchestrator-launched): five checks
- *                 per image → gate-verdict.md
+ *   gate        — fresh pixel seat (Opus, orchestrator-launched): six checks
+ *                 per image + the batch diversity line → gate-verdict.md
  *
  * market/cell-render/render-critic are retired (superseded by field/build/gate;
  * pre-rebuild code archived at archive/agent-loop-2026-07-07-pre-dr-rebuild/).
@@ -146,25 +148,30 @@ export const COLLECT: Stage = {
 export const CREATE: Stage = {
   name: 'create',
   description:
-    'Senior DR creative (Opus) — picks 3–5 budget-endorsed constructions off the field brief and adapts them to the brand (keep/swap/re-derive, copy by destination, anatomy law), producing brand specs with final copy. Run after field + collect.',
+    'Senior DR creative (Opus) — designs the 8-spec PORTFOLIO from the field brief under the diversity contract (≤2 per formatFamily, ≥4 claimTypes, ≥2 personas, ≥1 format-lane play, ≥1 native/logo-stripped) and adapts each construction to the brand (keep/swap/re-derive, copy by destination, anatomy law). Run after field + collect.',
   identityPrompt: [
     'You are a SENIOR DIRECT-RESPONSE CREATIVE, engaged for one brand.',
     '',
     'Your complete method is **the DR creative binder**, already loaded into your context as a preloaded',
     'skill named `create`. Read it as your operating manual — the field=form/brand=truth law, the',
-    'construction picks, the three tags (keep/swap/re-derive with the role and scene laws), copy by',
+    'portfolio contract (8 specs, the diversity axes, the own-family form rule, the sourcing ladder,',
+    'the motor law), the three tags (keep/swap/re-derive with the role and scene laws), copy by',
     'destination, the anatomy law. Follow it.',
     '',
     'In your working directory:',
     '  - founder-facts.md      The job: conversion event, CPA, buyer, OFFERS ALLOWED. Read first.',
-    '  - field/field-brief.md  The mined field: working constructions, hook bank, open lanes,',
-    '                          DO-NOT-CLONE. Read it WHOLE.',
+    '  - field/field-brief.md  The mined field: working constructions (two ledgers), coverage map,',
+    '                          format lanes, hook bank, open lanes, DO-NOT-CLONE. Read it WHOLE.',
     '  - material.md           The verbatim artifact bank + render-bindable assets. Read it WHOLE.',
     '  - field/reads/*.jsonl   The pixel reads. For each construction you pick, read its SOURCE READ',
     '                          whole — you adapt from the read, not from the brief\'s summary.',
+    '  - bank/*.jsonl          The cross-client format bank (one file per formatFamily, some entries',
+    '                          carry real flight scores). Your second sourcing rung.',
     '  - raw/                  The raw tier (full rival ads, full source texts). Grep on demand.',
-    '  - verdict.md            PRESENT ONLY ON ROUND 2 — the buyer killed the previous batch. Read the',
-    '                          autopsy and write a NEW batch that answers it. Never resubmit a killed spec.',
+    '  - verdict.md            PRESENT ONLY AFTER A BUYER ROUND. Your launch instruction says which:',
+    '                          FULL REDO (reject-all — write a NEW batch answering the autopsy; never',
+    '                          resubmit a killed spec) or BACKFILL (survivors stand untouched — write',
+    '                          only the replacement specs, restoring the portfolio contract).',
     '',
     'Your tools: Read, Write, Grep, Glob. No web access — you work from the collected field and material.',
     '',
@@ -193,16 +200,20 @@ export const BUILD: Stage = {
     'rendering, and the thumbnail self-check. Follow it.',
     '',
     'In your working directory:',
-    '  - verdict.md         The buyer\'s call — build the WINNERS, and only the winners.',
-    '  - creatives.json     The approved specs: final strings, measured scale, craft, refs.',
+    '  - verdict.md         The buyer\'s RANKED call. You render ONLY the creatives your launch',
+    '                       instruction names (the orchestrator selects the top-ranked N and the',
+    '                       ratios) — every other approved spec stays STORED in creatives.json for',
+    '                       later "render more" follow-ups; never render it uninvited.',
+    '  - creatives.json     The approved specs: final strings, measured scale, craft, refs, copy pool.',
     '  - material.md        The asset inventory the specs\' refs point at (assets/ holds the files).',
     '  - gate-verdict.md    PRESENT ONLY ON A RE-RENDER ROUND — the gate\'s named diffs. Fix ONLY the',
     '                       "re-render" diffs, and render again — once.',
     '',
     'HOW TO RENDER (your I/O contract):',
-    `  Call ${RENDER_TOOL} with one job per approved creative:`,
-    '  { name: "creative-N-<slug>", prompt: <the fully-compiled prompt>, size: "4:5",',
-    '    refs: [<LOCAL asset paths from the spec — logo, face, product>] }.',
+    `  Call ${RENDER_TOOL} with one job per selected creative and ratio:`,
+    '  { name: <the binder\'s NAMING LAW: yyyymmdd_cN_claim_hookslug_family_ratio>,',
+    '    prompt: <the fully-compiled prompt>, size: "4:5" (or the instructed ratio),',
+    '    refs: [<asset paths from the spec — logo, face, product; http(s) URLs auto-download>] }.',
     '  Refs auto-route to the edit endpoint so brand marks render exactly. COMPETITOR PIXELS NEVER',
     '  ENTER A RENDER CALL. The tool saves each image and returns its absolute filePath — Read each',
     '  one back for your thumbnail self-check.',
@@ -282,14 +293,20 @@ export const BUY_IO_PROMPT = [
   'deliverables named here — you judge cold):',
   '  - founder-facts.md       The conversion event, CPA, and OFFERS ALLOWED you buy against.',
   '  - material.md            The artifact bank — verify every anchor and quoted proof VERBATIM.',
-  '  - field/field-brief.md   The mined field — your CLONE and open-lane tests run on this evidence.',
+  '  - field/field-brief.md   The mined field — your CLONE, lane, and coverage tests run on this evidence.',
   '  - field/reads/*.jsonl    Pull each spec\'s cited sourceRead and judge the adaptation against it.',
-  '  - creatives.md + creatives.json   The batch (3–5 specs). Judge ONLY what is on the page.',
+  '  - bank/*.jsonl           The format bank — pull any `bank:`-cited sourceRead from here.',
+  '  - creatives.md + creatives.json   The batch (the 8-spec portfolio, or fewer with named gaps).',
+  '                           Judge ONLY what is on the page.',
   '  - raw/ads/*.jsonl        OPTIONAL: Grep to verify a wallpaper call against the full field.',
   '',
-  'Apply the rubric below adversarially, spec by spec, then judge the batch as a test design. Write',
-  "verdict.md exactly in the rubric's shape, ending with the FINAL line. Return the final call as your",
-  'last message.',
+  'Apply the rubric below adversarially, spec by spec, then judge the batch as a test design across',
+  'all three axes (claimType × formatFamily × persona). Approve every genuine survivor, RANKED in',
+  'money order (target 6–8; quality is the floor). Write verdict.md exactly in the rubric\'s shape,',
+  'ending with the FINAL line. Return the final call as your last message.',
+  '',
+  'On a BACKFILL round (your launch instruction says so): autopsy ONLY the new specs, re-run the batch',
+  'tests over the full final set, and write a complete fresh verdict.md.',
   '',
   'You kill and you pick; you cannot add what a spec lacks. When uncertain on any test, KILL.',
   'Do not rewrite the specs, do not invent.',
@@ -306,17 +323,63 @@ export const GATE_IO_PROMPT = [
   '',
   'Find and VIEW every rendered image: Read build-output.md for the image paths (or Glob renders/),',
   'then Read EACH image — you must actually view the pixels; a verdict without opening the images is',
-  'worthless. Then read:',
+  'worthless. On a RE-GATE, re-view EVERY image including previously-passed ones — prior verdicts',
+  'are not evidence. Then read:',
   '  - creatives.json         The CONTRACT: final strings, layout, measured scale, craft, refs.',
   '  - field/reads/*.jsonl    Each creative\'s sourceRead — your CLONE check runs against it.',
   '  - field/field-brief.md   The DO-NOT-CLONE section (the brand\'s own live constructions).',
+  '  - founder-facts.md       The brand URL — your LP-congruence check WebFetches the destination ONCE.',
   '',
-  'Apply the five checks per image, then write gate-verdict.md exactly in the rubric\'s shape, ending',
-  'with the FINAL line. Return that final call as your last message — the orchestrator acts on it.',
+  'Apply the six checks per image, write the batch diversity line, then write gate-verdict.md exactly',
+  'in the rubric\'s shape, ending with the FINAL line. Return that final call as your last message —',
+  'the orchestrator acts on it.',
   '',
   'When uncertain on any check, FAIL it. Do not re-render, do not rewrite specs, do not invent.',
   '',
   '════════════════ YOUR RUBRIC (build/references/gate.md) ════════════════',
+].join('\n');
+
+// ── The launch-kit seat (orchestrator-launched after the gate passes) ────────
+// The run's output must be launchable by a first-time founder, not a folder of
+// PNGs. The orchestrator itself may not produce (its Write ban is law), so a
+// small mechanical seat assembles the kit from the run's own artifacts.
+export const KIT_MODEL = STAGE_MODEL;
+
+export const KIT_IO_PROMPT = [
+  'You are the LAUNCH-KIT seat — mechanical assembly, zero creative judgment. You compile what this',
+  'run produced into the one document a founder launches from. Read, in your working directory:',
+  '  - founder-facts.md    Brand, conversion event, CPA, budget, market (currency for the sheet).',
+  '  - creatives.json      Every approved spec: names, hypotheses, copy pool (primaryText + alts,',
+  '                        headline + alts), formatFamily, persona, sourceRead.',
+  '  - verdict.md          The buyer\'s ranked call (the test map\'s order).',
+  '  - gate-verdict.md     What actually shipped vs was flagged.',
+  '  - build-output.md     Image names + absolute paths + ratios (Glob renders/ to double-check).',
+  '',
+  'Write launch-kit.md with exactly these sections:',
+  '',
+  '## Shipped images  (by ratio)',
+  '| ad name (naming law) | creative | ratio | file path |',
+  '',
+  '## Copy pool  (per shipped creative — Advantage+ asset-pool shape)',
+  'Creative N — primaryText: <lead> / alts: <2 more> · headlines: <lead> / alts: <4 more>',
+  '(copy strings VERBATIM from creatives.json — you never edit copy)',
+  '',
+  '## Naming map  (the CSV-attribution key: ad name → creative → construction)',
+  '| ad name | creative | sourceRead/bank construction | claimType | formatFamily | persona |',
+  '',
+  '## Campaign sheet',
+  'One TESTING campaign · one ad set per shipped concept · $30–50/day equivalent in the brand\'s',
+  'currency (state the actual number) · judge at ~50 conversions or 72h, kill clear losers at 72h ·',
+  'winners graduate to Advantage+/ASC with the full copy pool. Adjust the daily number to the',
+  'founder\'s stated budget when founder-facts names one.',
+  '',
+  '## Test map  (EVERY approved concept, rendered or not)',
+  'Per concept: what it probes (claimType × formatFamily × persona), the hypothesis (what a win',
+  'teaches — from creatives.json), status: SHIPPED (image path) | STORED (render on demand) |',
+  'BLOCKED (gate flag — one-line reason).',
+  '',
+  'Copy strings and hypotheses come from the files VERBATIM. Invent nothing, rank nothing yourself,',
+  'write no strategy. When launch-kit.md is written, you are done. Produce nothing else.',
 ].join('\n');
 
 export const STAGES: Record<string, Stage> = {

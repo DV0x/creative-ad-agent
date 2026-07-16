@@ -33,12 +33,17 @@ const LAUNCH_CAPS: Record<string, number> = {
   'field-read': 8, // the parallel fan-out: one launch per reader slice
   'field-brief': 2,
   collect: 1,
-  create: 2, // one buyer-rejected redo
-  buy: 2,
+  create: 3, // initial + one full redo (reject-all) + one backfill round (partial kills)
+  buy: 3,
   build: 3, // initial + the gate's single re-render round (+1 headroom)
   gate: 3,
+  kit: 2, // initial + one rebuild after a follow-up changes shipped work
 };
 const DEFAULT_LAUNCH_CAP = 2;
+// After DONE.md exists the session is in ITERATION MODE (founder-driven follow-ups
+// through the router) — the strict mid-run ceilings would deny legitimate edit
+// cycles, so a generous per-stage ceiling takes over. Budget caps still guard.
+const ITERATION_LAUNCH_CAP = 12;
 
 export interface HookConfig {
   /** subagent_type -> max gathering calls (e.g. { collect: 15, market: 15 }). */
@@ -49,6 +54,14 @@ export interface HookConfig {
    *  orchestrator declaring completion off stale/archived files (observed: it
    *  Globbed an archived r1/ round and wrote DONE.md without running any stage). */
   doneRequires?: string[];
+  /** Fired ONCE after DONE.md is actually written (PostToolUse) — the run-complete
+   *  signal that works on every entry point (headless, chat, web). Used to append
+   *  the run's reads to the format bank. */
+  onDone?: () => void;
+  /** Absolute path of DONE.md. When it EXISTS on disk, the launch-ceiling check
+   *  switches to the generous iteration cap (follow-up edit cycles are founder-
+   *  driven, not runaway loops). */
+  donePath?: string;
   /** Progress sink for denials. */
   onEvent?: (msg: string) => void;
 }
@@ -57,6 +70,7 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
   const gatherCount = new Map<string, number>(); // agent key -> gathering calls so far
   const launchCount = new Map<string, number>(); // subagent_type -> launches so far (retry-aware ceiling)
   let identityLogged = false; // log the first gathering call's identity once (diagnostic)
+  let doneFired = false; // onDone fires once, even if DONE.md is rewritten (chat follow-ups)
 
   const deny = (reason: string) => {
     cfg.onEvent?.(`⛔ ${reason}`);
@@ -112,7 +126,11 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
               const st: string | undefined = input?.tool_input?.subagent_type;
               if (st) {
                 const n = (launchCount.get(st) ?? 0) + 1;
-                const cap = LAUNCH_CAPS[st] ?? DEFAULT_LAUNCH_CAP;
+                // Iteration mode: once DONE.md exists, the founder is driving edits
+                // through the follow-up router — the strict mid-run ceilings would
+                // deny legitimate build/gate/create cycles. Generous cap takes over.
+                const iterating = Boolean(cfg.donePath && fs.existsSync(cfg.donePath));
+                const cap = iterating ? ITERATION_LAUNCH_CAP : (LAUNCH_CAPS[st] ?? DEFAULT_LAUNCH_CAP);
                 if (n > cap) {
                   return deny(
                     `Stage "${st}" has already been launched ${cap} time(s) — that is its retry ceiling. Do NOT launch it again; read its deliverable and proceed or stop.`,
@@ -150,5 +168,30 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
         ],
       },
     ],
+    // The run-complete signal: DONE.md only ever gets written at true completion
+    // (the PreToolUse guard above refuses premature writes), so a PostToolUse on
+    // that Write is the one place that fires on every entry point — headless,
+    // chat, and web all share these hooks via buildBaseOptions.
+    ...(cfg.onDone
+      ? {
+          PostToolUse: [
+            {
+              hooks: [
+                async (input: any) => {
+                  const tool: string = input?.tool_name ?? '';
+                  const file = input?.tool_input?.file_path;
+                  if (tool === 'Write' && typeof file === 'string' && /(^|\/)DONE\.md$/.test(file) && !doneFired) {
+                    doneFired = true;
+                    try { cfg.onDone!(); } catch (err) {
+                      cfg.onEvent?.(`onDone failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`);
+                    }
+                  }
+                  return { continue: true as const };
+                },
+              ],
+            },
+          ],
+        }
+      : {}),
   };
 }

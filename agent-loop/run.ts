@@ -40,10 +40,17 @@ if (modeIdx >= 0) {
   mode = val;
   rawArgs.splice(modeIdx, rawArgs[modeIdx].includes('=') ? 1 : 2);
 }
+// Render economics (S145 Step 3.1): design 8, render top-N (default 3) at the
+// named ratios (default 4:5). The unrendered winners stay stored in creatives.json.
+const renderTopRaw = rawArgs.find((a) => a.startsWith('--render='))?.split('=')[1];
+const renderTop = Math.min(Math.max(Number(renderTopRaw ?? 3) || 3, 1), 8);
+const ratiosRaw = rawArgs.find((a) => a.startsWith('--ratios='))?.split('=')[1];
+const ratios = (ratiosRaw ?? '4:5').split(',').map((r) => r.trim()).filter(Boolean);
+
 const positionals = rawArgs.filter((a) => !a.startsWith('--'));
 const brandUrl = positionals[0];
 if (!brandUrl) {
-  console.error('usage: tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep] [--founder=<brief.md>] [--product=<image>]');
+  console.error('usage: tsx run.ts <brand-url> [stage1,stage2,...] [--mode surface|deep] [--founder=<brief.md>] [--product=<image>] [--render=N] [--ratios=4:5,1:1]');
   process.exit(1);
 }
 const order = positionals[1]?.split(',').map((s) => s.trim()).filter(Boolean) ?? [...STAGE_ORDER];
@@ -134,14 +141,14 @@ if (productPath) {
 }
 
 // 7) run
-console.log(`\n🚀 agent-loop · ${order.join(' → ')} · mode=${mode}`);
+console.log(`\n🚀 agent-loop · ${order.join(' → ')} · mode=${mode} · render top-${renderTop} @ ${ratios.join(',')}`);
 console.log(`   brand: ${brandUrl}`);
 console.log(`   run:   ${runDir}\n`);
 
 const logger = new TraceLogger(runDir);
 const t0 = Date.now();
 try {
-  await runPipeline({ brandUrl, runDir, order, mode, logger, onProgress: (line) => console.log(line) });
+  await runPipeline({ brandUrl, runDir, order, mode, logger, renderTop, ratios, onProgress: (line) => console.log(line) });
 } catch (e: any) {
   console.error('\n❌ pipeline error:', e?.message ?? e);
 } finally {

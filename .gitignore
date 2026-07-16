@@ -10,6 +10,10 @@ server/node_modules/
 # Build outputs
 dist/
 build/
+# …but the BUILD SKILL BINDER is source, not build output (the generic build/
+# pattern silently swallowed it — the gate rubric was never in git until S148)
+!agent/.claude/skills/build/
+!agent/.claude/skills/build/**
 *.js
 *.d.ts
 *.js.map

@@ -66,3 +66,58 @@ export function writeFounderStub(runDir: string, brandUrl: string): void {
  *  seats get their reference docs INLINED into their prompts by pipeline.ts (read-schema,
  *  field-brief rules, buyer + gate rubrics), so nothing needs copying into the run dir. */
 export function stageBinderRefs(_runDir: string, _order: string[]): void {}
+
+// ── Session resume (the docs' return-to-a-conversation path) ────────────────
+// ChatSession writes runDir/session.json at init ({sessionId, brandUrl, order,
+// startedAt}); these helpers read it back so a run can be REOPENED with the SDK's
+// `resume` — full conversation memory, follow-up router on top.
+
+export interface SessionInfo {
+  sessionId: string;
+  brandUrl: string;
+  order: string[];
+  startedAt?: string;
+}
+
+/** The run's SDK session record, or null when the run predates session capture. */
+export function readSessionInfo(runDir: string): SessionInfo | null {
+  try {
+    const raw = JSON.parse(fs.readFileSync(join(runDir, 'session.json'), 'utf8'));
+    if (typeof raw?.sessionId !== 'string' || !raw.sessionId) return null;
+    return {
+      sessionId: raw.sessionId,
+      brandUrl: String(raw.brandUrl ?? ''),
+      order: Array.isArray(raw.order) ? raw.order : [],
+      startedAt: raw.startedAt,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export interface ResumableRun {
+  runId: string; // basename of the run dir
+  brandUrl: string;
+  startedAt?: string;
+  done: boolean; // DONE.md exists — the run completed (iteration mode on reopen)
+  renders: number; // shipped image count, for the picker
+}
+
+/** Newest-first list of runs that can be reopened (have a captured session id). */
+export function listResumableRuns(limit = 8): ResumableRun[] {
+  const runsDir = join(AGENT_LOOP_DIR, 'runs');
+  if (!fs.existsSync(runsDir)) return [];
+  const out: ResumableRun[] = [];
+  for (const name of fs.readdirSync(runsDir).sort().reverse()) {
+    if (out.length >= limit) break;
+    const dir = join(runsDir, name);
+    const info = readSessionInfo(dir);
+    if (!info) continue;
+    const rendersDir = join(dir, 'renders');
+    const renders = fs.existsSync(rendersDir)
+      ? fs.readdirSync(rendersDir).filter((f) => /\.(png|jpe?g|webp)$/i.test(f)).length
+      : 0;
+    out.push({ runId: name, brandUrl: info.brandUrl, startedAt: info.startedAt, done: fs.existsSync(join(dir, 'DONE.md')), renders });
+  }
+  return out;
+}

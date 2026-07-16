@@ -55,10 +55,12 @@ export class TraceLogger {
   private seq = 0;
   private t0 = Date.now();
 
-  constructor(private runDir: string) {
+  constructor(private runDir: string, opts: { append?: boolean } = {}) {
     mkdirSync(runDir, { recursive: true });
     this.jsonlPath = join(runDir, 'trace.jsonl');
-    writeFileSync(this.jsonlPath, ''); // truncate any prior run
+    // append mode (session resume): the original run's trace is evidence — never truncate it;
+    // resumed-session events append after it in the same ordered stream.
+    if (!opts.append) writeFileSync(this.jsonlPath, ''); // truncate any prior run
   }
 
   /** The stage a message belongs to: 'orchestrator' if parent is null, else the subagent it spawned. */
