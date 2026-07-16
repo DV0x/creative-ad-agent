@@ -16,7 +16,7 @@ import { readFile } from 'node:fs/promises';
 import { existsSync, watch, writeFileSync, mkdirSync, readdirSync } from 'node:fs';
 import { join, extname, basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadEnv, missingKeys, createRunDir, writeFounderStub, stageBinderRefs, readSessionInfo, listResumableRuns, AGENT_LOOP_DIR } from '../chat/setup.ts';
+import { loadEnv, missingKeys, createRunDir, writeFounderStub, stageBinderRefs, readSessionInfo, listResumableRuns, rehydrateView, AGENT_LOOP_DIR } from '../chat/setup.ts';
 import { ChatSession } from '../chat/session.ts';
 import { initView, reduce, type ChatView } from '../chat/reducer.ts';
 import { TraceLogger } from '../trace.ts';
@@ -218,7 +218,10 @@ wss.on('connection', (ws) => {
     try {
       imgWatcher = watch(join(runDir, 'renders'), (_ev, fname) => {
         if (fname && /\.(png|jpe?g|webp)$/i.test(fname.toString())) {
-          send({ type: 'image', url: `/images/${runId}/${fname}` });
+          // route through the reducer so the image lands in the feed IN TIMELINE
+          // ORDER (not dumped after the whole conversation); the reducer dedupes
+          // the rename+change double-fire.
+          bump({ t: 'image', url: `/images/${runId}/${fname}` });
         }
       });
     } catch {
@@ -244,15 +247,18 @@ wss.on('connection', (ws) => {
     runId = runId_;
     const order = info.order.length ? info.order : [...STAGE_ORDER];
     const logger = new TraceLogger(runDir, { append: true }); // the original trace is evidence — append, never truncate
-    view = initView(info.brandUrl, order);
+    // rebuild the prior conversation + completed pipeline strip from the run's own
+    // trace (not a blank view); resilient to an unreadable/oversized trace.
+    view = rehydrateView(runDir, info.brandUrl, order);
     dirty = true;
     send({ type: 'resumed', runId, brandUrl: info.brandUrl });
 
-    // replay the run's shipped ads into the chat, then keep watching for follow-up renders
+    // replay the run's shipped ads as feed items (after the rehydrated conversation),
+    // then keep watching for follow-up renders — all via the reducer, in order.
     const rendersDir = join(runDir, 'renders');
     if (existsSync(rendersDir)) {
-      for (const f of readdirSync(rendersDir)) {
-        if (/\.(png|jpe?g|webp)$/i.test(f)) send({ type: 'image', url: `/images/${runId}/${f}` });
+      for (const f of readdirSync(rendersDir).sort()) {
+        if (/\.(png|jpe?g|webp)$/i.test(f)) bump({ t: 'image', url: `/images/${runId}/${f}` });
       }
     }
     watchRenders();

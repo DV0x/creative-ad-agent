@@ -163,7 +163,8 @@
     <script>
       const app = document.getElementById('app');
       let ws = null;
-      let state = { screen: 'welcome', view: null, images: [], question: null, startTs: 0, error: '', pendingImage: null, refs: [], status: '', runs: [] };
+      let state = { screen: 'welcome', view: null, question: null, startTs: 0, error: '', pendingImage: null, refs: [], status: '', runs: [] };
+      let inputBarEl = null; // the ONE persistent input node — never recreated, so typing/focus survive re-renders
 
       function connect() {
         ws = new WebSocket((location.protocol === 'https:' ? 'wss://' : 'ws://') + location.host);
@@ -172,7 +173,7 @@
           try { m = JSON.parse(ev.data); } catch { return; }
           if (m.type === 'view') { state.view = m.view; render(); }
           else if (m.type === 'question') { state.question = m.questions; render(); }
-          else if (m.type === 'image') { if (!state.images.includes(m.url)) { state.images.push(m.url); render(); } }
+          // rendered ads now arrive inside the view feed (reducer-ordered), not as a separate message
           else if (m.type === 'started') { state.startTs = Date.now(); state.error = ''; }
           else if (m.type === 'resumed') { state.startTs = Date.now(); state.error = ''; state.screen = 'run'; render(); }
           else if (m.type === 'runs') { state.runs = m.runs || []; if (state.screen === 'welcome') render(); }
@@ -246,8 +247,30 @@
       const STAGE_MARK = { pending: '○', running: '', done: '✓', failed: '✗' };
       function vClass(v) { return /WINNER|PASS/.test(v) ? 'good' : /REJECT|FAIL/.test(v) ? 'bad' : ''; }
 
+      // The input bar is built ONCE and reused across every re-render (the rest of the
+      // page is torn down and rebuilt on each update). Reusing the same DOM node means
+      // in-progress text, focus, and cursor position are never wiped mid-type.
+      function buildInputBar() {
+        const ib = el('div', 'inputbar');
+        const clip = el('button', 'clip', '📎'); clip.title = 'attach a photo (trainer, product, space)';
+        clip.onclick = () => pickFile((img) => send({ type: 'upload', image: img }));
+        const inp = el('input'); inp.id = 'chatinput';
+        const b = el('button', 'btn', 'Send');
+        ib.appendChild(clip); ib.appendChild(inp); ib.appendChild(b);
+        const submit = () => { const t = inp.value.trim(); if (!t) return; send({ type: 'message', text: t }); inp.value = ''; };
+        b.onclick = submit;
+        inp.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+        return ib;
+      }
+
       function renderRun() {
         const v = state.view;
+        // preserve the persistent input node (value + focus + cursor) across the full rebuild
+        if (!inputBarEl) inputBarEl = buildInputBar();
+        const inpEl = inputBarEl.querySelector('input');
+        const hadFocus = document.activeElement === inpEl;
+        const selStart = inpEl.selectionStart, selEnd = inpEl.selectionEnd;
+        if (inputBarEl.parentNode) inputBarEl.parentNode.removeChild(inputBarEl); // detach, don't destroy
         app.innerHTML = '';
         const root = el('div', 'run');
 
@@ -281,12 +304,10 @@
           root.appendChild(strip);
         }
 
-        // feed
+        // feed — images are feed items now (kind:'image'), so they sit in timeline order
         const feed = el('div', 'feed');
         feed.id = 'feed';
         if (v) for (const f of v.feed) feed.appendChild(renderFeedItem(f));
-        // images (the payoff) after the conversation
-        for (const url of state.images) feed.appendChild(renderImage(url));
         // question picker
         if (state.question) feed.appendChild(renderQuestion(state.question));
         root.appendChild(feed);
@@ -304,24 +325,18 @@
         if (state.refs.length) { const rb = el('div', 'refbar'); for (const n of state.refs) rb.appendChild(el('span', 'refchip', '📎 ' + n)); root.appendChild(rb); }
         if (state.status) root.appendChild(el('div', 'statusline', state.status));
 
-        // input
-        const ib = el('div', 'inputbar');
-        const clip = el('button', 'clip', '📎'); clip.title = 'attach a photo (trainer, product, space)';
-        clip.onclick = () => pickFile((img) => send({ type: 'upload', image: img }));
-        const inp = el('input'); inp.placeholder = v && v.phase === 'idle' ? 'ask for a change…' : 'type a note (it gets picked up)…';
-        inp.id = 'chatinput';
-        const b = el('button', 'btn', 'Send');
-        ib.appendChild(clip); ib.appendChild(inp); ib.appendChild(b);
-        root.appendChild(ib);
-        const submit = () => { const t = inp.value.trim(); if (!t) return; send({ type: 'message', text: t }); inp.value = ''; };
-        b.onclick = submit;
-        inp.onkeydown = (e) => { if (e.key === 'Enter') submit(); };
+        // input — re-attach the SAME persistent node (only its placeholder is dynamic)
+        inpEl.placeholder = v && v.phase === 'idle' ? 'ask for a change…' : 'type a note (it gets picked up)…';
+        root.appendChild(inputBarEl);
 
         app.appendChild(root);
+        // restore focus + cursor if the user was typing when this re-render fired
+        if (hadFocus) { inpEl.focus(); try { inpEl.setSelectionRange(selStart, selEnd); } catch (e) {} }
         const fe = document.getElementById('feed'); if (fe) fe.scrollTop = fe.scrollHeight;
       }
 
       function renderFeedItem(f) {
+        if (f.kind === 'image') return renderImage(f.url);
         if (f.kind === 'user') return el('div', 'msg user', f.text);
         if (f.kind === 'note') return el('div', 'msg note', f.text);
         if (f.kind === 'question') return el('div', 'msg note', 'asked: ' + (f.headers || []).join(' · '));

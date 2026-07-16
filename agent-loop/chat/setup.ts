@@ -9,6 +9,7 @@ import { config as loadEnvFile } from 'dotenv';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import * as fs from 'node:fs';
+import { initView, reduce, type ChatView } from './reducer.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 export const AGENT_LOOP_DIR = join(__dirname, '..');
@@ -101,6 +102,40 @@ export interface ResumableRun {
   startedAt?: string;
   done: boolean; // DONE.md exists — the run completed (iteration mode on reopen)
   renders: number; // shipped image count, for the picker
+}
+
+/** Rebuild the live view for a resumed run by folding its OWN trace.jsonl back
+ *  through the reducer — trace.jsonl records the exact SDK messages the reducer
+ *  consumes, so this reproduces the original run's feed (the prior conversation)
+ *  + the completed pipeline strip. Resilient: any failure (missing/oversized/
+ *  corrupt trace, or an FS stall) degrades to a fresh view with a resumed note,
+ *  never a broken resume. Rendered images are NOT in the trace (they arrive via
+ *  the renders/ watcher, not the SDK stream) — the caller replays those after. */
+export function rehydrateView(runDir: string, brandUrl: string, order: string[]): ChatView {
+  let view = initView(brandUrl, order);
+  try {
+    const tracePath = join(runDir, 'trace.jsonl');
+    if (fs.existsSync(tracePath)) {
+      const raw = fs.readFileSync(tracePath, 'utf8');
+      for (const line of raw.split('\n')) {
+        if (!line.trim()) continue;
+        // Skip giant lines cheaply (string length, no parse): these are subagent
+        // tool-result payloads (image reads, full JSON dumps) that the reducer
+        // ignores anyway — parsing them is the only slow part on a fat/compounding
+        // trace, and skipping keeps resume snappy without losing any feed content.
+        if (line.length > 512_000) continue;
+        try {
+          const o = JSON.parse(line);
+          if (o && o.msg) view = reduce(view, { t: 'sdk', m: o.msg });
+        } catch { /* skip a corrupt/partial line */ }
+      }
+    }
+  } catch {
+    view = initView(brandUrl, order); // FS stall / oversized read → clean fallback
+  }
+  // A resumed run is complete; surface that + a marker so the founder has context.
+  view = { ...view, phase: 'idle', feed: [...view.feed, { kind: 'note', text: '↩ Continued session — ask for any change.' }] };
+  return view;
 }
 
 /** Newest-first list of runs that can be reopened (have a captured session id). */

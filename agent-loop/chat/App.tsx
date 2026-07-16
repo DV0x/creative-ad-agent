@@ -92,6 +92,8 @@ function feedLine(f: FeedItem): { prefix: string; color: string; text: string; d
       return { prefix: '?', color: 'yellow', text: `asked: ${f.headers.join(' · ')}` };
     case 'note':
       return { prefix: '·', color: 'gray', text: f.text, dim: true };
+    case 'image':
+      return { prefix: '🖼', color: 'green', text: `rendered ad → ${f.url}`, dim: true };
   }
 }
 

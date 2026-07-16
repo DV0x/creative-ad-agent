@@ -28,7 +28,8 @@ export type FeedItem =
   | { kind: 'agent'; text: string }
   | { kind: 'user'; text: string }
   | { kind: 'question'; headers: string[] }
-  | { kind: 'note'; text: string };
+  | { kind: 'note'; text: string }
+  | { kind: 'image'; url: string }; // a rendered ad, placed in timeline order (not dumped at the end)
 
 export interface ChatView {
   brand: string;
@@ -87,6 +88,7 @@ export type ChatEvent =
   | { t: 'answered'; a: AskAnswers }
   | { t: 'idle' }
   | { t: 'session'; id: string }
+  | { t: 'image'; url: string }
   | { t: 'ended'; err?: string };
 
 const content = (m: any): any[] => (Array.isArray(m?.message?.content) ? m.message.content : []);
@@ -120,6 +122,11 @@ export function reduce(v: ChatView, e: ChatEvent): ChatView {
       return { ...v, awaitingUser: false };
     case 'session':
       return { ...v, sessionId: e.id };
+    case 'image':
+      // a rendered ad landed — place it in the feed in arrival order. Dedupe:
+      // the renders/ fs.watch fires rename+change per file, so the same url repeats.
+      if (v.feed.some((f) => f.kind === 'image' && f.url === e.url)) return v;
+      return { ...v, feed: [...v.feed, { kind: 'image', url: e.url }] };
     case 'ended':
       return { ...v, phase: 'ended', error: e.err };
     case 'idle':
