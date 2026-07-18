@@ -195,6 +195,14 @@ export function classifyJob(a: any): AdJob {
   if (format === 'DPA' || DCO_TEMPLATE_RE.test(copy)) return 'retargeting';
   // Awareness: page-like / profile-visit plays — no purchase destination.
   if (format === 'PAGE_LIKE' || ctaType === 'LIKE_PAGE' || ctaType === 'VIEW_INSTAGRAM_PROFILE') return 'awareness';
+  // Boosted posts (S152, the TheRateFinder field): an fb.me destination is
+  // Facebook's own permalink shortener — the click lands on a POST, not a funnel
+  // (even under a conversion-looking CTA button). And no CTA + no destination is
+  // an ad that cannot convert by construction. Both run for months on unmanaged
+  // inertia, which the days×variants ranking otherwise reads as endorsement —
+  // 21/30 client ads rode exactly that.
+  if (link === 'fb.me' || link.endsWith('.fb.me')) return 'awareness';
+  if (!ctaType && (link === 'n/a' || !link)) return 'awareness';
   return 'conversion';
 }
 
@@ -206,14 +214,19 @@ export function classifyJob(a: any): AdJob {
 // Computed at dump time from the launch dates of the fetched ads; the label
 // travels with every page result so the scout carries it into the shortlist.
 export interface LaunchCadence {
-  label: 'ACTIVE-TESTER' | 'LAUNCH-FLUSH' | 'ZOMBIE' | 'STEADY' | 'UNKNOWN';
+  label: 'ACTIVE-TESTER' | 'LAUNCH-FLUSH' | 'ZOMBIE' | 'STEADY' | 'UNKNOWN' | 'WINDOW-TRUNCATED';
   newestDays: number | null;
   buckets: { d0_30: number; d31_90: number; d91_180: number; d180_plus: number };
   note: string;
 }
 
-/** Exported for direct testing. Takes dump-shaped entries ({ daysRunning, active }). */
-export function launchCadence(entries: Array<{ daysRunning: number | null; active: boolean }>): LaunchCadence {
+/** Exported for direct testing. Takes dump-shaped entries ({ daysRunning, active }).
+ *  `truncated` = a result cursor remains (page 1 of 2+): the API returns newest-first,
+ *  so a partial window hides exactly the old ads cadence needs — a steady 20-year
+ *  advertiser reads as LAUNCH-FLUSH off its newest page (S152: the True North miss
+ *  that made a client's own boosted posts look like the field's only winners).
+ *  A truncated window therefore refuses to emit a cadence at all. */
+export function launchCadence(entries: Array<{ daysRunning: number | null; active: boolean }>, truncated = false): LaunchCadence {
   const ages = entries.filter((e) => e.active && e.daysRunning != null).map((e) => e.daysRunning as number);
   const buckets = { d0_30: 0, d31_90: 0, d91_180: 0, d180_plus: 0 };
   if (ages.length === 0) return { label: 'UNKNOWN', newestDays: null, buckets, note: 'no active ads with launch dates' };
@@ -224,6 +237,13 @@ export function launchCadence(entries: Array<{ daysRunning: number | null; activ
     else buckets.d180_plus++;
   }
   const newestDays = Math.min(...ages);
+  if (truncated) {
+    const oldestVisible = Math.max(...ages);
+    return {
+      label: 'WINDOW-TRUNCATED', newestDays, buckets,
+      note: `first result page only — oldest VISIBLE ad ${oldestVisible}d, but older ads exist beyond the cursor. Cadence and endorsement are UNREADABLE from a partial window; re-call with depth=2 before treating either as real`,
+    };
+  }
   const proven = buckets.d91_180 + buckets.d180_plus;
   if (buckets.d0_30 / ages.length >= 0.7 && newestDays <= 30)
     return { label: 'LAUNCH-FLUSH', newestDays, buckets, note: 'nearly everything launched inside 30d — survival untested, endorsement signal ≈ zero' };
@@ -280,7 +300,9 @@ function shapeAd(a: any): ShapedAd {
     platforms: Array.isArray(a?.publisher_platform) ? a.publisher_platform : [],
     cta: [s?.cta_text, s?.cta_type].filter(Boolean).join(' / ') || 'n/a',
     linkDomain: domainOf(s?.link_url),
-    body: body.length > 220 ? body.slice(0, 220) + '…' : body,
+    // Context view only (the dump keeps FULL text) — 120 chars is enough for a
+    // triage read; the scout Greps the dump for anything deeper (S151 scout diet).
+    body: body.length > 120 ? body.slice(0, 120) + '…' : body,
     firstImage:
       (Array.isArray(s?.images) && s.images[0]?.original_image_url) ||
       (Array.isArray(s?.images) && s.images[0]?.resized_image_url) ||
@@ -385,61 +407,17 @@ function brandSlug(label: string, pageId: string): string {
 }
 
 // ── Image-creative download (the field stage's pixel tier) ─────────────────
-// The pixel-read step needs the actual creatives on disk. Download images for
-// the TOP image-bearing ads only (revealed-winner order — the endorsed ads are
-// the ones worth reading), capped per brand, ≤3 images per ad, skipping tiny
-// files (tracking pixels / thumbs). Same discipline as the validated manual
-// run (clients/verbis/field-first-test/mine-fetch.mjs).
-// Caps sized for the DCO era: cards[] extraction means a single brand can expose
-// 40-60 static creatives, so we take the TOP endorsed ads (the dump is pre-ranked
-// by active × variants × days) and ≤2 cards each — enough to read the construction
-// (a DCO ad's cards share one layout; only the product/flavour swaps) without
-// flooding the reader fan-out. ~24 images/brand ceiling.
+// TWO-PHASE since 0.6.0 (S151 scout diet): page/hunt fetches capture image URLs
+// in the dump but download NOTHING. The scout picks its shortlist from metadata
+// + copy, then calls download_creatives for exactly the shortlisted ads — so we
+// download the ~15-20 creatives the readers will actually view, not the whole
+// field (the HK run downloaded 159, read ~20). ≤2 images per ad (a DCO ad's
+// cards share one layout; only the product/flavour swaps), skipping tiny files
+// (tracking pixels / thumbs). downloadHuntImages remains as the AUTO path for
+// bank seeding only (seed-bank.ts reads hunt images immediately, no shortlist).
 const IMG_ADS_PER_BRAND = 12;
 const IMGS_PER_AD = 2;
 const MIN_IMG_BYTES = 5000;
-
-async function downloadAdImages(
-  imagesRoot: string,
-  label: string,
-  pageId: string,
-  raw: any[],
-): Promise<{ dir: string; adsWithImages: number; downloaded: number; failed: number } | null> {
-  try {
-    const entries = raw
-      .map((a) => rawAdEntry(a, label || pageId, pageId) as { archiveId: string; active: boolean; daysRunning: number | null; variants: number; job: AdJob; imageUrls: string[] })
-      .sort((x, y) => {
-        if (x.active !== y.active) return x.active ? -1 : 1;
-        // conversion-job creatives first — the per-brand download cap must not be
-        // spent on store-opening/catalog pixels (the BigMuscles pollution)
-        if ((x.job === 'conversion') !== (y.job === 'conversion')) return x.job === 'conversion' ? -1 : 1;
-        if (y.variants !== x.variants) return y.variants - x.variants;
-        return (y.daysRunning ?? 0) - (x.daysRunning ?? 0);
-      });
-    const withImages = entries.filter((e) => e.imageUrls.length > 0);
-    if (withImages.length === 0) return null;
-    const dir = path.join(imagesRoot, brandSlug(label, pageId));
-    fs.mkdirSync(dir, { recursive: true });
-    let downloaded = 0;
-    let failed = 0;
-    for (const ad of withImages.slice(0, IMG_ADS_PER_BRAND)) {
-      for (let i = 0; i < Math.min(ad.imageUrls.length, IMGS_PER_AD); i++) {
-        try {
-          const r = await fetch(ad.imageUrls[i]);
-          if (!r.ok) { failed++; continue; }
-          const buf = Buffer.from(await r.arrayBuffer());
-          if (buf.length < MIN_IMG_BYTES) continue; // tracking pixel / tiny thumb
-          fs.writeFileSync(path.join(dir, `${ad.archiveId}_${i}.jpg`), buf);
-          downloaded++;
-        } catch { failed++; }
-      }
-    }
-    return { dir, adsWithImages: withImages.length, downloaded, failed };
-  } catch (err) {
-    process.stderr.write(`[scrapecreators] image download failed: ${err instanceof Error ? err.message : String(err)}\n`);
-    return null;
-  }
-}
 
 // ── Format hunts — keyword-fingerprint search across ALL advertisers ────────
 // A format family (testimonial static, math-anchor offer card, founder-POV…)
@@ -490,6 +468,83 @@ async function downloadHuntImages(
     process.stderr.write(`[scrapecreators] hunt image download failed: ${err instanceof Error ? err.message : String(err)}\n`);
     return null;
   }
+}
+
+// ── download_creatives — phase two of the two-phase fetch ──────────────────
+export interface DownloadRequest { dump_file: string; ad_ids: string[] }
+
+/** Exported for direct testing; the download_creatives tool is a thin wrapper.
+ *  Reads each requested ad's imageUrls from the raw dump ON DISK (no API call,
+ *  no credits) and downloads them: brand dumps → raw/images/<brand>/<adId>_<n>.jpg,
+ *  hunt dumps → raw/images/hunt-<slug>/<brand>__<adId>_<n>.jpg — the same naming
+ *  the auto-download era used, so readers and downstream Globs are unchanged. */
+export async function downloadCreativesForAds(
+  requests: DownloadRequest[],
+  imagesRoot?: string,
+  rawAdsDir?: string,
+): Promise<string> {
+  if (!imagesRoot) return 'download_creatives is unavailable: this server was built without an images directory.';
+  const blocks: string[] = [];
+  for (let i = 0; i < requests.length; i++) {
+    const req = requests[i];
+    const idx = i + 1;
+    let file = req.dump_file;
+    if (!fs.existsSync(file) && rawAdsDir) {
+      const alt = path.join(rawAdsDir, path.basename(file));
+      if (fs.existsSync(alt)) file = alt;
+    }
+    if (!fs.existsSync(file)) {
+      blocks.push(`[${idx}] ${req.dump_file}: DUMP NOT FOUND — pass the raw dump path exactly as the fetch/hunt result named it.`);
+      continue;
+    }
+    const base = path.basename(file).replace(/\.jsonl$/, '');
+    const isHunt = base.startsWith('hunt-');
+    const byId = new Map<string, any>();
+    for (const line of fs.readFileSync(file, 'utf8').split('\n')) {
+      if (!line.trim()) continue;
+      try { const e = JSON.parse(line); byId.set(String(e.archiveId), e); } catch { /* skip bad line */ }
+    }
+    const found: any[] = [];
+    const missing: string[] = [];
+    for (const id of req.ad_ids) {
+      const e = byId.get(String(id));
+      if (e) found.push(e); else missing.push(id);
+    }
+    let downloaded = 0;
+    let failed = 0;
+    let videoOnly = 0;
+    const dirs = new Set<string>();
+    const CHUNK = 6; // modest concurrency — fast without hammering the CDN
+    for (let c = 0; c < found.length; c += CHUNK) {
+      await Promise.allSettled(found.slice(c, c + CHUNK).map(async (e) => {
+        const urls: string[] = Array.isArray(e.imageUrls) ? e.imageUrls : [];
+        if (urls.length === 0) { videoOnly++; return; }
+        const dir = path.join(imagesRoot, isHunt ? base : brandSlug(String(e.brand ?? ''), String(e.pageId ?? '')));
+        fs.mkdirSync(dir, { recursive: true });
+        dirs.add(dir);
+        for (let n = 0; n < Math.min(urls.length, IMGS_PER_AD); n++) {
+          try {
+            const r = await fetch(urls[n]);
+            if (!r.ok) { failed++; continue; }
+            const buf = Buffer.from(await r.arrayBuffer());
+            if (buf.length < MIN_IMG_BYTES) continue; // tracking pixel / tiny thumb
+            const name = isHunt
+              ? `${brandSlug(String(e.brand ?? ''), String(e.pageId ?? ''))}__${e.archiveId}_${n}.jpg`
+              : `${e.archiveId}_${n}.jpg`;
+            fs.writeFileSync(path.join(dir, name), buf);
+            downloaded++;
+          } catch { failed++; }
+        }
+      }));
+    }
+    blocks.push([
+      `[${idx}] ${base}: ${downloaded} image(s) downloaded for ${found.length - videoOnly} image-bearing ad(s) → ${[...dirs].join(', ') || '(nothing to download)'}`,
+      videoOnly ? `    ${videoOnly} requested ad(s) carry no static image URLs (video/DCO poster only) — their copy is in the dump; pixels out of scope.` : '',
+      failed ? `    ${failed} URL(s) FAILED — signed CDN links expire ~48h after the original scrape; refetch the page if the dump is old.` : '',
+      missing.length ? `    NOT IN DUMP: ${missing.join(', ')} — check the archiveIds against the dump lines.` : '',
+    ].filter(Boolean).join('\n'));
+  }
+  return blocks.join('\n\n');
 }
 
 export interface FormatHunt {
@@ -552,6 +607,9 @@ export async function runFormatHunts(hunts: FormatHunt[], rawAdsDir?: string, im
         dumpFile = null;
       }
     }
+    // imagesRoot present = the AUTO-download path (bank seeding via seed-bank.ts,
+    // which reads hunt images immediately). The pipeline's format_hunt tool omits
+    // it — the scout downloads shortlisted hunt ads via download_creatives instead.
     const images = imagesRoot ? await downloadHuntImages(imagesRoot, slug, entries) : null;
     // Advertiser roll-up — who is running this format, how hard.
     const byPage = new Map<string, { pageId: string; n: number; likes: number | null }>();
@@ -570,7 +628,11 @@ export async function runFormatHunts(hunts: FormatHunt[], rawAdsDir?: string, im
     blocks.push([
       `${head}${allCached ? ' (cached)' : ''} — ${all.length} ad(s) found${cursor ? '; MORE available (raise depth)' : ''}${fetchError ? `; page fetch stopped early: ${fetchError}` : ''}`,
       dumpFile ? `    RAW DUMP (full copy + media URLs, one line per ad, per-ad advertiser identity): ${dumpFile}` : '',
-      images ? `    IMAGE CREATIVES: ${images.downloaded} downloaded (${images.adsWithImages} image-bearing ads${images.failed ? `; ${images.failed} URL(s) FAILED — signed CDN links expire, likely a stale payload` : ''}) → ${images.dir} (files: <brand>__<adId>_<n>.jpg)` : '',
+      images
+        ? `    IMAGE CREATIVES: ${images.downloaded} downloaded (${images.adsWithImages} image-bearing ads${images.failed ? `; ${images.failed} URL(s) FAILED — signed CDN links expire, likely a stale payload` : ''}) → ${images.dir} (files: <brand>__<adId>_<n>.jpg)`
+        : dumpFile
+          ? `    Images NOT downloaded at fetch time — after the shortlist is picked, call download_creatives with this dump path + the shortlisted archiveIds.`
+          : '',
       `    ADVERTISERS RUNNING THIS FINGERPRINT (${byPage.size}):`,
       ...rollup,
       `    TOP ADS (API order = impressions-ranked; numbers hidden for commercial ads):`,
@@ -623,9 +685,9 @@ const adsPageSchema = z.object({
   max_ads: z.number().int().min(1).max(30).optional().describe('Max revealed-winner ads to return per page after ranking, default 12.'),
 });
 
-const makeCompetitorAds = (rawAdsDir?: string, imagesRoot?: string) => tool(
+const makeCompetitorAds = (rawAdsDir?: string) => tool(
   'competitor_ads',
-  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then conversion-job, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Every ad also gets a JOB label (conversion/retargeting/local/awareness/recruitment — the Ad Library hides campaign objectives, so this is inferred from CTA type, link domain, and copy shape) and every page gets a LAUNCH CADENCE calibration (ACTIVE-TESTER / LAUNCH-FLUSH / ZOMBIE / STEADY) — carry both into your shortlist; only conversion-job ads carry endorsement worth reading. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is ALSO dumped in full (untruncated copy + media URLs) to a raw JSONL file on disk, AND the top image creatives are downloaded to a per-brand images folder for the pixel-read step — the result names both paths; cite them in your deliverable so downstream seats can Grep the field and Read the creatives. 1 credit per page (cached).',
+  'Fetch a rival page\'s ACTIVE Meta ads, pre-ranked by revealed-winner signal (active, then conversion-job, then most variants, then longest-running) and trimmed to the fields that matter for a triage read: ad copy, CTA, link domain, format (VIDEO/IMAGE), days running, variant count, platforms. Every ad also gets a JOB label (conversion/retargeting/local/awareness/recruitment — the Ad Library hides campaign objectives, so this is inferred from CTA type, link domain, and copy shape) and every page gets a LAUNCH CADENCE calibration (ACTIVE-TESTER / LAUNCH-FLUSH / ZOMBIE / STEADY; a truncated first page reports WINDOW-TRUNCATED instead — re-call with depth=2 before reading cadence or endorsement) — carry both into your shortlist; only conversion-job ads carry endorsement worth reading. Pass an ARRAY of pages (1-8, page_id from competitor_find_pages); each fires concurrently. There is NO performance data for commercial ads — days_running and variants are PROXIES for what a rival\'s budget endorses, not measured winners; treat them as such. Empty results mean the rival runs no active Meta ads (itself a signal — name it, and fall back to a Perplexity category-trend read). Every fetched ad is dumped in full (untruncated copy + image URLs) to a raw JSONL file on disk — the result names the path; cite it in your deliverable so downstream seats can Grep the field. Images are NOT downloaded at fetch time: after you pick the shortlist, call download_creatives with the dump path + shortlisted archiveIds (phase two). 1 credit per page (cached).',
   { pages: z.array(adsPageSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of pages to fetch in parallel (max 8).') },
   async (args) => {
     const settled = await Promise.allSettled(
@@ -670,23 +732,23 @@ const makeCompetitorAds = (rawAdsDir?: string, imagesRoot?: string) => tool(
       const status = p.status ?? 'ACTIVE';
       const dumpSuffix = `${status !== 'ACTIVE' ? `.status-${status.toLowerCase()}` : ''}${p.last_days ? `.last${p.last_days}d` : ''}`;
       const dumpFile = rawAdsDir ? dumpRawAds(rawAdsDir, p.label ?? '', p.page_id, raw, dumpSuffix) : null;
-      const images = imagesRoot ? await downloadAdImages(imagesRoot, p.label ?? '', p.page_id, raw) : null;
       const shaped = rankRevealedWinners(raw.map(shapeAd));
       const max = p.max_ads ?? DEFAULT_MAX_ADS;
       const realName = raw[0]?.page_name ? ` — confirmed page_name="${raw[0].page_name}"` : '';
       const dumpNote = dumpFile ? `\n    RAW DUMP (all ${raw.length} ads, full untruncated copy + media URLs + job labels): ${dumpFile}` : '';
-      const imgNote = images
-        ? `\n    IMAGE CREATIVES: ${images.downloaded} downloaded (${images.adsWithImages} image-bearing ads, top ${Math.min(images.adsWithImages, IMG_ADS_PER_BRAND)} taken${images.failed ? `; ${images.failed} URL(s) FAILED — signed CDN links expire, likely a stale payload` : ''}) → ${images.dir} (files named <adId>_<n>.jpg)`
-        : imagesRoot
-          ? '\n    IMAGE CREATIVES: none (video/DCO-only page — copy captured in the dump; pixels skipped)'
-          : '';
+      const imageBearing = raw.filter((a) => collectImageUrls(a?.snapshot ?? {}).length > 0).length;
+      const imgNote = dumpFile
+        ? imageBearing > 0
+          ? `\n    IMAGE-BEARING ADS: ${imageBearing} of ${raw.length} (image URLs in the dump). NOT downloaded at fetch time — after the shortlist is picked, call download_creatives with this dump path + the shortlisted archiveIds.`
+          : '\n    IMAGE-BEARING ADS: none (video/DCO-only page — copy captured in the dump; pixels out of scope)'
+        : '';
       // Job mix + cadence — the ad-data v2 calibration the scout carries into
       // the shortlist. Cadence reads over conversion-job ads only (a store
       // opening spree must not make a coasting brand look like a tester).
       const jobMix = new Map<string, number>();
       for (const a of shaped) jobMix.set(a.job, (jobMix.get(a.job) ?? 0) + 1);
       const jobNote = `\n    JOB MIX: ${[...jobMix.entries()].map(([j, n]) => `${j}=${n}`).join(', ')} (only conversion-job ads carry endorsement for our read; the rest is context)`;
-      const cadNote = `\n    ${cadenceLine(launchCadence(shaped.filter((a) => a.job === 'conversion')))}`;
+      const cadNote = `\n    ${cadenceLine(launchCadence(shaped.filter((a) => a.job === 'conversion'), more))}`;
       const moreNote = more ? `\n    MORE PAGES AVAILABLE — re-call with depth=${Math.min((p.depth ?? 1) + 1, 3)} to fetch deeper (1 credit/page).` : '';
       const stopNote = error ? `\n    NOTE: page fetch stopped early: ${error}` : '';
       const shown = shaped.slice(0, max).map((a, n) =>
@@ -712,26 +774,42 @@ const huntSchema = z.object({
   depth: z.number().int().min(1).max(3).optional().describe('Result pages to fetch via cursor, default 1. Each page ≈ 30 ads and costs 1 credit.'),
 });
 
-const makeFormatHunt = (rawAdsDir?: string, imagesRoot?: string) => tool(
+const makeFormatHunt = (rawAdsDir?: string) => tool(
   'format_hunt',
-  'Hunt a creative FORMAT across ALL advertisers by its copy fingerprint — no brand names needed. Searches the whole Meta Ad Library by exact phrase (statics-only by default), returns the advertisers running that format ranked by delivery, dumps every hit in full to a raw JSONL (per-ad advertiser identity), and downloads the top static creatives for the pixel readers. Use when a format family the brief needs is ABSENT from the rival set (white-space format lanes), or to seed the format bank. Pass an ARRAY of hunts (1-8); each page of each hunt costs 1 credit (cached).',
+  'Hunt a creative FORMAT across ALL advertisers by its copy fingerprint — no brand names needed. Searches the whole Meta Ad Library by exact phrase (statics-only by default), returns the advertisers running that format ranked by delivery, and dumps every hit in full to a raw JSONL (per-ad advertiser identity). Images are NOT downloaded at hunt time — shortlist first, then call download_creatives with the hunt dump path + archiveIds (phase two). Use when a format family the brief needs is ABSENT from the rival set (white-space format lanes), or to seed the format bank. Pass an ARRAY of hunts (1-8); each page of each hunt costs 1 credit (cached).',
   { hunts: z.array(huntSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('Array of fingerprint hunts to run (max 8).') },
-  async (args) => ({ content: [{ type: 'text' as const, text: await runFormatHunts(args.hunts, rawAdsDir, imagesRoot) }] }),
+  async (args) => ({ content: [{ type: 'text' as const, text: await runFormatHunts(args.hunts, rawAdsDir) }] }),
+);
+
+// ── Tool 4 — download_creatives: phase two of the two-phase fetch ──────────
+const downloadReqSchema = z.object({
+  dump_file: z.string().min(1).describe('The raw dump path EXACTLY as the fetch/hunt result named it (raw/ads/<brand>.jsonl or raw/ads/hunt-<slug>.jsonl).'),
+  ad_ids: z.array(z.string().min(1)).min(1).max(20).describe('archiveIds of the SHORTLISTED ads whose image creatives to download (from the dump lines / fetch result).'),
+});
+
+const makeDownloadCreatives = (rawAdsDir?: string, imagesRoot?: string) => tool(
+  'download_creatives',
+  'PHASE TWO of the fetch: download image creatives for SHORTLISTED ads only. Reads each ad\'s image URLs from the raw dump on disk (NO API call, NO credits) and downloads ≤2 images per ad — brand dumps → raw/images/<brand>/<adId>_<n>.jpg, hunt dumps → raw/images/hunt-<slug>/<brand>__<adId>_<n>.jpg. These are the paths your shortlist slices cite. Call it AFTER you have picked the shortlist and BEFORE writing field/shortlist.md; batch all dumps into ONE call. Ads with no static image URLs are named as video-only (their copy stays in the dump).',
+  { requests: z.array(downloadReqSchema).min(1).max(MAX_ITEMS_PER_BATCH).describe('One request per dump file (max 8) — batch every dump into a single call.') },
+  async (args) => ({ content: [{ type: 'text' as const, text: await downloadCreativesForAds(args.requests, imagesRoot, rawAdsDir) }] }),
 );
 
 /** Build the server. Pass rawAdsDir (e.g. <runDir>/raw/ads) to have every
- *  competitor_ads fetch dumped in full to disk for the creative's Grep, and
- *  imagesRoot (e.g. <runDir>/raw/images) to download the top image creatives
- *  per brand for the pixel-read step. format_hunt dumps land in the same
- *  dirs as hunt-<slug>.jsonl / hunt-<slug>/. */
+ *  competitor_ads/format_hunt fetch dumped in full to disk for the creative's
+ *  Grep, and imagesRoot (e.g. <runDir>/raw/images) to enable download_creatives
+ *  (phase two: the scout downloads images for SHORTLISTED ads only). Hunt dumps
+ *  land in the same dirs as hunt-<slug>.jsonl / hunt-<slug>/. */
 export function createScrapecreatorsServer(rawAdsDir?: string, imagesRoot?: string) {
   return createSdkMcpServer({
     name: 'scrapecreators',
-    // 0.5.0 = ad-data v2: per-ad job classification, launch-cadence brand
-    // calibration, job-aware ranking, last_days date windows, company/ads
-    // cursor pagination (S146 Step 1).
-    version: '0.5.0',
-    tools: [competitorFindPages, makeCompetitorAds(rawAdsDir, imagesRoot), makeFormatHunt(rawAdsDir, imagesRoot)],
+    // 0.7.0 = field-truth guards (S152): boosted-post job rules (fb.me / no-CTA-
+    // no-destination → awareness) + WINDOW-TRUNCATED cadence on a partial page.
+    // 0.6.0 = scout diet (S151 fix #2): two-phase image downloads — fetches dump
+    // URLs only, download_creatives materializes the shortlist; context views
+    // slimmed (120-char copy). 0.5.0 = ad-data v2: job classification, cadence
+    // calibration, job-aware ranking, last_days windows, cursor pagination.
+    version: '0.7.0',
+    tools: [competitorFindPages, makeCompetitorAds(rawAdsDir), makeFormatHunt(rawAdsDir), makeDownloadCreatives(rawAdsDir, imagesRoot)],
   });
 }
 
@@ -741,3 +819,4 @@ export const scrapecreatorsMcpServer = createScrapecreatorsServer();
 export const SCRAPECREATORS_FIND_PAGES_TOOL = 'mcp__scrapecreators__competitor_find_pages';
 export const SCRAPECREATORS_ADS_TOOL = 'mcp__scrapecreators__competitor_ads';
 export const SCRAPECREATORS_FORMAT_HUNT_TOOL = 'mcp__scrapecreators__format_hunt';
+export const SCRAPECREATORS_DOWNLOAD_TOOL = 'mcp__scrapecreators__download_creatives';

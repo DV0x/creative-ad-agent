@@ -19,9 +19,28 @@
  */
 import type { Options } from '@anthropic-ai/claude-agent-sdk';
 import * as fs from 'node:fs';
+import { join } from 'node:path';
 
+// download_creatives is EXEMPT from the gathering cap: it materializes already-
+// fetched data (no API credits) for the readers — denying it post-cap would
+// strand a run with a shortlist and zero images. page_text IS counted (it is a
+// crawl-capable fetch — collect's WebFetch replacement); the one-shot identity/
+// product extractors are exempt.
 const isGatheringTool = (name: string): boolean =>
-  name === 'WebFetch' || name.startsWith('mcp__perplexity') || name.startsWith('mcp__scrapecreators');
+  name === 'WebFetch' || name === 'mcp__brand__page_text' || name.startsWith('mcp__perplexity') ||
+  (name.startsWith('mcp__scrapecreators') && !name.endsWith('download_creatives'));
+
+// Binary-into-context WebFetch ban (S151 scout diet): the HK scout WebFetched
+// fbcdn image URLs — raw image bytes in context is the single worst overflow
+// pattern. Creatives reach disk via download_creatives; pages are for reading.
+const BINARY_PATH_RE = /\.(png|jpe?g|gif|webp|avif|bmp|ico|mp4|mov|webm)$/i;
+const IMAGE_CDN_RE = /fbcdn|cdninstagram/i;
+const isBinaryFetchUrl = (raw: string): boolean => {
+  try {
+    const u = new URL(raw);
+    return BINARY_PATH_RE.test(u.pathname) || IMAGE_CDN_RE.test(u.hostname);
+  } catch { return false; }
+};
 
 // Per-stage launch ceilings. The retry loops re-launch create/buy (one
 // buyer-rejected redo) and build/gate (1 re-render round), and the field-read
@@ -62,6 +81,11 @@ export interface HookConfig {
    *  switches to the generous iteration cap (follow-up edit cycles are founder-
    *  driven, not runaway loops). */
   donePath?: string;
+  /** Spec-file assembly (S151 fix #1 — kill create's regeneration waste): create
+   *  writes ONE FILE PER SPEC (creatives/c<N>.json); every time one lands, CODE
+   *  merges all of them into creatives.json. The model never writes the big file,
+   *  so the 16k output cap / split-write / stitch failure class cannot occur. */
+  specs?: { dir: string; out: string };
   /** Progress sink for denials. */
   onEvent?: (msg: string) => void;
 }
@@ -71,6 +95,38 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
   const launchCount = new Map<string, number>(); // subagent_type -> launches so far (retry-aware ceiling)
   let identityLogged = false; // log the first gathering call's identity once (diagnostic)
   let doneFired = false; // onDone fires once, even if DONE.md is rewritten (chat follow-ups)
+
+  // Merge creatives/c<N>.json spec files into creatives.json (numeric order).
+  // MERGE, not replace: entries already in creatives.json whose number has no
+  // spec file survive — so a backfill/follow-up on a pre-spec-file run (where
+  // creatives.json was model-written and creatives/ starts empty) never loses
+  // the surviving specs. A spec file always wins over a baseline entry.
+  const assembleSpecs = () => {
+    if (!cfg.specs) return;
+    const { dir, out } = cfg.specs;
+    const byNumber = new Map<number, any>();
+    try {
+      const prev = JSON.parse(fs.readFileSync(out, 'utf8'));
+      if (Array.isArray(prev)) for (const s of prev) if (s && typeof s.creative === 'number') byNumber.set(s.creative, s);
+    } catch { /* no baseline (fresh run) or unparseable — spec files alone */ }
+    let files: string[] = [];
+    try { files = fs.readdirSync(dir).filter((f) => /^c\d+\.json$/.test(f)); } catch { return; }
+    for (const f of files) {
+      try {
+        const parsed = JSON.parse(fs.readFileSync(join(dir, f), 'utf8'));
+        for (const s of Array.isArray(parsed) ? parsed : [parsed]) {
+          const n = s && typeof s.creative === 'number' ? s.creative : parseInt(f.slice(1), 10);
+          byNumber.set(n, s);
+        }
+      } catch (err) {
+        cfg.onEvent?.(`⚠ creatives/${f} is not valid JSON — left out of creatives.json (${err instanceof Error ? err.message : String(err)})`);
+      }
+    }
+    if (!byNumber.size) return;
+    const specs = [...byNumber.entries()].sort((a, b) => a[0] - b[0]).map(([, s]) => s);
+    fs.writeFileSync(out, JSON.stringify(specs, null, 2) + '\n');
+    cfg.onEvent?.(`· assembled creatives.json (${specs.length} spec${specs.length === 1 ? '' : 's'}, ${files.length} file${files.length === 1 ? '' : 's'})`);
+  };
 
   const deny = (reason: string) => {
     cfg.onEvent?.(`⛔ ${reason}`);
@@ -141,6 +197,17 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
               return cont();
             }
 
+            // 2b) binary WebFetch ban — image/CDN URLs never enter a context as
+            // bytes, from ANY seat. Denied before the budget check so a blocked
+            // call does not eat a gathering slot.
+            if (tool === 'WebFetch' && isBinaryFetchUrl(String(input?.tool_input?.url ?? ''))) {
+              return deny(
+                'WebFetch on an image/CDN URL is banned — binary content must never enter your context. ' +
+                'Ad creatives are downloaded to raw/images/ via the scrapecreators download_creatives tool; ' +
+                'work from the files on disk (and only pixel-reading seats view them).',
+              );
+            }
+
             // 3) gathering budget. Do NOT gate on agent_id: in 0.3.195 a subagent's
             // tool calls can reach the hook with agent_id/agent_type ABSENT (the
             // async-task path) — gating on agent_id was why the cap silently never
@@ -168,11 +235,14 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
         ],
       },
     ],
-    // The run-complete signal: DONE.md only ever gets written at true completion
-    // (the PreToolUse guard above refuses premature writes), so a PostToolUse on
-    // that Write is the one place that fires on every entry point — headless,
-    // chat, and web all share these hooks via buildBaseOptions.
-    ...(cfg.onDone
+    // PostToolUse carries two code-side reactions:
+    //  · spec assembly — a Write/Edit landing in creatives/c<N>.json re-merges the
+    //    spec files into creatives.json (the model never writes the big file);
+    //  · the run-complete signal — DONE.md only ever gets written at true completion
+    //    (the PreToolUse guard above refuses premature writes), so a PostToolUse on
+    //    that Write is the one place that fires on every entry point — headless,
+    //    chat, and web all share these hooks via buildBaseOptions.
+    ...(cfg.onDone || cfg.specs
       ? {
           PostToolUse: [
             {
@@ -180,9 +250,14 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
                 async (input: any) => {
                   const tool: string = input?.tool_name ?? '';
                   const file = input?.tool_input?.file_path;
-                  if (tool === 'Write' && typeof file === 'string' && /(^|\/)DONE\.md$/.test(file) && !doneFired) {
+                  if (cfg.specs && (tool === 'Write' || tool === 'Edit') && typeof file === 'string' && /(^|\/)creatives\/c\d+\.json$/.test(file)) {
+                    try { assembleSpecs(); } catch (err) {
+                      cfg.onEvent?.(`spec assembly failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`);
+                    }
+                  }
+                  if (cfg.onDone && tool === 'Write' && typeof file === 'string' && /(^|\/)DONE\.md$/.test(file) && !doneFired) {
                     doneFired = true;
-                    try { cfg.onDone!(); } catch (err) {
+                    try { cfg.onDone(); } catch (err) {
                       cfg.onEvent?.(`onDone failed (non-fatal): ${err instanceof Error ? err.message : String(err)}`);
                     }
                   }

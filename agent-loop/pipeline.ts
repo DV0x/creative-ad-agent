@@ -20,8 +20,9 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import * as fs from 'node:fs';
 import { perplexityMcpServer, PERPLEXITY_TOOL_NAME } from './mcp/perplexity.ts';
-import { createScrapecreatorsServer, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL, SCRAPECREATORS_FORMAT_HUNT_TOOL } from './mcp/scrapecreators.ts';
+import { createScrapecreatorsServer, SCRAPECREATORS_FIND_PAGES_TOOL, SCRAPECREATORS_ADS_TOOL, SCRAPECREATORS_FORMAT_HUNT_TOOL, SCRAPECREATORS_DOWNLOAD_TOOL } from './mcp/scrapecreators.ts';
 import { createRenderServer, RENDER_TOOL } from './mcp/render.ts';
+import { createBrandIdentityServer, BRAND_IDENTITY_TOOL, PRODUCT_PHOTOS_TOOL, PAGE_TEXT_TOOL } from './mcp/brand-identity.ts';
 import {
   STAGES, MODE_CAPS, modeHint, GATHER_STAGES,
   FIELD_READ_MODEL, FIELD_READ_IO_PROMPT,
@@ -44,6 +45,10 @@ const ALL_MCP_TOOLS = [
   SCRAPECREATORS_FIND_PAGES_TOOL,
   SCRAPECREATORS_ADS_TOOL,
   SCRAPECREATORS_FORMAT_HUNT_TOOL,
+  SCRAPECREATORS_DOWNLOAD_TOOL,
+  BRAND_IDENTITY_TOOL,
+  PRODUCT_PHOTOS_TOOL,
+  PAGE_TEXT_TOOL,
   RENDER_TOOL,
 ];
 
@@ -86,18 +91,25 @@ function orchestratorPrompt(
       lines.push('      then the FIELD-BRIEF seat — subagent_type "field-brief" → writes field/field-brief.md');
       lines.push('      (it synthesizes shortlist + all reads + the raw dumps). Verify it exists before the next stage.');
     } else if (n === 'create') {
-      lines.push('  • create — subagent_type "create" → writes creatives.md + creatives.json (the 8-spec portfolio).');
+      lines.push('  • create — subagent_type "create" → writes creatives.md + ONE SPEC FILE PER CONCEPT');
+      lines.push('      (creatives/c1.json … c8.json). The harness assembles them into creatives.json automatically —');
+      lines.push('      neither you nor create ever writes creatives.json. Verify it exists and parses (Read it)');
+      lines.push('      before launching the buyer.');
       lines.push('      then the BUYER — subagent_type "buy" → writes verdict.md (it judges the specs cold against');
       lines.push('      material, the field brief, and the source reads; it never sees the creative\'s reasoning; it');
       lines.push('      approves the genuine survivors RANKED, target 6–8).');
-      lines.push('      Read verdict.md\'s FINAL line and branch on the number of approved names:');
-      lines.push('        · WINNERS with ≥6 names → the approved specs proceed to build.');
-      lines.push('        · WINNERS with 1–5 names → ONE BACKFILL ROUND: re-run create telling it "BACKFILL round —');
-      lines.push('          read verdict.md; the survivors stand untouched; write replacement specs for the killed');
-      lines.push('          slots only". Then re-run the buyer telling it "BACKFILL round — autopsy only the new specs,');
-      lines.push('          re-run the batch tests on the full set, write a fresh complete verdict.md". Whatever the');
-      lines.push('          fresh verdict approves proceeds to build — even if still under 6 (honest gaps ship; padded');
-      lines.push('          slots do not). AT MOST 1 backfill round; never a second.');
+      lines.push('      Read verdict.md WHOLE — the FINAL line AND whether it contains a "BACKFILL:" section — then branch:');
+      lines.push('        · WINNERS with NO BACKFILL section → the approved specs proceed to build.');
+      lines.push('        · WINNERS with a BACKFILL section → the buyer killed spec(s) and ORDERED replacements; obey it');
+      lines.push('          WHATEVER the survivor count (six survivors still get their two replacements — the order, not');
+      lines.push('          a count threshold, is the trigger). ONE BACKFILL ROUND: re-run create telling it "BACKFILL');
+      lines.push('          round — read verdict.md; the survivors stand untouched; write ONLY the replacement specs, as');
+      lines.push('          NEW files continuing the numbering (creatives/c9.json, c10.json, …)". Then re-run the buyer');
+      lines.push('          telling it "BACKFILL round — autopsy only the new specs, re-run the batch tests on the full');
+      lines.push('          set, write a fresh complete verdict.md". Whatever the fresh verdict approves proceeds to');
+      lines.push('          build — even if a replacement dies too (honest gaps ship; padded slots do not). AT MOST 1');
+      lines.push('          backfill round, never a second: if the fresh verdict orders ANOTHER backfill, ignore that');
+      lines.push('          order and build its approved set.');
       lines.push('        · "FINAL: REJECT ALL"  → re-run create (FULL REDO: it reads verdict.md and writes a NEW batch');
       lines.push('          that answers the autopsy), then re-run the buyer. AT MOST 2 full rounds total. If the 2nd');
       lines.push('          batch is STILL reject-all, STOP: the problem is upstream (field or material). Write the');
@@ -108,7 +120,7 @@ function orchestratorPrompt(
       lines.push('      explicitly in the launch instruction. Every other approved spec stays STORED in creatives.json (the');
       lines.push('      founder can ask to render more later — a cheap build+gate pass, no upstream re-run). It writes');
       lines.push('      prompts.md + build-output.md (image paths inside).');
-      lines.push('      then the GATE — subagent_type "gate" → writes gate-verdict.md (six checks per image + the batch');
+      lines.push('      then the GATE — subagent_type "gate" → writes gate-verdict.md (eight checks per image + the batch');
       lines.push('      diversity line, viewing the actual pixels against creatives.json and the source reads).');
       lines.push('      Read gate-verdict.md\'s FINAL line and branch:');
       lines.push('        · "FINAL: PASS — …" → those creatives ship. Proceed to the kit.');
@@ -160,9 +172,22 @@ function orchestratorPrompt(
           '     urgency? comparisons? — and what real fuel does it hold: certs, deadlines, price advantages?");',
           '     AD HISTORY ("what have you tested before; what won, what lost"); and ASSETS ("upload the hero',
           '     product photo + logo via the panel now" — with an explicit "no photo available" option).',
-          '  3. Check assets/ (Glob) for what actually landed. Write EVERYTHING into founder-facts.md, replacing',
+          '  3. ASK ROUND THREE (AskUserQuestion, TWO questions):',
+          '     · the REGISTER — "how should these ads SPEAK?" Options: "Mass-loud (Register A)" (punchy,',
+          '       meme-friendly, colloquial/local-language mix), "Premium-clinical (Register B)" (clean,',
+          '       English, evidence-led), "Mix — test both" (the batch splits deliberately), "Follow the',
+          '       field" (whatever the mined evidence says wins). The batch\'s register is a FOUNDER',
+          '       DECISION, never silent drift.',
+          '     · the BRAND KIT — "brand colours + fonts?" Options: "Extract from my site (Recommended)"',
+          '       (collect\'s brand_identity tool reads the logo + site), "I\'ll type the hex codes" (record',
+          '       them verbatim), "Uploading a brand kit to the panel", "No brand identity yet" (the batch',
+          '       may define one — say so explicitly in the brief).',
+          '  4. Check assets/ (Glob) for what actually landed. Write EVERYTHING into founder-facts.md, replacing',
           '     the stub, with explicit sections: THE JOB (conversion event, CPA, budget, buyer, market),',
-          '     COMPLIANCE LANE, BRAND LAWS (held fuel + forbidden moves — the motor law reads this), AD HISTORY,',
+          '     COMPLIANCE LANE, BRAND LAWS (held fuel + forbidden moves — the motor law reads this), REGISTER',
+          '     (the founder\'s A / B / mix / follow-the-field call — create obeys it), BRAND KIT (founder hexes',
+          '     verbatim, or "extract from site" — collect\'s brand_identity runs either way and founder-given',
+          '     hexes OUTRANK extraction), AD HISTORY,',
           '     OFFER FACTS (verbatim from the site), and ASSETS (each file in assets/ + what is MISSING; if no',
           '     hero photo: write "NO HERO PHOTO — steer to pack-free constructions or model-knowledge renders").',
           '     Be concrete; this is the brief every downstream stage reads. Only THEN begin the flow below.',
@@ -192,8 +217,9 @@ function orchestratorPrompt(
           '  · QUESTION about the work ("why this hook?", "what did rival X run?") → answer it YOURSELF from the',
           '    files (Read/Grep). Launch NOTHING.',
           '  · COPY or SPEC change on an existing creative ("change the headline", "different background scene",',
-          '    "drop the price line") → create, scoped: "edit ONLY creative N\'s <field> in creatives.json +',
-          '    creatives.md; touch nothing else" → then build scoped to creative N (its ratios) → then the gate',
+          '    "drop the price line") → create, scoped: "edit ONLY creative N\'s <field> in creatives/cN.json +',
+          '    creatives.md; touch nothing else" (on a run with no creatives/ spec files, edit creatives.json',
+          '    directly) → then build scoped to creative N (its ratios) → then the gate',
           '    (it re-views everything shipped). The founder directed the change, so the BUYER IS SKIPPED.',
           '  · RENDER problem, spec unchanged ("the logo garbled", "text is cut off") → build scoped re-render',
           '    (fix the compiled prompt) → gate. No create.',
@@ -324,6 +350,8 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
       scrapecreators: createScrapecreatorsServer(join(runDir, 'raw', 'ads'), join(runDir, 'raw', 'images')),
       // provider-redundant GPT Image 2 (KIE primary, fal failover); brand refs resolve against runDir
       render: createRenderServer(join(runDir, 'renders'), runDir),
+      // deterministic brand extraction (logo → assets/, palette, fonts, verbatim voice)
+      brand: createBrandIdentityServer(runDir),
     },
     // Orchestrator gets Agent + read-only inspection; subagents' built-ins + all MCP names live here too
     // (top-level is the only approval list). extraAllowedTools lets the chat add 'AskUserQuestion'.
@@ -332,6 +360,9 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
     hooks: buildHooks({
       caps: { 'field-scout': MODE_CAPS[mode], collect: MODE_CAPS[mode] }, // surface/deep gathering cap
       defaultCap: MODE_CAPS[mode], // applies even if agent_type isn't populated (the async-task path)
+      // create writes creatives/c<N>.json (one small file per spec); code merges
+      // them into creatives.json on every landing — S151 fix #1.
+      specs: { dir: join(runDir, 'creatives'), out: join(runDir, 'creatives.json') },
       // DONE.md refused until every ordered deliverable exists — plus the field brief (an
       // orchestrator-launched intermediate whose absence means the field phase was skipped).
       // A DONE.md that starts with "flagged:" bypasses this (a legitimate early end).

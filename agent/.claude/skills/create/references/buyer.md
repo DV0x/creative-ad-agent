@@ -31,12 +31,19 @@ When uncertain, kill.
 2. **CLONE, both directions** — (a) side by side with its sourceRead: same scene, same content in the
    slots, marks aside — would anyone call them the same creative? Scene not re-derived into this
    buyer's world → KILL. (b) Against DO-NOT-CLONE: is this the brand's own live construction back
-   again? → KILL. Adapting an endorsed construction is the method — this test kills lazy adaptation,
-   never adaptation itself.
+   again? → KILL. (c) **OWN-SOURCE: is the sourceRead itself the brand's own ad?** → KILL, whatever
+   the execution quality: form must come from a competitor read, the bank, a hunt dump, or a labeled
+   archetype — re-skinning the client's own account teaches the founder nothing, and in a thin field
+   an own ad's "endorsement" is often unmanaged boosted-post inertia, not a budget's vote. Adapting
+   an endorsed construction is the method — this test kills lazy adaptation and self-sourcing, never
+   adaptation itself.
 3. **SWAP** — the WHOLE construction: hook + content + proof + scene together — could a rival ship
    this spec unchanged? A construction filled with facts only this brand holds PASSES; a spec whose
    body also swaps → KILL.
-4. **TRUE** — anchors verbatim against material.md; proof answers THE claim made, not a neighbor;
+4. **TRUE** — anchors verbatim against material.md; EVERY on-image number verbatim against its
+   anchor — a rounded or "softer" restatement of a held number (350+ written as 300+) is an INVENTED
+   number, not a conservative one, and doubly so when a qualifier rides on it ("300+ lenders who do
+   X" is a subset claim nobody verified) → KILL; proof answers THE claim made, not a neighbor;
    every proof surface REAL (a cited asset in the spec's refs — no invented review screenshots,
    documents, badges, persons, platform UI); scene physically possible; offer within OFFERS ALLOWED;
    urgency real (a real date/cap) or absent. **And the MOTOR is fueled**: the spec names its
@@ -74,9 +81,11 @@ When uncertain, kill.
 - Approve every spec that genuinely survives — the target is **6–8, RANKED in money order** (rank 1
   = where your first dollar goes). Quality is the floor, not the count: 6 real probes beat 8 padded
   ones, and zero is still allowed and respectable.
-- **1–5 survivors** = a backfill situation: your autopsies are the writer's brief for the replacement
-  specs. End The Call with one line per killed slot: what the replacement must cover (which axis died
-  — claim, family, persona, fuel).
+- **ANY killed slot = a backfill situation**, whatever the survivor count (7 survivors still get
+  their replacement — the portfolio contract is 8 probes, and the orchestrator obeys your BACKFILL
+  section, not a count threshold): your autopsies are the writer's brief for the replacement specs.
+  End The Call with one line per killed slot: what the replacement must cover (which axis died —
+  claim, family, persona, fuel).
 - You kill and you pick. No rewriting, no adding, no softening.
 - **On a BACKFILL round** (verdict.md already existed and some specs survived): autopsy ONLY the new
   specs, then re-run the batch tests over the FULL final set (survivors + new), and write a complete
@@ -96,7 +105,9 @@ VERDICT: KILLED — <the one reason that matters> | SURVIVED
 ## The Call
 WINNERS (ranked): 1. Creative X · 2. Creative Y · … — two lines each: why it converts cold at this
 CPA, and what the founder learns if it wins.
-[BACKFILL: <n> slot(s) — per killed slot, what the replacement must cover]
+BACKFILL: <n> slot(s) — per killed slot, what the replacement must cover
+   (write the BACKFILL section ONLY when kills exist — plain text, no surrounding brackets; the
+   orchestrator branches on its presence)
    — or —
 REJECT ALL — the single clearest instruction for the next batch (one sentence, aimed at the picks or
 the material, not the wording).

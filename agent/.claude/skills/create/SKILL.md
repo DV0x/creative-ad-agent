@@ -1,6 +1,6 @@
 ---
 name: create
-description: How a senior direct-response creative adapts BUDGET-ENDORSED constructions from the mined ad field into brand-true creative specs — designing a PORTFOLIO of 8 genuinely different concepts under the diversity contract, executing keep/swap/re-derive with the role and scene laws, and writing copy by destination from the hook bank. Use when creating ad specs and copy to produce creatives.md and creatives.json.
+description: How a senior direct-response creative adapts BUDGET-ENDORSED constructions from the mined ad field into brand-true creative specs — designing a PORTFOLIO of 8 genuinely different concepts under the diversity contract, executing keep/swap/re-derive with the role and scene laws, and writing copy by destination from the hook bank. Use when creating ad specs and copy to produce creatives.md and the per-spec files creatives/c1.json…c8.json.
 ---
 
 # The DR Creative's Binder — spec adaptation
@@ -18,8 +18,12 @@ it into this buyer's world so completely that its source is invisible.
 
 ## What you read, and how
 
-- **founder-facts.md** — the job: conversion event, CPA, buyer, OFFERS ALLOWED. You may frame value
-  any way the facts support; you may only *offer* what this file allows.
+- **founder-facts.md** — the job: conversion event, CPA, buyer, OFFERS ALLOWED, and REGISTER (the
+  founder's mass-loud / premium-clinical / mix / follow-the-field call). You may frame value any way
+  the facts support; you may only *offer* what this file allows — and the batch SPEAKS in the
+  register the founder chose: a "mix" decision means a deliberate split you can point to; "follow
+  the field" means the brief's register evidence decides, and you SAY which way it decided. The
+  batch's register spread is a decision with a name on it, never drift.
 - **field/field-brief.md** — the mined field: working constructions ranked by the field's money, the
   hook bank, registers, open lanes, DO-NOT-CLONE. **Read it whole.** This is your menu and your map.
 - **material.md** — the brand's verbatim artifact bank plus its render-bindable assets. **Read it
@@ -35,7 +39,8 @@ it into this buyer's world so completely that its source is invisible.
 - **verdict.md** — ONLY if present: the buyer judged a previous batch. On a FULL REDO (reject-all),
   write a NEW batch that answers the autopsy — never resubmit a killed spec. On a BACKFILL round
   (some specs survived), do NOT touch the survivors: write only the replacement specs, each answering
-  its slot's autopsy AND restoring the portfolio contract below.
+  its slot's autopsy AND restoring the portfolio contract below. Replacement specs CONTINUE the
+  numbering — the next free `creatives/c<N>.json` — never an overwrite of an existing spec file.
 
 ## PART ONE — Design the portfolio (8 specs)
 
@@ -60,10 +65,14 @@ cannot fill a slot honestly, leave it unfilled and say so; the buyer kills paddi
 **Form comes from the most-endorsed exemplar OF ITS OWN FAMILY.** This is the single rule that stops
 winner-takes-all collapse: the #1 construction in the brief lends its layout to ITS family's specs
 only — a testimonial-card spec sources testimonial-card form, never the price-slash winner's layout
-with a quote pasted in. **The sourcing ladder, in order: local field read → format bank entry
-(`bank:<id>`) → a hunt dump the scout brought home → labeled archetype (`archetype:<family>` — the
-family's table definition, named as such). NEVER freehand.** A ladder-bottom pick is honest; an
-unlabeled invention is not.
+with a quote pasted in. **The sourcing ladder, in order: local field read (a COMPETITOR's read —
+the brand's own reads are NEVER on the ladder) → format bank entry (`bank:<id>`) → a hunt dump the
+scout brought home → labeled archetype (`archetype:<family>` — the family's table definition, named
+as such). NEVER freehand.** A ladder-bottom pick is honest; an unlabeled invention is not — and so
+is a thin field: when no competitor read fits, the ladder continues DOWN (bank → hunt → archetype),
+never SIDEWAYS into the client's own account. In a thin field the brand's own long-runners will
+mechanically top the endorsement ranking — that is the ranking pointing at your own client, not the
+market voting (S152: 5 of 9 specs sourced the client's own ads, two of them unmanaged boosted posts).
 
 **The motor law.** Every construction = SKIN (layout/craft/register — always transfers) + MOTOR (the
 persuasion engine — price-aggression, rented-celebrity, owned-status, dated-scarcity, certification,
@@ -75,8 +84,11 @@ fake-urgency deaths happen.
 
 And still, per pick:
 
-- **Never the brand's own live ads.** The DO-NOT-CLONE list is law — re-running the brand's wallpaper
-  teaches nothing ("a win teaches nothing new") and a loss was already priced.
+- **Never the brand's own live ads — not as constructions AND not as form sources.** The DO-NOT-CLONE
+  list is law — re-running the brand's wallpaper teaches nothing ("a win teaches nothing new") and a
+  loss was already priced. Borrowing "form only" from an own ad is the same failure in slow motion:
+  the founder pays to test a re-skin of what they already run. Own reads exist so you can AVOID
+  their constructions; sourcing goes down the ladder instead.
 - **Scores outrank proxies.** When a bank entry carries outcome scores (`score.verdict`), a
   scored-CONVERTING construction outranks an unscored one at equal fit; a DEAD one needs a written
   reason to be picked at all. Budget endorsement is a proxy; our own flight data is the truth.
@@ -105,11 +117,16 @@ it feel expensive. Carry the read's scale numbers into your spec verbatim (a ~7%
 stays ~7%). Production values are part of the move, not the surface; a construction stripped of its
 craft is a wireframe, and wireframes lose.
 
-**SWAP — the surfaces.** Brand marks, palette (to the brand's register — the field brief names which
-register is its equity), words, and humans-filling-roles. The ROLE law: what transfers is the role
-(seller-presenter, testimonial-giver, aspirational-self), never the person. If the brand has a real
-person to fill the role, bind their real photo as a reference; if not, the role is recast or the
-construction re-picked — an invented founder likeness is fabrication.
+**SWAP — the surfaces.** Brand marks, palette, words, and humans-filling-roles. **The palette is a
+FACT, not an inference: bind it from material.md's BRAND PALETTE artifact and cite that anchor in
+the spec's `palette` field.** The field's ads inform REGISTER (how loud, how designed, how warm) —
+never the brand's colours; two runs shipped another brand's colour system because create read
+"equity" off ad pixels nobody had verified. No BRAND PALETTE artifact in material.md → palette is a
+named gap driven by the construction's needs, stated as such — never presented as the brand's. The
+ROLE law: what transfers is the role (seller-presenter, testimonial-giver, aspirational-self), never
+the person. If the brand has a real person to fill the role, bind their real photo as a reference;
+if not, the role is recast or the construction re-picked — an invented founder likeness is
+fabrication.
 
 **RE-DERIVE — content and scene.** Category content inside the structural slots (their kundli book →
 our voucher card; their macros → our score bands). And the scene itself, into THIS buyer's world:
@@ -125,6 +142,21 @@ they are built from brief/material facts and obey the law of the top line: **the
 the buyer's lived moment — a sensation, a scene from their actual day — written the way they'd say it
 to a friend.** Full conversational sentence (winners run 13–22 words), reader as subject, speakable
 in one breath. Not an argument, not a fragment, not category meta-commentary.
+
+**Write in the brand's voice, from evidence.** material.md carries VERBATIM brand-voice artifacts —
+the site's own headlines, CTA labels, punctuation habits ("100% Private • 🚫 No Spam" is a voice
+fingerprint, not filler). Your primaryText and CTAs should sound like the same company wrote them:
+reuse the brand's own vocabulary and CTA verbs where they fit, and never introduce a register the
+brand's own copy contradicts. The founder-facts REGISTER decision outranks everything; within it,
+the voice artifacts are your ear.
+
+**Text economy is part of the construction (a real taste kill, now law).** Carry the source's WORD
+COUNT the way you carry its type scale: count the source read's hook/punchline words and treat that
+count (±20%) as your budget. A meme punchline lands in ~8 words or it is not a meme; a native
+question card speaks in one casual breath; an objection-wall's chips are 2–4 words each. A 16-word
+punchline in an 8-word format keeps the joke's words and loses its snap — the construction dies of
+explanation. (The 13–22-word law above is for conversational lived-moment hooks; short-snap families
+override it — the SOURCE sets the budget, always.)
 
 Write by destination — a Meta ad is not a poster:
 
@@ -147,6 +179,22 @@ system reads the creative; never rely on audience self-recognition alone.
 **Anchors are law.** Every spec cites its numbered artifacts from material.md; every quoted proof is
 verbatim. The deletion test: remove the anchor and the creative must collapse. Real urgency only —
 a real date, a real cap; the field brief already showed you the fake-urgency wallpaper.
+
+**The anchor gate (a real kill, now law): a claim with no anchor `#` never reaches on-image copy or
+a motor's `fuelHeld`.** The brief is upstream testimony, not proof — even when it says "the brand
+holds X", you verify: Grep material.md / founder-facts.md for the number or claim. Found → cite the
+anchor `#` beside it. Not found → the claim is fabrication-in-progress; it dies and the spec rebuilds
+on fuel the brand verifiably holds (or the slot goes to a different construction). The tell is
+mechanical: if you are writing a fuel or an on-image number and there is no `#` to put beside it,
+STOP — the only two unanchored specs ever shipped were exactly the two the buyer killed.
+
+**The gate covers EVERY on-image number, not just the motor (a second real miss, now law).** Before
+a spec is final, scan `hook.text` and every `textBlocks[].text` for digits: each number must trace
+to an entry in `anchors` and appear VERBATIM as the artifact states it — never rounded, softened, or
+"conservatively" restated. A held "350+" written as "300+" is not an understatement; it is an
+INVENTED number that no source holds (S152: it reached pixels, with a qualifier no one had verified).
+And the same fact carries the SAME number across the whole batch — two specs quoting two different
+lender counts is an advertiser who doesn't know its own numbers.
 
 ## Truth and compliance — the ad must survive review AND trust
 
@@ -173,10 +221,13 @@ a real date, a real cap; the field brief already showed you the fake-urgency wal
 1. **creatives.md** — human-readable, per creative: the pick (construction + why THIS brand's truth
    can cash it + endorsement basis), the three tags executed, the copy block, anchors cited, and the
    named hypothesis (claimType × construction × what the founder learns if it wins).
-2. **creatives.json** — machine-readable, copy strings FINAL. Same schema as the reads plus:
+2. **ONE FILE PER SPEC — `creatives/c1.json` … `creatives/c8.json`** — machine-readable, copy strings
+   FINAL. Each file is a SINGLE JSON OBJECT (not an array) on the read schema plus the fields below.
+   You never write `creatives.json` — the harness assembles the spec files into it automatically,
+   ordered by creative number. One spec per file always fits one Write: no split-writes, no stitching.
 
 ```json
-[{ "creative": 1, "name": "...",
+{ "creative": 1, "name": "...",
    "sourceRead": "<brand>_<adId> | copy:<brand>_<adId> (copy-endorsed, no pixel read) | bank:<id> | archetype:<formatFamily>",
    "formatFamily": "from the closed table (carried from the source read/bank entry)",
    "persona": "who this spec speaks to + awareness stage — one line",
@@ -194,7 +245,7 @@ a real date, a real cap; the field brief already showed you the fake-urgency wal
    "refs": ["assets/logo.png — bind as-is", "assets/founder.jpg — seller-presenter"],
    "meta": { "primaryText": "...", "primaryTextAlts": ["...", "..."],
              "headline": "...", "headlineAlts": ["...", "...", "...", "..."] },
-   "hypothesis": "claimType × construction × what a win teaches" }]
+   "hypothesis": "claimType × construction × what a win teaches" }
 ```
 
 ## The self-check, before you finish
@@ -206,10 +257,17 @@ a real date, a real cap; the field brief already showed you the fake-urgency wal
 - Law of the top line on every hook; speech-test aloud; anatomy law on every creative.
 - On-image strings final, verbatim, no placeholders; scale carried from the read on hook + majors.
 - Anchors deletion-tested; proof surfaces real or dead; compliance scan.
+- The anchor gate, per spec: every on-image number and every `fuelHeld` carries its `#`, VERBATIM as
+  the artifact states it (never rounded or softened); any claim you could not anchor is GONE from
+  the spec, not softened; the same fact carries the same number across the batch.
+- Sourcing audit: no spec's form traces to the brand's own reads (competitor read / bank / hunt /
+  archetype only — own ads are DO-NOT-CLONE evidence, never sources).
 - Batch audit — the portfolio contract, checked as a whole: 8 specs (or named honest gaps), ≤2 per
   formatFamily, ≥4 claimTypes, ≥2 personas, ≥1 format-lane play, ≥1 logo-stripped native execution;
   every spec's form sourced from its OWN family's ladder; every motor fueled by a cited anchor
   (swaps named); every sourceRead honest (`copy:` / `bank:` / `archetype:` wherever no local pixel
-  read exists).
+  read exists); the batch's REGISTER spread matches founder-facts' REGISTER decision (and hook/
+  punchline word counts sit inside their source budgets).
 
-Write both files. No preamble, no favorite named — a cold buyer judges next. Then you are done.
+Write creatives.md and every spec file. No preamble, no favorite named — a cold buyer judges next.
+Then you are done.

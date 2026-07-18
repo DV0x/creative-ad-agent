@@ -89,6 +89,17 @@ Every lane you name needs (a) the absence, shown ("every rival CTA is FREE-somet
 existence proof that the mechanic works somewhere ("a ₹199 paid consult runs 50d across 7 flights —
 impulse-paid is durable"). A lane without an existence proof is a guess — label it as one.
 
+**The brand-side law (a real fabrication origin, now law): never assert "the brand holds X" or
+"already in their own copy" without grepping it first.** Your evidence for the BRAND side is on disk
+right now: founder-facts.md (the intake facts) and the brand's own dump (`raw/ads/<brand>.jsonl` —
+its live copy verbatim). Before any lane or working entry claims the brand holds a fuel, grep both;
+hit → cite the ACTUAL file you hit, by name ("verified — in raw/ads/<brand>.jsonl", never a default
+"confirmed in founder-facts.md" when the evidence lives elsewhere: a downstream seat will re-grep
+the file you name, miss, and rightly treat the claim as unanchored); miss in both → write it as an
+open QUESTION for the collect seat ("verify: does <brand> hold X?"), never as held fact. And self-check the finished brief for internal contradictions: a fact
+your hook bank tags as a RIVAL's copy can never appear elsewhere in the brief as the brand's own —
+one such sentence cost 25% of a validated portfolio downstream.
+
 ## The coverage map & format lanes — where the diversity read lives
 
 Build the **coverage map**: formatFamily × claimType, one cell per combination the field actually
@@ -174,6 +185,9 @@ brands/constructions nobody read — video-only pages, unresolved names, kinds l
   line; the coverage map and format lanes are mandatory sections (an empty lane list means you
   checked the map and the bank and found none — say so).
 - Verbatim hooks only — never paraphrase into your own words.
+- "The brand holds X" claims are GREPPED (founder-facts.md + the brand's own dump) or written as
+  questions — never asserted; no fact may be tagged as a rival's in one section and the brand's in
+  another (the self-consistency check before you finish).
 - No creative work: you name lanes and rank constructions; you never write hooks, specs, or ads.
 - The DO-NOT-CLONE section is mandatory — an empty one means you checked and the brand runs no ads
   (say so), never that you skipped it.
