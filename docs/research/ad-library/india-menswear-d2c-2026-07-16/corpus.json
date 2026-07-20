@@ -1,0 +1,3104 @@
+{
+  "slug": "india-menswear-d2c-2026-07-16",
+  "country": "IN",
+  "status": "ACTIVE",
+  "pulled": "2026-07-16",
+  "brands": [
+    {
+      "brand": "Snitch",
+      "bucket": "scaled/menswear",
+      "page_id": "236672023872356",
+      "page_name": "Snitch",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "24249075368066677",
+          "mediaFormat": "DPA",
+          "daysRunning": 362,
+          "launched": "2025-07-19",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Olive Slim Fit Cargo Carpenter Pants",
+          "body": "",
+          "linkDescription": "Discover SNITCH - India's leading online destination for men's fashion. Shop premium shirts, jeans, and more, crafted for the modern man. Redefine your style today!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "672028342525780",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 347,
+          "launched": "2025-08-03",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "",
+          "body": "Stars within ⭐️ @snitch.co.in . . . . . . . @karanaujla @jaskaran_author @dox.____ #trendingreels #explorepage #viralreels #reels #outfit #punjabi #outfitideas #punjabisongs #punjabisongs #foryoupage #instagramreels #punjabimusicvideo #mfgabhru #karanaujla #grwm #stars #superstar",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/527977419_1652824492756278_2205567554474099894_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=2Z5641kL5L4Q7kNvwGdkRJB&_nc_oc=AdrLji1O12sV_1LAyG6gJksoale6j0TA5oUbGgIEso5QppudG2qdo7ICBqYx8vLlNYU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vMAX2uB4h0Q5Q05DzR9d7A&_nc_ss=7f289&oh=00_AQCOyDQlgiVoNmbh4k5WhiJAXPi2a5We7azuEq6t3nMugA&oe=6A5EDFBC"
+        },
+        {
+          "archiveId": "1901397390402180",
+          "mediaFormat": "DPA",
+          "daysRunning": 342,
+          "launched": "2025-08-08",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹2,199 | Snitch Men's Olive Slim Fit Cargo Carpenter Pants | Slim Fit | Cotton Blend | Solid | Olive Pants For Men | Casual Wear,Street Wear",
+          "body": "All style. No stress. From effortless shirts to street-styled cargos, sleek perfumes to campus-ready sneakers—Snitch has it all. Built for bold choices, everyday comfort, and standout looks. Your wardrobe upgrade starts now.",
+          "linkDescription": "COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2131847000902374",
+          "mediaFormat": "CAROUSEL",
+          "daysRunning": 142,
+          "launched": "2026-02-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitchplus.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹1319 | 100% Cotton Stripes Plus Size Shirt",
+          "body": "Easy returns & fast exchange",
+          "linkDescription": "Easy returns & fast exchange",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1116170177264255",
+          "mediaFormat": "CAROUSEL",
+          "daysRunning": 142,
+          "launched": "2026-02-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitchplus.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹1219 | White Textured Regular Fit Plus Size Shirt",
+          "body": "Easy returns & fast exchange",
+          "linkDescription": "Easy returns & fast exchange",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1311123727633406",
+          "mediaFormat": "CAROUSEL",
+          "daysRunning": 142,
+          "launched": "2026-02-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitchplus.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹1799 | Linen Blend Checks Plus Size Shirt",
+          "body": "Easy returns & fast exchange",
+          "linkDescription": "Easy returns & fast exchange",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "929597526140678",
+          "mediaFormat": "CAROUSEL",
+          "daysRunning": 142,
+          "launched": "2026-02-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitchplus.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹999 | Lining Dark Blue Stripes Plus Size Shirts",
+          "body": "Easy returns & fast exchange",
+          "linkDescription": "Easy returns & fast exchange",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1464381778620018",
+          "mediaFormat": "DPA",
+          "daysRunning": 139,
+          "launched": "2026-02-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.co.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "₹1,399 | Light Blue Stripes Linen Blend Plus Size Shirt",
+          "body": "Still Thinking About It? 👀 Your Favorites Are Waiting!\" The styles you loved are just a click away! Don’t let them slip — grab your favorites before they’re gone. 🔥 Trendy Fits 💸 Exclusive Deals 🚚 Fast Shipping Your perfect look is still waiting. Ready to make it yours? 👇 🛍️ Shop Now & Complete Your Look!",
+          "linkDescription": "Encapsulating inspirations from around the globe, SNITCH crafts clothing for the fashion-forward modern man. Offering an unconventional style ethos as a men's lifestyle brand, we design styles in response to the latest trends.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2018435128773706",
+          "mediaFormat": "DPA",
+          "daysRunning": 120,
+          "launched": "2026-03-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "Snitch Men's Core Lab Black Textured Relaxed Fit Sweaters | Relaxed Fit | Viscose Blend | Textured | Polo Collar | Core Lab | Casual Wear",
+          "body": "Step up your style with Snitch footwear. Premium designs, all-day comfort — now with up to 20% off. Your everyday upgrade starts here.",
+          "linkDescription": "Discover SNITCH - India's leading online destination for men's fashion. Shop premium shirts, jeans, and more, crafted for the modern man. Redefine your style today!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2452636161854177",
+          "mediaFormat": "DPA",
+          "daysRunning": 115,
+          "launched": "2026-03-23",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.co.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "₹2,069 | Olive Slim Fit Cargo Carpenter Pants",
+          "body": "Still Thinking About It? 👀 Your Favorites Are Waiting!\" The styles you loved are just a click away! Don’t let them slip — grab your favorites before they’re gone. 🔥 Trendy Fits 💸 Exclusive Deals 🚚 Fast Shipping Your perfect look is still waiting. Ready to make it yours? 👇 🛍️ Shop Now & Complete Your Look!",
+          "linkDescription": "We are now www.snitch.com. Please click on our home page banner to move to an upgraded new experience.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1465267055062781",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 82,
+          "launched": "2026-04-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "",
+          "body": "Snitch Polos. Summer Sorted. Kolkata heat hits different… but your outfit doesn’t have to. Less sweat, more style — that’s the switch. #Snitch #SnitchPolos #SummerSorted #KolkataHeat #MenswearIndia StayCoolLookCool",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/679805843_1278124597823896_5469896178406520997_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=lh8_S65AYW4Q7kNvwGWg4ui&_nc_oc=AdpU6sjWhRxo3p-xBBNj75iQiuYjPff2y0k5bOCs9RVocXPLu5AAhMEl0DbjI-hSZ-I&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vMAX2uB4h0Q5Q05DzR9d7A&_nc_ss=7f289&oh=00_AQCbfPgGyaMSKx6BPegV3yZPssbobyKwdJCaw3kKhl7B1g&oe=6A5ED58E"
+        },
+        {
+          "archiveId": "1649876299572961",
+          "mediaFormat": "DPA",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Core Lab Black Textured Relaxed Fit Sweaters",
+          "body": "Don't be shy! Get your favourite styles in under 24 hours only on the Snitch app. Super fast delivery, super stylish outfits and amazing deals. What else do you want?",
+          "linkDescription": "Discover SNITCH - India's leading online destination for men's fashion. Shop premium shirts, jeans, and more, crafted for the modern man. Redefine your style today!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1700550661078405",
+          "mediaFormat": "DPA",
+          "daysRunning": 51,
+          "launched": "2026-05-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "₹1,899|Snitch Men's Regular Fit 100% Cotton Plus Size Chinos | 3xl, 4xl, 5xl, 6xl | Cotton | (Xxxl-Xxxxxxl) Plus Size Clothing | Plain | Casual Wear",
+          "body": "Limited stock remaining in your favourite styles. Grab them now and avail amazing offers. Visit Snitch.com or download the app",
+          "linkDescription": "Discover SNITCH - India's leading online destination for men's fashion. Shop premium shirts, jeans, and more, crafted for the modern man. Redefine your style today!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2487430481725945",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 44,
+          "launched": "2026-06-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "T-shirts are from @snitch.co.in",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/712327086_1264194678849574_2571837796337784262_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=_Ify2H7yOiQQ7kNvwGk04Pf&_nc_oc=AdptN7opKD31SdXRU7jGN5oQnGot7-nsHelv86Zzef5C2akFJt6_IV1fU71uSHRFvDc&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vMAX2uB4h0Q5Q05DzR9d7A&_nc_ss=7f289&oh=00_AQCPK_S0lF79LRGwBU1Pi1GB2FqGcS_vf5lw13TwtVzbgg&oe=6A5EF911"
+        },
+        {
+          "archiveId": "2841207342891801",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 44,
+          "launched": "2026-06-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "snitch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "POV: Minimal fit, maximum attention in this Snitch￼ polo tee ✨ #Snitch #PoloTshirt #MensFashion #StreetStyle #OutfitInspo",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/713223454_1005280211864250_8398200476605192366_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=yFfaEfD0vIgQ7kNvwFs8nuw&_nc_oc=AdqJ8p8CH45472iG29NCqbcWfU9HcWEU9UV7uFg1IHAqMC29-4Rjj0kcC5p9tJK9Shs&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vMAX2uB4h0Q5Q05DzR9d7A&_nc_ss=7f289&oh=00_AQDg2QBffJR4EwOVuDNUoQr9NtWg3d92F1rf8yAoMpt0-w&oe=6A5ED5E3"
+        }
+      ]
+    },
+    {
+      "brand": "The Souled Store",
+      "bucket": "scaled/casual",
+      "page_id": "391476257640230",
+      "page_name": "The Souled Store",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "1008493765465819",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 11,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "souled.u9ilnk.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "THREADS"
+          ],
+          "title": "Drop By & Gear Up",
+          "body": "Your next style upgrade? Waiting at a Souled Store near you",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1525084212561893",
+          "mediaFormat": "DCO",
+          "daysRunning": 29,
+          "launched": "2026-06-17",
+          "variants": 6,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "maps.app.goo.gl",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "Drop By & Gear Up",
+          "body": "Your next style upgrade? Waiting at a Souled Store near you",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1521668409673179",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thesouledstore.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "Feel the Difference",
+          "body": "Step inside the store, where walls turn into canvases of pure creativity",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1063600229029919",
+          "mediaFormat": "DPA",
+          "daysRunning": 280,
+          "launched": "2025-10-09",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "Superman: The Classic Symbol | ₹599",
+          "body": "Your New Favorite Look is Here ❤️ The Souled Store brings you the most stylish, comfortable, and casual pieces of the season. Shop the collection today and enjoy: - COD Available - Hassle-free Returns & Exchanges - Exclusive Savings for Members - Reverse Pickup for Your Convenience Don’t miss out – get yours before they’re gone!",
+          "linkDescription": "Looking for a one stop shop for everything pop culture?",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "925347860085950",
+          "mediaFormat": "DCO",
+          "daysRunning": 121,
+          "launched": "2026-03-17",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "maps.app.goo.gl",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "The Souled Store is Here",
+          "body": "Dimapur, we’ve landed! Step into your new favorite shopping destination",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "984026047520608",
+          "mediaFormat": "DCO",
+          "daysRunning": 95,
+          "launched": "2026-04-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "maps.app.goo.gl",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "The Souled Store is Here",
+          "body": "From online to your city The Souled Store is now open in Dimapur!",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1773009630748838",
+          "mediaFormat": "DCO",
+          "daysRunning": 91,
+          "launched": "2026-04-16",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "maps.app.goo.gl",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "The Souled Store is Here",
+          "body": "From online to your city The Souled Store is now open in Dimapur!",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "976240711587394",
+          "mediaFormat": "DCO",
+          "daysRunning": 88,
+          "launched": "2026-04-19",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "maps.app.goo.gl",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "Kota, we’ve just opened another store",
+          "body": "Kota, we’ve landed! Step into your new favorite shopping destination",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2764769310545259",
+          "mediaFormat": "DCO",
+          "daysRunning": 80,
+          "launched": "2026-04-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thesouledstore.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "The Souled Store is Here",
+          "body": "From online to your city The Souled Store is now open in Dimapur!",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "945162895027600",
+          "mediaFormat": "DCO",
+          "daysRunning": 69,
+          "launched": "2026-05-08",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thesouledstore.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Cult, Curated, Iconic",
+          "body": "A curated edit of cult prints. Designed with restraint. Styled with intention",
+          "linkDescription": "10% Cashback On App Orders",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1619994429076782",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thesouledstore.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "Feel the Difference",
+          "body": "Step inside the store, where walls turn into canvases of pure creativity",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1005550572430453",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thesouledstore.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "Feel the Difference",
+          "body": "Step inside the store, where walls turn into canvases of pure creativity",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2604311240022688",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "souled.u9ilnk.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "Built With Love",
+          "body": "From one store to taking over Bombay",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "826947973477227",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "souled.u9ilnk.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "WHATSAPP",
+            "THREADS"
+          ],
+          "title": "Drop By & Gear Up",
+          "body": "Your next style upgrade? Waiting at a Souled Store near you",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1392341399590780",
+          "mediaFormat": "DCO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "souled.u9ilnk.me",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "Drop By & Gear Up",
+          "body": "Your next style upgrade? Waiting at a Souled Store near you",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Bewakoof",
+      "bucket": "scaled/casual",
+      "page_id": "106503252725893",
+      "page_name": "Bewakoof.com",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "2527519574330582",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 4,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Oversized graphic T-shirts just hit different 😮‍🔥 @bewakoofofficial Loving how comfy + statement these are… easy throw on and you’re good to go. #bewakoofofficial #oversizedgraphictshirts #graphictees #streetwearvibes #casualfits",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/650838956_26823205637277665_5103829716945792976_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=4zlDm7TI7WkQ7kNvwHyqm5-&_nc_oc=Adq-xT4aE96z5a_M2Y1-_dAgnmA100B7eqFFEig3OtklrN1JlHbbLs-ZQma9kfvXROU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQDeWnER7SfPgh2Mp-2-ySQ5IS2lG30pVpGIw-eCIpx9LA&oe=6A5EF0F2"
+        },
+        {
+          "archiveId": "3397970970371273",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Trends will change. Classics won’t. ⚡️ Grab 3 T-shirts at ₹1199 from @bewakoofofficial. This isn’t an offer. It’s a staple. #bewakoofofficial",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/647190430_1464357805045054_4509964265452457290_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=zGicxhEFpkMQ7kNvwFk5Gfc&_nc_oc=AdqI5KyrZgnnr6BBM4HnhGJx-w-ZT2tZ10eNSy0DL75LUWJ8-11XfjGQdxLEI_tTfm8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQA_EIojcR-T-qV6X_K8aI8m4bwDntiI4dbnxfPBh16QlA&oe=6A5ECF25"
+        },
+        {
+          "archiveId": "1523574112778027",
+          "mediaFormat": "DCO",
+          "daysRunning": 87,
+          "launched": "2026-04-20",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "THREADS"
+          ],
+          "title": "Oversized T-Shirts 🔥",
+          "body": "Season’s new drip just dropped 😎 🔥 Oversized T-shirts for effortless street style Relaxed fit. Maximum comfort. Tap to shop now 👇",
+          "linkDescription": "Trendy oversized fits",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1916019825719276",
+          "mediaFormat": "DCO",
+          "daysRunning": 79,
+          "launched": "2026-04-28",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "THREADS"
+          ],
+          "title": "Vests Starting at ₹399 🔥",
+          "body": "Crazy price drop alert 🚨 Upgrade your street style with trendy men’s vests starting at just ₹399",
+          "linkDescription": "Limited time deal",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1611647910098396",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Street-ready looks, oversized energy every single time Styled with @bewakoofofficial 😮‍💨 #ad #bewakoofofficial #oversizedfits #streetstyle #outfitideas",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/656859984_1985851935643570_3228011853967845251_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=JGa2C8wP3jkQ7kNvwFjIJXG&_nc_oc=Adrvn4zaVQ64_LG9QR-Ul3nmSQKn_qYAudms2_44S2maj91iADsN2nEicJYTWVl8MXA&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQDIgfQFHMPzAT7FNnHtXyZCu08dizAHvQQWtM5J5jTnmw&oe=6A5EF848"
+        },
+        {
+          "archiveId": "1379062854218398",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Outfit mood: oversized & effortlessly cool 😏 Serving looks in @bewakoofofficial Comment “Link” for deets #ad #bewakoofofficial #oversizedfits #fashionreels #streetstyleaesthetic",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/659685096_1647950983005185_9085552104428034259_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=vlkt-xxSVjcQ7kNvwELJPLz&_nc_oc=AdqQ6h9uPMnOKQ_m9mpS8Xx-XL-9wlcv7fnxmc2DUs61CNt0tycDIxvgUYY0-NgFLPc&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQDDP63qSUuRAk4R9Uen3_rXUPvq-SzmCTOqSw-VpC7KBA&oe=6A5EF57E"
+        },
+        {
+          "archiveId": "1633142857917062",
+          "mediaFormat": "DCO",
+          "daysRunning": 87,
+          "launched": "2026-04-20",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "THREADS"
+          ],
+          "title": "Starts at 899",
+          "body": "🔥 Your everyday joggers, now starting at ₹899.From chilling at home 🛋️ to stepping out in style 🚶‍♂️ — these joggers have you covered. Get yours starting at ₹899 — a timeless deal on everyday essentials.",
+          "linkDescription": "Get yours starting at ₹899 — a timeless deal on everyday essentials.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "928669896631908",
+          "mediaFormat": "DCO",
+          "daysRunning": 86,
+          "launched": "2026-04-21",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Starts at 899",
+          "body": "🔥 Your everyday joggers, now starting at ₹899.From chilling at home 🛋️ to stepping out in style 🚶‍♂️ — these joggers have you covered. Get yours starting at ₹899 — a timeless deal on everyday essentials. 🛍️ Limited time only. Exclusive on Bewakoof.",
+          "linkDescription": "Get yours starting at ₹899 — a timeless deal on everyday essentials. 🛍️ Limited time only. Exclusive on Bewakoof.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1641813716826591",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Oversized and styled right 💥 Obsessed with my @bewakoofofficial tees 🙌 #ad #bewakoofofficial #oversizedoutfits #styleupgrade #fitinspo",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/649864954_900491849563425_9023620243665859184_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=CliPXAbpndgQ7kNvwHF4eof&_nc_oc=Adq0OHJkV0xvCQ3Lon66ckHWFSEz0h9lTbtNA4bJOkVGRX10Y31HraQTgsFBhLVvinU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQB7GnM5yb_mqoro9ZrFSGD0iIiWRol0r29ytatJCr9ewQ&oe=6A5EDB82"
+        },
+        {
+          "archiveId": "4334845160122951",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "New mood: cooler, louder, oversized. @bewakoofofficial tees. #bewakoofofficial #MainCharacterEnergy #CoolGirlFits #OversizedAesthetic #SoftButLoud",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/649447874_868300946263228_6348651728511319170_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=hg17h0-DhNkQ7kNvwFRMdMP&_nc_oc=AdowZIamdU7ggAwVQMe7hS92qXgSjdxUrVcg8k21tYtSGNSlcTqCHbjJHpvGSwen3jU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQANoBXUiHLq100brajOHaSqn7bNBnrGHwgtaFJKDvxqiw&oe=6A5ED888"
+        },
+        {
+          "archiveId": "963761112840818",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "If your T-shirt is fighting you this summer… It’s time to upgrade. Oversized @bewakoofofficial T-shirts - Baggy. Breezy. Built for summer.🌬️ Baggy. Breezy. Built for summer. Buy 2 for 1199 🍦 & stay cool. #bewakoofofficial #streetwear #oversizedtees #instafashion #outfits",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/649127388_772150965616680_6911878560167321172_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=i6Fkf7svGOkQ7kNvwFq7BzF&_nc_oc=AdqY-fmEDAadRUrb461P6kLkbrGYMKaD1WeGAAynvWrHCo_lhh_BV3QczMG_Mlk_d3I&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQBP-inwUPS1djULjvmwzGkmg7lGJy_XpdNnA6rMCRhwYQ&oe=6A5F01F0"
+        },
+        {
+          "archiveId": "1624361932132905",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy 2 Oversized T-Shirts",
+          "body": "Oversized fits, bold prints & all-day comfort 💖 Buy any 2 at just ₹1099. Don’t miss out!",
+          "linkDescription": "Comfort meets street style",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/657440771_1422222059383862_438875817117850603_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=XC4Lk7mG-WsQ7kNvwHn_4iq&_nc_oc=AdoyK283YCyHqqblPncEIWHSMAHOqWO1Z-qmucj0Vj8d5Jo9Eb1BcdrH-7X3ip3r9SY&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQBilvgH2gNHQvlJJ3CViqWGBuG_7wMR_eKNYfI4eZd0Hw&oe=6A5EE271"
+        },
+        {
+          "archiveId": "995502252837149",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Corporate girl surviving the summer one @bewakofofficial oversized tee at a time ☀️👩🏻‍💻 #bewakoofofficial #corporategirlie . . . . . #explore #fyp #corporatelife (corporate life, Oversized T-shirts over tops and shirts, comfortable summer fits summer outfit, inspiration for office office life, oversize T-shirts for girls, doll girl, fashion styling for you, relatable share Bewakoof Collab)",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/658161270_2208875293216994_1722420849871366521_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=aeBQ0neoEh0Q7kNvwHwOe9v&_nc_oc=AdrpfBlaPy3uqkwThILqQQ2JWuhTmVGGePWK2JGEcTsnrxuTiOFPqeW7ENsOh6FCOJo&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQCcWKqX7FB2_NHof4DjTqoUxk9RZpHsfJ6z1qExVdmaRA&oe=6A5EDD96"
+        },
+        {
+          "archiveId": "2557233501382578",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "not me building a personality around these oversized t-shirts from @bewakoofofficial. #bewakoofofficial #streetwearindia #genzstyle #itgirlenergy #collegefits",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/648401770_943985578086930_5809311151432322472_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=MTgHsxjpTqMQ7kNvwEFLRTl&_nc_oc=AdqGRZZnlTtQiN_aNWu1nXYr8dFIkuGzs4E_9zfbVfYC1eN_T0PzGVSVRxltj2HNYOQ&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQCGjpt1wFfj_Pc83C0pJ9F3XBU4wN3-gvkJmO1nP3-99g&oe=6A5ED553"
+        },
+        {
+          "archiveId": "1851638892165559",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 111,
+          "launched": "2026-03-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bewakoof.app.link",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "These joggers from @bewakoofofficial just get the comfort and style quotient. Easy fit. Easy flex Grab yours now from Bewakoof.com #Bewakoofofficial #JoggersSeason #CozyFits #CasualStyle #Joggers [ Bewakoof, Bewakoof official, Joggers, winter outfit ideas, casual fashion, comfy fits, everyday outfits, street style India ]",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/628476012_885076790964788_7519320810077809705_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Eo6KVpnDv0YQ7kNvwGlYM27&_nc_oc=Ado4GjJrQvuGVhw8H07-CuObtGZxmmiHCSV9N3IwrPbirDbaOXm1eo3Pxz-3bjc5w-E&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=Zx-2-baP0_bGaQi8TmMY2w&_nc_ss=7f289&oh=00_AQCnAs5IljHBVG_Etvog675ItlkJuJdIdWluGBqMvL2QmQ&oe=6A5EF82A"
+        }
+      ]
+    },
+    {
+      "brand": "Rare Rabbit",
+      "bucket": "premium/menswear",
+      "page_id": "1585859508317679",
+      "page_name": "Rare Rabbit",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "1028757082911428",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 52,
+          "launched": "2026-05-25",
+          "variants": 4,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Moodboard edition ft @rarerabbit_in 🐰 #styledinrare #moodboardedition #rarefinds #fashion #spottedinrare #rarerabbit",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/660292404_2100668780474430_9185088834645211172_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=mADEy5w8FWEQ7kNvwEVY50v&_nc_oc=AdoNq8hUwTYBksmaauNnp7lDxqZmvJpFaHnSYmpio4a1mfLV3PYHENsd_nUK58MqRk8&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQBZVqWAM22DC1C5w_7d5TalJEVxF9mMeNWvGtxsnhinTQ&oe=6A5EE1E5"
+        },
+        {
+          "archiveId": "1029301593087067",
+          "mediaFormat": "DCO",
+          "daysRunning": 30,
+          "launched": "2026-06-16",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Premium Style, Rare Price.",
+          "body": "The Season’s Best Deals Up To 30% Off Selected Extra 7% Off Pre-paid Build Your Cart Now!",
+          "linkDescription": "30% Off + 7% Pre-Paid",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1028764543436820",
+          "mediaFormat": "DCO",
+          "daysRunning": 30,
+          "launched": "2026-06-16",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "play.google.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Premium Style, Rare Price.",
+          "body": "The Season’s Best Deals Up To 30% Off Selected Extra 7% Off Pre-paid Build Your Cart Now!",
+          "linkDescription": "30% Off + 7% Pre-Paid",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1611383617049411",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 34,
+          "launched": "2026-06-12",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "There’s a certain confidence that comes from wearing something truly well-made. With luxurious fabrics, refined detailing, and a polished aesthetic, the Guild Collection by Rare Rabbit delivers a premium experience that feels distinguished from the very first wear. [men’s premium fashion, luxury menswear, Rare Rabbit Guild Collection, tailored menswear, sophisticated style, luxury clothing brand, modern gentleman, elevated fashion] #RareRabbit #GuildCollection #LuxuryMenswear #PremiumFashion #TheHouseofRare",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/721297573_1571005054694081_1897571474337544239_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=SkYiEz3GHa4Q7kNvwHtQZct&_nc_oc=Ado81mZyRjb_FQ-ClJ93_ZBlE1RAOnn5LXjMUV3coYzgiooZS3M7qg1Y_i2NApvesdc&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQDVpO47u_nPT4tbymGl3WgnssPZ5qzis1gw9WxmaGsagw&oe=6A5ECCB3"
+        },
+        {
+          "archiveId": "2224829998342749",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 17,
+          "launched": "2026-06-29",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "The Modern Travel Wardrobe By Rare Rabbit. Performance-driven menswear designed to move with you and keep up with every journey. #RareRabbit #TravelEdit #SmartCasual #thehouseofrare",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/732962179_2064352574507180_5052891637227838810_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=-mC5gGuFJs4Q7kNvwGCTmAP&_nc_oc=AdrV7nCt2FWuPGJ1D2ON0ryTA3UMNBIVgzTql2fNi6pnyjcvS70c8yQsKy_WxMdl5Bw&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQBxd96-CpQypUvUXDYr7kkPrlL2Ymbk9t9pfM1eOfY8nQ&oe=6A5EF5A0"
+        },
+        {
+          "archiveId": "1720096735812366",
+          "mediaFormat": "DCO",
+          "daysRunning": 15,
+          "launched": "2026-07-01",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "The Polo You'll Wear On Repeat",
+          "body": "",
+          "linkDescription": "Shop Latest Polos on thehouseofrare.com, app & in stores",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2501514716938087",
+          "mediaFormat": "DCO",
+          "daysRunning": 15,
+          "launched": "2026-07-01",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "The Polo You'll Wear On Repeat",
+          "body": "",
+          "linkDescription": "Shop Latest Polos on thehouseofrare.com, app & in stores",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "4442616005988160",
+          "mediaFormat": "DCO",
+          "daysRunning": 12,
+          "launched": "2026-07-04",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "EOSS is Live | Upto 30% Off + 7% On Prepaid",
+          "body": "End of Season Sale is Live! Get Upto 30% Off Last chance to score amazing deals on seasonal favorites. Don't let these savings slip away! ✅ Fast Shipping ✅ Hassle-Free exchange",
+          "linkDescription": "The season is coming to an end, but the savings don't have to!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1582078462879237",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 107,
+          "launched": "2026-03-30",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Day weddings, the Rare way. Clean steps, effortless moves, and details that carry the look. From sunlit vows to everything after just stepping right. @rarerabbit_in @rarez.in #StyledinRare #AtHomeWithRare #RareFinds #SpottedInRare #LiveLifeRare TravelinRare",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/662944460_2026658581604478_1429285965640836193_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=fAr3alDGG1MQ7kNvwEmsVKm&_nc_oc=Ado2_qX9s5AqDXg2yfpwNqrOvYcgwSXpcreQjZ42jR3M61vPUpjeviq2EW3XdfFs5rA&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQCcTYJBynrExuJQaKZPzAezH2wTFpD1tozJuTGWbF_Gig&oe=6A5F0329"
+        },
+        {
+          "archiveId": "2379077795921172",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 97,
+          "launched": "2026-04-10",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "There’s something about slipping into the Amur shoes by @rarerabbit_in — clean, sharp, and built for wherever the day takes you. Easy to pair, hard to miss 😮‍💨 Drop 👟 for the link. . . . . . . . [sneakers, shoes, leather sneakers, rare rabbit, genz, trending audio, trending reels, trending videos, styling, street style, fast fashion, fashion, outfits, outfit inspo, sneaker lover, sneaker head] #trendingaudios #ᴛʀᴇɴᴅɪɴɢʀᴇᴇʟs #streetstylelook #trendingréels #relatables #sneakerhead #rarerabbit #leathersneakers #explorepage✨ #ᴇxᴘʟᴏʀᴇᴘᴀɢᴇ #sneakerlover",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/669049467_720192394450831_4946634658049795080_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WfG-kxnd_GgQ7kNvwHk74Wu&_nc_oc=AdpxeAnBxKadv2TU1HeniKTXE1l1XzP_tR-EeVosO7glYn5AUk_ogOYB4g8vMlPJ_iQ&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQDB46yw_ttMMgPMrikY-Am_Py1TRrR1DwxXrm0y_Z7iEg&oe=6A5EFDD2"
+        },
+        {
+          "archiveId": "1005553741889049",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 54,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "@rarez.in just dropped its latest sneaker collection- Sozo Built for comfort, styled for impact—these kicks are made to move with you, wherever you go. Step up your everyday look with effortless edge. ✨ #StyledinRare #AtHomeWithRare #RareFinds #SpottedInRare #LiveLifeRare TravelinRare",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/704592242_1677098776658428_7458300528806658766_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=kG_ms0QgvlcQ7kNvwEwSyFj&_nc_oc=AdpXIQuCE5JKPGY5etQe82Hqp6D1jMRAL6Udo6ZOrBZGcHD6n0MpfR7ES2jlKoTTU1Q&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQAOi1fmHHVSBvVS4rGd924KPdSOJZoJLPhATwhCuwaT_g&oe=6A5EDEEE"
+        },
+        {
+          "archiveId": "1735948570738898",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 52,
+          "launched": "2026-05-25",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Rare Rabbit polos that bring together soft textures and structured silhouettes. An easy choice for days that demand both comfort and polish. @rarerabbit_in #StyledinRare #AtHomeWithRare #RareFinds #SpottedInRare #LiveLifeRare TravelinRare",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/699907409_1366505881985883_7043751705296047566_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=itO1Et__SvQQ7kNvwHC3qeC&_nc_oc=Adr8gihVy9enIACfMfGW8fVyTt0z_VGphpdICk5NLLv6o8CUvcZNn5zOM8P5v9-FWGM&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQCt5Sj-daYedl6i__19pyJMN04A46vTku5xuKMGBxU52A&oe=6A5ED957"
+        },
+        {
+          "archiveId": "1132378342438621",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 44,
+          "launched": "2026-06-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Comfort, from within. Confidence, on display. Engineered to feel effortless—inside and out. Introducing INNERV by Rare Rabbit. #thehouseofrare #rarerabbit #innerv #menswear #comfort",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/680284648_1572934570464303_7484004868312947572_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=PegPqCfejYkQ7kNvwFozvIL&_nc_oc=AdqLhi_Vu9HIFSckHcAuE7__o7bDHxBISYg0_NLpKgL6iNcAjHX95l0brG7Nj5wEXd0&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQCECAXfkkPHVo7jCVas-zSF-_Qm2sPXQbmm0POQm8Km4Q&oe=6A5ED028"
+        },
+        {
+          "archiveId": "1528897692277280",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 44,
+          "launched": "2026-06-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Comfort, from within. Confidence, on display. Engineered to feel effortless—inside and out. Introducing INNERV by Rare Rabbit. #thehouseofrare #rarerabbit #innerv #menswear #comfort",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/681868175_1234103681860700_6796740761351295978_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=1kAN9UhN8eIQ7kNvwHMwu_b&_nc_oc=AdrzsEZ-HJQNGpwEfms4C-YMbc4_x48EoYsI4OFHYmkajGLvqyNT5T13jwZFtHJDAIU&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=dLiZcSAgHxXLvC-YOrPHFQ&_nc_ss=7f289&oh=00_AQBnlD3pnyT21lpwHFDerL2nP3trR67__kHc7PAYUioYbA&oe=6A5EF136"
+        },
+        {
+          "archiveId": "986407337580510",
+          "mediaFormat": "DCO",
+          "daysRunning": 37,
+          "launched": "2026-06-09",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "thehouseofrare.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Min 50% Off | Rare Rabbit Shirts",
+          "body": "",
+          "linkDescription": "Shop Rare Rabbit Shirts at unbeatable prices on thehouseofrare.com, app & in stores",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Bombay Shirt Company",
+      "bucket": "premium/shirts",
+      "page_id": "378877135503478",
+      "page_name": "Bombay Shirt Company",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "2350375235450604",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 38,
+          "launched": "2026-06-08",
+          "variants": 11,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER"
+          ],
+          "title": "Launching Soft Tailoring",
+          "body": "Soft Tailoring brings a more relaxed approach to formalwear. Unstructured blazers, relaxed pleated trousers, and lightweight fabrics designed to feel as easy as they look.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/698912670_1387952589870270_5986342854047820419_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=__hU4ycPu3EQ7kNvwH9mx4y&_nc_oc=Adrk7FYkGrABp7F7_8H7r2iIgqNGGTYjHYp14oQUh64Jd39EPd_KrfQovAn2LjyB0uU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=mM_YWhAA4WCeeUSonmSHHA&_nc_ss=7f289&oh=00_AQCdU15nQbkE7jwZG2rvnuISUgTmu2C2pvAfhn46bhi_ug&oe=6A5EF19C"
+        },
+        {
+          "archiveId": "1329748655157279",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 38,
+          "launched": "2026-06-08",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER"
+          ],
+          "title": "Bringing the right fit to the big stage",
+          "body": "Great style isn't just about what you wear. It's about how you feel in it. This season, through our partnership with JioStar Cricket, we brought the Bombay Shirt Company experience to some of the biggest names in the game. Built around comfort, confidence, and individuality.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/719491215_1011500101223040_2877336399580374444_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=U1RkWIjHB54Q7kNvwEEi6_W&_nc_oc=AdqmoUxjKgkY0SApFIdbclk0n7g8GToYpSNae-5o7e8ChS2BcBnu06Uyjnm-FGNty6E&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=mM_YWhAA4WCeeUSonmSHHA&_nc_ss=7f289&oh=00_AQCfVXKAwCKpgX6LDcRFnpAmvKkbnyBKJxgCtg9APtX50A&oe=6A5F0096"
+        },
+        {
+          "archiveId": "1601643537621162",
+          "mediaFormat": "DCO",
+          "daysRunning": 119,
+          "launched": "2026-03-19",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Versatile Formal Shirts",
+          "body": "Our crisp, classic, formal shirts can take you from your desk to dinner without breaking a sweat & without breaking the bank.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1490605369138824",
+          "mediaFormat": "DCO",
+          "daysRunning": 70,
+          "launched": "2026-05-07",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Giza Cotton Shirts",
+          "body": "Our bestselling Giza Cotton shirts are crafted from the highest quality fabric for a superior fit and incredible feel. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "995980919705366",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 37,
+          "launched": "2026-06-09",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER"
+          ],
+          "title": "Bringing the right fit to the big stage",
+          "body": "We put the experts in the hot seat :fire: - all styled in BSC. A rapid-fire round at The Den, Kemps Corner - featuring style opinions, wardrobe confessions, and a few answers that may spark debate.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/718043750_2219715765493297_5096827791962799139_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=j5vHNTQL670Q7kNvwHj9AF1&_nc_oc=AdqG2jmbejp8w7bVHCcoGxMnOpchodUB71XzMbfCNCKjlc-I5ILV9i7dmRLsnqs9dBw&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=mM_YWhAA4WCeeUSonmSHHA&_nc_ss=7f289&oh=00_AQChVOTFENoeOooDRSVeA0rlSbn0DwHtWLJy4G6RdESvSw&oe=6A5EDBF1"
+        },
+        {
+          "archiveId": "948080021002083",
+          "mediaFormat": "DPA",
+          "daysRunning": 119,
+          "launched": "2026-03-19",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Unparalleled quality. Superior craftsmanship. Tailor-made shirts that don’t break the bank. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "High-quality shirts for all your occasions.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1435730297872528",
+          "mediaFormat": "DCO",
+          "daysRunning": 90,
+          "launched": "2026-04-17",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Versatile Formal Shirts",
+          "body": "Our crisp, classic, formal shirts can take you from your desk to dinner without breaking a sweat & without breaking the bank.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1332178878754812",
+          "mediaFormat": "DPA",
+          "daysRunning": 90,
+          "launched": "2026-04-17",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Unparalleled quality. Superior craftsmanship. Tailor-made shirts that don’t break the bank. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "High-quality shirts for all your occasions.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1075614612306640",
+          "mediaFormat": "DPA",
+          "daysRunning": 85,
+          "launched": "2026-04-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Our low-maintenance wrinkle-free shirts are ideal for when you’re on the go. Easy to wear, easy to pair and easy to pack.",
+          "linkDescription": "Ideal for special occasions and long days at work, these shirts have been treated with a special wrinkle free finish that makes them less likely to crease.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "26454826364187506",
+          "mediaFormat": "DPA",
+          "daysRunning": 80,
+          "launched": "2026-04-27",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Some shirts stay as they are. An Oxford shirt picks up character the more you wear it. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "Buy Oxford Shirts For Men Online ★ Shop For Men's Oxford Weave Shirts Online From A Wide Range Of Blue, Black & White Oxford Shirt For Men On Bombayshirts.com.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2062988104600576",
+          "mediaFormat": "DPA",
+          "daysRunning": 73,
+          "launched": "2026-05-04",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Some shirts stay as they are. An Oxford shirt picks up character the more you wear it. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "Buy Oxford Shirts For Men Online ★ Shop For Men's Oxford Weave Shirts Online From A Wide Range Of Blue, Black & White Oxford Shirt For Men On Bombayshirts.com.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2747231752328580",
+          "mediaFormat": "DPA",
+          "daysRunning": 73,
+          "launched": "2026-05-04",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Unparalleled quality. Superior craftsmanship. Tailor-made shirts that don’t break the bank. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "High-quality shirts for all your occasions.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2066931180524556",
+          "mediaFormat": "DCO",
+          "daysRunning": 70,
+          "launched": "2026-05-07",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Giza Cotton Shirts",
+          "body": "Our bestselling Giza Cotton shirts are crafted from the highest quality fabric for a superior fit and incredible feel. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2768096730193521",
+          "mediaFormat": "DPA",
+          "daysRunning": 70,
+          "launched": "2026-05-07",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Bombay Shirt Company",
+          "body": "Our bestselling Giza Cotton shirts are crafted from the highest quality fabric for a superior fit and incredible feel. Use code Welcome10 to get 10% off your first order.",
+          "linkDescription": "Shirts tailored with elusive, premium Egyptian Giza cotton fibers. Quality that you can feel.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "934532532918292",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 65,
+          "launched": "2026-05-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bombayshirts.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER"
+          ],
+          "title": "Launching Soft Tailoring",
+          "body": "Soft Tailoring brings a more relaxed approach to formalwear. Unstructured blazers, relaxed pleated trousers, and lightweight fabrics designed to feel as easy as they look.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/698912670_1387952589870270_5986342854047820419_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=__hU4ycPu3EQ7kNvwH9mx4y&_nc_oc=Adrk7FYkGrABp7F7_8H7r2iIgqNGGTYjHYp14oQUh64Jd39EPd_KrfQovAn2LjyB0uU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=mM_YWhAA4WCeeUSonmSHHA&_nc_ss=7f289&oh=00_AQCdU15nQbkE7jwZG2rvnuISUgTmu2C2pvAfhn46bhi_ug&oe=6A5EF19C"
+        }
+      ]
+    },
+    {
+      "brand": "Damensch",
+      "bucket": "premium/menswear",
+      "page_id": "248175202388719",
+      "page_name": "DaMENSCH",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "1729437381770452",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 76,
+          "launched": "2026-05-01",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Clean fit. Sharp look. Zero compromise. Engineered trunks + vest that don’t just sit on your body — they shape it. Snatch the waist, smooth the lines, boost the confidence. Not your regular innerwear. This is performance wear for your everyday look. #ShapeWear #MensStyle #CleanFit #ConfidenceOn #InnerwearUpgrade",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/685224654_2394964374358869_5590733039957865767_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=p8klVOxiwTsQ7kNvwE5m69k&_nc_oc=Adp-USrNeLgi9taOls4h2KclAOEjvazlKKmKoTwKi6UQEeyketkQKdkDSaJF9RKL7BU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQBZ4hjoS3C5--zrU77W5e6nUeAZsZJuYwnUC8YusqqfDg&oe=6A5EED78"
+        },
+        {
+          "archiveId": "1614503962998733",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 76,
+          "launched": "2026-05-01",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Subtle upgrade with @damenschofficial . . . #damensch #menswear #mensfashion",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/686972459_2426434684537823_8032847713747093354_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Qhh8fKKfwYYQ7kNvwGkFqrK&_nc_oc=AdpnUyqGnhWotEMm6O5bCaQWPRznDtsnsZgX4S_Ox1YRcXf4TdHtWh8kLouiorjgrVQ&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQAcuB4EmxHf92Lm9Ek4C1IKB4JjiBX8sRvVS9aBl9KcXw&oe=6A5EF452"
+        },
+        {
+          "archiveId": "2115971092663240",
+          "mediaFormat": "DCO",
+          "daysRunning": 1,
+          "launched": "2026-07-15",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Just launched",
+          "body": "Introducing Form Physiq",
+          "linkDescription": "Grab one for you today.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1352053752981891",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 274,
+          "launched": "2025-10-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Not saying who but you know 🤪 . . . . . Breakups, influencers, cute little red flag, red flags, Green Flag, funny, controversy, pop culture, story time #datingmemes #breakupmemes #cutelittleredflags",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/565225676_989115013392861_435075668502466976_n.jpg?_nc_cat=107&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=avqzTlRpTgMQ7kNvwETGhv2&_nc_oc=AdqTyz-zHeJG6XKEIZyIk4Ur0rcoBWVqSSAOPzv5b3qN7cOC9MWpQF6sX4UXrazsPi0&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQC5mdCesW_MV7Zkg4ZrBt7bVjbj2dekfj1MO5t0Ekkfhg&oe=6A5EDF59"
+        },
+        {
+          "archiveId": "1428314075497092",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 174,
+          "launched": "2026-01-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "I choose @damenschofficial Statement Polo",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/619767592_1501078344320742_942559524513377963_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=8mrnT_mMylgQ7kNvwEShgS7&_nc_oc=AdpSGaQPFQa_HfF_n7bNr22MmLMeti9tZMM13awDI_W0ygWE2153Rpq1BXFOk_4mIIM&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQDRxS9z7VYmdGVCmqLQl18Gy4QNMs453eMLGpxOBBB-Vg&oe=6A5EEAA5"
+        },
+        {
+          "archiveId": "26315682684735808",
+          "mediaFormat": "DCO",
+          "daysRunning": 148,
+          "launched": "2026-02-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Shapewear Vests are back in stock. Shop now before they’re gone again.⚡️ [DaMENSCH, Campaign, menswear, innerwear, unreal, deosoft] #damensch #campaign #damensch #comfortableindamensch #anewfeeling #fyp #explore #unreal #drop",
+          "linkDescription": "Buy Damensch Form Shapewear Crisp White online at damensch. Next day delivery available.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "25499355353076070",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 140,
+          "launched": "2026-02-25",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "You work hard on your body, but some days the outfit still doesn't fall the way you want it to, and that one little bulge is all you can think about at important moments. Started keeping it simple: DaMENSCH shapewear under the same shirt, nothing changes on the outside except the confidence on the inside. Weddings, meetings, date nights, the moments where it matters most, this one layer just quietly does its job and lets you show up feeling sharper. . . . . #mensfashion #mensgrooming #damensch #style #confidence . . . . . mens fashion, mens grooming, shapewear, shapewear for men, damensch, confidence, style, outfit, weddings, formal wear, fitted shirt, mens style india, body confidence, grooming tips, indian creator, lifestyle, special occasions, clothing hack, wardrobe essentials",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/640439604_1622344315767624_6817670923735527413_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=OoAqeI34NlYQ7kNvwGS9hnm&_nc_oc=AdpftIJ_bfXresRoGhvhBARPbY6-8tQQjUK-HMgTCvlzeVwN1DJbNueDZGvSqzL2VZk&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQDeCCA9d_zjwUOEtc4Gfl91j0SC5MHnyiSdpWqFB_ucAg&oe=6A5EE4D5"
+        },
+        {
+          "archiveId": "1412538700179221",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 139,
+          "launched": "2026-02-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Why plan outfits when one pair does everything? 🫠 7 days. Same Damensch joggers. @damenschofficial ✨ Comfort so good, my other clothes are on unpaid leave. 😉",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/642219741_1203666925087061_8332333955474327833_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ektdwDX0OtcQ7kNvwF0Elat&_nc_oc=Adq9ZOv_woCTOsmFH1AbeQkeYk3gp4ETwB-YgRDCm0BqkzpEOnioT2qSLpHBXUXEX30&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQBD7HrWXuxsk2tYePNMHKccf2w3aPmlHLNgddx9CfsaQw&oe=6A5EE797"
+        },
+        {
+          "archiveId": "1986591272207867",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 135,
+          "launched": "2026-03-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "“POV: You upgraded your outfit without buying new clothes.” The wardrobe hack every man needs !! @damenschofficial #hack #plussizefashion",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/645878430_894389460081081_8804967165642369420_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=n4qJWgG3CH8Q7kNvwFsjgdD&_nc_oc=AdpYDCbPdN5TSmQ1RR6WtYQjXp4sO4eYk3AlyXtK3A7-Hgya1jQtzJikVVZHks4lz_A&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQDdSSgtZsxWENwjLrjVUf_uKKVQ1mZ46VxojeOUK2eilg&oe=6A5EFD2A"
+        },
+        {
+          "archiveId": "1551720682585848",
+          "mediaFormat": "DCO",
+          "daysRunning": 128,
+          "launched": "2026-03-10",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "100 days return guarantee",
+          "body": "From a sharper fit to better posture, FORM Shapewear is built with technical comfort in mind. You won’t notice it’s on - but others will see the difference.",
+          "linkDescription": "Not 100% satisfied with slimming? Get 100% refund!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "878808245198583",
+          "mediaFormat": "DCO",
+          "daysRunning": 127,
+          "launched": "2026-03-10",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "100 days return guarantee",
+          "body": "Introducing FORM – engineered to slim your profile, support your spine, and let you move like it’s not even there.",
+          "linkDescription": "Not 100% satisfied with slimming? Get 100% refund!",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1512006700346092",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 126,
+          "launched": "2026-03-11",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER"
+          ],
+          "title": "Shirts Made From 7 Bottles ♻️",
+          "body": "Made from 7 recycled plastic bottles, Damensch shirts are softer, breathable, and thermo-regulating to keep you 2° cooler this summer. Shop now and enjoy up to 25% off.",
+          "linkDescription": "Limited time offer",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/650859635_889222230606698_6276880445897903673_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=yNAICpBwm1sQ7kNvwGiD8ok&_nc_oc=Ado_0LLoZ0dLfhTGhSIRMdy14r_6S8fZE_5AaG_gLJBmd1n_vo7yVKcJ6FgpUmqvl-c&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQC1EeZPEBMJcl8-3sJrJR2Uvo_Q2nofTZ7FTpjJWFANdw&oe=6A5EDA4A"
+        },
+        {
+          "archiveId": "833294719803181",
+          "mediaFormat": "DCO",
+          "daysRunning": 92,
+          "launched": "2026-04-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Summer Starts with Tanks",
+          "body": "Summer just got a whole lot cooler! ☀️ Stay stylish with our lightweight, breathable tank tops. Plus, get 25% off orders above ₹2500! Shop now and beat the heat in style! 🛒",
+          "linkDescription": "Limited Summer Inventory",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1544041257141040",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 83,
+          "launched": "2026-04-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "",
+          "body": "Ai is taking over guys 🙈 . . . #explore #viral #thesimps #explorepage #rishya",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/679789543_27559972746923604_6375947044934674607_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=v4Mewlx-kwIQ7kNvwElQidg&_nc_oc=AdoSyF-zn-gyTrhEAGLG_3atzohadUDc7_euQcLo0c9gOvx7t4wd7M_0v6jIrxPHt-Y&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=vNdZKcEnVQRO8w4K9PtGZg&_nc_ss=7f289&oh=00_AQAELUxo_wp1dkawEXTui6krqdJ_HuSRkgvDKajjfnFQbQ&oe=6A5EF78D"
+        },
+        {
+          "archiveId": "3297350790445792",
+          "mediaFormat": "DCO",
+          "daysRunning": 78,
+          "launched": "2026-04-29",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "damensch.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "No Bulk. Just Shape",
+          "body": "Better form. Smarter fit. No compromise. India’s go-to shapewear vest for men.",
+          "linkDescription": "Flat 10% Off for new customers",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Fugazee",
+      "bucket": "streetwear/hoodies",
+      "page_id": "1541351649479430",
+      "page_name": "Fugazee",
+      "totalActive": 25,
+      "ads": [
+        {
+          "archiveId": "2648515865542750",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 51,
+          "launched": "2026-05-26",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "",
+          "body": "The fit stays. ✨ Tailored silhouettes,relaxed structure,and details that hold their own.From the pleats to the fabric fall.This look isn’t about loud trends.It’s about pieces that stay relevant, wear after wear. Brown tailored trousers with a fluid drape 🤎 A black ribbed Henley that sits right 🖤 Accessories that complete the story without stealing it 😎 Everyday dressing, elevated. Minimal.Intentional. Built to last. Save this if you believe good fits don’t need noise 🔖 Comment LINK for product details 🔗 . . . . . . [oldmoneyfit streetwear mensstreetwear homegrownstreetwear mensfashionindia tailoredfit minimalstyle fitcheck cleanfits fugazee]",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/707454384_1466229568850392_2920709583176040367_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=XD-ZGAm8XiMQ7kNvwGRZaeB&_nc_oc=AdqozATzXWcAPxmMK8pY7kfTri8xHI0A-6B8MuKB-sSw_uPMfrgIB3tPdOqyFH37_M0&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQAozjkxFTKLm_5vvkt_dGBuYqPLDPaaq4HuT3nodyiP7Q&oe=6A5EEED3"
+        },
+        {
+          "archiveId": "814912221419374",
+          "mediaFormat": "DPA",
+          "daysRunning": 59,
+          "launched": "2026-05-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹699 | Black Deep Scoop Neck Tee - XXL",
+          "body": "Internet-famous fits, now in your cart. Fugazee bestsellers = zero chances of missing.",
+          "linkDescription": "Shop Fugazee’s most-loved styles before they sell out.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1010448784670899",
+          "mediaFormat": "DPA",
+          "daysRunning": 59,
+          "launched": "2026-05-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "₹2,499 | Khaki Polar Fleece Shacket Coord - M-30(Chest 40 And Waist 30)",
+          "body": "Last 24 Hours Left- Grab Your Favourites Before They’re Gone Final Hours to Shop the Sale",
+          "linkDescription": "Fugazee.com is an online store for street style fashion at amazing prices. Checkout our latest collection of mens joggers, Denim, shorts, Bomber Jackets, Hoodies, Jog suits etc.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1258781552994237",
+          "mediaFormat": "DPA",
+          "daysRunning": 59,
+          "launched": "2026-05-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "THREADS"
+          ],
+          "title": "₹2,049 | Black Zipped Adjustable Flared Denim - M/30",
+          "body": "Last 24 Hours Left- Grab Your Favourites Before They’re Gone Final Hours to Shop the Sale",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1768240077477718",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fb.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Limited stock only!",
+          "body": "Styling the Viral Full Sleeve Henley Tshirt which is all over your Instagram & Pinterest feed.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/703796708_943283381911808_8626076870164666730_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=OozAVkg041gQ7kNvwF6cqzx&_nc_oc=AdoXQegbY_PNDZeAUlr_dwHL1g2Jy7Z7xzr5PXlmqIWIVylT-vgB67oGRQEKpUWfWMI&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQCukSbdqo7iyB5mqIDEI_JPjtE3xV2G2_N1NHl9-Y5QKg&oe=6A5EF97E"
+        },
+        {
+          "archiveId": "1306965351412627",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Classic Look, Relaxed Fit.",
+          "body": "Your next favourite outfit is already a bestseller. Top-rated fits that deserve the hype.",
+          "linkDescription": "Trending streetwear everyone’s adding to cart.",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/705046646_1769609264009908_82459929581785801_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WTEjp00smqkQ7kNvwGckQiH&_nc_oc=Adoyw5Sq2WfSc0wSmzRhGbRdHp4pGQNfIYVzLv3yV_fPNOsDdeqcealzS4gPiTcpQ1s&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQDaetEq7xcoKnLJzFTn8GQXlZqz_mSwwXjhKODCuxNekA&oe=6A5ED556"
+        },
+        {
+          "archiveId": "2721960088190388",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Classic Look, Relaxed Fit.",
+          "body": "Your next favourite outfit is already a bestseller. Top-rated fits that deserve the hype.",
+          "linkDescription": "Trending streetwear everyone’s adding to cart.",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/702703496_846540537975126_2566424082415682517_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=rbR1m_C99ssQ7kNvwFn3NQU&_nc_oc=Adps31Ax11mF38Lssqneefl7ubYGnOE0lA6qHmh1G-AtwM9UFnbbGMMgvdXXQBFmj0U&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQAf2BC9O7ykQMmJcDQDaC5k9w-HFr7ey9J2IeHKMIqvWQ&oe=6A5EE99C"
+        },
+        {
+          "archiveId": "2032022034861168",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 57,
+          "launched": "2026-05-20",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Streetwear That Breathes.",
+          "body": "Your next favourite outfit is already a bestseller. Top-rated fits that deserve the hype.",
+          "linkDescription": "Trending streetwear everyone’s adding to cart.",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/703222730_1311118000946827_4987354825260293506_n.jpg?_nc_cat=108&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=H06aSKOAnTAQ7kNvwGavk_4&_nc_oc=AdpEGuevYof8YbKyQqyirjOShWOb0wCw570NsWjWy1jlGejXJME0mlxFQkuijFMbKXo&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQDwSGMrVoue7TxeB4sv0TWcw_0qzksxKUdvmTHJOHJKSA&oe=6A5EF2A4"
+        },
+        {
+          "archiveId": "4340370846229076",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 56,
+          "launched": "2026-05-21",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Let The Shirt Do The Talkin’ 🍋",
+          "body": "Standout styling is an understatement. We took a classic summer stripe, upgraded it with premium lightweight fabrics, and finished it with our custom red contrast knots. This isn’t just a shirt—it’s an entire vibe. Hit the link to claim yours.",
+          "linkDescription": "Lightweight Summer Comfort. Free Shipping Over ₹1999.",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/703658136_1721248145566975_4848751362551583080_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=zrS58ss5TrIQ7kNvwFQf7d8&_nc_oc=Adpusazce_XVdWxEob_RKO3A6EsgNm9syiQyLIwJffGQ-UnLjFb8-Sr__yEpesdLSVc&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQCpAP3URDyaua_gBQFPX_MybVq_WEC79HGT52vVcHtc3Q&oe=6A5EF747"
+        },
+        {
+          "archiveId": "1496092675549236",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 51,
+          "launched": "2026-05-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fb.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Summer Fits, Sorted",
+          "body": "Vacation fits, but make it different. Textured shirts, Korean silhouettes & statement details—made to stand out.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/706981961_1487583866201904_1393779502984009326_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=BYPpo9sEKo4Q7kNvwE5IizB&_nc_oc=AdpByXJWbAlNiyhK6n-kRPXjRTWmaPusM3m6_9CnoWtmLld8hecLaMZfnDpyc4qJR4g&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQArLaqBNCMLQasTRJeWtdc6YilsAGIq1Z_l3vHXlVWn6A&oe=6A5ED769"
+        },
+        {
+          "archiveId": "970164785998134",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 50,
+          "launched": "2026-05-26",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fb.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Everyday Style, Elevated",
+          "body": "Style that moves with you. Designed for comfort, built for everyday confidence.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/706277437_2055199158400423_6080141147190795204_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=KB1m4awgBwYQ7kNvwE3zlfk&_nc_oc=Adp29oq9nwLQMY4G8aRHaLUHE9vpkPRMERMfUpU5-8oU2h9dTWCfacDNGWtflPqvUMk&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQC7xXCbkW9i4Tg95WYtYax8SM3EVtPDBzKqwWYhaEtLqA&oe=6A5ED081"
+        },
+        {
+          "archiveId": "2098516074062651",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 42,
+          "launched": "2026-06-03",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fb.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Upgrade Your Shirt Game. Statement Shirts Only.",
+          "body": "From beach days to night plans- One shirt does it all. Shop elevated casual fits.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/705859865_1877648849590836_4355624950598256456_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=TERxiU2ItKUQ7kNvwHfBYVc&_nc_oc=Adpw_tpDY_44eTXV6Rlwo4EowHkcoLYRbg-qTG4puPZG1FwLJni6OO0wso-VyoTSyck&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQBcs6ChFvT9wh_H3Im_6CM0WZ1Y_nBPQhDkYUbSYDOBKw&oe=6A5EEE5B"
+        },
+        {
+          "archiveId": "1720508899284437",
+          "mediaFormat": "IMAGE",
+          "daysRunning": 38,
+          "launched": "2026-06-08",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "MESSENGER"
+          ],
+          "title": "Your New Go-To Tee",
+          "body": "Minimal look. Maximum impact. Shop Fugazee’s Ringer Tees in timeless shades made for everyday wear.",
+          "linkDescription": "Premium cotton tees designed for all-day comfort.",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/708979537_2912034392461673_3213286669477938614_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=VC1zjwcIENUQ7kNvwGvDS-n&_nc_oc=Adq_xe-zn6rm4uwnGGjNDmb0vCvAO2M1t4xAXPk4orTUyc5fLC7DX3EIjTZmH_EZeDA&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=gZVr4gkAC_9U-V5p2ZFfhA&_nc_ss=7f289&oh=00_AQAKThI9IKfyjVqNtElm55NqRLenZiibq681eE3YTTyCSA&oe=6A5ED366"
+        },
+        {
+          "archiveId": "1538615368057453",
+          "mediaFormat": "DPA",
+          "daysRunning": 34,
+          "launched": "2026-06-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹2,049 | Black Zipped Adjustable Flared Denim - XL/34",
+          "body": "Bottomwear that does all the talking. Relaxed fits, street-ready style.",
+          "linkDescription": "",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1362025835805239",
+          "mediaFormat": "DPA",
+          "daysRunning": 30,
+          "launched": "2026-06-16",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "fugazee.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹2,049 | Black Zipped Adjustable Flared Denim - L/32",
+          "body": "Everyday fits, upgraded with street-style energy. Shop now and upgrade your drip with Fugazee styles.",
+          "linkDescription": "Discover trending streetwear styles for every mood.",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Powerlook",
+      "bucket": "streetwear/trend",
+      "page_id": "1462287340503548",
+      "page_name": "Powerlook",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "965289312773458",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.location.city}}",
+          "body": "Stepped into @powerlook_offline at 📍R City Mall, Ghatkopar and now I get the hype. Premium fits, solid vibe... no wonder it’s India’s fastest-growing men’s fashion brand. Visit today, do your shopping, and comment on which outfits you like the most.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/691663227_2127085651475767_5905657973453076347_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=GVByyNC7tMEQ7kNvwGfka3W&_nc_oc=Adoprc6Aif4YRs5w57pQmsByFmcYvrjfwrku0_eISKuA9bYiMffLvR3drDrL4N-aJj0&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQDaPLGx9e6QqMT5unj062nbYi0RJmXPhDrEN2Xnji7lhw&oe=6A5EE7AD"
+        },
+        {
+          "archiveId": "1507939660739185",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.location.city}}",
+          "body": "Finally found a place where my husband gets style AND I don’t have to hear complaints anymore 😌 @powerlookofficial Premium fits, Pinterest vibes & prices that actually make sense?? Safe to say… his wardrobe (and mine 👀) is sorted. 📍 Visit today at Ghatkopar R City Mall",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/682419020_949629491324326_4691522395727047277_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=SFzf5ZEjAE4Q7kNvwHaO07O&_nc_oc=AdpLiX1gsJYh0Ep0LmhC7BqOukF5xKmclsJCPaegy0_wXFX-QeNmNAyTP13-u0WOook&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQC95C2u9t55o2imFxaw-fON33af151lU4GqskdWQ6mofg&oe=6A5EF8BD"
+        },
+        {
+          "archiveId": "3447334765420275",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Discovered a store where you can actually find proper international fits. Surat people, you should definitely check out @powerlookoffline and experience it for yourself",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/699516659_26824520227203330_2830532632084798501_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Bp3ZbyNcyZoQ7kNvwH76Gvb&_nc_oc=AdqHrg_ucWQa8lAOA-7h8FhBmlpWV0nI-CayU2N7xrh34-i-3TGKfXOomRDRlZ8VBqg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQDal4aw7F19-KDHA39fWuQTxNOyOR1nwoF0BVszYDRWsA&oe=6A5ED90B"
+        },
+        {
+          "archiveId": "2055878161658957",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Guys, it’s time to move on from 2018 style... it’s 2026 now. A little effort in your dressing really makes a difference. Surat boys, time to upgrade your wardrobe with @powerlookofficial or @powerlook_offline 📍Avadh Kontina, Vesu, Surat Trust me, we do notice. [ AD shoot , brand collaboration, style , OOTD , gurls thinking , loving style , Instagram , viral , explore page , reelsfeelit, new post , powerlook , influencer, content creator ] #powerlook #viral #explorepage✨ #ᴛʀᴇɴᴅɪɴɢʀᴇᴇʟs #Instagram",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/690651343_868259882945334_7816793155063493955_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=_BOUk4hApKIQ7kNvwGltJ3G&_nc_oc=Adomt28m2bP79dF6EFEH4AYgruBXpRgxwASfAL_B0_YHn9cRFHjdjd7Bf95taFEHm8A&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQC_bBe43tCb1LYEdwNPgi26F45P2H3aJafvsN6mftWY_A&oe=6A5EE3E7"
+        },
+        {
+          "archiveId": "1314225064185367",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Stop saying India lacks fashion sense. Just head to @powerlookofficial Surat and get your perfect fit today, because everything there is under ₹1499. So visit today and let me know in the comments which outfit you picked.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/681235518_841970594977180_7651057092174411591_n.jpg?_nc_cat=103&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=ESMuDX4GJW8Q7kNvwGOKZ4f&_nc_oc=AdraJJBpDAQFIrPlm5JhTmeMe3kwsW-SPJz2WZ3xzmLU-ysEjgO7I4IvU8mtmQ_mab4&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQCS7qiyYWFnEP3wJcwsrIndybIaVfzfsXT8bAAXpEmJJQ&oe=6A5ED3A6"
+        },
+        {
+          "archiveId": "2948882912124672",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.location.city}}",
+          "body": "Fashion is moving so fast these days... and honestly, keeping up shouldn’t feel expensive. Found some solid everyday styles at @powerlookofficial @powerlook_offline - good variety, easy on the pocket, no overthinking. 📍Powerlook Store Linking Rd, Bandra West, Mumbai",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/684302554_1495036699031053_1190253338812491339_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=99ALPg9bmzAQ7kNvwEe3GCH&_nc_oc=AdpgSn_Ks-1zfDdu-HvuajGs3DOPIrP_TUd_shkSIixR8NTtR8h_hyXGrFhpkI-P9bU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQAnpfAsncfR34HS0h0qi8tXK4a7LF7NUIRk_1eOaAn5qQ&oe=6A5EFC5E"
+        },
+        {
+          "archiveId": "2069627880251322",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.location.city}}",
+          "body": "Stepped into @powerlookofficial & @powerlookoffline located 📍Bandra Linking Road and walked out with main character energy 😮‍🔥 From clean fits to statement pieces—this store is a whole vibe. Drip upgraded. Confidence unlocked. 🔓✨ #Powerlook #StoreVisit #MensStyle #FitCheck #StreetwearIndia",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/687039980_2149028365644683_3206779375101705208_n.jpg?_nc_cat=106&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Ey0dBwjRHqIQ7kNvwHZqKyt&_nc_oc=AdqVR_Gbf0HLpMQuVMmLhGi3IbH5qVmX9FykcV1Rr9M4hD67kTNSlVp1Z8kbWhS7Vgg&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQDE4OUrFGdBhwpwE861UZyss44GC1ygpCd__OuX7xBJsw&oe=6A5ECEBA"
+        },
+        {
+          "archiveId": "1352962236721086",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Level up your wardrobe and let your outfit do the talking. Step into the new era of style with @powerlookofficial @powerlookoffline India’s fastest-growing men’s fashion brand. Confidence looks good on you. 📍 Phoenix Citadel Mall, Indore . . . #menstyle#menfashion#storevisit#indoreahopping#ad",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/687920059_1004051108824338_7186331784143600331_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=HYJgPT1135IQ7kNvwHH4KZj&_nc_oc=AdqeNcLxJaJzYy9L9mRG0mGSBgxDklJiuVrjnLw4r9wHFLzJwAUrULpfilU9m2eByRk&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQCxj3mfTO2cN193AH0N1t8xkHKriq80_gxU1bMjte3UzA&oe=6A5ED10F"
+        },
+        {
+          "archiveId": "960228530026048",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "You don’t need loud brands. You just need the right one, and I have found it for you: @powerlookofficial @powerlookoffline, which is located in 📍 Indore, Phoenix Citadel Mall Under ₹1499. No noise. Just premium quality.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/683756877_26321152057584210_2130922899909245403_n.jpg?_nc_cat=110&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=7TUVAB40KcUQ7kNvwGfzMXJ&_nc_oc=AdqW_pqvgqigZMoKIW4C5ziKu_tEmBZeu5bwGPKsN3twNrpyKETKA-p8uIK0IRfqE9w&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQDl69zAoblc83pKPkPsSd4rGflWKRwKnJATpfC6d-a24w&oe=6A5EE730"
+        },
+        {
+          "archiveId": "984319800748074",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Okay, Indore... now I get the hype. . @powerlookofficial at📍Phoenix Citadel is bringing global men’s fashion starting at ₹1499. Affordable & Trendy. If you’re in Indore, visit the store today and check it out.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/684549005_881585338276066_8702900888465245335_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Db3iExTgFhoQ7kNvwF40V2p&_nc_oc=AdrIYc_JDfAcJqKd2dGneM4B6rIYi1ZmbzH1cSMD-UWskxakg5Jy0yACW7lpIl0wpXU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQCSitCo0PAJw4GcEVgNWPnZLsGfxswlz5KsPafL0LjP_A&oe=6A5EE4C3"
+        },
+        {
+          "archiveId": "1541396517385109",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Didn’t expect this, honestly Tried Powerlook recently at 📍Genda Circle, Vadodara and it actually surprised me - especially at these prices. Simple designs, decent fabric, and fits that don’t feel off. Anyone else tried it yet? @powerlookofficial @powerlook_offline @ragharsh Shot by:- @priteshdrdz Edit:- @harshit_21.02 #powerlook #vadodra #menswear #powerlookshirt #powerlookofficial",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/683961195_1524839249265854_9021960711936759521_n.jpg?_nc_cat=104&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=7UJA7yeCF3YQ7kNvwHX40x2&_nc_oc=AdrfbhK2M8EfBs4JEqta9CDj0akYCxafAWmABBMqnUOHbbUy1CqUDoHtJFmcs2gi2mU&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQAqx2H510cC9KWaFmdeVqHuS-SIyfBbK15VEbm6tgV7DA&oe=6A5EF4BC"
+        },
+        {
+          "archiveId": "1530172655380215",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "If your wardrobe still feels stuck in 2022... it’s time for an upgrade. 2026 energy needs better fits. Recently discovered @powerlookofficial & @powerlookoffline and honestly, it’s a game changer. From casual to formal - they’ve got it all. Visit them at📍 Vadodara, Genda Circle or shop online #powerlook #mensfashion #fashioncreator #fashion #vadodara",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/689495732_752156327890969_8587184979810173910_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=rcja35oWhVcQ7kNvwEwJWu6&_nc_oc=Ado93obmUDCuQNQl5Qrz7BWmEHkYZwUSrTQTsj6Bj0KpgNAf86BJ-2CI0YeYjGyXRfM&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQDSaN6VcxnmbHFzkmhCveO7HmSyCNFucLCXnPxDHm2F8A&oe=6A5EDE23"
+        },
+        {
+          "archiveId": "1326211749435118",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Zara jaisa style, H&M wali quality… but finally at an Indian price. Powerlook at Commercial Street is honestly changing the game — clean fits, solid quality, and everything under ₹1499. If you’re in Bangalore, you know where to go. ✔️ #mensfashion #menswear #bangalorebloggers #powerlook #explore",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/679840966_2031481844391227_5105361288602687601_n.jpg?_nc_cat=105&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=6lGUYzBsqIUQ7kNvwE6e9Mj&_nc_oc=Adp42I2yHcUAzQDHPqRIQ-9gmVpgwOcfMs68MDN_2EN5qPT_hHiuk9x0j1uIiTe7INE&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQC3fYaqZn5fOJ6hR3v5qR5r0PSO8UdG_yAMNWVWP1K6ZQ&oe=6A5EEBCC"
+        },
+        {
+          "archiveId": "1011480904700570",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "Get ready to upgrade your style with Powerlook, India's fastest-growing men's brand, where you can create a powerful look. Visit @powerlookofficial at Borivali SV Road today 📍 . . . #instore #fashion #creator #powerlook #mensfashion",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/682462973_2232309527511472_7742860467758437010_n.jpg?_nc_cat=101&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=HOEgLv6493kQ7kNvwEwfDmb&_nc_oc=AdogSbvY64klvZ8KLpdiwJ1SoKK9H57Bkt15X14A0uKlr7igFbjv8_ETCohd9wxMx-s&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQDbtUbghtHqbCwQ6ocUWKPpStIA94l49WjiaD-en2geDg&oe=6A5ED31F"
+        },
+        {
+          "archiveId": "950093288028495",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 55,
+          "launched": "2026-05-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Get directions / GET_DIRECTIONS",
+          "linkDomain": "n/a",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "{{page.name}}",
+          "body": "I really don’t know how you guys will take this… but we’ve been fooled by price tags. Found Zara & H&M level fits at @powerlook_offline @powerlookofficial — everything under ₹1499. 📍Borivali West, Mumbai (near Borivali Station)",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-bos5-1.xx.fbcdn.net/v/t39.35426-6/680460056_2113113399536598_7121011999973856148_n.jpg?_nc_cat=109&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=Xg_M-L66jdoQ7kNvwE5jWjc&_nc_oc=AdoxzgJ2PZJNZTh9jH5bSDDDDtfTbDs7tS4A0gCjNEoX1ip3TBgujUUDif_jCRq7SB8&_nc_zt=14&_nc_ht=scontent-bos5-1.xx&_nc_gid=DDhpVth7tAfWv8GvNM8chg&_nc_ss=7f289&oh=00_AQCvJrlk8VKHlCRESkLRXoETP13fqEvqxIgfv56WqANZEA&oe=6A5EDDA9"
+        }
+      ]
+    },
+    {
+      "brand": "Bluorng",
+      "bucket": "streetwear/hype",
+      "page_id": "102818838389172",
+      "page_name": "Bluorng",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "879098755243805",
+          "mediaFormat": "DCO",
+          "daysRunning": 14,
+          "launched": "2026-07-02",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Ivory Iced T-Shirt",
+          "body": "A fresh drop by BLUORNG.",
+          "linkDescription": "400+ EMBROIDERED STUDS",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1371502898227220",
+          "mediaFormat": "DCO",
+          "daysRunning": 13,
+          "launched": "2026-07-03",
+          "variants": 3,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "RS. 5,900 | Fade Flora ombre T-Shirt",
+          "body": "BLUORNG T-Shirts. Shop now.",
+          "linkDescription": "100% Waffle Cotton",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2903706599976354",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 4,
+          "launched": "2026-07-12",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Latest Drop By BLUORNG",
+          "body": "BLUORNG T-Shirts. Shop now.",
+          "linkDescription": "",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/745123655_2079103966046314_5094286622878398025_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=WdCvmEejWB0Q7kNvwFLSkf4&_nc_oc=Adqip83e0dbOLw3Vrt97Rhi7-QJKUAfVO4DXSoBzN48Clo0FCs7SyYjWvgVI0b8oB3s&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=m4_k7odwp4kBx4e7AoHWJA&_nc_ss=7f289&oh=00_AQAZEEj_T9jSLf98TNhoNlWyMRbLPQkM7EIFsaQEN2SZnA&oe=6A5F028F"
+        },
+        {
+          "archiveId": "800570832335924",
+          "mediaFormat": "DPA",
+          "daysRunning": 148,
+          "launched": "2026-02-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "₹4,700 | Green Dragonfly T-Shirt",
+          "body": "BLUORNG Bestsellers. Shop the collection",
+          "linkDescription": "100% Cotton",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1468993011391848",
+          "mediaFormat": "DPA",
+          "daysRunning": 114,
+          "launched": "2026-03-24",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "₹4,200 | Basic Ice Water T-Shirt",
+          "body": "Wear BLUORNG. Shop the collection.",
+          "linkDescription": "100% Cotton",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1615820389530356",
+          "mediaFormat": "DPA",
+          "daysRunning": 79,
+          "launched": "2026-04-28",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "INSTAGRAM"
+          ],
+          "title": "₹4,200 | Basic Ice Water T-Shirt",
+          "body": "BLUORNG T-Shirts. Shop the collection.",
+          "linkDescription": "BLUORNG, a premium streetwear brand in India. Shop the latest unisex styles from this premium Indian streetwear brand for a bold, trend-setting look.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1614911176917725",
+          "mediaFormat": "DPA",
+          "daysRunning": 63,
+          "launched": "2026-05-14",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "₹5,995 | Orng Flannel Shirt",
+          "body": "Wear BLUORNG. Shop the collection.",
+          "linkDescription": "100% Cotton",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1341601691311622",
+          "mediaFormat": "DPA",
+          "daysRunning": 59,
+          "launched": "2026-05-18",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹4,200 | Echo Of Emotions T-Shirt",
+          "body": "BLUORNG Bestsellers. Shop the collection",
+          "linkDescription": "BLUORNG, a premium streetwear brand in India. Shop the latest unisex styles from this premium Indian streetwear brand for a bold, trend-setting look.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2173893403404592",
+          "mediaFormat": "DCO",
+          "daysRunning": 38,
+          "launched": "2026-06-08",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Grey BG Star T-Shirt",
+          "body": "A fresh summer drop by BLUORNG.",
+          "linkDescription": "100% Terry Cotton",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1511176867116873",
+          "mediaFormat": "DPA",
+          "daysRunning": 25,
+          "launched": "2026-06-21",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "₹4,200 | Echo Of Emotions T-Shirt",
+          "body": "BLUORNG Bestsellers. Shop the collection",
+          "linkDescription": "BLUORNG, a premium streetwear brand in India. Shop the latest unisex styles from this premium Indian streetwear brand for a bold, trend-setting look.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1538704197903386",
+          "mediaFormat": "DCO",
+          "daysRunning": 21,
+          "launched": "2026-06-25",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Tango Red Iced T-Shirt",
+          "body": "A fresh drop by BLUORNG.",
+          "linkDescription": "Over 250 Hand-Applied Crystal Studs",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "723985514141696",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 21,
+          "launched": "2026-06-25",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Over 250 Hand-Applied Crystal Studs",
+          "body": "Blissfull Blu Iced T-Shirt New Drop by BLUORNG.",
+          "linkDescription": "Shop The collection",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/731423086_2310601239471407_1894464009330094593_n.jpg?_nc_cat=100&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=oP844kEfbJ4Q7kNvwHWxoIR&_nc_oc=AdoJ6unpurR-FawPXwFiSjJuWwoMdNKNYIzUekp0ucmfc3j2IpCZn9oKkYiCzf4Dhms&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=m4_k7odwp4kBx4e7AoHWJA&_nc_ss=7f289&oh=00_AQBJge1UMGPK76qM7CpL5gRL7OZuPCEWkLhX9do6JUbgRA&oe=6A5EE9A3"
+        },
+        {
+          "archiveId": "1272424444768616",
+          "mediaFormat": "VIDEO",
+          "daysRunning": 18,
+          "launched": "2026-06-28",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "Best Caps, No Cap. Wear BLUORNG",
+          "body": "BLUORNG Presents: Puffed Embroidered Baseball Caps",
+          "linkDescription": "100% Cotton Pique",
+          "firstImageUrl": "https://scontent-phl2-1.xx.fbcdn.net/v/t39.35426-6/732747720_2812260385825124_1160235882570437301_n.jpg?_nc_cat=111&ccb=1-7&_nc_sid=c53f8f&_nc_ohc=rcgZK2KV3uEQ7kNvwFAlZ1B&_nc_oc=AdrssGtSS8DZQabvN9qzBt2G6DKIsp2Ydy-abrcKdIiucovLIXkonIyfWZKV2MvWtjA&_nc_zt=14&_nc_ht=scontent-phl2-1.xx&_nc_gid=m4_k7odwp4kBx4e7AoHWJA&_nc_ss=7f289&oh=00_AQB7cteEByVUADfcktZM8IryiyN_TPnyWjoZYK8EshQ5SQ&oe=6A5EE3E7"
+        },
+        {
+          "archiveId": "1565258441671487",
+          "mediaFormat": "DCO",
+          "daysRunning": 16,
+          "launched": "2026-06-30",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "RS. 4,500 | Puyma T-Shirt",
+          "body": "BLUORNG T-Shirts. Shop now.",
+          "linkDescription": "100% Cotton Terry | 260 GSM Fabric",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2314836812658373",
+          "mediaFormat": "DCO",
+          "daysRunning": 14,
+          "launched": "2026-07-02",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "bluorng.com",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM"
+          ],
+          "title": "RS. 4,500 | Puyma T-Shirt",
+          "body": "BLUORNG T-Shirts. Shop now.",
+          "linkDescription": "100% Cotton Terry | 260 GSM Fabric",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    },
+    {
+      "brand": "Veirdo",
+      "bucket": "value/graphic",
+      "page_id": "105414235349688",
+      "page_name": "Veirdo.in",
+      "totalActive": 30,
+      "ads": [
+        {
+          "archiveId": "27184194381177307",
+          "mediaFormat": "DCO",
+          "daysRunning": 48,
+          "launched": "2026-05-29",
+          "variants": 2,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Men's Premium T-shirts",
+          "body": "Wear the power of legends. - Inspired by timeless mythology - Bold, statement-making graphics - Premium oversized comfort Not just a t-shirt. It’s a story.",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1920051398602681",
+          "mediaFormat": "DPA",
+          "daysRunning": 121,
+          "launched": "2026-03-17",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "₹899 | Keep Growing Purple Front Printed Regular Fit Sweatshirt",
+          "body": "More reasons to refresh your wardrobe ✨ Easy fits. Premium feel 👌💎 Explore our premium shirt collection—made to look good season after season 🌊☀️👕",
+          "linkDescription": "Online Shopping Store for trending fashions for Men’s at Veirdo. Buy Best T-shirts, Sweatshirts, Shorts, Joggers, Jackets & Hoodies online in India.",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "940986778730533",
+          "mediaFormat": "DCO",
+          "daysRunning": 95,
+          "launched": "2026-04-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy any 2 & get ₹200 OFF",
+          "body": "",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "839535061788581",
+          "mediaFormat": "DCO",
+          "daysRunning": 94,
+          "launched": "2026-04-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy any 2 & get ₹200 OFF",
+          "body": "",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1870304166990902",
+          "mediaFormat": "DCO",
+          "daysRunning": 94,
+          "launched": "2026-04-13",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy any 2 & get ₹200 OFF",
+          "body": "",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1363699229128450",
+          "mediaFormat": "DCO",
+          "daysRunning": 85,
+          "launched": "2026-04-22",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy any 2 & get ₹200 OFF",
+          "body": "Upgrade your fit today. Stylish cargo joggers Comfortable baggy fit Built for daily wear!",
+          "linkDescription": "COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1892649108108155",
+          "mediaFormat": "DCO",
+          "daysRunning": 65,
+          "launched": "2026-05-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Men's Polo Get ₹200 OFF on 2",
+          "body": "Keep it classy. Keep it comfortable. Clean polo silhouettes Soft & breathable feel Everyday premium wear Get ₹200 OFF on 2",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1007633344931325",
+          "mediaFormat": "DCO",
+          "daysRunning": 65,
+          "launched": "2026-05-12",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Men's Premium T-shirts",
+          "body": "",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1607413514278738",
+          "mediaFormat": "DCO",
+          "daysRunning": 62,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy ANY 3@1099",
+          "body": "",
+          "linkDescription": "Free Delivery | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1298421625750134",
+          "mediaFormat": "DCO",
+          "daysRunning": 62,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy ANY 3@1099",
+          "body": "",
+          "linkDescription": "Free Delivery | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2112151876008495",
+          "mediaFormat": "DCO",
+          "daysRunning": 62,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy ANY 3@1099",
+          "body": "",
+          "linkDescription": "Free Delivery | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1518691789614461",
+          "mediaFormat": "DCO",
+          "daysRunning": 62,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy ANY 3@1099",
+          "body": "",
+          "linkDescription": "Free Delivery | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "1913466869323513",
+          "mediaFormat": "DCO",
+          "daysRunning": 62,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy ANY 3@1099",
+          "body": "",
+          "linkDescription": "Free Delivery | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2370241680128209",
+          "mediaFormat": "DCO",
+          "daysRunning": 61,
+          "launched": "2026-05-15",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Buy ANY 3@1099",
+          "body": "",
+          "linkDescription": "Free Delivery | COD Available",
+          "firstImageUrl": "n/a"
+        },
+        {
+          "archiveId": "2775211619507269",
+          "mediaFormat": "DCO",
+          "daysRunning": 58,
+          "launched": "2026-05-19",
+          "variants": 1,
+          "active": true,
+          "cta": "Shop now / SHOP_NOW",
+          "linkDomain": "veirdo.in",
+          "platforms": [
+            "FACEBOOK",
+            "INSTAGRAM",
+            "AUDIENCE_NETWORK",
+            "MESSENGER",
+            "THREADS"
+          ],
+          "title": "Men's Plus Size T-shirts",
+          "body": "",
+          "linkDescription": "Free Shipping | COD Available",
+          "firstImageUrl": "n/a"
+        }
+      ]
+    }
+  ]
+}

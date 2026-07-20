@@ -1,0 +1,18 @@
+{
+  "slug": "india-menswear-d2c-2026-07-16",
+  "country": "IN",
+  "status": "ACTIVE",
+  "maxAds": 15,
+  "brands": [
+    { "name": "Snitch",               "bucket": "scaled/menswear",  "page_id": "236672023872356" },
+    { "name": "The Souled Store",     "bucket": "scaled/casual",    "page_id": "391476257640230" },
+    { "name": "Bewakoof",             "bucket": "scaled/casual",    "page_id": "106503252725893" },
+    { "name": "Rare Rabbit",          "bucket": "premium/menswear", "page_id": "1585859508317679" },
+    { "name": "Bombay Shirt Company", "bucket": "premium/shirts",   "page_id": "378877135503478" },
+    { "name": "Damensch",             "bucket": "premium/menswear", "page_id": "248175202388719" },
+    { "name": "Fugazee",              "bucket": "streetwear/hoodies","page_id": "1541351649479430" },
+    { "name": "Powerlook",            "bucket": "streetwear/trend", "page_id": "1462287340503548" },
+    { "name": "Bluorng",              "bucket": "streetwear/hype",  "page_id": "102818838389172" },
+    { "name": "Veirdo",               "bucket": "value/graphic",    "page_id": "105414235349688" }
+  ]
+}
