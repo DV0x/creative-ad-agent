@@ -21,6 +21,7 @@ import { ChatSession } from '../chat/session.ts';
 import { initView, reduce, type ChatView } from '../chat/reducer.ts';
 import { TraceLogger } from '../trace.ts';
 import { STAGE_ORDER, type Mode } from '../stages.ts';
+import { prefetchIntakeGround } from '../mcp/brand-identity.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PUBLIC = join(__dirname, 'public');
@@ -171,6 +172,10 @@ wss.on('connection', (ws) => {
     runId = basename(runDir);
     writeFounderStub(runDir, url);
     stageBinderRefs(runDir, order);
+    // Pre-fetch the brand page for intake grounding (code-side, our UA — WebFetch
+    // gets 406'd on bot-guarded storefronts). 8s timeout inside; null = intake
+    // falls back to founder questions, never to prior knowledge.
+    await prefetchIntakeGround(url, runDir);
     const logger = new TraceLogger(runDir);
     view = initView(url, order);
     dirty = true;

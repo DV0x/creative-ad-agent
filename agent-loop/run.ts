@@ -26,6 +26,9 @@ const REPO_ROOT = join(__dirname, '..');
 loadEnv({ path: join(REPO_ROOT, '.env.local') });
 loadEnv({ path: join(REPO_ROOT, '.env') });
 delete process.env.ANTHROPIC_API_KEY;
+// S153 fix #3: 1h prompt-cache TTL (measured: 92% of cache writes were 5-min TTL
+// re-writes; $5.30 of $12.70). Subprocess inherits process.env. See chat/setup.ts.
+process.env.ENABLE_PROMPT_CACHING_1H = '1';
 
 // 2) args — positional <brand-url> [stages]  +  optional --mode surface|deep
 const rawArgs = process.argv.slice(2);

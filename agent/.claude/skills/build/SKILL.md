@@ -48,6 +48,14 @@ that does.
    ad image for a live PTE masterclass…") — purpose → scene → subject → text. The construction
    citation stays INTERNAL: the source ad's structure arrives through the spec's fields, never as
    pixels.
+9. **Describe the product FROM THE PIXELS, never from its name.** Before writing any product zone,
+   Read (view) every bound asset the spec's refs name. Then describe the ACTUAL item in the prompt —
+   garment type, cut/collar, colour, how the print/label actually sits ("brown camp-collar button-up
+   with an all-over paisley print", not "oversized shirt with graphic print"). The render model
+   weighs your words against the reference; when the text describes a different archetype than the
+   photo, the words win and the real product is silently replaced (observed: a name-derived "graphic
+   print" description made the model invent a different tee — gate FAIL on the 100%-identical law).
+   Close the product zone with: "the product must match the bound reference photo exactly."
 
 ## Rendering — brand references only
 

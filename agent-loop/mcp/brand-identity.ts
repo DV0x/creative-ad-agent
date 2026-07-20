@@ -4,12 +4,19 @@
  * navy/mint brand because NO seat ever captured the brand's actual identity —
  * create inferred "equity" from ad pixels and called it a fact).
  *
- * One call, a few plain HTTP fetches, no credits, no headless browser:
- *   1. LOGO — found in the HTML (img[src*=logo], icons, Next.js _next/image
- *      wrappers decoded), downloaded to assets/ for render binding. SVG logos
- *      are TEXT: their fill colours are read directly — the authoritative tier.
- *   2. PALETTE — hex frequency across HTML + linked CSS, cross-referenced
- *      against the logo colours (a colour in both = confirmed brand colour).
+ * One call, no credits (headless tier only where static falls short):
+ *   1. LOGO — candidates best-first: img[src*=logo], JSON-LD "logo" (the
+ *      merchant's own declaration), img tags that CALL themselves logos
+ *      (class="header-logo__…" — Shopify serves merchant-named files from
+ *      /cdn/shop/files/, the S153 0-for-2 gap), /logo.<ext> paths, icons;
+ *      CDN size params stripped to fetch the original. Downloaded to assets/
+ *      for render binding. SVG logos are TEXT: fill colours read directly —
+ *      the authoritative tier. Raster logos (PNG/GIF/WebP/ICO) are
+ *      colour-quantized in headless canvas (degrades to no-colours without
+ *      Playwright, same contract as fetchRendered).
+ *   2. PALETTE — hex frequency across HTML + linked CSS, cross-confirmed
+ *      against the logo colours by NEAR-match (≤40 RGB distance: SVG hits at 0,
+ *      raster quantization lands a few units off the CSS spec).
  *      Validated live: theratefinder.ca → logo #46be8a/#011a40; page frequency
  *      66×/29× the same two hexes, everything else ≤2.
  *   3. TYPOGRAPHY — font-family declarations + Google Fonts links.
@@ -48,16 +55,42 @@ export function resolveAssetUrl(raw: string, baseUrl: string): string | null {
   } catch { return null; }
 }
 
-/** Candidate logo URLs from the page, best-first (explicit logo > icons). */
+/** Candidate logo URLs from the page, best-first (named logo > merchant-declared > self-labelled tag > icons). */
 export function extractLogoUrls(html: string, baseUrl: string): string[] {
   const out: string[] = [];
-  const push = (m: RegExpMatchArray | null) => {
-    if (m?.[1]) { const r = resolveAssetUrl(m[1], baseUrl); if (r && !out.includes(r)) out.push(r); }
+  const add = (raw?: string | null) => {
+    if (!raw) return;
+    const r = resolveAssetUrl(raw, baseUrl);
+    if (!r) return;
+    // CDN size params serve a shrunken copy (?height=37 on Shopify, ?w=100 on
+    // TSS) — queue the stripped original FIRST; the transformed URL stays as
+    // fallback in case the bare file 404s.
+    if (/[?&](?:w|h|width|height|dpr|size)=\d/i.test(r)) {
+      const bare = r.split('?')[0];
+      if (!out.includes(bare)) out.push(bare);
+    }
+    if (!out.includes(r)) out.push(r);
   };
-  for (const m of html.matchAll(/<img[^>]+src="([^"]*logo[^"]*)"/gi)) push(m);
-  for (const m of html.matchAll(/(?:href|src)="([^"]*\/logo\.(?:svg|png|webp)[^"]*)"/gi)) push(m);
-  for (const m of html.matchAll(/<link[^>]+rel="[^"]*(?:apple-touch-icon|icon)[^"]*"[^>]+href="([^"]+)"/gi)) push(m);
-  return out.slice(0, 4);
+  const unescapeJson = (s: string) =>
+    s.replace(/\\u([0-9a-fA-F]{4})/g, (_, h: string) => String.fromCharCode(parseInt(h, 16))).replace(/\\\//g, '/');
+  // 1. the src NAMES it a logo
+  for (const m of html.matchAll(/<img[^>]+src="([^"]*logo[^"]*)"/gi)) add(m[1]);
+  // 2. JSON-LD "logo" — the merchant's own declaration (Shopify Organization
+  //    schema always carries one; slashes arrive \/-escaped, & as &)
+  for (const m of html.matchAll(/"logo"\s*:\s*"([^"]+)"/g)) {
+    const u = unescapeJson(m[1]);
+    if (/\.(?:svg|png|webp|jpe?g|gif|ico)(?:\?|$)/i.test(u)) add(u);
+  }
+  for (const m of html.matchAll(/"logo"\s*:\s*\{[^{}]*?"url"\s*:\s*"([^"]+)"/g)) add(unescapeJson(m[1]));
+  // 3. the TAG calls itself a logo even when the file is merchant-named —
+  //    class="header-logo__image" src=".../cdn/shop/files/House_of_Twilight_2.png"
+  //    was the S153 0-for-2 gap. (?!ut) keeps logout icons off the list.
+  for (const t of html.matchAll(/<img\b[^>]*logo(?!ut)[^>]*>/gi)) add(t[0].match(/\ssrc="([^"]+)"/i)?.[1]);
+  // 4. conventional /logo.<ext> paths anywhere
+  for (const m of html.matchAll(/(?:href|src)="([^"]*\/logo\.(?:svg|png|webp)[^"]*)"/gi)) add(m[1]);
+  // 5. icons — last resort (tiny, often generic)
+  for (const m of html.matchAll(/<link[^>]+rel="[^"]*(?:apple-touch-icon|icon)[^"]*"[^>]+href="([^"]+)"/gi)) add(m[1]);
+  return out.slice(0, 8);
 }
 
 /** Colours declared inside an SVG (fills, strokes, gradient stops). */
@@ -69,6 +102,17 @@ export function svgColors(svg: string): string[] {
   });
   return [...new Set(norm)];
 }
+
+/** Euclidean RGB distance between two #rrggbb hexes (0 = identical, ~441 = max). */
+export function hexDist(a: string, b: string): number {
+  const pa = parseInt(a.slice(1), 16), pb = parseInt(b.slice(1), 16);
+  const dr = (pa >> 16) - (pb >> 16), dg = ((pa >> 8) & 0xff) - ((pb >> 8) & 0xff), db = (pa & 0xff) - (pb & 0xff);
+  return Math.sqrt(dr * dr + dg * dg + db * db);
+}
+// Palette cross-check tolerance: SVG colours match at distance 0, but raster
+// quantization lands a few units off the CSS spec (resize + compression);
+// distinct brand colours live far apart, so 40 is safe against false confirms.
+const LOGO_MATCH_DIST = 40;
 
 const NEUTRAL = new Set(['#ffffff', '#000000', '#fff', '#000']);
 
@@ -151,15 +195,126 @@ export function extractCssUrls(html: string, baseUrl: string): string[] {
 
 async function fetchText(url: string, cap: number): Promise<string | null> {
   try {
-    const r = await fetch(url, { headers: { 'user-agent': 'Mozilla/5.0 (brand-identity)' } });
+    const r = await fetch(url, {
+      headers: { 'user-agent': 'Mozilla/5.0 (brand-identity)' },
+      signal: AbortSignal.timeout(10_000), // a hung site must never hang a seat (or run start)
+    });
     if (!r.ok) return null;
     const t = await r.text();
     return t.slice(0, cap);
   } catch { return null; }
 }
 
+// ── rendered fallback — headless Chromium for client-rendered (SPA) pages ───
+// Static fetch first, always (fast, free, right for most sites). When the
+// static HTML's TEXT is thin, the page is an SPA shell — its real content
+// (product JSON-LD, og tags, the visible words) only exists AFTER JS runs. So
+// render it the way a browser does and re-extract from the live DOM. Playwright
+// is lazy-imported: where it or its Chromium is absent, every caller degrades
+// cleanly to the static result. PROD NOTE: swap the inside of fetchRendered for
+// Cloudflare Browser Rendering when this ports — callers are implementation-blind.
+const THIN_TEXT = 1_500;
+const CHROME_UA = 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36';
+
+export async function fetchRendered(url: string): Promise<string | null> {
+  try {
+    const { chromium } = await import('playwright');
+    const browser = await chromium.launch();
+    try {
+      const page = await browser.newPage({ userAgent: CHROME_UA });
+      await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 15_000 });
+      // settle: let XHRs land; networkidle can never fire on long-polling sites, so tolerate timeout
+      await page.waitForLoadState('networkidle', { timeout: 8_000 }).catch(() => {});
+      return await page.content();
+    } finally {
+      await browser.close();
+    }
+  } catch { return null; }
+}
+
+/** Static fetch → rendered fallback when the text is thin. Callers never know which tier answered. */
+async function fetchPageSmart(url: string, cap: number): Promise<{ html: string; rendered: boolean } | null> {
+  const staticHtml = await fetchText(url, cap);
+  if (staticHtml && htmlToText(staticHtml).length >= THIN_TEXT) return { html: staticHtml, rendered: false };
+  const renderedHtml = await fetchRendered(url);
+  if (renderedHtml) return { html: renderedHtml.slice(0, cap), rendered: true };
+  return staticHtml ? { html: staticHtml, rendered: false } : null;
+}
+
+/** MIME from magic bytes — the data-URI decode in the canvas needs the real
+ * type, not whatever content-type a CDN felt like sending. */
+export function sniffImageMime(b: Buffer): string | null {
+  if (b[0] === 0x89 && b[1] === 0x50) return 'image/png';
+  if (b[0] === 0x47 && b[1] === 0x49 && b[2] === 0x46) return 'image/gif';
+  if (b[0] === 0xff && b[1] === 0xd8) return 'image/jpeg';
+  if (b.toString('latin1', 0, 4) === 'RIFF' && b.toString('latin1', 8, 12) === 'WEBP') return 'image/webp';
+  if (b[0] === 0x00 && b[1] === 0x00 && b[2] === 0x01 && b[3] === 0x00) return 'image/x-icon';
+  return null;
+}
+
+/** Dominant colours of a raster logo (PNG/GIF/WebP/JPEG/ICO) — the raster
+ * analogue of svgColors. Chromium's canvas decodes every format for us: draw
+ * the image small, bucket pixels at 4 bits/channel, average each bucket.
+ * Transparent and unsaturated pixels are skipped (white ground, black wordmark
+ * strokes, grey anti-aliasing halos are not brand colours — a genuinely grey
+ * brand just stays PROVISIONAL, the pre-existing behaviour).
+ * Returns [] for a monochrome/neutral mark (a REAL finding — dark-identity
+ * brands ship black wordmarks) and null where the image could not be analyzed
+ * at all (Playwright/Chromium absent, decode failure) — callers must not
+ * conflate the two. */
+export async function rasterColors(buf: Buffer, mime: string): Promise<string[] | null> {
+  try {
+    const { chromium } = await import('playwright');
+    const browser = await chromium.launch();
+    try {
+      const page = await browser.newPage();
+      const dataUri = `data:${mime};base64,${buf.toString('base64')}`;
+      const raw = await page.evaluate(async (src: string) => {
+        const img = new Image();
+        await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = src; });
+        const scale = Math.min(1, 96 / Math.max(img.width, img.height, 1));
+        const w = Math.max(1, Math.round(img.width * scale)), h = Math.max(1, Math.round(img.height * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, w, h);
+        const d = ctx.getImageData(0, 0, w, h).data;
+        const buckets = new Map<number, { n: number; r: number; g: number; b: number }>();
+        for (let i = 0; i < d.length; i += 4) {
+          const r = d[i], g = d[i + 1], b = d[i + 2];
+          if (d[i + 3] < 128) continue;
+          if (Math.max(r, g, b) - Math.min(r, g, b) < 24) continue; // white/black/grey
+          const key = ((r >> 4) << 8) | ((g >> 4) << 4) | (b >> 4);
+          const e = buckets.get(key) ?? { n: 0, r: 0, g: 0, b: 0 };
+          e.n++; e.r += r; e.g += g; e.b += b;
+          buckets.set(key, e);
+        }
+        const total = [...buckets.values()].reduce((s, e) => s + e.n, 0);
+        if (!total) return [];
+        return [...buckets.values()]
+          .sort((x, y) => y.n - x.n)
+          .filter((e) => e.n / total >= 0.04) // noise floor: <4% of coloured pixels
+          .slice(0, 8)
+          .map((e) => '#' + [e.r, e.g, e.b].map((c) => Math.round(c / e.n).toString(16).padStart(2, '0')).join(''));
+      }, dataUri);
+      // adjacent 4-bit buckets are the same colour — merge anything within match
+      // distance; drop pale blends (every channel > 200 = colour-on-white
+      // anti-aliasing, which would near-match the page's framework greys)
+      const merged: string[] = [];
+      for (const c of raw) {
+        const v = parseInt(c.slice(1), 16);
+        if (Math.min(v >> 16, (v >> 8) & 0xff, v & 0xff) > 200) continue;
+        if (!merged.some((m) => hexDist(m, c) <= LOGO_MATCH_DIST)) merged.push(c);
+      }
+      return merged.slice(0, 4);
+    } finally {
+      await browser.close();
+    }
+  } catch { return null; }
+}
+
 export async function runBrandIdentity(url: string, runDir?: string): Promise<string> {
-  const html = await fetchText(url, HTML_CAP);
+  const html = (await fetchPageSmart(url, HTML_CAP))?.html ?? null;
   if (!html) return `Could not fetch ${url} — check the URL (redirects to another host must be followed manually).`;
 
   // CSS
@@ -171,10 +326,13 @@ export async function runBrandIdentity(url: string, runDir?: string): Promise<st
   }
   const corpus = html + '\n' + cssTexts.join('\n');
 
-  // LOGO — first candidate that fetches; SVG colours read directly
+  // LOGO — first candidate that fetches; SVG colours read from the text,
+  // raster colours quantized in headless canvas
   const logoUrls = extractLogoUrls(html, url);
   let logoPath: string | null = null;
+  let logoFetchedUrl: string | null = null;
   let logoColorsFound: string[] = [];
+  let logoMonochrome = false;
   let logoNote = 'no logo candidate found in the HTML';
   for (const lu of logoUrls) {
     try {
@@ -192,14 +350,22 @@ export async function runBrandIdentity(url: string, runDir?: string): Promise<st
         logoPath = path.join(assets, `logo-site.${ext}`);
         fs.writeFileSync(logoPath, buf);
       }
-      if (isSvg) logoColorsFound = svgColors(buf.toString('utf8'));
-      logoNote = `${lu} (${isSvg ? 'SVG — colours read from the file' : ext.toUpperCase()})`;
+      const rasterRead = isSvg
+        ? null
+        : await rasterColors(buf, sniffImageMime(buf) ?? (ct.startsWith('image/') ? ct.split(';')[0].trim() : 'image/png'));
+      logoColorsFound = isSvg ? svgColors(buf.toString('utf8')) : (rasterRead ?? []);
+      logoMonochrome = !isSvg && rasterRead !== null && rasterRead.length === 0;
+      logoFetchedUrl = lu;
+      logoNote = `${lu} (${isSvg ? 'SVG — colours read from the file'
+        : `${ext.toUpperCase()} — ${logoColorsFound.length ? `${logoColorsFound.length} dominant colour(s) quantized`
+          : logoMonochrome ? 'monochrome/neutral mark — no colour in it, by design' : 'colours unreadable (headless tier unavailable)'}`})`;
       break;
     } catch { /* next candidate */ }
   }
 
   const freq = extractHexCounts(corpus);
-  const confirmed = freq.filter((f) => logoColorsFound.includes(f.hex));
+  const isLogoColor = (hex: string) => logoColorsFound.some((c) => hexDist(hex, c) <= LOGO_MATCH_DIST);
+  const confirmed = freq.filter((f) => isLogoColor(f.hex));
   const fonts = extractFonts(corpus);
   const voice = extractVoiceStrings(html);
 
@@ -209,14 +375,14 @@ export async function runBrandIdentity(url: string, runDir?: string): Promise<st
       const rawDir = path.join(runDir, 'raw');
       fs.mkdirSync(rawDir, { recursive: true });
       fs.writeFileSync(path.join(rawDir, 'brand-identity.json'), JSON.stringify({
-        url, fetchedAt: new Date().toISOString(), logo: { url: logoUrls[0] ?? null, savedTo: logoPath, colors: logoColorsFound },
+        url, fetchedAt: new Date().toISOString(), logo: { url: logoFetchedUrl ?? logoUrls[0] ?? null, savedTo: logoPath, colors: logoColorsFound, monochrome: logoMonochrome },
         paletteFrequency: freq, confirmedBrandColors: confirmed.map((c) => c.hex), fonts, voice, cssUrls,
       }, null, 2) + '\n');
     } catch { /* non-fatal */ }
   }
 
   const paletteLines = freq.slice(0, 6).map((f) =>
-    `      ${f.hex} ×${f.n}${logoColorsFound.includes(f.hex) ? '  ← CONFIRMED (also in the logo)' : ''}`);
+    `      ${f.hex} ×${f.n}${isLogoColor(f.hex) ? '  ← CONFIRMED (also in the logo)' : ''}`);
   return [
     `BRAND IDENTITY — ${url}`,
     ``,
@@ -229,12 +395,13 @@ export async function runBrandIdentity(url: string, runDir?: string): Promise<st
       // headline both tiers: logo-confirmed colours AND frequency-dominant accents
       // (a brand's loudest colour is often not IN the logo — TWT's berry #ab406c
       // ran 106× against a #93385d logo; both belong in the palette).
-      const dominant = freq.filter((f) => !logoColorsFound.includes(f.hex) && f.n >= Math.max(10, (freq[0]?.n ?? 0) / 4)).slice(0, 2);
+      const dominant = freq.filter((f) => !isLogoColor(f.hex) && f.n >= Math.max(10, (freq[0]?.n ?? 0) / 4)).slice(0, 2);
       if (confirmed.length) {
         const dom = dominant.length ? `; frequency-dominant accents: ${dominant.map((d) => d.hex).join(' + ')}` : '';
         return `      → BRAND PALETTE — logo-confirmed: ${confirmed.map((c) => c.hex).join(' + ')}${dom}`;
       }
       if (logoColorsFound.length) return `      → logo colours ${logoColorsFound.join('/')} did not recur in page text — treat the LOGO as authoritative`;
+      if (logoMonochrome) return `      → the mark is monochrome/neutral — nothing to cross-check; that itself is brand signal (dark/mono identity), but the palette below stays PROVISIONAL`;
       return `      → no logo cross-check available; treat top frequency as PROVISIONAL`;
     })(),
     ``,
@@ -360,9 +527,9 @@ export async function runProductPhotos(pages: string[], runDir?: string): Promis
   const dump: any[] = [];
   for (let i = 0; i < pages.length; i++) {
     const url = pages[i];
-    const html = await fetchText(url, HTML_CAP * 2); // PDPs run heavy
-    if (!html) { blocks.push(`[${i + 1}] ${url}\n    ERROR: could not fetch the page.`); continue; }
-    const p = extractProductData(html);
+    const pg = await fetchPageSmart(url, HTML_CAP * 2); // PDPs run heavy; SPA PDPs inject Product JSON-LD only after render
+    if (!pg) { blocks.push(`[${i + 1}] ${url}\n    ERROR: could not fetch the page.`); continue; }
+    const p = extractProductData(pg.html);
     // Shopify tier: the platform's own product JSON carries the FULL gallery —
     // merge it in (og:image stays first as the hero; gallery fills the angles).
     const shopify = await tryShopifyGallery(url);
@@ -408,7 +575,7 @@ export async function runProductPhotos(pages: string[], runDir?: string): Promis
       } catch { /* next url */ }
     }
     // review cards — brand-published testimonial pixels; collect transcribes them verbatim
-    const reviewUrls = extractReviewCardUrls(html);
+    const reviewUrls = extractReviewCardUrls(pg.html);
     const reviewPaths: string[] = [];
     for (const ru of reviewUrls) {
       try {
@@ -461,10 +628,8 @@ export async function runProductPhotos(pages: string[], runDir?: string): Promis
 // a model ANSWER QUESTIONS about the page — a paraphrase layer inside a seat
 // whose one law is verbatim. This returns the page's actual words, untouched,
 // and saves the full text to raw/pages/ for grepping and quoting.
-export async function runPageText(url: string, runDir?: string): Promise<string> {
-  const html = await fetchText(url, HTML_CAP * 2);
-  if (!html) return `Could not fetch ${url}.`;
-  const text = decodeEntities(
+function htmlToText(html: string): string {
+  return decodeEntities(
     html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
@@ -473,6 +638,12 @@ export async function runPageText(url: string, runDir?: string): Promise<string>
       .replace(/<[^>]*>/g, ' '),
   )
     .split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).filter(Boolean).join('\n');
+}
+
+export async function runPageText(url: string, runDir?: string): Promise<string> {
+  const pg = await fetchPageSmart(url, HTML_CAP * 2);
+  if (!pg) return `Could not fetch ${url}.`;
+  const text = htmlToText(pg.html);
   let savedTo: string | null = null;
   if (runDir) {
     const dir = path.join(runDir, 'raw', 'pages');
@@ -482,12 +653,49 @@ export async function runPageText(url: string, runDir?: string): Promise<string>
     fs.writeFileSync(savedTo, `SOURCE: ${url}\nFETCHED: ${new Date().toISOString()}\n\n${text}\n`);
   }
   return [
-    `PAGE TEXT — ${url} (${text.length} chars, VERBATIM — no model touched it)`,
+    `PAGE TEXT — ${url} (${text.length} chars, VERBATIM — no model touched it${pg.rendered ? '; client-rendered site → captured from the headless-browser DOM' : ''})`,
     savedTo ? `Saved in full to ${savedTo} — quote artifacts from there, source = this URL.` : '',
     '',
     'FIRST 1200 CHARS:',
     text.slice(0, 1200),
   ].filter(Boolean).join('\n');
+}
+
+// ── intake pre-fetch — code-side grounding for the orchestrator's intake ────
+// The orchestrator may not call MCP (routing law), and WebFetch gets bot-blocked
+// (406) on plenty of storefronts while our plain fetch gets 200. So the RUNNER
+// fetches the brand page BEFORE the model wakes and drops a CAPPED text file at
+// raw/pages/intake-ground.txt for intake to Read. Capped on purpose: intake only
+// needs enough to ask smart questions — verbatim full-text capture is collect's
+// job (page_text), and an uncapped file invites a giant Read into the
+// orchestrator's forever-context. SPA sites go through the rendered tier
+// (fetchPageSmart), bounded by its own timeouts — worst case ~30s of run start;
+// failure returns null and intake falls back to founder questions.
+const INTAKE_GROUND_CAP = 20_000;
+export async function prefetchIntakeGround(url: string, runDir: string): Promise<string | null> {
+  try {
+    const pg = await fetchPageSmart(url, HTML_CAP * 2);
+    if (!pg) return null;
+    const text = htmlToText(pg.html).slice(0, INTAKE_GROUND_CAP);
+    if (!text) return null;
+    const dir = path.join(runDir, 'raw', 'pages');
+    fs.mkdirSync(dir, { recursive: true });
+    const p = path.join(dir, 'intake-ground.txt');
+    fs.writeFileSync(p, [
+      `SOURCE: ${url}`,
+      `FETCHED: ${new Date().toISOString()}${pg.rendered ? ' (client-rendered site — captured from the headless-browser DOM)' : ''}`,
+      `NOTE: capped at ${INTAKE_GROUND_CAP} chars — intake grounding only. Collect's page_text captures pages in full.`,
+      // Thin even after the rendered tier (render failed or the page is truly bare):
+      // say so, or intake reads "no text" as "no offers/claims on the page" and guesses.
+      ...(text.length < THIN_TEXT
+        ? ['NOTE: page text is THIN even after a headless-browser render. Absence of text here is NOT absence of content on the live page. Ask the founder for prices/offers; do NOT fill gaps from prior knowledge.']
+        : []),
+      '',
+      text,
+      '',
+    ].join('\n'));
+    return p;
+  } catch { return null; }
 }
 
 const pageTextTool = (runDir?: string) => tool(
@@ -506,7 +714,7 @@ const productPhotosTool = (runDir?: string) => tool(
 
 const brandIdentityTool = (runDir?: string) => tool(
   'brand_identity',
-  'Extract a brand\'s VISUAL IDENTITY and VOICE from its own website in one deterministic call (no credits): finds and downloads the logo to assets/ (SVG logo colours read directly from the file), ranks hex-colour frequency across the HTML + linked CSS and cross-confirms against the logo (both agreeing = the brand palette, as facts not inference), pulls font families, and captures VERBATIM voice strings (title, meta description, h1-h3 headlines, CTA labels). Call ONCE on the brand URL at the START of collection; write the results into material.md as numbered artifacts so palette/voice are citable anchors like any other fact. Full dump lands in raw/brand-identity.json.',
+  'Extract a brand\'s VISUAL IDENTITY and VOICE from its own website in one deterministic call (no credits): finds and downloads the logo to assets/ (SVG colours read directly from the file; raster PNG/GIF/WebP logos colour-quantized headlessly), ranks hex-colour frequency across the HTML + linked CSS and cross-confirms against the logo (both agreeing = the brand palette, as facts not inference), pulls font families, and captures VERBATIM voice strings (title, meta description, h1-h3 headlines, CTA labels). Call ONCE on the brand URL at the START of collection; write the results into material.md as numbered artifacts so palette/voice are citable anchors like any other fact. Full dump lands in raw/brand-identity.json.',
   { url: z.string().url().describe('The brand\'s site URL (from founder-facts.md).') },
   async (args) => ({ content: [{ type: 'text' as const, text: await runBrandIdentity(args.url, runDir) }] }),
 );

@@ -41,12 +41,18 @@ a real run) is a fresh-eyes seat that stopped being one. Same six checks, every 
    review cards, fake WhatsApp/Meta chrome), no invented persons presented as real, no fabricated
    documents (lab reports, certificates, score cards) unless the spec bound a REAL asset for exactly
    that surface. Check the spec's refs: every proof surface in the pixels traces to a bound asset.
-6. **LP-CONGRUENCE (structural).** WebFetch the destination ONCE (the spec's link/offer destination,
-   else the brand URL in founder-facts.md) and check every promise the batch's images make against
-   it: the offer/price exists on the page, the claimed product is the one sold, the CTA's promise is
+6. **LP-CONGRUENCE (structural).** WebFetch the destination ONCE — the spec's link/offer destination,
+   else the `Brand URL:` line in founder-facts.md, **copied VERBATIM, query params included. NEVER
+   construct, normalize, or derive a URL from a product name, canonical slug, or breadcrumb — a
+   derived URL is not the destination and nothing it returns is evidence.** If a fetched page reads
+   as a soft-404 ("product unavailable", "not found"), first confirm you fetched the verbatim
+   founder URL; only a soft-404 on THAT exact string may be ruled on. Check every promise the
+   batch's images make against it: the offer/price exists on the page, the claimed product is the one sold, the CTA's promise is
    cashable on arrival. A promise the landing page can't cash ships money to a broken funnel — FAIL
-   it, and mark the diff STRUCTURAL (no re-render can fix a landing page). If the fetch fails or the
-   page won't render as text, write LP: UNVERIFIED with the reason — never FAIL on a fetch problem.
+   it, and mark the diff STRUCTURAL (no re-render can fix a landing page). If WebFetch is bot-blocked
+   (403/406), retry the SAME URL with the `page_text` tool (plain fetch — gets through where WebFetch
+   is refused) before giving up. Only if BOTH fail, write LP: UNVERIFIED with the reason — never FAIL
+   on a fetch problem.
    **VISUAL congruence rides on this check:** the render's colour system must be the BRAND's — the
    spec's `palette` cites material.md's BRAND PALETTE anchor, and the landing page shows the real
    identity live. An ad wearing another brand's colours sends every click to a page that looks like

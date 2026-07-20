@@ -20,6 +20,13 @@ export function loadEnv(): void {
   loadEnvFile({ path: join(REPO_ROOT, '.env.local') });
   loadEnvFile({ path: join(REPO_ROOT, '.env') });
   delete process.env.ANTHROPIC_API_KEY;
+  // S153 fix #3 (cache): 1h prompt-cache TTL. Measured on the TSS run: 92% of
+  // cache-write tokens (2.83M) went out at the 5-min TTL and re-wrote the same
+  // prefixes at every >5min stage gap — cacheW was $5.30 of $12.70 (42%). The
+  // subprocess inherits process.env (Options.env would REPLACE it — footgun),
+  // so setting it here covers every query the web/chat path spawns.
+  // Doc: claude_sdk/tracking_costs.md ("Extend the prompt cache TTL to one hour").
+  process.env.ENABLE_PROMPT_CACHING_1H = '1';
 }
 
 /** Which required keys are missing for the chosen stages (fail fast with a clear message). */

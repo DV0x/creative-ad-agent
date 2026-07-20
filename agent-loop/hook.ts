@@ -88,6 +88,12 @@ export interface HookConfig {
   specs?: { dir: string; out: string };
   /** Progress sink for denials. */
   onEvent?: (msg: string) => void;
+  /** The exact brand/destination URL the founder gave. When set, any Write to
+   *  founder-facts.md that drops it is DENIED — the gate's LP check and every
+   *  downstream fetch resolve THIS URL verbatim; a brief without it forces the
+   *  model to derive a slug from the product name (observed: soft-404 → false
+   *  structural FAIL). */
+  brandUrl?: string;
 }
 
 export function buildHooks(cfg: HookConfig): Options['hooks'] {
@@ -170,9 +176,30 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
               }
             }
 
+            // 0b) founder-facts.md must never lose the exact destination URL —
+            // the intake rewrite replaces the stub wholesale; if the URL line
+            // vanishes, the gate has no ground truth and invents a slug.
+            if (
+              cfg.brandUrl &&
+              tool === 'Write' &&
+              typeof input?.tool_input?.file_path === 'string' &&
+              /(^|\/)founder-facts\.md$/.test(input.tool_input.file_path) &&
+              !String(input?.tool_input?.content ?? '').includes(cfg.brandUrl)
+            ) {
+              return deny(
+                `founder-facts.md must carry the exact destination URL verbatim (${cfg.brandUrl}) — ` +
+                'add a "Brand URL:" line near the top. Downstream seats (gate LP check, collect) fetch THIS ' +
+                'string; a brief without it forces slug-guessing.',
+              );
+            }
+
             // 1) orchestrator must not call MCP directly
             if (tool.startsWith('mcp__') && fromOrchestrator) {
-              return deny(`Orchestrator must not call MCP directly (${tool}); delegate to the appropriate subagent.`);
+              return deny(
+                `Orchestrator must not call MCP directly (${tool}); route the work to the seat that owns the tool ` +
+                '(brand/page tools live on collect; ad tools on field-scout; render on build). For intake grounding, ' +
+                'Read raw/pages/intake-ground.txt instead — it is pre-fetched.',
+              );
             }
 
             // 2) launch ceiling per stage — ALLOW the bounded retry loops (cell-generate/

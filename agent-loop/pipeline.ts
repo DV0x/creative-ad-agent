@@ -162,8 +162,12 @@ function orchestratorPrompt(
     ...(interactive
       ? [
           'BEFORE the pipeline — FOUNDER INTAKE (you are in a live chat with the founder):',
-          `  0. Ground yourself: WebFetch ${brandUrl} (and an obvious page or two) so your questions are informed,`,
-          '     and extract any OFFER FACTS the pages state verbatim (prices, guarantees, dates).',
+          '  0. Ground yourself: Read raw/pages/intake-ground.txt — the brand page is PRE-FETCHED there',
+          `     (capped for intake; collect captures pages in full later). WebFetch ${brandUrl} pages beyond it`,
+          '     ONLY if a question needs them. If the file is missing AND WebFetch is bot-blocked (403/406),',
+          '     NEVER substitute prior knowledge of the brand — say the site is unreachable and lean on the',
+          "     founder questions; collect's page_text tool works where WebFetch is blocked. Extract any",
+          '     OFFER FACTS the pages state verbatim (prices, guarantees, dates).',
           '  1. ASK ROUND ONE (AskUserQuestion, up to 4 crisp questions with sensible options): the conversion',
           '     event (what a "sale" is, and its price), the target CPA or acceptable cost, the budget/flight',
           '     window, and who the buyer is (market country included).',
@@ -183,7 +187,10 @@ function orchestratorPrompt(
           '       them verbatim), "Uploading a brand kit to the panel", "No brand identity yet" (the batch',
           '       may define one — say so explicitly in the brief).',
           '  4. Check assets/ (Glob) for what actually landed. Write EVERYTHING into founder-facts.md, replacing',
-          '     the stub, with explicit sections: THE JOB (conversion event, CPA, budget, buyer, market),',
+          `     the stub. The FIRST line after the title MUST be \`Brand URL: ${brandUrl}\` — copied VERBATIM`,
+          '     (query params included): the gate\'s LP check and collect fetch THIS exact string; dropping or',
+          '     paraphrasing it forces downstream slug-guessing. Then the explicit sections: THE JOB (conversion',
+          '     event, CPA, budget, buyer, market),',
           '     COMPLIANCE LANE, BRAND LAWS (held fuel + forbidden moves — the motor law reads this), REGISTER',
           '     (the founder\'s A / B / mix / follow-the-field call — create obeys it), BRAND KIT (founder hexes',
           '     verbatim, or "extract from site" — collect\'s brand_identity runs either way and founder-given',
@@ -286,8 +293,10 @@ export function buildAgents(order: string[], mode: Mode): Record<string, AgentDe
       'writes gate-verdict.md, and returns PASS / RE-RENDER / FLAG.',
     prompt: GATE_IO_PROMPT + '\n\n' + skillRef('build', 'gate.md'),
     model: GATE_MODEL,
-    tools: ['Read', 'Write', 'Glob', 'Grep', 'WebFetch'], // WebFetch: the LP-congruence check (one fetch)
-    mcpServers: [],
+    // WebFetch: the LP-congruence check (one fetch); page_text: fallback for
+    // bot-blocked LPs (406s WebFetch but answers our plain fetch — S153).
+    tools: ['Read', 'Write', 'Glob', 'Grep', 'WebFetch', PAGE_TEXT_TOOL],
+    mcpServers: ['brand'],
     maxTurns: 12,
   };
 
@@ -378,6 +387,8 @@ export function buildBaseOptions({ brandUrl, runDir, order, mode, onProgress, ex
       // Run complete (DONE.md written) → this run's pixel reads join the bank.
       onDone: () => appendRunReadsToBank(runDir, (msg) => onProgress?.(msg)),
       onEvent: (msg) => onProgress?.(msg),
+      // The intake rewrite must never drop the founder's exact URL (gate + collect fetch it verbatim).
+      brandUrl,
     }),
     // JSONL session resume (the docs' recommended return-to-a-conversation path).
     ...(resumeSessionId ? { resume: resumeSessionId } : {}),
