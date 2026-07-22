@@ -1,0 +1,11 @@
+{
+  "name": "creative-lite-loop",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "LITE production pipeline (S154 plan) — the heavy agent-loop distilled to 5 seats + a fat deterministic harvest tool. Imports agent-loop/ modules by path; node_modules is a SYMLINK to agent-loop/node_modules so both loops share ONE SDK instance (no npm install here — new deps go into agent-loop).",
+  "scripts": {
+    "web": "tsx web.ts",
+    "test:harvest": "tsx harvest-test.ts"
+  }
+}

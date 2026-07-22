@@ -46,6 +46,14 @@ export interface ChatSessionArgs {
   /** Reopen a past conversation: the SDK session id from runDir/session.json. The orchestrator
    *  wakes with its full history (intake, verdicts, the lot) and the follow-up router applies. */
   resumeSessionId?: string;
+  /** Pipeline seam (S155): supply a different Options builder (e.g. the lite pipeline) and the
+   *  session drives it with the same held-open stream / AskUserQuestion wiring / watchdog.
+   *  Omitted = the heavy loop's buildBaseOptions, exactly as before. */
+  buildOptions?: (io: {
+    canUseTool: Options['canUseTool'];
+    onProgress?: (line: string) => void;
+    resumeSessionId?: string;
+  }) => Options;
 }
 
 export interface ChatSessionEvents {
@@ -97,6 +105,20 @@ export class ChatSession {
     this.wake = null;
   }
 
+  /** The live SDK query handle — held so a dying host can interrupt the CLI child. */
+  private q: any = null;
+
+  /** HARD stop: interrupt the SDK's CLI subprocess mid-flight, then close the
+   *  stream. end() alone only closes stdin — and the CLI treats stdin EOF as
+   *  "finish the current run", so a killed host leaves an ORPHANED agent running
+   *  with no hooks, no validators, and no MCP tools (S155 F32: run 3's orphan
+   *  wrote 14 fabricated picks over ~11 unsupervised minutes). Additive only —
+   *  no existing behavior changes unless this is called. */
+  async interrupt(): Promise<void> {
+    try { await this.q?.interrupt?.(); } catch { /* child may already be gone */ }
+    this.end();
+  }
+
   // AskUserQuestion is deliberately NOT in allowedTools, so it routes here (our real tools are
   // auto-approved and never reach the callback — Handling-approvals-user-input.md:422).
   private canUseTool: NonNullable<Options['canUseTool']> = async (toolName, input) => {
@@ -127,16 +149,18 @@ export class ChatSession {
 
   async run(): Promise<void> {
     const { brandUrl, runDir, order, mode, logger, resumeSessionId } = this.args;
-    const options = buildBaseOptions({
-      brandUrl,
-      runDir,
-      order,
-      mode,
-      onProgress: this.events.onProgress,
-      canUseTool: this.canUseTool,
-      interactive: true,
-      resumeSessionId,
-    });
+    const options = this.args.buildOptions
+      ? this.args.buildOptions({ canUseTool: this.canUseTool, onProgress: this.events.onProgress, resumeSessionId })
+      : buildBaseOptions({
+          brandUrl,
+          runDir,
+          order,
+          mode,
+          onProgress: this.events.onProgress,
+          canUseTool: this.canUseTool,
+          interactive: true,
+          resumeSessionId,
+        });
 
     let lastActivity = Date.now();
     const watchdog = setInterval(() => {
@@ -147,7 +171,8 @@ export class ChatSession {
     }, 30_000);
 
     try {
-      for await (const m of query({ prompt: this.promptStream(), options }) as any) {
+      this.q = query({ prompt: this.promptStream(), options });
+      for await (const m of this.q as any) {
         lastActivity = Date.now();
         logger.record(m);
         this.events.onMessage(m);

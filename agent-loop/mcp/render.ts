@@ -202,8 +202,13 @@ export function createRenderServer(outputDir: string, refsBaseDir?: string) {
             ? ['kie', 'fal']
             : ['fal', 'kie'];
 
-      const results: any[] = [];
-      for (const job of args.jobs) {
+      // PARALLEL since 1.1.0 (S155): jobs are independent provider chains; serial
+      // execution cost ~100s × N wall-clock (8.3 min for a 5-image batch). Concurrency 3
+      // keeps providers comfortable; result order matches job order. A missing ref is a
+      // PER-JOB error now (it used to reject the whole batch).
+      const results: any[] = new Array(args.jobs.length);
+      let nextJob = 0;
+      const renderOne = async (job: (typeof args.jobs)[number]): Promise<any> => {
         const ratio = job.size ?? '4:5';
         const refPaths: string[] = [];
         for (const p of job.refs ?? []) {
@@ -212,10 +217,9 @@ export function createRenderServer(outputDir: string, refsBaseDir?: string) {
             continue;
           }
           const abs = path.isAbsolute(p) ? p : path.resolve(refsBaseDir ?? process.cwd(), p);
-          if (!fs.existsSync(abs)) throw Object.assign(new Error(`ref not found: ${p} (resolved ${abs})`), { jobName: job.name });
+          if (!fs.existsSync(abs)) return { name: job.name, error: `ref not found: ${p} (resolved ${abs})` };
           refPaths.push(abs);
         }
-
         let rendered: { buf: Buffer; note: string } | null = null;
         const errors: string[] = [];
         for (const provider of order) {
@@ -226,22 +230,31 @@ export function createRenderServer(outputDir: string, refsBaseDir?: string) {
             errors.push(`${provider}: ${e?.message ?? String(e)}`);
           }
         }
-
-        if (!rendered) {
-          results.push({ name: job.name, error: errors.join(' | ') });
-          continue;
-        }
+        if (!rendered) return { name: job.name, error: errors.join(' | ') };
         const filePath = path.join(outputDir, `${job.name}_${stamp()}.png`);
         fs.writeFileSync(filePath, rendered.buf);
-        results.push({
+        return {
           name: job.name,
           filePath, // absolute — Read() this to view the pixels
           sizeKB: Math.round(rendered.buf.length / 1024),
           ratio,
           refsBound: refPaths.length,
           provider: rendered.note,
-        });
-      }
+        };
+      };
+      await Promise.all(
+        Array.from({ length: Math.min(3, args.jobs.length) }, async () => {
+          for (;;) {
+            const i = nextJob++;
+            if (i >= args.jobs.length) return;
+            try {
+              results[i] = await renderOne(args.jobs[i]);
+            } catch (e: any) {
+              results[i] = { name: args.jobs[i].name, error: e?.message ?? String(e) };
+            }
+          }
+        }),
+      );
 
       const ok = results.filter((r) => !r.error).length;
       return {
@@ -266,7 +279,8 @@ export function createRenderServer(outputDir: string, refsBaseDir?: string) {
     },
   );
 
-  return createSdkMcpServer({ name: 'render', version: '1.0.0', tools: [renderImages] });
+  // 1.1.0 = parallel job execution (concurrency 3; per-job ref errors) — S155.
+  return createSdkMcpServer({ name: 'render', version: '1.1.0', tools: [renderImages] });
 }
 
 export const RENDER_TOOL = 'mcp__render__render_images';

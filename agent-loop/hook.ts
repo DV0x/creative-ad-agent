@@ -94,6 +94,11 @@ export interface HookConfig {
    *  model to derive a slug from the product name (observed: soft-404 → false
    *  structural FAIL). */
   brandUrl?: string;
+  /** MCP tools the ORCHESTRATOR may call directly, exempted from the blanket
+   *  orchestrator-MCP block (S155 lite: `capture_products` — the founder names
+   *  catalogue products during intake and the deterministic downloader fetches
+   *  their pack shots pre-research). Additive: unset/empty = block unchanged. */
+  orchestratorMcpAllow?: string[];
 }
 
 export function buildHooks(cfg: HookConfig): Options['hooks'] {
@@ -193,8 +198,8 @@ export function buildHooks(cfg: HookConfig): Options['hooks'] {
               );
             }
 
-            // 1) orchestrator must not call MCP directly
-            if (tool.startsWith('mcp__') && fromOrchestrator) {
+            // 1) orchestrator must not call MCP directly (minus explicit exemptions)
+            if (tool.startsWith('mcp__') && fromOrchestrator && !cfg.orchestratorMcpAllow?.includes(tool)) {
               return deny(
                 `Orchestrator must not call MCP directly (${tool}); route the work to the seat that owns the tool ` +
                 '(brand/page tools live on collect; ad tools on field-scout; render on build). For intake grounding, ' +
