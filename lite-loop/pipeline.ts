@@ -25,12 +25,34 @@ import { createRenderServer, RENDER_TOOL } from '../agent-loop/mcp/render.ts';
 import { buildHooks } from '../agent-loop/hook.ts';
 import { createHarvestServer, HARVEST_TOOL, HUNT_TOOL } from './mcp/harvest.ts';
 import { createCaptureProductsServer, CAPTURE_PRODUCTS_TOOL } from './mcp/capture-products.ts';
+import { INJECTED_FILE, LEARNED_RECORD_FILE } from './memory-store.ts';
 import { LITE_STAGES, LITE_ORDER, type LiteStage } from './stages.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REFERENCES = join(__dirname, 'references');
 
 const ALL_MCP_TOOLS = [PERPLEXITY_TOOL_NAME, HARVEST_TOOL, HUNT_TOOL, RENDER_TOOL, CAPTURE_PRODUCTS_TOOL];
+
+// ── Brand-memory injection (memory plan §7) ──────────────────────────────────
+// The orchestrator gets ONLY the founder-stated rules (memory plan §12.1 — its
+// prompt is re-ingested on every wake, so the block stays minimal), and only to
+// SURFACE intake contradictions. Empty/absent store → '' → the prompt is
+// byte-identical to a memory-less run.
+function memoryConflictBlock(runDir: string): string {
+  try {
+    const inj = JSON.parse(fs.readFileSync(join(runDir, INJECTED_FILE), 'utf8'));
+    const laws = (Array.isArray(inj?.rules) ? inj.rules : []).filter((r: any) => r?.status === 'founder-stated');
+    if (!laws.length) return '';
+    return `
+MEMORY CONFLICTS — previous runs recorded these FOUNDER-STATED rules for this brand:
+${laws.map((r: any) => `  - ${r.scope === 'user' ? 'user-' : ''}R${r.id}: ${r.text}`).join('\n')}
+If an intake answer CONTRADICTS one of these, ask ONE extra AskUserQuestion — "policy change,
+or one-time exception?" — and record the answer VERBATIM in founder-facts.md under
+"## Memory conflicts". Today's answer always wins for this run either way; never resolve a
+contradiction silently, and never enforce an old rule against today's word.
+`;
+  } catch { return ''; }
+}
 
 // ── The orchestrator prompt — plan §8, verbatim ──────────────────────────────
 export function liteOrchestratorPrompt(brandUrl: string, runDir: string): string {
@@ -80,7 +102,7 @@ FOUNDER INTAKE (you are in a live chat with the founder):
      after the title MUST be \`Brand URL: ${brandUrl}\` — copied VERBATIM, query params
      included. Record founder answers verbatim; founder-given hexes OUTRANK extraction.
      State every gap explicitly, and describe what the pack shots ACTUALLY show.
-
+${memoryConflictBlock(runDir)}
 RUN THIS FLOW, in order:
   • research — subagent "research" → research.md (numbered verbatim artifacts + the
       ## Competitor candidates section). Verify it exists, artifacts are numbered, and the
@@ -136,7 +158,7 @@ pipeline; route to the SMALLEST seat that owns the change, scoped by name:
 }
 
 // ── Agents ───────────────────────────────────────────────────────────────────
-function liteAgentDef(stage: LiteStage): AgentDefinition {
+function liteAgentDef(stage: LiteStage, learnedBlock = ''): AgentDefinition {
   const ref = stage.reference ? fs.readFileSync(join(REFERENCES, stage.reference), 'utf8') : null;
   const prompt = ref
     ? `${stage.identityPrompt}\n\n════════════════ YOUR LAW (references/${stage.reference}) ════════════════\n\n${ref}${
@@ -151,7 +173,7 @@ function liteAgentDef(stage: LiteStage): AgentDefinition {
     'a tool call or your finished deliverable.';
   return {
     description: stage.description,
-    prompt: prompt + ANTI_HALT,
+    prompt: prompt + learnedBlock + ANTI_HALT,
     model: stage.model,
     tools: stage.tools,
     mcpServers: stage.mcpServers,
@@ -159,9 +181,27 @@ function liteAgentDef(stage: LiteStage): AgentDefinition {
   };
 }
 
-export function buildLiteAgents(): Record<string, AgentDefinition> {
+// Memory plan §7: the learned record reaches RESEARCH and CREATE only. THE
+// JUDGE STAYS COLD [F] — independence is its value (S118 same-model-blessing);
+// field is evidence-driven; build executes approved specs.
+const MEMORY_SEATS = new Set(['research', 'create']);
+
+export function buildLiteAgents(runDir?: string): Record<string, AgentDefinition> {
+  // Inlined (≤4KB) rather than left for the seat to Read — no extra turn, no
+  // reliance on the model choosing to look. The run-dir audit copy is the single
+  // source, so resume re-injects the identical record and a memory-less run
+  // (file absent / LITE_MEMORY_OFF) builds byte-identical prompts to today.
+  let learned = '';
+  if (runDir) {
+    try { learned = fs.readFileSync(join(runDir, LEARNED_RECORD_FILE), 'utf8').trim(); } catch { /* no record */ }
+  }
   const agents: Record<string, AgentDefinition> = {};
-  for (const name of LITE_ORDER) agents[name] = liteAgentDef(LITE_STAGES[name]);
+  for (const name of LITE_ORDER) {
+    const block = learned && MEMORY_SEATS.has(name)
+      ? `\n\n════════════════ LEARNED RECORD (${LEARNED_RECORD_FILE}) ════════════════\n\n${learned}`
+      : '';
+    agents[name] = liteAgentDef(LITE_STAGES[name], block);
+  }
   return agents;
 }
 
@@ -636,7 +676,7 @@ export function buildLiteOptions({ brandUrl, runDir, onProgress, canUseTool, res
     // disallowedTools is enforced ahead of that auto-approval; the callback gate
     // below still covers everything else.
     disallowedTools: ['Bash'],
-    agents: buildLiteAgents(),
+    agents: buildLiteAgents(runDir),
     hooks,
     ...(resumeSessionId ? { resume: resumeSessionId } : {}),
     maxTurns: 100,

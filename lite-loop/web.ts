@@ -23,6 +23,11 @@ import { TraceLogger } from '../agent-loop/trace.ts';
 import { buildLiteOptions } from './pipeline.ts';
 import { LITE_ORDER } from './stages.ts';
 import { captureStepZero } from './capture.ts';
+import {
+  DEFAULT_ACCOUNT, appendEvent, brandDir, injectLearnedRecord, resolveBrandKeyForRun,
+  specTokens, userNotebookPath, type EventType,
+} from './memory-store.ts';
+import { depositRun } from './memory-deposit.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const LITE_DIR = __dirname;
@@ -180,6 +185,14 @@ wss.on('connection', (ws) => {
   let refCount = 0;
   let imgWatcher: ReturnType<typeof watch> | null = null;
   let dirty = false;
+  // brand-memory diary target for this connection's run (memory plan §4) —
+  // resolved after capture (redirect-confirmed host). Memory NEVER breaks the
+  // chat: every writer is fail-soft, null just means "no diary yet".
+  let memDir: string | null = null;
+  const logMemory = (type: EventType, extra: Record<string, unknown>) => {
+    if (!memDir || !runId) return;
+    try { appendEvent(memDir, { run: runId, type, ...extra }); } catch { /* fail-soft */ }
+  };
 
   const send = (obj: unknown) => {
     if (ws.readyState === ws.OPEN) ws.send(JSON.stringify(obj));
@@ -212,9 +225,14 @@ wss.on('connection', (ws) => {
       resumeRun(String(msg.runId ?? '')).catch((e) => send({ type: 'ended', error: String(e?.message ?? e) }));
     else if (msg.type === 'answer' && session) {
       bump({ t: 'answered', a: msg.answers });
+      logMemory('intake_answer', { answers: msg.answers }); // §12.2: the structure IS verbatim
       session.answer(msg.answers);
     } else if (msg.type === 'message' && session && typeof msg.text === 'string') {
       bump({ t: 'user', text: msg.text });
+      const specs = specTokens(msg.text);
+      logMemory('followup', { text: msg.text, ...(specs.length ? { specs } : {}) });
+      // "remember: …" is the founder speaking a rule directly (§8) — ALSO a founder_note
+      if (/^\s*remember\b/i.test(msg.text)) logMemory('founder_note', { text: msg.text });
       session.send(msg.text);
     } else if (msg.type === 'upload' && runDir && msg.image?.dataUrl) {
       refCount++;
@@ -273,6 +291,28 @@ wss.on('connection', (ws) => {
       send({ type: 'status', text: `capture had trouble (${e?.message ?? e}) — the agent will lean on your answers` });
     }
 
+    // BRAND MEMORY (memory plan §4/§7) — after capture so the brand key is the
+    // redirect-confirmed landing host; BEFORE the session, so buildLiteOptions
+    // sees the learned record when it builds the seat prompts.
+    try {
+      const brandKey = resolveBrandKeyForRun(runDir, url);
+      memDir = brandDir(DEFAULT_ACCOUNT, brandKey);
+      if (process.env.LITE_MEMORY_OFF === '1') {
+        send({ type: 'status', text: '· brand memory OFF (LITE_MEMORY_OFF=1) — control run, diary still records' });
+      } else {
+        const rules = injectLearnedRecord(runDir, {
+          account: DEFAULT_ACCOUNT, brandKey, dir: memDir, userPath: userNotebookPath(DEFAULT_ACCOUNT),
+        });
+        if (rules) {
+          const laws = rules.filter((r) => r.status === 'founder-stated').length;
+          send({ type: 'status', text: `· brand memory: injected ${rules.length} learned rule(s)${laws ? ` (${laws} founder-stated)` : ''} → research + create` });
+        }
+      }
+    } catch (e: any) {
+      memDir = null;
+      send({ type: 'status', text: `brand memory skipped (${e?.message ?? e}) — run continues without it` });
+    }
+
     watchRenders();
 
     session = new ChatSession(
@@ -312,6 +352,13 @@ wss.on('connection', (ws) => {
         logger.finalize();
         bump({ t: 'ended', err: err?.message });
         send({ type: 'ended', error: err?.message });
+        // memory deposit (memory plan §5 trigger a): fire-and-forget on a
+        // COMPLETED run — depositRun is idempotent, so repeat onEnds (resume,
+        // reconnect) skip on the watermark instead of double-spending.
+        if (runDir && existsSync(join(runDir, 'DONE.md'))) {
+          void depositRun(runDir, { log: (l) => process.stdout.write(`  · memory: ${l}\n`) })
+            .catch((e) => process.stdout.write(`  · memory deposit failed (non-fatal): ${e?.message ?? e}\n`));
+        }
       },
     };
   }
@@ -341,6 +388,9 @@ wss.on('connection', (ws) => {
     }
     runDir = dir;
     runId = runId_;
+    // diary target only — no injection on resume: learned-record.md (if any)
+    // persisted from startRun, so the seats re-inline the IDENTICAL record.
+    try { memDir = brandDir(DEFAULT_ACCOUNT, resolveBrandKeyForRun(runDir, info.brandUrl)); } catch { memDir = null; }
     const logger = new LiteTraceLogger(runDir, { append: true });
     view = liteView(rehydrateView(runDir, info.brandUrl, info.order.length ? info.order : [...LITE_ORDER]));
     dirty = true;
