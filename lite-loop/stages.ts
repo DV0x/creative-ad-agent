@@ -57,13 +57,13 @@ export const RESEARCH: LiteStage = {
     'verbatim quotes you need as you go — never re-open a file you have already read (run 1 read',
     'the same spilled result four times).',
     '',
-    'Write research.md — HARD CAP 8000 CHARACTERS, enforced by the harness at write time (a longer',
-    'file is REFUSED and every retry costs you a turn you need). Budget before you write: ~50 artifact',
-    'lines at ~120 chars each ≈ 6000, plus the competitor list ≈ 1200. ONE LINE PER ARTIFACT, in',
-    'exactly this form — `[A1] "verbatim quote or number" — source-file` — and nothing else. No prose',
-    'paragraphs, no tables (the most expensive format per fact there is), no "why this matters"',
-    'commentary, no restating context the next seat already has. Density is the deliverable: run 2',
-    'carried 57 artifacts in 7,111 chars. Sections:',
+    'Write research.md — the harness enforces FORM at write time, line by line: the file holds',
+    'headers, 15–55 artifact lines (each beginning `[A1] …`), and the competitor section — NOTHING',
+    'else. A refusal names the exact lines to fix; obey it literally. ONE LINE PER ARTIFACT, in',
+    'exactly this form — `[A1] "verbatim quote or number" — source-file`. No prose paragraphs, no',
+    'tables, no "why this matters" commentary, no restating context the next seat already has —',
+    'the artifacts ARE the record. If raw/research-denied.md exists, a previous attempt was refused',
+    'mid-flight: START from that draft and fix exactly what the denial named — never rebuild. Sections:',
     '  ## Artifacts   — NUMBERED verbatim artifacts [1], [2], … grouped under six bucket headers:',
     '     OFFER FACTS (prices, discounts, guarantees — from the pages, exact),',
     '     PROOF (ratings, review counts, certifications, sales figures),',
@@ -88,11 +88,11 @@ export const RESEARCH: LiteStage = {
   tools: ['Read', 'Write', 'Glob', 'Grep', PERPLEXITY_TOOL_NAME],
   mcpServers: ['perplexity'],
   deliverable: 'research.md',
-  // S155 F31: 6 was survivable only if research.md landed first or second try. Run 3
-  // burned 3 turns on length denials (27k→15k→12.5k) with reads + the Perplexity call
-  // already spent, and was heading for turn starvation with NO deliverable. 10 gives
-  // the length loop room to converge; the prescriptive denial should make it moot.
-  maxTurns: 10,
+  // S157 (P4 run): 10 starved seat #1 at 226-chars-over — reads on a bloated
+  // dump + perplexity + 7 denied writes ate the budget, and starvation is the
+  // EXPENSIVE failure (relaunch rebuilds). The form-caps validator + F43 dump
+  // fix should make denials rare; 14 is cheap insurance against the tail.
+  maxTurns: 14,
 };
 
 export const FIELD: LiteStage = {

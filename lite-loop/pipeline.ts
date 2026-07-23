@@ -75,7 +75,10 @@ STALL RECOVERY: if a seat's completion notification arrives but its deliverable 
 MISSING or incomplete, do not immediately relaunch. Send that SAME agent a SendMessage
 naming exactly what remains ("you stopped after X; now do Y and write <file>") — its
 context is intact, so the nudge is far cheaper than a fresh launch. ONE nudge; if the
-deliverable is still missing after it, relaunch the seat once.
+deliverable is still missing after it, relaunch the seat once. When relaunching RESEARCH,
+check (Glob) raw/research-denied.md first — if it exists, that is the dead seat's last
+refused draft: tell the relaunch to START from that file and fix what the denial named,
+never to rebuild from scratch.
 
 FOUNDER INTAKE (you are in a live chat with the founder):
   0. Read brand.md ONLY (and raw/redirect.txt if it exists) — do NOT read the raw page texts;
@@ -251,34 +254,53 @@ const allProblems = (issues: string[]): string | null =>
       ? issues[0]
       : `${issues.length} problems, fix ALL of them in ONE rewrite: ${issues.map((p, i) => `(${i + 1}) ${p}`).join(' ')}`;
 
-export const RESEARCH_CHAR_CAP = 8000;
+/** research.md — S157 rewrite: the 8000-char cap asked the model to count
+ *  CHARACTERS, the one thing it cannot do (P4 run: 13 denials, a seat starved
+ *  226-over, ~15 min lost). The law is now FORM, which code counts perfectly
+ *  and a model can follow by line: one line per artifact, a bounded artifact
+ *  count, no prose outside headers. Length becomes an emergent property
+ *  (≤55 one-liners + the competitor list ≈ 9–10K). Denials name EXACT lines.
+ *  A char backstop stays as the runaway guard only (run 3 wrote a 27K essay). */
+export const RESEARCH_BACKSTOP_CHARS = 15_000;
+export const RESEARCH_ARTIFACT_FLOOR = 15;
+export const RESEARCH_ARTIFACT_CEILING = 55;
+export const RESEARCH_PROSE_ALLOWANCE = 2;
 
-/** research.md: the ONE PAGE cap is enforced, not suggested (run 1: 16.5KB → taxed
- *  create + judge context for the whole run).
- *
- *  S155 F31 — the denial must be SURGICAL, not "compress". Run 3's seat trimmed
- *  27,472 → 15,422 → 12,515 and was still over after three full turns (~5 min),
- *  heading for turn starvation with no research.md at all. A vague order buys a
- *  vague trim: state the exact overage, the exact cut, and the exact line format. */
 export function researchProblem(content: string): string | null {
   const issues: string[] = [];
-  if (content.length > RESEARCH_CHAR_CAP) {
-    const over = content.length - RESEARCH_CHAR_CAP;
-    const lines = content.split('\n');
-    const prose = lines.filter((l) => l.trim().length > 0 && !/^\s*[-*|#]/.test(l) && !/\[[A-Z]?\d+\]/.test(l));
-    const proseChars = prose.reduce((n, l) => n + l.length + 1, 0);
-    const tableChars = lines.filter((l) => l.trim().startsWith('|')).reduce((n, l) => n + l.length + 1, 0);
+  const lines = content.split('\n');
+  const compIdx = lines.findIndex((l) => /^##\s*Competitor candidates/i.test(l));
+  if (compIdx === -1) issues.push('missing the "## Competitor candidates" section (6–8 competitors + 2–4 adjacents, with domains when known) — the field harvest cannot run without it');
+  const artifact: number[] = [];
+  const prose: number[] = [];
+  const end = compIdx === -1 ? lines.length : compIdx;
+  for (let i = 0; i < end; i++) {
+    const l = lines[i];
+    if (!l.trim() || /^\s*#/.test(l)) continue;
+    if (/^\s*\[[A-Z]?\d+\]/.test(l)) artifact.push(i + 1);
+    else prose.push(i + 1);
+  }
+  if (artifact.length < RESEARCH_ARTIFACT_FLOOR) {
+    // F39 — the old wording ("every number on the captured pages becomes one")
+    // was misread live as one-artifact-per-PAGE; the seat cut 27 artifacts to 6.
     issues.push(
-      `research.md is ${content.length} chars — ${over} OVER the ${RESEARCH_CHAR_CAP}-char hard cap. Trimming gradually wastes your turns: make ONE decisive rewrite targeting ~7000 chars. ` +
-      `MECHANICAL SURGERY, in this order: (a) DELETE every prose/explanatory line that is not a numbered artifact — ${prose.length} such lines are carrying ${proseChars} chars right now; ` +
-      (tableChars > 200 ? `(b) DELETE every markdown table (${tableChars} chars) — tables are the single most expensive format per fact; ` : '(b) no tables to cut; ') +
-      `(c) ONE LINE PER ARTIFACT, in exactly this form: \`[A1] "verbatim quote or number" — source-file\`, nothing else — no commentary, no "this matters because", no repeated context; ` +
-      `(d) keep EVERY artifact number and the whole ## Competitor candidates list — you are cutting WORDS, never evidence. If it is still over after that, cut the longest quotes to their essential clause, never the artifact count`,
+      `only ${artifact.length} artifact LINES found (a line beginning \`[A1] …\`) — the record needs at least ${RESEARCH_ARTIFACT_FLOOR} SEPARATE one-line artifacts. ` +
+      'Every price, count, rating, and verbatim quote worth using gets its OWN [N] line. NEVER delete artifacts to satisfy another rule — shorten quote WORDS, keep every artifact',
     );
   }
-  if (!/##\s*Competitor candidates/i.test(content)) issues.push('missing the "## Competitor candidates" section (6–8 competitors + 2–4 adjacents, with domains when known) — the field harvest cannot run without it');
-  const artifacts = new Set(content.match(/\[[A-Z]?\d+\]/g) ?? []);
-  if (artifacts.size < 15) issues.push(`only ${artifacts.size} numbered artifacts found — a usable record needs at least 15 (every number on the captured pages becomes one)`);
+  if (artifact.length > RESEARCH_ARTIFACT_CEILING) {
+    issues.push(`${artifact.length} artifact lines — the ceiling is ${RESEARCH_ARTIFACT_CEILING}. Keep the ${RESEARCH_ARTIFACT_CEILING} highest-signal artifacts (offer facts, proof numbers, customer verbatims that copy could anchor on) and drop the weakest — never pad`);
+  }
+  if (prose.length > RESEARCH_PROSE_ALLOWANCE) {
+    const shown = prose.slice(0, 8);
+    issues.push(
+      `lines ${shown.join(', ')}${prose.length > shown.length ? ` (+${prose.length - shown.length} more)` : ''} are PROSE — not artifact lines, not headers. DELETE exactly those lines. ` +
+      'Commentary, context, tables, and "why this matters" never belong in research.md; the artifacts ARE the record',
+    );
+  }
+  if (content.length > RESEARCH_BACKSTOP_CHARS) {
+    issues.push(`research.md is ${content.length} chars — past the ${RESEARCH_BACKSTOP_CHARS}-char runaway backstop. A well-formed record (≤${RESEARCH_ARTIFACT_CEILING} one-line artifacts + the competitor list) cannot reach this size: cut the longest quotes to their essential clause`);
+  }
   return allProblems(issues);
 }
 
@@ -586,7 +608,20 @@ export function buildLiteOptions({ brandUrl, runDir, onProgress, canUseTool, res
         let problem: string | null = null;
         let label = '';
         if (/(^|\/)verdict\.json$/.test(fp)) { label = 'verdict.json'; problem = verdictProblem(content); }
-        else if (/(^|\/)research\.md$/.test(fp)) { label = 'research.md'; problem = researchProblem(content); }
+        else if (/(^|\/)research\.md$/.test(fp)) {
+          label = 'research.md';
+          problem = researchProblem(content);
+          // F38 — stash the denied draft: a denied Write exists only in the
+          // seat's context, so a starved seat's relaunch rebuilt from scratch
+          // (P4 run: seat died 226 chars over; relaunch restarted at 12.4K).
+          // The latest refused draft on disk lets any successor EDIT, not rebuild.
+          if (problem) {
+            try {
+              fs.mkdirSync(join(runDir, 'raw'), { recursive: true });
+              fs.writeFileSync(join(runDir, 'raw', 'research-denied.md'), content);
+            } catch { /* stash is best-effort */ }
+          }
+        }
         else if (/(^|\/)field\/field-summary\.json$/.test(fp)) { label = 'field-summary.json'; problem = summaryProblem(content, loadImageFailures()); }
         else if (/(^|\/)field\/picks\/p\d+\.json$/.test(fp)) { label = fp.split('/').slice(-1)[0]; problem = pickProblem(content, loadManifestLanes(), loadOtherPickIds(fp)); }
         else if (/(^|\/)creatives\/c\d+\.json$/.test(fp)) { label = fp.split('/').slice(-1)[0]; problem = specProblem(content, loadPickIndex(), loadOpenLaneType(), loadHuntOutcome()); }

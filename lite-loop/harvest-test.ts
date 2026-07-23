@@ -29,6 +29,7 @@ import {
 import { verdictProblem, researchProblem, summaryProblem, pickProblem, specProblem, type PickIndex } from './pipeline.ts';
 import { svgIntrinsicSize, rasterizeSvgLogo, discoverPages, packShotInventory, patchSvgBindNote, MAX_PDPS } from './capture.ts';
 import { productUrlProblem } from './mcp/capture-products.ts';
+import { extractProductData, extractWidgetReviews, htmlToText, REVIEW_APP_RE } from '../agent-loop/mcp/brand-identity.ts';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const FIXTURES = join(__dirname, 'fixtures');
@@ -216,33 +217,28 @@ const goodVerdict = JSON.stringify({
 });
 check('verdict with captionFixes passes', verdictProblem(goodVerdict) === null);
 check('verdict with junk captionFixes fails', verdictProblem(goodVerdict.replace('["remove \'Ships today\' — no shipping anchor exists"]', '[42]')) !== null);
-check('research over 8000 chars fails', researchProblem('x'.repeat(8100)) !== null);
-// S155 F31: the denial is SURGICAL — run 3's seat trimmed 27k→15k→12.5k over three
-// turns against a vague "compress" and never landed. It must state the overage, the
-// prose/table cost, and the exact line format, in ONE decisive order.
+// S157 form-caps rewrite: the 8000-char cap asked the model to count characters
+// (P4 run: 13 denials, a starved seat at 226-over). The law is now FORM — code
+// counts lines, denials name exact line numbers, length is emergent.
 {
-  const bloated = [
-    '## Artifacts',
-    ...Array.from({ length: 20 }, (_, i) => `[A${i + 1}] "fact ${i}" — home.txt`),
-    // 60 × ~140 chars of prose ≈ 8.4k on their own — the fixture must actually EXCEED
-    // the 8000 cap or the denial never fires (the first draft of this test was 7.6k
-    // and probed a null)
-    ...Array.from({ length: 60 }, () => 'This artifact matters because the buyer needs reassurance at the decision moment, and the brand has said so repeatedly across the site copy.'),
-    '| col | col |', '| --- | --- |', ...Array.from({ length: 30 }, (_, i) => `| row ${i} | some value here that costs characters |`),
-    '## Competitor candidates', '- Snitch — snitch.co.in',
-  ].join('\n');
-  const p = researchProblem(bloated);
-  check('F31 denial states the exact overage and the ~7000 target', p !== null && /\d+ OVER the 8000-char hard cap/.test(p) && p.includes('7000'));
-  check('F31 denial counts the prose lines carrying the weight', p !== null && /\d+ such lines are carrying \d+ chars/.test(p));
-  check('F31 denial names the table cost when tables exist', p !== null && /DELETE every markdown table \(\d+ chars\)/.test(p));
-  check('F31 denial prescribes the one-line artifact format', p !== null && p.includes('[A1] "verbatim quote or number" — source-file'));
-  check('F31 denial forbids cutting evidence', p !== null && p.includes('cutting WORDS, never evidence'));
-  const noTables = researchProblem(bloated.split('\n').filter((l) => !l.trim().startsWith('|')).join('\n'));
-  check('F31 denial adapts when there are no tables to cut', noTables !== null && noTables.includes('no tables to cut'));
+  const goodResearch = '## Artifacts\n' + Array.from({ length: 16 }, (_, i) => `[A${i + 1}] fact ${i}`).join('\n') + '\n## Competitor candidates\n- Snitch — snitch.co.in';
+  check('research with 16 artifacts + candidates passes', researchProblem(goodResearch) === null);
+  check('research without candidates section fails', researchProblem(goodResearch.replace('## Competitor candidates', '## Rivals')) !== null);
+  // ~55 artifacts × 150 chars ≈ 9K — LEGAL: no character counting anymore, form is the law
+  const bigButFormed = '## Artifacts\n'
+    + Array.from({ length: 55 }, (_, i) => `[A${i + 1}] "a long verbatim quote pulled straight off the product page carrying real specifics ${i}" — home.txt`).join('\n')
+    + '\n## Competitor candidates\n- Snitch — snitch.co.in';
+  check('form-caps: a big but WELL-FORMED record passes (no char cap)', researchProblem(bigButFormed) === null);
+  const withProse = goodResearch.replace('[A5] fact 4', 'This matters because the buyer needs reassurance at the decision moment.\n[A5] fact 4\nAnother explanatory paragraph restating context the next seat already has.\nA third prose line to clear the allowance.');
+  const pp = researchProblem(withProse);
+  check('form-caps: prose denial names EXACT line numbers', pp !== null && /lines \d+(, \d+)+/.test(pp) && pp.includes('DELETE exactly those lines'));
+  const floor = researchProblem('## Artifacts\n[A1] one\n[A2] two\n## Competitor candidates\n- Snitch — snitch.co.in');
+  check('form-caps: F39 floor message counts LINES and forbids deleting artifacts', floor !== null && floor.includes('artifact LINES') && floor.includes('NEVER delete artifacts'));
+  const ceiling = researchProblem('## Artifacts\n' + Array.from({ length: 70 }, (_, i) => `[A${i + 1}] fact`).join('\n') + '\n## Competitor candidates\n- x — x.com');
+  check('form-caps: artifact ceiling refuses padding', ceiling !== null && ceiling.includes('ceiling is 55'));
+  const runaway = researchProblem('## Artifacts\n' + Array.from({ length: 40 }, (_, i) => `[A${i + 1}] "${'x'.repeat(400)}"`).join('\n') + '\n## Competitor candidates\n- x — x.com');
+  check('form-caps: runaway backstop still guards pathological size', runaway !== null && runaway.includes('runaway backstop'));
 }
-const goodResearch = '## Artifacts\n' + Array.from({ length: 16 }, (_, i) => `[A${i + 1}] fact ${i}`).join('\n') + '\n## Competitor candidates\n- Snitch — snitch.co.in';
-check('research with 16 artifacts + candidates passes', researchProblem(goodResearch) === null);
-check('research without candidates section fails', researchProblem(goodResearch.replace('## Competitor candidates', '## Rivals')) !== null);
 const goodSummary = JSON.stringify({ register: 'premium-clinical: evidence "Giza Cotton Shirts" (p5), "Summer in Linen" (p4) — controlled, fabric-forward.', formatShare: { counts: { 'product-hero': 3 }, read: 'pack-shot dominant' }, openLane: { type: 'claim-gap', description: 'x' }, intel: [], doNotClone: [], honesty: [] });
 check('summary on schema passes', summaryProblem(goodSummary) === null);
 check('summary with wrong keys fails (the run-1 v1 case)', summaryProblem(JSON.stringify({ totalPicks: 5, laneCounts: {} })) !== null);
@@ -463,6 +459,45 @@ check('non-http scheme is refused', productUrlProblem('file:///etc/passwd', HOST
   check('packShotInventory groups by product and skips the logo',
     inv.includes('3 image(s) across 2 product(s)') && inv.includes('**alpha** — 2 shot(s)') && inv.includes('**beta** — 1 shot(s)') && !inv.includes('logo'));
   fs.rmSync(tmp, { recursive: true, force: true });
+}
+
+// ── S157: review extraction + page-text fixes (the trunativ misses) ─────────
+console.log('\n[S157] brand-identity — rating fallbacks, dangling-script strip, widget reviews');
+{
+  // F42a: JSON-LD 0/0 stub is absence, not a zero — and the Judge.me badge
+  // (live-verified on trunativ.co: 4.79/145 in static HTML) fills the gap.
+  const stub = '<script type="application/ld+json">{"@type":"Product","name":"X","aggregateRating":{"ratingValue":0,"reviewCount":0}}</script>';
+  check('0/0 JSON-LD aggregateRating is ignored (theme stub, not proof)', extractProductData(stub).rating === null);
+  const jdgm = stub + "<span class='jdgm-prev-badge' data-average-rating='4.79' data-number-of-reviews='145'></span>";
+  const r1 = extractProductData(jdgm).rating;
+  check('Judge.me badge attrs fill the rating (4.79★/145)', r1 !== null && r1.value === 4.79 && r1.count === 145);
+  const visible = '<div><p>Customer Reviews</p><p>Based on 145 reviews</p></div>';
+  const r2 = extractProductData(visible).rating;
+  check('visible "Based on N reviews" → count-only rating (value null)', r2 !== null && r2.value === null && r2.count === 145);
+  check('real JSON-LD rating still wins', extractProductData('<script type="application/ld+json">{"@type":"Product","aggregateRating":{"ratingValue":4.5,"reviewCount":88}}</script>').rating?.count === 88);
+
+  // F43: the HTML cap slices mid-script → unterminated block must not leak as "text"
+  const sliced = '<p>Grass-fed whey protein.</p><script>var product = {"id":123,"variants":[{"price":109900}]';
+  const txt = htmlToText(sliced);
+  check('dangling (cap-sliced) script content stripped from page text', txt.includes('Grass-fed whey protein') && !txt.includes('variants') && !txt.includes('109900'));
+  check('paired scripts still stripped, prose kept', htmlToText('<script>var a=1;</script><p>Real words.</p>') === 'Real words.');
+
+  // F42b: Judge.me review blocks parse out of rendered HTML
+  const revHtml = [
+    '<div class="jdgm-rev jdgm-divider-top">',
+    '  <span class="jdgm-rev__rating" data-score="5"></span>',
+    '  <span class="jdgm-rev__author">Priya S.</span>',
+    '  <div class="jdgm-rev__body"><p>Mixes so easily and actually tastes clean. Reordered twice already.</p></div>',
+    '</div>',
+    '<div class="jdgm-rev">',
+    '  <span class="jdgm-rev__rating" data-score="4"></span>',
+    '  <span class="jdgm-rev__author">Arjun</span>',
+    '  <div class="jdgm-rev__body"><p>Good protein, no bloating for me. Wish the sachet pack was cheaper.</p></div>',
+    '</div>',
+  ].join('\n');
+  const revs = extractWidgetReviews(revHtml);
+  check('extractWidgetReviews parses author + score + verbatim body', revs.length === 2 && revs[0].author === 'Priya S.' && revs[0].score === 5 && revs[0].body.includes('tastes clean'));
+  check('REVIEW_APP_RE detects the widget markers', REVIEW_APP_RE.test('class="jdgm-widget"') && REVIEW_APP_RE.test('cdn.judge.me') && !REVIEW_APP_RE.test('plain shopify page'));
 }
 
 // ── verdict ──────────────────────────────────────────────────────────────────

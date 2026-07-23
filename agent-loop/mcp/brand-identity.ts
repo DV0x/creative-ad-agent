@@ -430,7 +430,11 @@ export interface ProductData {
   name: string | null;
   price: string | null;
   imageUrls: string[]; // og:image first (usually the largest hero), then JSON-LD
-  rating: { value: number; count: number } | null; // AggregateRating — a citable proof number
+  /** Aggregate rating — a citable proof number. value null = count known but
+   *  score not in static HTML (visible-text fallback). NEVER 0-count: a 0/0
+   *  JSON-LD stub is theme boilerplate, not proof (F42 — trunativ shipped
+   *  "0★ from 0 ratings" while 4.79★/145 sat in the Judge.me badge attrs). */
+  rating: { value: number | null; count: number } | null;
   faqs: Array<{ q: string; a: string }>; // FAQPage entries, VERBATIM — objections pre-answered
   description: string | null; // Shopify body_html when present (stripped, verbatim text)
 }
@@ -461,7 +465,9 @@ export function extractProductData(html: string): ProductData {
           const offer = Array.isArray(node.offers) ? node.offers[0] : node.offers;
           if (offer?.price != null) price = `${offer.price}${offer.priceCurrency ? ' ' + offer.priceCurrency : ''}`;
           const ar = node.aggregateRating;
-          if (ar?.ratingValue != null && ar?.reviewCount != null) rating = { value: Number(ar.ratingValue), count: Number(ar.reviewCount) };
+          // count > 0 required: themes emit a 0/0 aggregateRating stub when the
+          // review app isn't wired into JSON-LD — that's absence, not a zero.
+          if (ar?.ratingValue != null && Number(ar.reviewCount) > 0) rating = { value: Number(ar.ratingValue), count: Number(ar.reviewCount) };
         }
         if (type === 'faqpage' && Array.isArray(node.mainEntity)) {
           for (const qa of node.mainEntity) {
@@ -473,7 +479,53 @@ export function extractProductData(html: string): ProductData {
       }
     } catch { /* not our JSON */ }
   }
+  // F42a — review-widget fallbacks, in trust order. Judge.me (and kin) render
+  // the AGGREGATE server-side even though review bodies load via JS; JSON-LD
+  // absence does not mean rating absence.
+  if (!rating) {
+    const avg = html.match(/data-average-rating=["']([\d.]+)["']/i);
+    const cnt = html.match(/data-number-of-reviews=["'](\d+)["']/i);
+    if (avg && cnt && Number(cnt[1]) > 0) rating = { value: Number(avg[1]), count: Number(cnt[1]) };
+  }
+  if (!rating) {
+    const val = html.match(/itemprop=["']ratingValue["'][^>]*content=["']([\d.]+)["']/i) ?? html.match(/content=["']([\d.]+)["'][^>]*itemprop=["']ratingValue["']/i);
+    const cnt = html.match(/itemprop=["'](?:reviewCount|ratingCount)["'][^>]*content=["'](\d+)["']/i) ?? html.match(/content=["'](\d+)["'][^>]*itemprop=["'](?:reviewCount|ratingCount)["']/i);
+    if (val && cnt && Number(cnt[1]) > 0) rating = { value: Number(val[1]), count: Number(cnt[1]) };
+  }
+  if (!rating) {
+    // visible widget text — count only, score unknown (value: null, callers label it)
+    const m = htmlToText(html).match(/based on (\d{1,6}) reviews?/i);
+    if (m && Number(m[1]) > 0) rating = { value: null, count: Number(m[1]) };
+  }
   return { name, price, imageUrls: urls.slice(0, 6), rating, faqs, description };
+}
+
+/** Review-app markers whose widgets hold verbatim customer text worth a
+ *  rendered-tier pull (bodies are client-loaded on all of them). */
+export const REVIEW_APP_RE = /jdgm|judge\.me|loox|stamped\.io|yotpo|okendo/i;
+
+export interface WidgetReview { author: string | null; score: number | null; body: string }
+
+/** Judge.me review blocks out of RENDERED page HTML — the widget's verbatim
+ *  customer voices (author + stars + body). Pure; exported for testing. */
+export function extractWidgetReviews(html: string, max = 8): WidgetReview[] {
+  const out: WidgetReview[] = [];
+  for (const m of html.matchAll(/<div[^>]*class=["'][^"']*jdgm-rev\b[^"']*["'][\s\S]*?(?=<div[^>]*class=["'][^"']*jdgm-rev\b|$)/gi)) {
+    const block = m[0];
+    const body = block.match(/class=["'][^"']*jdgm-rev__body[^"']*["'][^>]*>([\s\S]*?)<\/(?:div|p|span)>/i);
+    if (!body) continue;
+    const text = decodeEntities(body[1].replace(/<[^>]*>/g, ' ')).replace(/\s+/g, ' ').trim();
+    if (text.length < 15) continue;
+    const author = block.match(/class=["'][^"']*jdgm-rev__author[^"']*["'][^>]*>([^<]+)</i);
+    const score = block.match(/class=["'][^"']*jdgm-rev__rating[^"']*["'][^>]*data-score=["']([\d.]+)["']/i);
+    out.push({
+      author: author ? decodeEntities(author[1]).trim() || null : null,
+      score: score ? Number(score[1]) : null,
+      body: text.slice(0, 400),
+    });
+    if (out.length >= max) break;
+  }
+  return out;
 }
 
 const PRODUCT_IMG_MIN = 10_000;
@@ -593,10 +645,37 @@ export async function runProductPhotos(pages: string[], runDir?: string): Promis
         }
       } catch { /* next */ }
     }
-    dump.push({ url, name: p.name, price: p.price, rating: p.rating, faqs: p.faqs, description: p.description, shopifyGallery: Boolean(shopify), imageUrls: p.imageUrls.slice(0, 12), reviewCardUrls: reviewUrls, savedTo: paths, reviewCardsSavedTo: reviewPaths });
+    // F42b — verbatim review BODIES: widgets client-load them, so a page that
+    // shows a review app gets ONE rendered-tier pull; the customer voices land
+    // as a verbatim file research can quote. Fail-soft (no Playwright → skip).
+    let widgetReviews: WidgetReview[] = [];
+    let reviewsSavedTo: string | null = null;
+    if (REVIEW_APP_RE.test(pg.html)) {
+      widgetReviews = extractWidgetReviews(pg.html);
+      if (!widgetReviews.length) {
+        const rendered = await fetchRendered(url);
+        if (rendered) widgetReviews = extractWidgetReviews(rendered);
+      }
+      if (widgetReviews.length && runDir) {
+        try {
+          const pagesDir = path.join(runDir, 'raw', 'pages');
+          fs.mkdirSync(pagesDir, { recursive: true });
+          reviewsSavedTo = path.join(pagesDir, `reviews-${slug}.txt`);
+          fs.writeFileSync(reviewsSavedTo, [
+            `CUSTOMER REVIEWS — ${url} (on-page review widget, VERBATIM — no model touched them)`,
+            `FETCHED: ${new Date().toISOString()}`,
+            '',
+            ...widgetReviews.map((r, n) => `[REV${n + 1}] ${r.score != null ? `${r.score}★ ` : ''}${r.author ? `${r.author}: ` : ''}"${r.body}"`),
+            '',
+          ].join('\n'));
+        } catch { reviewsSavedTo = null; }
+      }
+    }
+    dump.push({ url, name: p.name, price: p.price, rating: p.rating, faqs: p.faqs, description: p.description, shopifyGallery: Boolean(shopify), imageUrls: p.imageUrls.slice(0, 12), reviewCardUrls: reviewUrls, widgetReviews, savedTo: paths, reviewCardsSavedTo: reviewPaths, reviewsSavedTo });
     blocks.push([
       `[${i + 1}] ${p.name ?? url}${p.price ? ` — ${p.price}` : ''}`,
-      p.rating ? `    RATING (structured, citable): ${p.rating.value}★ from ${p.rating.count} ratings — a real social-proof anchor` : '',
+      p.rating ? `    RATING (structured, citable): ${p.rating.value != null ? `${p.rating.value}★ from ` : ''}${p.rating.count} ratings${p.rating.value == null ? ' (count from the visible widget; score not in static HTML)' : ''} — a real social-proof anchor` : '',
+      reviewsSavedTo ? `    REVIEWS (verbatim, ${widgetReviews.length} pulled from the on-page widget): ${reviewsSavedTo} — quote as customer-voice artifacts with reviewer names; real testimony, never invent one.` : '',
       p.faqs.length ? `    FAQ: ${p.faqs.length} verbatim Q&A pairs captured (product details + pre-answered objections) — full text in raw/product-photos.json; quote as artifacts, never paraphrase` : '',
       p.description ? `    DESCRIPTION (verbatim, ${p.description.length} chars): "${p.description.slice(0, 120)}…" — full text in the dump` : '',
       `    ${saved} file(s) downloaded (og:image + JSON-LD Product${shopify ? ' + Shopify product JSON' : ''} — cross-sell images ignored)`,
@@ -628,12 +707,19 @@ export async function runProductPhotos(pages: string[], runDir?: string): Promis
 // a model ANSWER QUESTIONS about the page — a paraphrase layer inside a seat
 // whose one law is verbatim. This returns the page's actual words, untouched,
 // and saves the full text to raw/pages/ for grepping and quoting.
-function htmlToText(html: string): string {
+export function htmlToText(html: string): string {
   return decodeEntities(
     html
       .replace(/<script[\s\S]*?<\/script>/gi, ' ')
       .replace(/<style[\s\S]*?<\/style>/gi, ' ')
       .replace(/<noscript[\s\S]*?<\/noscript>/gi, ' ')
+      // F43 — the HTML cap can slice mid-block, leaving an UNTERMINATED
+      // script/style whose raw contents would survive tag-stripping as "text"
+      // (trunativ: a 116KB "page dump" that was mostly dangling Shopify JSON,
+      // unreadable in one Read and bloating research's raw material). A block
+      // opened but never closed is machine payload to the end of the capture.
+      .replace(/<script[^>]*>[\s\S]*$/gi, ' ')
+      .replace(/<style[^>]*>[\s\S]*$/gi, ' ')
       .replace(/<(?:\/)?(?:p|div|h[1-6]|li|ul|ol|br|tr|section|article|header|footer)[^>]*>/gi, '\n')
       .replace(/<[^>]*>/g, ' '),
   )
