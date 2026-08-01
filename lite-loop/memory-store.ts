@@ -50,7 +50,7 @@ export const outcomesPath = (dir: string): string => join(dir, 'outcomes.csv');
 
 export const EVENT_TYPES = [
   'intake_answer', 'followup', 'judge_ship', 'judge_kill', 'caption_fix', 'redo',
-  'rule_obeyed', 'rule_deleted', 'outcome', 'deposit', 'founder_note',
+  'rule_obeyed', 'rule_deleted', 'rule_dropped', 'outcome', 'deposit', 'founder_note',
 ] as const;
 export type EventType = (typeof EVENT_TYPES)[number];
 

@@ -26,7 +26,7 @@ import { NOTEBOOK_CHAR_CAP, notebookProblem, type NotebookContext } from './memo
 import { buildLiteAgents, liteOrchestratorPrompt } from './pipeline.ts';
 import {
   applyStalenessAndBumps, brandRunOrdinal, buildDepositPrompt, founderEditDiff,
-  synthesizeBackfillEvents, verdictToEvents,
+  hasBlockingFollowup, ruleDrops, ruleObeyedByEvidence, synthesizeBackfillEvents, verdictToEvents,
 } from './memory-deposit.ts';
 import { mirrorOutcomes, unmirroredOutcomes } from './memory-store.ts';
 import { brandStats } from './memory-stats.ts';
@@ -299,6 +299,57 @@ const st = brandStats(statEvents);
 check('brandStats: two runs, first-appearance ordinals', st.length === 2 && st[0].run === 'run-a' && st[0].ordinal === 1 && st[1].ordinal === 2);
 check('brandStats: edits-per-batch counted (run-a 2 → run-b 1, the §9 trend)', st[0].edits === 2 && st[1].edits === 1);
 check('brandStats: ships/kills/obeyed/outcomes per run', st[0].ships === 1 && st[0].kills === 1 && st[0].outcomes === 1 && st[1].obeyed === 1);
+
+// ── 15) S158 — the forgetting ladder (validator) + rule-drop audit ──────────
+console.log('\n[15] S158 — forgetting ladder + rule_dropped audit');
+const TITLE = '# Brand memory — trunativ.co';
+const R1L = '- R1 (founder-stated, r1) [E2] — Never discount framing; premium-clinical register.';
+const R2L = '- R2 (confirmed, last r5) [E12, E31] — No gym-bro tone in copy.';
+const R3L = '- R3 (hypothesis, r5) [E44] — Prefers headlines under 6 words.';
+const R4L = '- R4 (confirmed, last r5) [E9, outcomes:c5] — Text-billboard formats outperform for this brand.';
+const book = (...lines: string[]): string => `${TITLE}\n\n${lines.join('\n')}\n`;
+const LCTX: NotebookContext = { ...CTX, priorNotebook: VALID };
+
+check('dropping a founder-stated rule refused', p(book(R2L, R3L, R4L), LCTX).includes('R1 (founder-stated) is missing'));
+check('dropping a confirmed rule without absorbing citations refused', p(book(R1L, R3L, R4L), LCTX).includes('only leaves by MERGING'));
+check('MERGING a confirmed rule is legal (citations survive on R5)', notebookProblem(
+  book(R1L, R3L, R4L, '- R5 (confirmed, last r5) [E12, E31] — Tone: premium register, gym-bro banned.'), LCTX,
+) === null, String(notebookProblem(book(R1L, R3L, R4L, '- R5 (confirmed, last r5) [E12, E31] — Tone: premium register, gym-bro banned.'), LCTX)));
+check('dropping a hypothesis is legal (deposit logs it)', notebookProblem(book(R1L, R2L, R4L), LCTX) === null);
+check('dropping a stale rule refused (code retires stale, not the model)', p(
+  book('- R7 (hypothesis, r5) [E44] — Fresh idea.'),
+  { ...CTX, priorNotebook: book('- R6 (stale, r5) [E44] — Old aged rule.') },
+).includes('R6 is stale and missing'));
+check('a tombstoned rule is exempt from the ladder (founder deletion, not model forgetting)', notebookProblem(
+  book(R1L, R3L, R4L), { ...CTX, events: TOMB_DIARY, priorNotebook: VALID },
+) === null);
+
+const dropsPlain = ruleDrops(VALID, book(R1L, R3L, R4L), { tombstones: [], codeDropped: [] });
+check('ruleDrops: unabsorbed removal logged as "dropped"', dropsPlain.length === 1 && dropsPlain[0].id === 2 && dropsPlain[0].reason === 'dropped' && JSON.stringify(dropsPlain[0].cites) === JSON.stringify(['E12', 'E31']));
+const dropsMerged = ruleDrops(VALID, book(R1L, R3L, R4L, '- R5 (confirmed, last r5) [E12, E31] — Merged tone rule.'), { tombstones: [], codeDropped: [] });
+check('ruleDrops: citations absorbed → reason "merged"', dropsMerged.length === 1 && dropsMerged[0].reason === 'merged');
+const dropsStale = ruleDrops(VALID, book(R1L, R2L, R3L), { tombstones: [], codeDropped: [4] });
+check('ruleDrops: code staleness drop → reason "stale-aged-out"', dropsStale.length === 1 && dropsStale[0].id === 4 && dropsStale[0].reason === 'stale-aged-out');
+check('ruleDrops: tombstoned rule excluded (rule_deleted already logged it)', ruleDrops(
+  VALID, book(R1L, R3L, R4L), { tombstones: [ev('E60', 'rule_deleted', 'r6-run', { rule: 'R2', text: 'No gym-bro tone in copy.' })], codeDropped: [] },
+).length === 0);
+check('ruleDrops: no prior notebook → nothing to audit', ruleDrops(null, VALID, { tombstones: [], codeDropped: [] }).length === 0);
+
+// ── 16) S158 — the obeyed-checkmark gate ────────────────────────────────────
+console.log('\n[16] S158 — rule_obeyed gate');
+const OB = [
+  ev('E1', 'followup', 'run-x', { text: 'make c3 pop', specs: ['c3'] }),
+  ev('E2', 'followup', 'run-y', { text: 'overall too loud' }),
+];
+check('spec-scoped followup does NOT block checkmarks', hasBlockingFollowup(OB, 'run-x') === false);
+check('a global (unscoped) followup blocks', hasBlockingFollowup(OB, 'run-y') === true);
+check('no followups this run → not blocked', hasBlockingFollowup(OB, 'run-z') === false);
+
+const R3_TEXT = 'Logo: use assets/logo-site.png for all renders — logo-site.svg is on disk but render providers reject SVG.';
+check('positive mechanical rule + token in specs → verified obeyed', ruleObeyedByEvidence(R3_TEXT, '{"logo":"assets/logo-site.png","format":"4:5"}') === true);
+check('token absent from specs → not obeyed', ruleObeyedByEvidence(R3_TEXT, '{"logo":"assets/wordmark.jpg"}') === false);
+check('negated rule NEVER earns evidence (found token means the opposite)', ruleObeyedByEvidence('Never use stock-photo.jpg backgrounds.', 'bg: stock-photo.jpg') === false);
+check('rule with no file tokens → evidence path unavailable', ruleObeyedByEvidence('Register follows the field: warm-clinical, benefit-first.', 'anything at all') === false);
 
 // ── done ─────────────────────────────────────────────────────────────────────
 console.log(failures ? `\n✗ ${failures} check(s) FAILED\n` : '\n✓ all checks green\n');

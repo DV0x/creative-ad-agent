@@ -123,6 +123,57 @@ export function applyStalenessAndBumps(
   return patch;
 }
 
+export interface RuleDrop { id: number; text: string; cites: string[]; reason: 'merged' | 'dropped' | 'stale-aged-out' }
+
+/** S158 forgetting audit: every rule that left the notebook this deposit, and
+ *  why. Tombstoned rules are excluded — the founder's rule_deleted event
+ *  already records those. `merged` = every citation survives on some final
+ *  rule (evidence retained); `dropped` = a hypothesis the model let die;
+ *  `stale-aged-out` = code's own staleness drop. Pure. */
+export function ruleDrops(
+  shownNotebook: string | null,
+  finalContent: string,
+  opts: { tombstones: DiaryEvent[]; codeDropped: number[] },
+): RuleDrop[] {
+  if (!shownNotebook) return [];
+  const finalRules = parseNotebook(finalContent).rules;
+  const finalIds = new Set(finalRules.map((r) => r.id));
+  const survivingCites = new Set(finalRules.flatMap((r) => r.cites));
+  const tombs = new Set(
+    opts.tombstones.filter((t) => typeof t.text === 'string').map((t) => normRuleText(String(t.text))),
+  );
+  const out: RuleDrop[] = [];
+  for (const r of parseNotebook(shownNotebook).rules) {
+    if (finalIds.has(r.id) || tombs.has(normRuleText(r.text))) continue;
+    out.push({
+      id: r.id, text: r.text, cites: r.cites,
+      reason: opts.codeDropped.includes(r.id)
+        ? 'stale-aged-out'
+        : r.cites.every((c) => survivingCites.has(c)) ? 'merged' : 'dropped',
+    });
+  }
+  return out;
+}
+
+/** S158 obeyed-gate: a followup that names c<N> specs is SCOPED feedback and
+ *  blocks nothing globally; a followup with no spec tokens is a global signal
+ *  and blocks the silent-obedience checkmarks for the run. Pure. */
+export const hasBlockingFollowup = (events: DiaryEvent[], runId: string): boolean =>
+  events.some((ev) => ev.run === runId && ev.type === 'followup' && !(Array.isArray(ev.specs) && ev.specs.length > 0));
+
+const NEGATION_RE = /\b(never|not|don'?t|no|avoid|without|ban(?:ned)?)\b/i;
+const FILE_TOKEN_RE = /(?:[\w.-]+\/)*[\w-]+\.(?:png|jpe?g|webp|svg|gif|mp4|json|md|txt|csv)\b/gi;
+
+/** S158 verified compliance: a POSITIVE mechanical rule (names a file, carries
+ *  no negation) is obeyed when a spec actually bound that file — evidence
+ *  beats inferred silence. Negated rules never qualify: for "never use X" a
+ *  found token means the OPPOSITE of obedience. Pure. */
+export function ruleObeyedByEvidence(ruleText: string, specHaystack: string): boolean {
+  if (NEGATION_RE.test(ruleText)) return false;
+  const tokens = ruleText.match(FILE_TOKEN_RE) ?? [];
+  return tokens.length > 0 && tokens.some((t) => specHaystack.includes(t));
+}
+
 /** §12.3 backfill: a pre-memory run has an empty diary — synthesize the intake
  *  record from founder-facts.md (a real file on disk, per the F33 rule; marked
  *  backfill). Verdict events come from the normal copy step. */
@@ -157,6 +208,9 @@ THE LAWS:
 - Prefer EDITING an existing rule over adding a near-duplicate. Ids are stable: edits keep the
   id, new rules take the next free id.
 - TOMBSTONES below are rules the founder deleted. Never rewrite them, in ANY phrasing.
+- FORGETTING is arithmetic too: you may drop a hypothesis (it is logged); a confirmed rule
+  may only disappear by MERGING — a surviving rule must carry its citations; founder-stated
+  and stale lines you keep verbatim (the founder retires laws, code retires stale rules).
 - Never write status "stale" yourself — code stamps it after you. Carry an existing stale line
   verbatim, or re-cite it with fresh evidence at its earned status.
 - A rule backed by THIS run's evidence writes "last r${args.runOrdinal}".
@@ -235,13 +289,21 @@ export async function depositRun(
   const readOpt = (p: string): string | null => { try { return fs.readFileSync(p, 'utf8'); } catch { return null; } };
   const notebookNow = readOpt(notebookFile);
   const snapshot = readOpt(snapshotPath(memDir));
+  // S158: the diff stays non-empty until a deposit COMPLETES (the snapshot
+  // write is the terminator) — an interrupted deposit (server killed, sweep
+  // cut short) must not re-append the same speech on the next attempt.
   const diff = founderEditDiff(snapshot, notebookNow);
-  for (const r of diff.deleted) add({ type: 'rule_deleted', rule: `R${r.id}`, text: r.text });
+  for (const r of diff.deleted) {
+    if (existing.some((ev) => ev.type === 'rule_deleted' && normRuleText(String(ev.text ?? '')) === normRuleText(r.text))) continue;
+    add({ type: 'rule_deleted', rule: `R${r.id}`, text: r.text });
+  }
   // added/edited by hand = the founder holding the pen = founder speech (§5.2);
   // diff.added is only non-empty when the on-disk notebook diverges from the
   // snapshot, i.e. a human touched it between deposits (or hand-created it).
   for (const r of diff.added) {
-    add({ type: 'founder_note', text: `founder hand-${snapshot === null ? 'wrote' : 'edited'} rule R${r.id}: ${r.text}` });
+    const note = `founder hand-${snapshot === null ? 'wrote' : 'edited'} rule R${r.id}: ${r.text}`;
+    if (existing.some((ev) => ev.type === 'founder_note' && ev.text === note)) continue;
+    add({ type: 'founder_note', text: note });
   }
 
   // §12.3 backfill: pre-memory run → synthesize the intake record
@@ -250,18 +312,34 @@ export async function depositRun(
     for (const body of synthesizeBackfillEvents(runDir)) add(body);
   }
 
-  // §6 rule_obeyed soft events: injected + DONE + zero followups this run
+  // §6 rule_obeyed soft events (S158 gate): only a GLOBAL followup blocks the
+  // checkmarks — spec-scoped feedback ("make c3 pop") no longer starves every
+  // rule's clock. And a positive mechanical rule proven in the specs earns its
+  // checkmark even in a blocked run (evidence beats inferred silence).
   const injectedRaw = readOpt(join(runDir, INJECTED_FILE));
   existing = readEvents(memDir);
   if (injectedRaw && !existing.some((ev) => ev.run === runId && ev.type === 'rule_obeyed')) {
-    const hadFollowups = existing.some((ev) => ev.run === runId && ev.type === 'followup');
-    if (!hadFollowups) {
+    const blocked = hasBlockingFollowup(existing, runId);
+    let haystack: string | null = null;
+    const specHaystack = (): string => {
+      if (haystack !== null) return haystack;
+      let s = readOpt(join(runDir, 'creatives.json')) ?? '';
       try {
-        for (const r of JSON.parse(injectedRaw).rules ?? []) {
-          if (r?.scope === 'brand' && typeof r?.id === 'number') add({ type: 'rule_obeyed', rule: `R${r.id}` });
+        for (const f of fs.readdirSync(join(runDir, 'creatives'))) {
+          if (f.endsWith('.json')) s += readOpt(join(runDir, 'creatives', f)) ?? '';
         }
-      } catch { /* malformed injection record — skip soft events */ }
-    }
+      } catch { /* no creatives dir */ }
+      return (haystack = s);
+    };
+    try {
+      for (const r of JSON.parse(injectedRaw).rules ?? []) {
+        if (r?.scope !== 'brand' || typeof r?.id !== 'number') continue;
+        if (!blocked) add({ type: 'rule_obeyed', rule: `R${r.id}` });
+        else if (typeof r.text === 'string' && ruleObeyedByEvidence(r.text, specHaystack())) {
+          add({ type: 'rule_obeyed', rule: `R${r.id}`, verified: true });
+        }
+      }
+    } catch { /* malformed injection record — skip soft events */ }
   }
 
   // §3 scoreboard mirror: hand-entered outcome rows become diary events — a
@@ -319,7 +397,11 @@ export async function depositRun(
             const content = String(input?.tool_input?.content ?? '');
             let problem: string | null = null;
             if (fp === resolve(notebookFile)) {
-              problem = notebookProblem(content, { scope: 'brand', events, outcomes, priorNotebook: snapshot ?? notebookNow });
+              // prior = what the model was SHOWN (the on-disk notebook, founder
+              // edits included) — the S158 forgetting ladder diffs against it;
+              // snapshot only backstops a hand-deleted file (all rules there
+              // are tombstoned by then, so the ladder exempts them).
+              problem = notebookProblem(content, { scope: 'brand', events, outcomes, priorNotebook: notebookNow ?? snapshot });
             } else if (fp === resolve(userFile)) {
               problem = notebookProblem(content, { scope: 'user', events: [], eventsByBrand, priorNotebook: readOpt(userFile) });
             } else {
@@ -354,12 +436,26 @@ export async function depositRun(
   const patch = applyStalenessAndBumps(written, { runOrdinal, obeyedIds, prior: snapshot });
   fs.writeFileSync(notebookFile, patch.content);
   fs.writeFileSync(snapshotPath(memDir), patch.content);
-  appendEvent(memDir, { run: runId, type: 'deposit', throughEvent: watermark } as any);
+
+  // S158 forgetting audit: every removal leaves a diary line — memory never
+  // forgets silently. The audit ids fold UNDER the watermark: they are
+  // bookkeeping, not new evidence, and must not re-open the next deposit.
+  const drops = ruleDrops(notebookNow, patch.content, { tombstones, codeDropped: patch.dropped });
+  let lastAudit = eventOrdinal(watermark);
+  for (const d of drops) {
+    const evd = appendEvent(memDir, {
+      run: runId, type: 'rule_dropped', rule: `R${d.id}`, text: d.text, cites: d.cites, reason: d.reason,
+    } as any);
+    lastAudit = Math.max(lastAudit, eventOrdinal(evd.e));
+  }
+  appendEvent(memDir, { run: runId, type: 'deposit', throughEvent: `E${lastAudit}` } as any);
+
   const rules = parseNotebook(patch.content).rules.length;
   log(`deposit ${brandKey}: ${rules} rule(s), ${denials} denial(s), $${costUsd.toFixed(2)}` +
     (patch.staled.length ? `, staled R${patch.staled.join(',R')}` : '') +
     (patch.dropped.length ? `, dropped R${patch.dropped.join(',R')}` : '') +
-    (patch.bumped.length ? `, bumped R${patch.bumped.join(',R')}` : ''));
+    (patch.bumped.length ? `, bumped R${patch.bumped.join(',R')}` : '') +
+    (drops.length ? `, logged ${drops.length} rule-drop(s) [${drops.map((d) => `R${d.id}:${d.reason}`).join(', ')}]` : ''));
   return { brandKey, appended, denials, rules, patch: { bumped: patch.bumped, staled: patch.staled, dropped: patch.dropped }, costUsd };
 }
 

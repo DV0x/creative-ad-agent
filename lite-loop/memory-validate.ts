@@ -180,6 +180,43 @@ export function notebookProblem(content: string, ctx: NotebookContext): string |
     }
   }
 
+  // The forgetting ladder (S158): a rewrite may only FORGET by arithmetic —
+  // the ACE "context collapse" defense. The model may drop a hypothesis (the
+  // deposit logs it); a confirmed rule leaves only by MERGING (its citations
+  // must survive on other rules); founder-stated is retired by the founder
+  // alone (tombstone path); stale lines are carried verbatim — CODE retires
+  // them on its own clock. Cap pressure stays resolvable: hypotheses drop and
+  // confirmed rules merge, so the ladder and the 4KB cap never deadlock.
+  if (prior) {
+    const newIds = new Set(nb.rules.map((n) => n.id));
+    const survivingCites = new Set(nb.rules.flatMap((n) => n.cites));
+    for (const old of prior.rules) {
+      if (newIds.has(old.id)) continue;
+      // founder deletions arrive as tombstones — recorded, not the model's doing
+      if (tombstones.some((t) => typeof t.text === 'string' && normRuleText(t.text) === normRuleText(old.text))) continue;
+      const r = `R${old.id}`;
+      switch (old.status) {
+        case 'founder-stated':
+          issues.push(`${r} (founder-stated) is missing from this rewrite — only the founder retires a law; keep it verbatim`);
+          break;
+        case 'confirmed': {
+          const lost = old.cites.filter((c) => !survivingCites.has(c));
+          if (lost.length) {
+            issues.push(
+              `${r} (confirmed) is missing and its citation(s) ${lost.join(', ')} survive nowhere — ` +
+              'a confirmed rule only leaves by MERGING; keep it, or fold its citations into the rule that absorbs it',
+            );
+          }
+          break;
+        }
+        case 'stale':
+          issues.push(`${r} is stale and missing — carry stale lines verbatim; CODE retires them on its own clock`);
+          break;
+        // hypothesis: droppable — the deposit logs a rule_dropped diary event
+      }
+    }
+  }
+
   return allProblems(issues);
 }
 

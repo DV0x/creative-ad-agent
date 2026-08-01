@@ -429,4 +429,27 @@ wss.on('connection', (ws) => {
 
 http.listen(PORT, () => {
   process.stdout.write(`\n  ✦ creative-agent LITE → http://localhost:${PORT}\n\n`);
+  void sweepDeposits();
 });
+
+/** S158 deposit sweep: a run that finished while the server was down (or was
+ *  killed right after DONE.md landed) never fired its onEnd deposit — godesi's
+ *  first notebook needed the CLI by hand. At boot, walk completed runs oldest-
+ *  first (run ordinals stay chronological) and deposit each; the watermark
+ *  makes already-deposited runs a cheap skip, and a founder who hand-edited a
+ *  notebook while the server was down gets those edits captured here too. */
+async function sweepDeposits(): Promise<void> {
+  if (!existsSync(RUNS_DIR)) return;
+  for (const name of readdirSync(RUNS_DIR).sort()) {
+    const dir = join(RUNS_DIR, name);
+    if (!existsSync(join(dir, 'DONE.md'))) continue;
+    try {
+      const r = await depositRun(dir, { log: (l) => process.stdout.write(`  · memory sweep: ${l}\n`) });
+      if (!r.skipped) {
+        process.stdout.write(`  · memory sweep: deposited ${name} → ${r.rules} rule(s), $${(r.costUsd ?? 0).toFixed(2)}\n`);
+      }
+    } catch (e: any) {
+      process.stdout.write(`  · memory sweep failed for ${name} (non-fatal): ${e?.message ?? e}\n`);
+    }
+  }
+}
